@@ -1,7 +1,7 @@
 % Script run_validation_FS_fmod
 %  This routine plot the validation of fluctuation strength (Osses et al. model )
 %
-%  SIGNALS: Am tones, fc=1 kHz, m=100%, SPL=70 dB, fmod=[1 2 4 8 16 32]
+%  SIGNALS: AM tones, fc=1 kHz, m=100%, SPL=70 dB, fmod=[1 2 4 8 16 32]
 %
 %  reference values taken from : 
 %  Osses, Alejandro, Rodrigo García, and Armin Kohlrausch (2016). "Modelling 
@@ -10,7 +10,7 @@
 %
 %  Author: Gil Felix Greco, Braunschweig, 02/03/2020 (updated in 13.03.2023)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-clc;clear all; close all;
+clc; clear all; close all;
 
 save_figs=0; %% save figs flag
 
@@ -26,15 +26,27 @@ j=1; % init counter
 
 res=cell(1,size(ref,2));  % declaring for memory allocation
 
+dir_sounds = [basepath_SQAT 'sound_files' filesep 'validation' filesep 'FluctuationStrength_Osses2016' filesep];
+
+dBFS_in  = 100; % dB full scale convention from the input sounds
+dBFS_out =  94; % dB full scale convention in SQAT: amplitude of 1 = 1 Pa, or 94 dB SPL
+dB_correction = dBFS_in - dBFS_out;
+
 tic
 for i=1:size(ref,2)
     
     %path='SQAT_open_source\sound_files\validation\fluctuation_strength_Ossesetal2016' % path of the sound files for reference
-    [insig,fs]=audioread(['AM-tone-fc-1000_fmod-' sprintf('%.0f',ref(1,j)) '_mdept-100-SPL-70-dB.wav']);
+    fname = sprintf('%sAM-tone-fc-1000_fmod-%.0f_mdept-100-SPL-70-dB.wav',dir_sounds,ref(1,j));
+    [insig,fs]=audioread(fname);
     
-    levelIn = 20*log10(rms(insig)/2e-5); % SPL of the signal
-    insig = insig * 10^((levelOut-levelIn)/20); % correct rms SPL to desired levelOut
-    SPL(i)=20.*log10(rms(insig)/2e-5); % verify final SPL of the signal
+    %%% Not necessary steps by Gil:
+    % levelIn = 20*log10(rms(insig)/2e-5); % SPL of the signal: Innecessary step by Gil
+    % levelOut = 70; % dB SPL, fixed value
+    % dB_correction = levelOut-levelIn; % it correct rms SPL to desired levelOut
+    %%%  End 'not necessary'
+    
+    insig  = insig * 10^(dB_correction/20); % correct rms SPL to desired levelOut
+    SPL(i) = 20.*log10(rms(insig)/2e-5); % verify final SPL of the signal
     
     res{i} = FluctuationStrength_Osses2016(insig,fs,...  % input signal and sampling freq.
                                                        0,...  % method, stationary analysis =0 - window size=length(insig), time_varying analysis - window size=2s
@@ -81,10 +93,19 @@ set(gcf,'color','w');
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 if save_figs==1
-figuresdir = 'figs\'; 
-saveas(gcf,strcat(figuresdir, 'validation_FS_fmod_1k'), 'fig');
-saveas(gcf,strcat(figuresdir, 'validation_FS_fmod_1k'), 'pdf');
-saveas(gcf,strcat(figuresdir, 'validation_FS_fmod_1k'), 'png');
-else
+    figures_dir = [fileparts(mfilename('fullpath')) filesep 'figs' filesep];
+    if ~exist(figures_dir,'dir')
+        mkdir(figures_dir);
+    end
+    
+    figname_short = 'validation_FS_fmod_1k';
+    figname_out = [figures_dir figname_short];
+    % figures_dir = 'figs\'; % backslash is the fileseparator on Windows only 
+    
+    saveas(gcf,figname_out, 'fig');
+    saveas(gcf,figname_out, 'pdf');
+    saveas(gcf,figname_out, 'png');
+    
+    fprintf('%s.m: figure %s was saved on disk\n\t(full name: %s)\n',mfilename,figname_short,figname_out);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
