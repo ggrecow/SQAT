@@ -8,7 +8,7 @@
 %      the sensation of fluctuation strength." Proceedings of Meetings on 
 %      Acoustics. Vol. 28. 050005. doi: 10.1121/2.0000410
 %
-%  Author: Gil Felix Greco, Braunschweig, 02/03/2020 (updated in 13.03.2023)
+% Author: Gil Felix Greco, Braunschweig, 02/03/2020 (updated in 13.03.2023)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 clc; clear all; close all;
 

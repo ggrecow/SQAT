@@ -29,15 +29,24 @@ for i_dir = 1:length(main_dirs)
     end
 end
 
+L_main        = [bp 'psychoacoustic_metrics' filesep 'Loudness_ISO532_1'             filesep];
+L_validation  = [bp 'validation'             filesep 'Loudness_ISO532_1'             filesep];
+
 FS_main       = [bp 'psychoacoustic_metrics' filesep 'FluctuationStrength_Osses2016' filesep];
 FS_validation = [bp 'validation'             filesep 'FluctuationStrength_Osses2016' filesep];
 
 % R_main  = [bp 'psychoacoustic_metrics' filesep 'Roughness_Daniel1997'          filesep];
 % % L_main  = [bp 'psychoacoustic_metrics' filesep 'Loudness_Chalupper2002'        filesep];
-% L_main  = [bp 'psychoacoustic_metrics' filesep 'Loudness_ISO532_1'             filesep];
+
 % S_main  = [bp 'psychoacoustic_metrics' filesep 'Sharpness_DIN45692'            filesep];
 % T_main  = [bp 'psychoacoustic_metrics' filesep 'Tonality_Aures1985'            filesep];
 % % fs_tue_basepath = '/home/alejandro/Documents/MATLAB/fluctuation-strength-TUe/';
+bAdd = ~exist('Loudness_ISO532_1.m','file');
+if bAdd
+    addpath(L_main);
+    addpath(L_validation);
+end
+
 bAdd = ~exist('FluctuationStrength_Osses2016.m','file');
 if bAdd
     addpath(FS_main);
@@ -48,10 +57,6 @@ end
 %     addpath(R_main);
 % end
 % % bAdd = ~exist('Loudness_Chalupper2002.m','file');
-% bAdd = ~exist('Loudness_ISO532_1.m','file');
-% if bAdd
-%     addpath(L_main);
-% end
 % bAdd = ~exist('Sharpness_DIN45692.m','file');
 % if bAdd
 %     addpath(S_main);

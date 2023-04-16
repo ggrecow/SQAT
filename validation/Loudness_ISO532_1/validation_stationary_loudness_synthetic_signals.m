@@ -1,46 +1,51 @@
-clc;clear all; close all;
-%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Script validation_stationary_loudness_synthetic_signals
 %
-% This code computes stationary loudness from the reference signals provided by 
-% ISO 532-1:2017 - Annex B.2. (signal 1) and Annex B.3 (signals 2 to 5) 
-% using SQAT and plot the comparison against reference values 
+% This code computes stationary loudness from the reference signals provided 
+%   in ISO 532-1:2017 - Annex B.2. (signal 1, defined as one-third octave 
+%   band levels) and Annex B.3 (signals 2 to 5, stored as wave files) and 
+%   plots the comparison between the values obtained from SQAT (function
+%   Loudness_ISO532_1) and the corresponding reference values.
 %
-% Gil Felix Greco, Braunschweig 27.02.2023
-%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Author: Gil Felix Greco, Braunschweig 27.02.2023
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+clc; clear all; close all;
+
 %% save figs flag
 
 save_figs=0;
-
-%% validation signal 1
-
-signal_1=[-60 -60 78 79 89 72 80 89 75 87 85 79 86 80 71 70 72 71 72 74 69 65 67 77 68 58 45 30]; % 1/3 octave levels provided by ISO 532-1:2017 - Annex B.2.  
-
-[OUT.L{1},OUT.RefScalar{1}]=compute_and_plot(1,...     % insig_num
-                                             signal_1,... % insig name str
-                                             save_figs,['validation_stationary_loudness_signal_' sprintf('%g',1)]... % savefig inputs
-                                                  );
-                                              
-%% validation signal 2 to 5
-
-signal_str=[ {'Test signal 2 (250 Hz 80 dB).wav'},...
-             {'Test signal 3 (1 kHz 60 dB).wav'},...
-             {'Test signal 4 (4 kHz 40 dB).wav'},...
-             {'Test signal 5 (pinknoise 60 dB).wav'}]; % name of the input signals
+% %% Validation signal 1: 
+% %   Signal 1 is specified as one-third octave band levels:
+% i = 1;
+% signal_1=[-60 -60 78 79 89 72 80 89 75 87 85 79 86 80 71 70 72 71 72 74 69 65 67 77 68 58 45 30]; % 1/3 octave levels provided by ISO 532-1:2017 - Annex B.2.  
+% 
+% [OUT.L{1},OUT.RefScalar{1}]=il_compute_and_plot(i,...     % insig_num
+%                                              signal_1,... % insig name str
+%                                              save_figs,['validation_stationary_loudness_signal_' sprintf('%g',1)]... % savefig inputs
+%                                                   );
+%                                               
+%% validation signals 1 to 5
+%       signal 1 is a numeric array, specified as one-third octave band levels
+%       signals 2-5 are wave files.
+signal_str= {[-60 -60 78 79 89 72 80 89 75 87 85 79 86 80 71 70 72 71 72 74 69 65 67 77 68 58 45 30], ... % 1/3 octave levels provided by ISO 532-1:2017 - Annex B.2.  
+             'Test signal 2 (250 Hz 80 dB).wav',...
+             'Test signal 3 (1 kHz 60 dB).wav',...
+             'Test signal 4 (4 kHz 40 dB).wav',...
+             'Test signal 5 (pinknoise 60 dB).wav'}; % name of the input signals
  
-for i=2:5
+num_signals = length(signal_str);
 
-[OUT.L{i},OUT.RefScalar{i}]=compute_and_plot(i,...     % insig_num
-                                             char(signal_str(1,i-1)),... % insig name str
-                                             save_figs,['validation_stationary_loudness_signal_' sprintf('%g',i)]... % savefig inputs
-                                             );
-end 
+for i=1:num_signals
+
+    [OUT.L{i},OUT.RefScalar{i}]=il_compute_and_plot(i,...     % insig_num
+                                             signal_str{i},... % insig name str
+                                             save_figs);  % savefig inputs
+end
+disp('')
 
 %% function (compute loudness and plot comparison
 
-function [OUT,table]=compute_and_plot(insig_num,insig,save_figs,tag)
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function [OUT,table] = il_compute_and_plot(insig_num,fname_insig,save_figs)
+% function [OUT,table] = il_compute_and_plot(insig_num,fname_insig,save_figs)
 %
 % this function computes the loudness using SQAT and plot the comparison
 % against the reference values from the ISO 532-1:2017 - Annex B.3. 
@@ -67,29 +72,48 @@ function [OUT,table]=compute_and_plot(insig_num,insig,save_figs,tag)
 %           2nd col=computed by SQAT
 %           3rd row=relative percentage difference (SQAT minus ref.)
 %
-% Gil Felix Greco, Braunschweig 27.02.2023
-%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Author: Gil Felix Greco, Braunschweig 27.02.2023
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% signals from ISO 532-2:2017
 
-if insig_num~=1 % calculate stationary loudness using SQAT for signals 2 to 5, method == 1
+if isnumeric(fname_insig)
+    bFrom_wav_file = 0;
+    insig = fname_insig;
+else
+    bFrom_wav_file = 1;
+end
+    
+dir_sounds = [basepath_SQAT 'sound_files' filesep 'validation' filesep 'Loudness_ISO532_1' filesep];
+dir_ref_values = [basepath_SQAT 'validation' filesep 'Loudness_ISO532_1' filesep 'reference_values' filesep];
+
+if bFrom_wav_file
+    % calculate stationary loudness using SQAT for signals 2 to 5, method == 1
     
     % calibration signal provided in the Annex C of the ISO 532-1:2017
 
     % path='SQAT_open_source\sound_files\validation\loudness_ISO532_1\';   % path of the sound file for reference
-    [RefSignal,~]=audioread('calibration signal sine 1kHz 60dB.wav');
-
+    [RefSignal,~]=audioread([dir_sounds 'calibration signal sine 1kHz 60dB.wav']);
+    
+    %%% Calibration using the concept of dB full scale:
+    lvl_cal_signal = 60;                               % from file name: 'calibration signal sine 1kHz 60dB.wav'
+    dBFS_in = lvl_cal_signal-20*log10(rms(RefSignal)); % difference between target and actual full-scale value 
+    dBFS_out = 94; % dB full scale convention in SQAT: amplitude of 1 = 1 Pa, or 94 dB SPL
+    dB_correction = dBFS_in - dBFS_out;
+    
     % Test signal provided in the Annex B.3 of the ISO 532-1:2017
     
     % path='SQAT_open_source\sound_files\validation\loudness_ISO532_1\synthetic_signals_stationary_loudness\';   % path of the sound file for reference
-    [signal,fs]=audioread(insig);
+    [insig,fs]=audioread([dir_sounds fname_insig]);
 
-    % calibrated .wav signal
-    [ycal]=calibrate(signal,RefSignal,60); 
-
+    %%% Calibration using Gil's script:
+    % % calibrated .wav signal
+    % [insig_cal]=calibrate(insig,RefSignal,60); 
+    insig_cal = insig * 10^(dB_correction/20);
+    SPL = 20.*log10(rms(insig_cal)/2e-5); % verify final SPL of the signal
+    
     % Stationary loudness calculation from input audio signal using SQAT
     
-    OUT = Loudness_ISO532_1( ycal, fs,...   % input signal and sampling freq.
+    OUT = Loudness_ISO532_1( insig_cal, fs,...   % input signal and sampling freq.
                                     0,...   % field; free field = 0; diffuse field = 1;
                                     1,...   % method; stationary (from input 1/3 octave unweighted SPL)=0; stationary = 1; time varying = 2; 
                                     0,...   % time_skip, in seconds for level (stationary signals) and statistics (stationary and time-varying signals) calculations
@@ -108,8 +132,8 @@ end
 %% calculate difference from reference values given by ISO 532-1:2017
 
 % reference values provided by ISO 532-1:2017 for signals 1 to 5 
-reference_loudness=[83.296 14.655 4.019 1.549 10.498];   
-reference_loudness_level=[103.802 78.733 60.069 46.317 73.920]; 
+reference_loudness       = [83.296 14.655 4.019 1.549 10.498];   
+reference_loudness_level = [103.802 78.733 60.069 46.317 73.920]; 
 
 reference_loudness=reference_loudness(insig_num); % take ref values from the current signal number
 reference_loudness_level=reference_loudness_level(insig_num);
@@ -124,24 +148,28 @@ table=[reference_loudness,OUT.Loudness,percentage_difference_loudness;
 
 %% plot results (total loudness over time)
 
-h = figure('Name',['Loudness - signal ' sprintf('%g',insig_num)]);
+title_fig = sprintf('Loudness - signal %g',insig_num);
+h = figure('Name',title_fig);
 set(h,'Units','Inches');
 pos = get(h,'Position');
 set(h,'PaperPositionMode','Auto','PaperUnits','Inches','PaperSize',[pos(3), pos(4)])
 
-load([pwd '\reference_values\' 'reference_values_ISO532_1_2017_signal_' sprintf('%g',insig_num) '.mat']); % load reference vectors
+reference = []; % to be loaded in the next line...
+fname = sprintf('%sreference_values_ISO532_1_2017_signal_%g.mat', dir_ref_values, insig_num);
+load(fname); % load reference vectors
+% load([pwd '\reference_values\' 'reference_values_ISO532_1_2017_signal_' sprintf('%g',insig_num) '.mat']); % load reference vectors
 
 % reference values 
 
 % plot( reference(:,1), reference(:,2),'b','Linewidth',0.5); % ref N'
-a=plot( reference(:,1), reference(:,3),'r:','Linewidth',1); hold on; % ref N'_min
+handle_a=plot( reference(:,1), reference(:,3),'r:','Linewidth',1); hold on; % ref N'_min
 plot( reference(:,1), reference(:,4),'r:','Linewidth',1); % ref N'_max
 
 % SQAT values
 
-b=plot( OUT.barkAxis, OUT.SpecificLoudness,'k','Linewidth',1); % calculated specific loudness
+handle_b=plot( OUT.barkAxis, OUT.SpecificLoudness,'k','Linewidth',1); % calculated specific loudness
 
-% legend([a,b],'ISO 532-1:2017, 5 \% tolerance','SQAT','Location','Best');
+% legend([handle_a,handle_b],'ISO 532-1:2017, 5 \% tolerance','SQAT','Location','Best');
 % legend box off
 
 ylabel('Specific loudness, $N^{\prime}$ (sone)','Interpreter','Latex');
@@ -152,11 +180,18 @@ grid off
 set(gcf,'color','w');
 
 if save_figs==1
-figuresdir = 'figs\'; 
-saveas(gcf,strcat(figuresdir, tag), 'fig');
-saveas(gcf,strcat(figuresdir, tag), 'pdf');
-saveas(gcf,strcat(figuresdir, tag), 'png');
-else
+    figures_dir = [fileparts(mfilename('fullpath')) filesep 'figs' filesep];
+    if ~exist(figures_dir,'dir')
+        mkdir(figures_dir);
+    end
+    figname_short = sprintf('validation_stationary_loudness_signal_%g',insig_num);
+    figname_out = [figures_dir figname_short];
+    
+    saveas(gcf,figname_out, 'fig');
+    saveas(gcf,figname_out, 'pdf');
+    saveas(gcf,figname_out, 'png');
+    
+    fprintf('%s.m: figure %s was saved on disk\n\t(full name: %s)\n',mfilename,figname_short,figname_out);
 end
 
 end
