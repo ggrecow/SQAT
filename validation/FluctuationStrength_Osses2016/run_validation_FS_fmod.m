@@ -1,25 +1,23 @@
-clc;clear all; close all;
-
-%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Script run_validation_FS_fmod
 %  This routine plot the validation of fluctuation strength (Osses et al. model )
 %
 %  SIGNALS: Am tones, fc=1 kHz, m=100%, SPL=70 dB, fmod=[1 2 4 8 16 32]
 %
 %  reference values taken from : 
-%  Osses Vecchi, Alejandro, Rodrigo García León, and Armin Kohlrausch. 
-%  "Modelling the sensation of fluctuation strength." Proceedings of Meetings on Acoustics 
-%  22ICA. Vol. 28. No. 1. Acoustical Society of America, 2016.
+%  Osses, Alejandro, Rodrigo García, and Armin Kohlrausch (2016). "Modelling 
+%      the sensation of fluctuation strength." Proceedings of Meetings on 
+%      Acoustics. Vol. 28. 050005. doi: 10.1121/2.0000410
 %
-%  Gil Felix Greco, Braunschweig, 02/03/2020 (updated in 13.03.2023)
-%
+%  Author: Gil Felix Greco, Braunschweig, 02/03/2020 (updated in 13.03.2023)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+clc;clear all; close all;
 
 save_figs=0; %% save figs flag
 
 %% reference data from Osses et al 2019
 
-ref=[1 2 4 8 16 32; % fmod
-    0.39 0.84 1.25 1.30 0.36 0.06]; % vacil
+ref=[1    2    4    8    16    32    ; % fmod (Hz)
+     0.39 0.84 1.25 1.30  0.36  0.06]; % FS values (vacil)
 
 %% compute FS from signals
 

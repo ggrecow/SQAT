@@ -4,4 +4,6 @@
 *no-commit*
 *.zip
 Interim_results/*.mat
+sound_files/validation/*
 *.DS_Store
+
