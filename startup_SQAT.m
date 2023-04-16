@@ -32,10 +32,13 @@ end
 L_main        = [bp 'psychoacoustic_metrics' filesep 'Loudness_ISO532_1'             filesep];
 L_validation  = [bp 'validation'             filesep 'Loudness_ISO532_1'             filesep];
 
+R_main        = [bp 'psychoacoustic_metrics' filesep 'Roughness_Daniel1997'          filesep];
+R_validation  = [bp 'validation'             filesep 'Roughness_Daniel1997'          filesep];
+
 FS_main       = [bp 'psychoacoustic_metrics' filesep 'FluctuationStrength_Osses2016' filesep];
 FS_validation = [bp 'validation'             filesep 'FluctuationStrength_Osses2016' filesep];
 
-% R_main  = [bp 'psychoacoustic_metrics' filesep 'Roughness_Daniel1997'          filesep];
+
 % % L_main  = [bp 'psychoacoustic_metrics' filesep 'Loudness_Chalupper2002'        filesep];
 
 % S_main  = [bp 'psychoacoustic_metrics' filesep 'Sharpness_DIN45692'            filesep];
@@ -47,15 +50,17 @@ if bAdd
     addpath(L_validation);
 end
 
+bAdd = ~exist('Roughness_Daniel1997.m','file');
+if bAdd
+    addpath(R_main);
+    addpath(R_validation);
+end
+
 bAdd = ~exist('FluctuationStrength_Osses2016.m','file');
 if bAdd
     addpath(FS_main);
     addpath(FS_validation);
 end
-% bAdd = ~exist('Roughness_Daniel1997.m','file');
-% if bAdd
-%     addpath(R_main);
-% end
 % % bAdd = ~exist('Loudness_Chalupper2002.m','file');
 % bAdd = ~exist('Sharpness_DIN45692.m','file');
 % if bAdd
