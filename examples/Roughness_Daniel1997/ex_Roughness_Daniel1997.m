@@ -13,8 +13,6 @@
 clc;clear all;close all;
 
 %% Load .wav RefSignal 
-
-% path=SQAT_open_source\sound_files\reference_signals\roughness_DanielWeber2019\'; %  path of the sound file for reference
 dir_ref_sounds = [basepath_SQAT 'sound_files' filesep 'reference_signals' filesep ...
     'Roughness_Daniel1997' filesep];
 
