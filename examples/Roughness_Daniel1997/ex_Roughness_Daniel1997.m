@@ -1,7 +1,5 @@
-clc;clear all;close all;
-
-%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%   
+% Script ex_Roughness_Daniel1997
+%
 % Example: compute Roughness (Daniel & Weber model) of reference signal 
 %
 % FUNCTION:
@@ -10,15 +8,17 @@ clc;clear all;close all;
 %
 % Reference signal: 60 dB 1 kHz tone 100% modulated at 70 Hz should yield 1 asper.
 %
-% Gil Felix Greco, Braunschweig 10.03.2023
-%
+% Author: Gil Felix Greco, Braunschweig 10.03.2023
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+clc;clear all;close all;
 
 %% Load .wav RefSignal 
 
 % path=SQAT_open_source\sound_files\reference_signals\roughness_DanielWeber2019\'; %  path of the sound file for reference
+dir_ref_sounds = [basepath_SQAT 'sound_files' filesep 'reference_signals' filesep ...
+    'Roughness_Daniel1997' filesep];
 
-[RefSignal,fs]=audioread('RefSignal_Roughness_1asper_48kHz_32bit.wav');
+[RefSignal,fs]=audioread([dir_ref_sounds 'RefSignal_Roughness_1asper_48kHz_32bit.wav']);
 
 time_insig=(0 : length(RefSignal)-1) ./ fs;  % time vector of the audio input, in seconds
 
@@ -28,8 +28,10 @@ OUT=Roughness_Daniel1997(RefSignal,fs,...  % input signal and sampling freq.
                                     0,...  % time_skip, in seconds for statistical calculations
                                     1);    % show results, 'false' (disable, default value) or 'true' (enable)  
                                 
-display(sprintf('\nRoughness (Daniel & Weber model): \ncalculation of reference signal (60 dB 1 kHz tone 100 %% modulated at 70 Hz)\nyields a time-averaged roughness value of %g (asper).\n',OUT.Rmean));
-                       
+fprintf('\nRoughness (Daniel & Weber model): \n');
+fprintf('\t calculation of reference signal (60 dB 1 kHz tone 100 %% modulated at 70 Hz)\n');
+fprintf('\t yields a time-averaged roughness value of %g (asper).\n',OUT.Rmean);
+
 %% Plot 1 asper and input signal
 
 h  =figure;
