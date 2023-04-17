@@ -1,12 +1,9 @@
 function OUT = Sharpness_DIN45692(insig, fs, weight_type, field, method, time_skip, show_sharpness, show_loudness)
-
-%% FUNCTION:
-%   OUT = Sharpness_DIN45692(insig, fs, weight_type, field, method, time_skip, show_sharpness, show_loudness)
+% function OUT = Sharpness_DIN45692(insig, fs, weight_type, field, method, time_skip, show_sharpness, show_loudness)
 %
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%
-%  Stationary and time-varying sharpness calculation according to DIN 45692(2009)
-%  from input signal (i.e. the loudness calculation is included within this code)
+%  Stationary and time-varying sharpness calculation according to DIN 45692
+%    (2009) from an input signal. The loudness calculation, required as pre-
+%    processing for sharpness, is included in this code.
 %
 %  Loudness calculation is conducted according to ISO 532:1-2017
 %  (type <help loudness_ISO532_1> for more info)
@@ -64,9 +61,8 @@ function OUT = Sharpness_DIN45692(insig, fs, weight_type, field, method, time_sk
 %                     have a steady-response (thus sharpness too!). Therefore, it is a good practice
 %                     to consider a time_skip to compute the statistics
 %
-% Gil Felix Greco, Braunschweig 09.03.2023
-%
-%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Author: Gil Felix Greco, Braunschweig 09.03.2023
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 if method==1 % stationary loudness calculation
     

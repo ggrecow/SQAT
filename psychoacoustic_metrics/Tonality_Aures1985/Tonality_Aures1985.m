@@ -1,26 +1,19 @@
-function OUT = Tonality_Aures1985(insig,fs,LoudnessField,time_skip,show)
-
-%% FUNCTION:
-%   OUT = Tonality_Aures1985(insig,fs,LoudnessField,time_skip,show)
-%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function OUT = Tonality_Aures1985(insig,fs,Loudness_field,time_skip,show)
+% function OUT = Tonality_Aures1985(insig,fs,Loudness_field,time_skip,show)
 %
 %   This function calculates tonality metric by:
 %
-%   [1] Aures, Wilhelm. "Berechnungsverfahren für den sensorischen Wohlklang beliebiger Schallsignale.
-%   " Acta Acustica united with Acustica 59.2 (1985): 130-141.
+%   [1] Aures, Wilhelm (1985). "Berechnungsverfahren für den sensorischen Wohlklang 
+%       beliebiger Schallsignale." Acta Acustica united with Acustica 59: p. 130-141.
 %
 %   The Aures' tonality is based on Terhard's virtual pitch theory, given by:
 %
-%   [2] Tonal extraction and SPL excess calculated as explained by Terhard's virtual pitch theory
-%   E. Terhardt, G. Stoll, and M. Seewann,  1982,
-%
-%   [3] Algorithm for Extraction of Pitch and Pitch Salience from Complex Tonal
-%   Signals. Journal of the Acoustical Society of America, 71(3), 679-688.
+%   [2] Terhardt, E., Stoll, G. and Seewann, M. (1982). Algorithm for 
+%       extraction of pitch and pitch salience from complex tonal signals. 
+%       J. Acoust. Soc. Am., 71, 679-688. doi:10.1121/1.387544
 %
 %   Reference: a pure tone with 1000 Hz and 60 dBSPL has a tonality of 1 t.u.
-%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
 % INPUT ARGUMENTS
 %   insig : array
@@ -54,13 +47,14 @@ function OUT = Tonality_Aures1985(insig,fs,LoudnessField,time_skip,show)
 %         ** Kmin : minimum of InstantaneousTonality (t.u.)
 %         ** Kx : percentile InstantaneousTonality exceeded during x percent of the signal (t.u.)
 %
-%
-% Gil Felix Greco, Braunschweig 13/07/2020 (updated 14.04.2023)
-%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Author: Gil Felix Greco, Braunschweig 13/07/2020 (updated 14.04.2023)
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+if nargin < 5
+    show = 0;
+end
 
 %% resampling
-
 % resampling audio to 44.1 kHz or 48kHz
 if ~(fs == 44100 || fs == 48000)
     gcd_fs = gcd(44100,fs); % greatest common denominator
@@ -172,7 +166,7 @@ for iFrame = 1:nFrames
         ymx = ToneL(i); % SPL of the i-th tone
         [~,idx] = min( abs(Freq-ToneF(i)) ); % index of the i-th tone 
         hafmax = ymx.*0.6; % target value 
-%         hafmax = ymx-3; % target value (-3 dB decay)
+        % hafmax = ymx-3; % target value (-3 dB decay)
         
         idxrng1 = find(SPL(1:idx)<hafmax, 1, 'last');
         
@@ -205,18 +199,20 @@ for iFrame = 1:nFrames
         
     else     % if tones were found ...
         
-        idx = find(ToneL>0);    % find idx of only positive levels (i.e. tones with SPL above 0 dB) - necessary because resampling may introduce several tones with very low amplitude
-        
+        idx = find(ToneL>0);    % find idx of only positive levels (i.e.,
+                                %   tones with SPL above 0 dB) - necessary 
+                                %   because resampling may introduce several 
+                                %   tones with very low amplitude
         ToneIdx = ToneIdx(idx); % idx of the tone
         ToneL = ToneL(idx);     % SPL of the tones
         NTones = NTones(idx);   % number of tones
         ToneF = ToneF(idx);     % central freq of the tone
         BW = BW(idx);           % bandwidth
         
-        if isempty(ToneIdx)==1  % if ToneRef is empty (there are no tonal components with SPL>0 dB), then there are no tones for this time-frame
-            
+        if isempty(ToneIdx)==1  % if ToneRef is empty (there are no tonal
+                                % components with SPL>0 dB), then there are 
+                                % no tones for this time-frame
             %% OUTPUTS for this case
-            
             w_tonal(iFrame,1) = 0;  % Tonal weighting
             w_gr(iFrame,1) = 0;     % loudness weighting
             tonality(iFrame,1) = 0; % tonality
@@ -229,17 +225,17 @@ for iFrame = 1:nFrames
             
             insigSpectrum=fft(y);  % spectrum of insig for each iFrames
             
-            %%%% check plot  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            %%%% check plot  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             % figure; semilogy(Freq,abs(insigSpectrum).^2);
-            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             
             SingleSidedinsigSpectrum = insigSpectrum(1:ceil((length(insigSpectrum)+1)/2)); % single-sided spectrum of insig for each iFrames
             
             FreqSingleSidedinsigSpectrum=0:fs/length(y):fs/2;  % freq vector of single-sided spectrum of insig for each iFrames
             
-            %%%% check plot  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            %%%% check plot  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             % figure; semilogy(FreqSingleSidedinsigSpectrum,abs(SingleSidedinsigSpectrum).^2);
-            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             
             for i=1:length(NTones) % loop across tones
                 
@@ -265,15 +261,15 @@ for iFrame = 1:nFrames
                 
             end
             
-            %%%% check plot  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            %%%% check plot  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             % figure; semilogy(FreqSingleSidedinsigSpectrum,abs(SingleSidedinsigSpectrum).^2);
-            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             
             doubleSideFilteredSpectrum = [SingleSidedinsigSpectrum; conj(flipud(SingleSidedinsigSpectrum(2:end-1)))]; % double-side the filtered spectrum
             
-            %%%% check plot  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            %%%% check plot  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             % figure; semilogy(Freq,abs(doubleSideFilteredSpectrum).^2);
-            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             
             filtered_signal=ifft(doubleSideFilteredSpectrum,'symmetric');  % get filtered signal in time-domain
             
@@ -283,7 +279,7 @@ for iFrame = 1:nFrames
             % assume a stationary loudness within iFrame
             
             L_total = Loudness_ISO532_1(y, fs,...   % input signal and sampling freq.
-                                LoudnessField,...   % field; free field = 0; diffuse field = 1;
+                                Loudness_field,...   % field; free field = 0; diffuse field = 1;
                                             1,...   % method; stationary (from input 1/3 octave unweighted SPL)=0; stationary = 1; time varying = 2;
                          time_resolution*0.05,...   % time_skip, in seconds for level (stationary signals) and statistics (stationary and time-varying signals) calculations
                                             0);     % show results; 0=no, 1=yes
@@ -292,7 +288,7 @@ for iFrame = 1:nFrames
             % assume a stationary loudness within the iFrame
             
             L_filtered = Loudness_ISO532_1(filtered_signal,fs,...   % input signal and sampling freq.
-                                                LoudnessField,...   % field; free field = 0; diffuse field = 1;
+                                                Loudness_field,...   % field; free field = 0; diffuse field = 1;
                                                             1,...   % method; stationary (from input 1/3 octave unweighted SPL)=0; stationary = 1; time varying = 2;
                                          time_resolution*0.05,...   % time_skip, in seconds for level (stationary signals) and statistics (stationary and time-varying signals) calculations
                                                             0);     % show results; 0=no, 1=yes
@@ -322,9 +318,9 @@ for iFrame = 1:nFrames
             tone{iFrame,1}.BW = BW;          %  bandwidth of the tones
             tone{iFrame,1}.df = df;          %  freq discretization
                           
-            tone{iFrame,1}.LX=SPL_excess(tone{iFrame,1}); %  Sound pressure excess calculation (define aurally relevance of the tones)
+            tone{iFrame,1}.LX=il_SPL_excess(tone{iFrame,1}); %  Sound pressure excess calculation (define aurally relevance of the tones)
                                
-            w_tonal(iFrame,1)=tonal_weighting(tone{iFrame,1});  % Tonal weighting
+            w_tonal(iFrame,1)=il_tonal_weighting(tone{iFrame,1});  % Tonal weighting
             
             %% TONALITY
             
@@ -336,9 +332,8 @@ for iFrame = 1:nFrames
     end
 end
 
-%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Output Data
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % main output results
 OUT.InstantaneousTonality = tonality;  % instantaneous tonality
@@ -346,8 +341,8 @@ OUT.TonalWeighting = w_tonal;          % instantaneous tonal weighting
 OUT.LoudnessWeighting = w_gr;          % instantaneous loudness weighting
 OUT.time = t;                          % time vector
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % tonality statistics
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 [~,idx] = min( abs(OUT.time-time_skip) ); % find idx of time_skip on time vector
 
@@ -370,16 +365,14 @@ OUT.K70 = prctile(tonality(idx:end),30);
 OUT.K80 = prctile(tonality(idx:end),20);
 OUT.K90 = prctile(tonality(idx:end),10);
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% plots
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 if show == true
     
     figure('NAME','Aures tonality analysis',...
         'units','normalized','outerposition',[0 0 1 1]); % plot fig in full screen
-    
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %%%
     subplot(3,1,1)
     plot(t,tonality);
     title('Instantaneous tonality','Interpreter','Latex');
@@ -387,16 +380,15 @@ if show == true
     xlabel('Time, $t$ (s)','Interpreter','Latex');
     ylim([0 1.1]);
     
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %%%
     subplot(3,1,2)
-    
     plot(t,w_gr,'k');
     title('Loudness weighting','Interpreter','Latex');
     ylabel('Loudness weighting, $W_{\mathrm{Loudness}}$','Interpreter','Latex');
     xlabel('Time, $t$ (s)','Interpreter','Latex');
     ylim([0 1.1]);
     
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %%%
     subplot(3,1,3)
     
     plot(t,w_tonal,'k');
@@ -405,18 +397,17 @@ if show == true
     xlabel('Time, $t$ (s)','Interpreter','Latex');
     ylim([0 1.1]);
     
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    
     set(gcf,'color','w')
     
 end
 end
 
-%% SPL excess functions
+% End-of-file main function
 
-function LX=SPL_excess(input)
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Beginning of inline functions:
+function LX=il_SPL_excess(input)
+% function LX=il_SPL_excess(input)
 %
 %   INPUT: tone struct containing
 %          * tone.freq - freq vector; FreqCrop = Freq(MinFrequencyindex:MaxFrequencyIndex); 
@@ -427,136 +418,137 @@ function LX=SPL_excess(input)
 %   OUTPUT
 %          * LX (sound pressure level excess of each tonal component)
 %
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Main source: https://github.com/densilcabrera/aarae/blob/master/Analysers/Pitch%20and%20Frequency/Terhardt_VirtualPitch.m
-% original source: Terhardt, E., Stoll, G., and Seewann, M., “Algorithm for extraction of pitch and pitch salience from complex tonal signals,” The Journal of the Acoustical Society of America, Vol. 71, No. 3, 1982, pp. 679–688. doi:10.1121/1.387544.
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% original source: See reference [2], Terhardt et al. (1982)
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
 % Gil Felix Greco - Braunschweig 10.06.2020
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-    pref = 20e-6; % reference pressure
-    Intensity = pref.*10.^(input.Lcrop./10);
+pref = 2e-5; % reference pressure, Pa
+Intensity = pref.*10.^(input.Lcrop./10);
 
-    freq_Lx = input.freq;   % freq vector of the tone
-    ToneF = input.ToneF;    % tone(s) central frequency
-    ToneL = input.ToneL;    % tone(s) level
-    NTones = size(ToneF,1); % number of tones
+freq_Lx = input.freq;   % freq vector of the tone
+ToneF = input.ToneF;    % tone(s) central frequency
+ToneL = input.ToneL;    % tone(s) level
+NTones = size(ToneF,1); % number of tones
 
-    toneBark = Fq2Bark(ToneF);       % convert central freq of tones to Bark scale
-    spectrumBark = Fq2Bark(freq_Lx); % convert freq vector to Bark scale
+toneBark = il_Fq2Bark(ToneF);       % convert central freq of tones to Bark scale
+spectrumBark = il_Fq2Bark(freq_Lx); % convert freq vector to Bark scale
 
-    LX = deal(zeros(NTones,1)); % initialize sound pressure level excess vector
+LX = deal(zeros(NTones,1)); % initialize sound pressure level excess vector
 
-    for i = 1:NTones
-        
-        % Intensity of noise for each tone paragraph after eq 7b in Ref. [3] (Terhard's papers)
-        
-        idx_cb = spectrumBark >= round( toneBark(i)-0.5 )...
-               & spectrumBark <= round( toneBark(i)+0.5 ); % idx of the critical band around the tonal component
-        
-        idx_toneBark = find( round( spectrumBark==toneBark(i) )); % find idx of the tone on the Bark vector
-        
-        idx_cb(idx_toneBark-2:idx_toneBark+2) = 0; % skip the five central samples around the tonal component
-        
-        EGR = sum( Intensity(idx_cb) ); % Masking intensity of broadband noise
-        
-        % Secondary excitation level
-        sumlo = 1e-99;
-        sumhi = 1e-99;
-        
-        for j = 1:NTones
-            
-            if (j < i)
-                
-                s = -24 - (230./(ToneF(j))) + (0.2.*ToneL(j)); % eq 7b from Ref. [3]
-                Lji = ToneL(j) - s .* (toneBark(j) - toneBark(i));
-                sumlo = sumlo + 10.^(Lji./20);
-                
-            elseif (j > i)
-                
-                s=27;
-                Lji = ToneL(j) - s .* (toneBark(j) - toneBark(i));
-                sumhi = sumhi + 10.^(Lji./20);
-                
-            end
-            
+for i = 1:NTones
+
+    % Intensity of noise for each tone paragraph after eq 7b in Ref. [3] (Terhard's papers)
+
+    idx_cb = spectrumBark >= round( toneBark(i)-0.5 )...
+           & spectrumBark <= round( toneBark(i)+0.5 ); % idx of the critical band around the tonal component
+
+    idx_toneBark = find( round( spectrumBark==toneBark(i) )); % find idx of the tone on the Bark vector
+
+    idx_cb(idx_toneBark-2:idx_toneBark+2) = 0; % skip the five central samples around the tonal component
+
+    EGR = sum( Intensity(idx_cb) ); % Masking intensity of broadband noise
+
+    % Secondary excitation level
+    sumlo = 1e-99;
+    sumhi = 1e-99;
+
+    for j = 1:NTones
+
+        if (j < i)
+
+            s = -24 - (230./(ToneF(j))) + (0.2.*ToneL(j)); % eq 7b from Ref. [3]
+            Lji = ToneL(j) - s .* (toneBark(j) - toneBark(i));
+            sumlo = sumlo + 10.^(Lji./20);
+
+        elseif (j > i)
+
+            s=27;
+            Lji = ToneL(j) - s .* (toneBark(j) - toneBark(i));
+            sumhi = sumhi + 10.^(Lji./20);
+
         end
-        
-        AEK = sumlo + sumhi;
-        
-        % Intensity at threshold of hearing
-        EHS = Threshold(ToneF(i));
-        EHS = 10.^(EHS/10);
-        
-        % Sound pressure level excess - NOTE: in the original paper from Terhard [3]
-        % -10log10 is used while in the paper of Aures [1] simply -log10 is used
-        
-        if NTones==1 % if there is only one tone
-            LXi = ToneL(i) - 10.*log10( EGR  + EHS ); %eq 4 from Ref. [3]
-        else
-            LXi = ToneL(i) - 10.*log10( AEK.^2 + EGR  + EHS ); %eq 4 from Ref. [3]
-        end
-        
-        NTonesM = 0;
-        if LXi > 0
-            NTonesM = NTonesM + 1;
-            LX(NTonesM) = LXi;
-        end
-        
+
     end
-end
 
-function [w_tonal]=tonal_weighting(input)
+    AEK = sumlo + sumhi;
 
-    bw=input.BW;      % bandwidth of the tones [Hz]
-    fc=input.ToneF;   % central frequency of the tonal components
-    delta_L=input.LX; % SPL excess for each tonal component
-    df=input.df;      % freq discretization
+    % Intensity at threshold of hearing
+    EHS = il_Threshold(ToneF(i));
+    EHS = 10.^(EHS/10);
 
-    %% w1 accounts for each tonal component bandwidth
+    % Sound pressure level excess - NOTE: in the original paper from Terhard [3]
+    % -10log10 is used while in the paper of Aures [1] simply -log10 is used
 
-    zup = Fq2Bark(fc+(bw./2));
-    zlow = Fq2Bark(fc-(bw./2));
-    dz = (zup-zlow)/df^2;
+    if NTones==1 % if there is only one tone
+        LXi = ToneL(i) - 10.*log10( EGR  + EHS ); %eq 4 from Ref. [3]
+    else
+        LXi = ToneL(i) - 10.*log10( AEK.^2 + EGR  + EHS ); %eq 4 from Ref. [3]
+    end
 
-    w1 = ( 0.13./(dz+0.13) );
-
-    %% w2 accounts for each tonal component's center frequency
-
-    w2 =  ( 1./( sqrt (1+0.2.*(fc./700 + 700./fc).^2) ) ).^(0.29);
-
-    %% w3 accounts for each tonal component SPL excess
-
-    w3 =( 1-exp(-delta_L/15) ).^(0.29);
-
-    %% prime weightings
-
-    ww1 = w1.^(1./0.29);
-    ww2 = w2.^(1./0.29);
-    ww3 = w3.^(1./0.29);
-
-    %% total tonal weighting
-
-    w_tonal= sqrt(sum( (ww1 .* ww2 .* ww3).^2 ) );
+    NTonesM = 0;
+    if LXi > 0
+        NTonesM = NTonesM + 1;
+        LX(NTonesM) = LXi;
+    end
 
 end
+end % end il_SPL_excess
+
+function [w_tonal]=il_tonal_weighting(input)
+
+bw=input.BW;      % bandwidth of the tones [Hz]
+fc=input.ToneF;   % central frequency of the tonal components
+delta_L=input.LX; % SPL excess for each tonal component
+df=input.df;      % freq discretization
+
+%% w1 accounts for each tonal component bandwidth
+
+zup = il_Fq2Bark(fc+(bw./2));
+zlow = il_Fq2Bark(fc-(bw./2));
+dz = (zup-zlow)/df^2;
+
+w1 = ( 0.13./(dz+0.13) );
+
+%% w2 accounts for each tonal component's center frequency
+
+w2 =  ( 1./( sqrt (1+0.2.*(fc./700 + 700./fc).^2) ) ).^(0.29);
+
+%% w3 accounts for each tonal component SPL excess
+
+w3 =( 1-exp(-delta_L/15) ).^(0.29);
+
+%% prime weightings
+
+ww1 = w1.^(1./0.29);
+ww2 = w2.^(1./0.29);
+ww3 = w3.^(1./0.29);
+
+%% total tonal weighting
+
+w_tonal= sqrt(sum( (ww1 .* ww2 .* ww3).^2 ) );
+
+end % End il_tonal_weightin
 
 %% function: convert frequency to bark
 
-function B = Fq2Bark(f)
+function B = il_Fq2Bark(f)
 
-    % critical band rate corresponding to a given frequency
-    % input f is frequency in Hz
-    % output B is critical band rate in Barks
+% critical band rate corresponding to a given frequency
+% input f is frequency in Hz
+% output B is critical band rate in Barks
 
-    f=f./1000;
-    B = 13 .* atan(0.76 .* f) + 3.5 .* atan ((f./7.5).^2);
-end
+f=f./1000;
+B = 13 .* atan(0.76 .* f) + 3.5 .* atan ((f./7.5).^2);
+
+end % end il_Fq2Bark
 
 %% function: hearing threshold
 
-function L = Threshold(f)
+function L = il_Threshold(f)
 
     % hearing threshold
     % input f is frequency in Hz
@@ -566,7 +558,7 @@ function L = Threshold(f)
     L = 3.64 * f.^-0.8 ...
         - 6.5 * exp(-0.6 * (f - 3.3).^2) ...
         + 1e-3 * f.^4;
-end
+end % end il_Threshold
 
 %**************************************************************************
 %

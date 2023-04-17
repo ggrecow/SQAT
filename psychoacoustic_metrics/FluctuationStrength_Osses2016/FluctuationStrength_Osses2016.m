@@ -1,14 +1,10 @@
 function OUT = FluctuationStrength_Osses2016(insig,fs,method,time_skip,show)
-
-%% FUNCTION:
-%   OUT = FluctuationStrength_Osses2016(insig,fs,method,time_skip,show)
+% function OUT = FluctuationStrength_Osses2016(insig,fs,method,time_skip,show)
 %
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%
-%  This function calculates the fluctuation strength using the model developed by:
-%  [1] Osses Vecchi, Alejandro, Rodrigo García León, and Armin Kohlrausch.
-%  "Modelling the sensation of fluctuation strength." Proceedings of Meetings on Acoustics 22 ICA. Vol. 28. No. 1.
-%  Acoustical Society of America, 2016.
+%  This function calculates the fluctuation strength using the model 
+%    developed by: [1] Osses, A., Garcia A., and Kohlrausch, A.. 
+%    "Modelling the sensation of fluctuation strength." Proceedings of 
+%    Meetings on Acoustics 22 ICA. Vol. 28, 050005. doi:10.1121/2.0000410
 %
 %  SOURCE:
 %  https://github.com/aosses-tue/mb/tree/master/FluctuationStrength_TUe
@@ -22,11 +18,11 @@ function OUT = FluctuationStrength_Osses2016(insig,fs,method,time_skip,show)
 %   insig : [Nx1] array
 %   insig is a monophonic calibrated audio signal (Pa)
 %
-%   fs : integer
-%   sampling frequency (Hz) - preferible 48 kHz or 44.1 kHz (default by the authors)
-%
+%   fs : sampling frequency (Hz) - Defaults of 48 kHz or 44.1 kHz (pre-computed
+%                                    filters.
 %   method : integer
-%   method=0, stationary analysis - window size=length(insig) (s) kind of an rms value
+%   method=0, stationary analysis - window size=length(insig) (s) kind of 
+%             an rms value
 %   method=1, time_varying analysis - window size=2 (s)
 %             NOTE: if the signal's length is smaller than 2s, the analysis
 %             is automatically changed to method=0
@@ -41,62 +37,67 @@ function OUT = FluctuationStrength_Osses2016(insig,fs,method,time_skip,show)
 % OUTPUT:
 %   OUT : struct containing the following fields
 %
-%       * InstantaneousFluctuationStrength: instantaneous fluctuation strength (vacil) vs time
-%       * InstantaneousSpecificFluctuationStrength: specific fluctuation strength (vacil/Bark) vs time and Bark scale
-%       * TimeAveragedSpecificFluctuationStrength: time-averaged specific fluctuation strength (vacil/Bark) vs Bark scale
-%       * barkAxis : vector of Bark band numbers used for specific fluctuation strength computation
+%       * InstantaneousFluctuationStrength: instantaneous fluctuation 
+%           strength (vacil) vs time
+%       * InstantaneousSpecificFluctuationStrength: specific fluctuation 
+%           strength (vacil/Bark) vs time and Bark scale
+%       * TimeAveragedSpecificFluctuationStrength: time-averaged specific 
+%           fluctuation strength (vacil/Bark) vs Bark scale
+%       * barkAxis : vector of Bark band numbers used for specific 
+%           fluctuation strength computation
 %       * time : time vector in seconds
 %       * Several statistics based on the InstantaneousFS
 %         ** FSmean : mean value of InstantaneousFS (vacil)
-%         ** FSstd : standard deviation of InstantaneousFluctuationStrength (vacil)
+%         ** FSstd : standard deviation of InstantaneousFluctuationStrength
+%              (vacil)
 %         ** FSmax : maximum of InstantaneousFluctuationStrength (vacil)
 %         ** FSmin : minimum of InstantaneousFluctuationStrength (vacil)
-%         ** FSx : percentile fluctuation strength exceeded during x percent of the signal (vacil)
+%         ** FSx : percentile fluctuation strength exceeded during x percent
+%              of the signal (vacil)
 %
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Programmed by Alejandro Osses V./Rodrigo Garcia L., HTI, TU/e, the Netherlands, 2014-2016
-% Created on    : 03/02/2016
-% Last update on: 25/09/2016
-% Last use on   : 03/11/2016
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%
-% modifications by Gil Felix Greco, Braunschweig 04.03.2020
-% 1) include resampling to 44100 Hz, which is preferible because it takes less time to compute than 48 kHz because of the filtering process of IIR filters for modelling the Hweigth parameter
-% 2) include possibility to choose method (stationary or time-varying) which affects the window size
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Author: Alejandro Osses, HTI, TU/e, the Netherlands, 2014-2016
+% Author: Rodrigo Garcia, HTI, TU/e, the Netherlands, 2014-2016
+% Author: Gil Felix Greco, Braunschweig 04.03.2020 - Modifications
+%     1) includes resampling to 44100 Hz, which is preferible because it 
+%        takes less time to compute than 48 kHz because of the filtering 
+%        process of IIR filters for modeling the Hweigth parameter
+%     2) include possibility to choose method (stationary or time-varying) 
+%        which affects the window size
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+if nargin < 5
+    % Default for show
+    if nargout == 0
+        show = 1;
+    else
+        show = 0;
+    end
+end
 
 if size(insig,2)~=1 % if the insig is not a [Nx1] array
     insig=insig';   % correct the dimension of the insig
 end
 
-%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% resampling audio to 44.1 kHz or 48 kHz
-
+%% Resampling audio to 44.1 kHz or 48 kHz
 if ~(fs == 44100 || fs == 48000)
     gcd_fs = gcd(44100,fs); % greatest common denominator
     insig = resample(insig,44100/gcd_fs,fs/gcd_fs);
     fs = 44100;
 end
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-if method==1     % 'time_varying'
-    
-    time_resolution = 2;  % window length fixed in 2s
+%% Checking which method
+if method==1 % 'time_varying'
+    % This is the default from the original authors.
+    time_resolution = 2;  % window length fixed in 2s (Osses et al., 2016)
     N=round(fs*time_resolution);
     
     if N>=length(insig) % if the signal's length is smaller than the window size, force method==0
-        fprintf('\nWARNING: the signal''s length is smaller than 2 seconds.\nAnalysis will be automatically changed to stationary, i.e. method=0 and window size=length(insig)\n');
+        warning('The signal is shorter than 2 seconds. The analysis will be automatically changed to ''stationary'', i.e. method=0 and window size=length(insig). This analysis window may lead to inaccurate fluctuation-strength estimates, especially if the modulation components are low (below 10 Hz).');
         method=0;
     end
-    
 end
 
 if method==0 %'stationary'
-    
     N=length(insig); %  window size (N)=length(signal) kind of an rms value;
-    
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -140,8 +141,8 @@ for iFrame = 1:nFrames
     % 2.2 Excitation patterns
     %     (see model_par.filterbank == 'terhardt', in _debug version):
     
-    dBFS = 94; % corresponds to 1 Pa 
-%     dBFS = 100; % unit amplitude corresponds to 100 dB (AMT Toolbox convention)
+    dBFS = 94; % corresponds to 1 Pa (new default in SQAT)
+    % dBFS = 100; % unit amplitude corresponds to 100 dB (AMT Toolbox convention, default by original authors)
 
     ei   = il_TerhardtExcitationPatterns_v3(signal,fs,dBFS);
     z    = 0.5:.5:23.5; % Bark
@@ -170,20 +171,18 @@ for iFrame = 1:nFrames
 end
 
 
-%% *************************************************************************
+%% ************************************************************************
 % output struct
 % *************************************************************************
 
 % main output results
-OUT.InstantaneousFluctuationStrength = fluct;                              % instantaneous fluctuation strength
-OUT.InstantaneousSpecificFluctuationStrength = fi;                         % time-varying specific fluctuation strength
-OUT.TimeAveragedSpecificFluctuationStrength = mean(fi,1);                  % mean specific fluctuation strength
+OUT.InstantaneousFluctuationStrength = fluct;             % instantaneous fluctuation strength
+OUT.InstantaneousSpecificFluctuationStrength = fi;        % time-varying specific fluctuation strength
+OUT.TimeAveragedSpecificFluctuationStrength = mean(fi,1); % mean specific fluctuation strength
 OUT.time = t;                                             % time
 OUT.barkAxis = transpose(z) ;                             % critical band rate (for specific roughness)
 
-% Fluctuation Strength statistics based on InstantaneousFS
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
+%% Fluctuation Strength statistics based on InstantaneousFS:
 [~,idx] = min( abs(OUT.time-time_skip) ); % find idx of time_skip on time vector
 
 OUT.FSmax = max(fluct(idx:end));
