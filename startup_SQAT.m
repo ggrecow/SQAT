@@ -44,6 +44,7 @@ FS_example    = [bp 'examples'               filesep 'FluctuationStrength_Osses2
 
 S_main        = [bp 'psychoacoustic_metrics' filesep 'Sharpness_DIN45692'            filesep];
 S_validation  = [bp 'validation'             filesep 'Sharpness_DIN45692'            filesep];
+S_example     = [bp 'examples'               filesep 'Sharpness_DIN45692'            filesep];
 
 T_main        = [bp 'psychoacoustic_metrics' filesep 'Tonality_Aures1985'            filesep];
 T_validation  = [bp 'validation'             filesep 'Tonality_Aures1985'            filesep];
@@ -75,6 +76,7 @@ bAdd = ~exist('Sharpness_DIN45692.m','file');
 if bAdd
     addpath(S_main);
     addpath(S_validation);
+    addpath(S_example);
 end
 
 bAdd = ~exist('Tonality_Aures1985.m','file');
