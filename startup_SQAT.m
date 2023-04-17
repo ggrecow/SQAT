@@ -9,7 +9,8 @@ if nargin == 0
     % 'bp' in Alejandro's computer: /home/alejandro/Documents/MATLAB/MATLAB_ENS/fastACI_sim/MATLAB/tb_Brazuca/
 end
 
-main_dirs = { 'psychoacoustic_metrics', ...
+main_dirs = { 'examples', ...
+              'psychoacoustic_metrics', ...
               'sound_level_meter', ...
               'utilities', ...
               'validation'};
@@ -37,6 +38,7 @@ R_validation  = [bp 'validation'             filesep 'Roughness_Daniel1997'     
 
 FS_main       = [bp 'psychoacoustic_metrics' filesep 'FluctuationStrength_Osses2016' filesep];
 FS_validation = [bp 'validation'             filesep 'FluctuationStrength_Osses2016' filesep];
+FS_example    = [bp 'examples'               filesep 'FluctuationStrength_Osses2016' filesep];
 
 S_main        = [bp 'psychoacoustic_metrics' filesep 'Sharpness_DIN45692'            filesep];
 S_validation  = [bp 'validation'             filesep 'Sharpness_DIN45692'            filesep];
@@ -61,6 +63,7 @@ bAdd = ~exist('FluctuationStrength_Osses2016.m','file');
 if bAdd
     addpath(FS_main);
     addpath(FS_validation);
+    addpath(FS_example);
 end
 % bAdd = ~exist('Loudness_Chalupper2002.m','file');
 

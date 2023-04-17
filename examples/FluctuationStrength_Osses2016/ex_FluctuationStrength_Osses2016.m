@@ -1,23 +1,26 @@
-clc;clear all;close all;
-
-%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%   
-% Example: Compute fluctuation strength (Osses et al. model) of reference signal 
+% Script ex_FluctuationStrength_Osses2016
+%
+% Example for FluctuationStrength_Osses2016. It computes the fluctuation 
+%   strength of the reference signal.
+%   Reference signal: 60 dBSPL 1 kHz tone 100% modulated at 4 Hz. This 
+%   signal should yield 1 vacil.
 %
 % FUNCTION:
 %   OUT = FluctuationStrength_Osses2016(insig,fs,time_skip,show)
 %   type <help FluctuationStrength_Osses2016> for more info
 %
-% Reference signal: 60 dBSPL 1 kHz tone 100% modulated at 4 Hz should yield 1 vacil.
-%
-% Gil Felix Greco, Braunschweig 13.03.2023
-%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% See also: FluctuationStrength_Osses2016, run_validation_FS_fmod
+% Author: Gil Felix Greco, Braunschweig 13.03.2023
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+clc; clear all; close all;
+
+dir_ref_sounds = [basepath_SQAT 'sound_files' filesep 'reference_signals' filesep ...
+    'FluctuationStrength_Osses2016' filesep];
 
 %% Load .wav RefSignal 
 
 % path='SQAT_open_source\sound_files\reference_signals\fluctuation_strength_Ossesetal2016' % path of the sound file for reference
-[RefSignal,fs]=audioread('RefSignal_FS_1vacil_48kHz_32bit.wav');
+[RefSignal,fs]=audioread([dir_ref_sounds 'RefSignal_FS_1vacil_48kHz_32bit.wav']);
 
 time_insig=(0 : length(RefSignal)-1) ./ fs;  % time vector of the audio input, in seconds
 
