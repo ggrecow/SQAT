@@ -1,29 +1,27 @@
-clear all;close all; clc;
-
-%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%  This routine plot the validation of Aures' tonality code for pure tone signals (85 dBSPL @ 1 kHz)
-%  and varying emergence level [0 10 20 30 40 50 60 70 80] dBSPL over a
-%  bandpass (white noise) in the critical band centered around the tone 
+% Script validation_signal_to_noise_ratio
+%
+%  This routine plot the validation of Aures' tonality code for pure tone 
+%    signals (85 dBSPL @ 1 kHz) and varying emergence level [0 10 20 30 40 
+%    50 60 70 80] dBSPL over a bandpass (white noise) in the critical band 
+%    centered around the tone 
 %   
-%   The reference data is is taken:
-%   Aaron Hastings,a) Kyoung Hoon Lee,a) Patricia Davies,a) and Aimée M. Surprenantb)
-%  "Measurement of the attributes of complex tonal components commonly found in product sound" 
-%  Noise Control Eng. J. 51 (4), 2003 Jul–Aug
-%- fig 1
+%  The reference data is taken from:
+%    Aaron Hastings, Kyoung Hoon Lee, Patricia Davies, and Aimée M. Surprenant
+%    "Measurement of the attributes of complex tonal components commonly 
+%    found in product sound" Noise Control Eng. J. 51, 2003.
 %
-%   Gil Felix Greco, Braunschweig, 22.03.2023
-%
+% Author: Gil Felix Greco, Braunschweig, 22.03.2023
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+clear all; close all; clc;
+
+dir_sounds = [basepath_SQAT 'sound_files' filesep 'validation' filesep 'Tonality_Aures1985' filesep];
 
 %% save settings
 
 save_figs=0;
 
 %% reference data 
-%Source: Aaron Hastings,a) Kyoung Hoon Lee,a) Patricia Davies,a) and Aimée M. Surprenantb)
-%  "Measurement of the attributes of complex tonal components commonly found in product sound" 
-%  Noise Control Eng. J. 51 (4), 2003 Jul–Aug
-%- fig 1
+% Source: Hastings et al. (2003), fig. 1
 
 ref=[
 0  0
@@ -41,26 +39,22 @@ ref=[
 
 tag_str={'0','10','20','30','40','50','60','70','80'};
 
-for i=1:9
+N_signals = length(tag_str);
+for i=1:N_signals
     
-[x(:,i),fs]=audioread(['MakeToneEmergence\1Bark_tone_prominence_' sprintf('%s',char(tag_str(i))) 'dB_fc_1khz_44khz_64bit.wav']);
+    % dir_sounds_local = [dir_sounds 'MakeToneEmergence' filesep];
+    fname_insig = sprintf('%s1Bark_tone_prominence_%sdB_fc_1khz_44khz_64bit.wav',dir_sounds,tag_str{i}); 
+    [insigs(:,i),fs]=audioread(fname_insig);
 
 end
 
 %% compute tonality
-
-for i=1:9
+for i=1:N_signals
     
-T{i} = Tonality_Aures1985(x(:,i),fs,0,0,true);
-
-end
-
-%%
-
-for i=1:9
+    bPlot_figure = 0; % set to 1 to plot the raw outputs
+    T{i} = Tonality_Aures1985(insigs(:,i),fs,0,0,bPlot_figure);
+    results(i)= [T{i}.Kmean]; % create vector with time-averaged tonality values
     
-results(i)= [T{i}.Kmean]; % create vector with time-averaged tonality values
-
 end
 
 %% plot
@@ -119,9 +113,17 @@ set(gcf,'color','w');
 %%
 
 if save_figs==1
-figuresdir = 'figs\'; 
-saveas(gcf,strcat(figuresdir,'tonality_validation_SNR_tone_85dBSPL_1khz'), 'fig');
-saveas(gcf,strcat(figuresdir,'tonality_validation_SNR_tone_85dBSPL_1khz'), 'pdf');
-saveas(gcf,strcat(figuresdir,'tonality_validation_SNR_tone_85dBSPL_1khz'), 'png');
-else
+    figures_dir = [fileparts(mfilename('fullpath')) filesep 'figs' filesep];
+    if ~exist(figures_dir,'dir')
+        mkdir(figures_dir);
+    end
+    
+    figname_short = 'tonality_validation_SNR_tone_85dBSPL_1khz';
+    figname_out = [figures_dir figname_short];
+    
+    saveas(gcf, figname_out, 'fig');
+    saveas(gcf, figname_out, 'pdf');
+    saveas(gcf, figname_out, 'png');
+    
+    fprintf('%s.m: figure %s was saved on disk\n\t(full name: %s)\n',mfilename,figname_short,figname_out);
 end

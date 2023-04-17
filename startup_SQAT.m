@@ -41,8 +41,9 @@ FS_validation = [bp 'validation'             filesep 'FluctuationStrength_Osses2
 S_main        = [bp 'psychoacoustic_metrics' filesep 'Sharpness_DIN45692'            filesep];
 S_validation  = [bp 'validation'             filesep 'Sharpness_DIN45692'            filesep];
 
+T_main        = [bp 'psychoacoustic_metrics' filesep 'Tonality_Aures1985'            filesep];
+T_validation  = [bp 'validation'             filesep 'Tonality_Aures1985'            filesep];
 % L_main  = [bp 'psychoacoustic_metrics' filesep 'Loudness_Chalupper2002'        filesep];
-% T_main  = [bp 'psychoacoustic_metrics' filesep 'Tonality_Aures1985'            filesep];
 % % fs_tue_basepath = '/home/alejandro/Documents/MATLAB/fluctuation-strength-TUe/';
 bAdd = ~exist('Loudness_ISO532_1.m','file');
 if bAdd
@@ -69,10 +70,11 @@ if bAdd
     addpath(S_validation);
 end
 
-% bAdd = ~exist('Tonality_Aures1985.m','file');
-% if bAdd
-%     addpath(T_main);
-% end
+bAdd = ~exist('Tonality_Aures1985.m','file');
+if bAdd
+    addpath(T_main);
+    addpath(T_validation);
+end
  
 % bAdd = ~exist('rmsdb.m','file');
 % if bAdd
