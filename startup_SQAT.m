@@ -32,6 +32,7 @@ end
 
 L_main        = [bp 'psychoacoustic_metrics' filesep 'Loudness_ISO532_1'             filesep];
 L_validation  = [bp 'validation'             filesep 'Loudness_ISO532_1'             filesep];
+L_example     = [bp 'examples'               filesep 'Loudness_ISO532_1'             filesep];
 
 R_main        = [bp 'psychoacoustic_metrics' filesep 'Roughness_Daniel1997'          filesep];
 R_validation  = [bp 'validation'             filesep 'Roughness_Daniel1997'          filesep];
@@ -52,6 +53,7 @@ bAdd = ~exist('Loudness_ISO532_1.m','file');
 if bAdd
     addpath(L_main);
     addpath(L_validation);
+    addpath(L_example);
 end
 
 bAdd = ~exist('Roughness_Daniel1997.m','file');
