@@ -1,3 +1,19 @@
 # SQAT: A sound quality analysis toolbox for MATLAB
-This is the repository of a sound quality analysis toolbox (SQAT) for MATLAB.
+This is the repository of SQAT, a **S**ound **Q**uality **A**nalysis **T**oolbox for MATLAB.
+
+# Toolbox structure
+The toolbox has six main directories.
+    **psychoacoustic_metrics**: Contains a number of algorithms implementing a specific psychoacoustic metric.
+    **examples**: An example script is provided for each metric.
+    **validation**: This directory contains scripts used to validate each algorithm.
+    **sound_level_meter**: Contains scripts to obtain sound pressure levels in dB(A), dB(C), or dB(Z), using fast or slow time weightings.
+    **utilities**: Contains some scripts that are complementary to any of the toolbox functions.
+
+# How to cite this repository
+This repository can be cited as follows: 
+
+G. Félix Greco, R. Merino-Martínez, & A. Osses (2023). "SQAT: A sound quality analysis toolbox for MATLAB."
+
+<a rel="license" href="http://creativecommons.org/licenses/by-nc/4.0/"><img alt="Creative Commons Licence" style="border-width:0" src="https://i.creativecommons.org/l/by-nc/4.0/88x31.png" /></a><br />This work is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by-nc/4.0/">Creative Commons Attribution-NonCommercial 4.0 International License</a>.
+
 
