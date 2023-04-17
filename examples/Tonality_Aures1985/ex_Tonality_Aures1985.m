@@ -1,7 +1,3 @@
-clc;clear all;close all;
-
-%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%   
 % Example: compute tonality of a pure tone signal using the Aures Tonality metric
 %
 % FUNCTION:
@@ -10,15 +6,16 @@ clc;clear all;close all;
 %
 % test signal: a pure tone with frequency 1000 Hz and level 60 dB has a tonality of 1 t.u. 
 %
-% Gil Felix Greco, Braunschweig 20.03.2023
-%
+% Author: Gil Felix Greco, Braunschweig 20.03.2023
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+clc; clear all; close all;
 
 save_figs=0;
 %% load .wav RefSignal 
 
-% path='sound_files\reference_signals\Tonality_Aures1985'; %  % path of the sound file for reference
-[RefSignal,fs]=audioread('RefSignal_Tonality_Aures1985_1kHz_60dBSPL_44100hz_64bit.wav');
+dir_ref_sounds = [basepath_SQAT 'sound_files' filesep 'reference_signals' filesep 'Tonality_Aures1985' filesep];
+
+[RefSignal,fs]=audioread([dir_ref_sounds 'RefSignal_Tonality_Aures1985_1kHz_60dBSPL_44100hz_64bit.wav']);
 
 time_insig=(0 : length(RefSignal)-1) ./ fs;  % time vector of the audio input, in seconds
 
@@ -29,7 +26,8 @@ OUT = Tonality_Aures1985(RefSignal,fs,...  % input signal and sampling freq.
                                     0,...  % time_skip, in seconds for level (stationary signals) and statistics (stationary and time-varying signals) calculations
                                     1);... % show results, 'false' (disable, default value) or 'true' (enable)
    
-display(sprintf('\nTonality (Aures model): \ncalculation of reference signal (60 dBSPL 1 kHz tone)\nyields a time-averaged tonality value of %g (t.u.).\n',OUT.Kmean));
+fprintf('\nTonality (Aures model): \ncalculation of reference signal (60 dBSPL 1 kHz tone)\n');
+fprintf('\tyields a time-averaged tonality value of %g (t.u.).\n',OUT.Kmean);
                        
 %% Plot 1 t.u. and input signal
 
@@ -58,9 +56,17 @@ axis([0 .1 0 1.3]);
 set(gcf,'color','w');
 
 if save_figs==1
-figuresdir = 'figs\'; 
-saveas(gcf,strcat(figuresdir, 'aures_tonality_reference_signal'), 'fig');
-saveas(gcf,strcat(figuresdir, 'aures_tonality_reference_signal'), 'pdf');
-saveas(gcf,strcat(figuresdir, 'aures_tonality_reference_signal'), 'png');
-else
+    figures_dir = [fileparts(mfilename('fullpath')) filesep 'figs' filesep];
+    if ~exist(figures_dir,'dir')
+        mkdir(figures_dir);
+    end
+    
+    figname_short = 'aures_tonality_reference_signal';
+    figname_out = [figures_dir figname_short];
+    
+    saveas(gcf, figname_out, 'fig');
+    saveas(gcf, figname_out, 'pdf');
+    saveas(gcf, figname_out, 'png');
+    
+    fprintf('%s.m: figure %s was saved on disk\n\t(full name: %s)\n',mfilename,figname_short,figname_out);
 end

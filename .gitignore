@@ -5,6 +5,7 @@
 *.zip
 Interim_results/*.mat
 sound_files/validation/*
+examples/*/figs/*
 validation/*/figs/*
 *.DS_Store
 
