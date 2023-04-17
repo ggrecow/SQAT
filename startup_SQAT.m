@@ -39,7 +39,7 @@ FS_main       = [bp 'psychoacoustic_metrics' filesep 'FluctuationStrength_Osses2
 FS_validation = [bp 'validation'             filesep 'FluctuationStrength_Osses2016' filesep];
 
 S_main        = [bp 'psychoacoustic_metrics' filesep 'Sharpness_DIN45692'            filesep];
-S_validation  = [bp 'validation'             filesep 'Sharpness_DIN45692' filesep];
+S_validation  = [bp 'validation'             filesep 'Sharpness_DIN45692'            filesep];
 
 % L_main  = [bp 'psychoacoustic_metrics' filesep 'Loudness_Chalupper2002'        filesep];
 % T_main  = [bp 'psychoacoustic_metrics' filesep 'Tonality_Aures1985'            filesep];

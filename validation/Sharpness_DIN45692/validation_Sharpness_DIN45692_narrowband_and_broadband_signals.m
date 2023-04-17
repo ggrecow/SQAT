@@ -1,6 +1,4 @@
-clear all;close all;clc;
-
-%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Script validation_Sharpness_DIN45692_narrowband_and_broadband_signals
 %
 % - Validation of sharpness calculation of narrowband and broadband using test signals from DIN 45692(2009)
 %   type <help Sharpness_DIN45692_from_loudness> for more info
@@ -8,9 +6,9 @@ clear all;close all;clc;
 % - Specific Loudness is computed within this code (SQAT) according to ISO 532:1-2017 (type <help Loudness_ISO532_1> for more info)
 %   stationary, free-field, signals are calibrated with a ref. tone of 1kHz@60dB
 %
-%  Gil Felix Greco, Braunschweig 01.03.2023 
-%
+% Author: Gil Felix Greco, Braunschweig 01.03.2023 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+clear all;close all;clc;
 
 save_figs=0; % save figure flag
 
@@ -24,22 +22,45 @@ freq_narrowband = [250 350 450 570 700 840 1000 1170 1370 1600 1850 2150 2500 29
 bark_narrowband = 2.5:22.5;
 acum_narrowband = [.38 .49 .60 .71 .82 .93 1 1.13 1.26 1.35 1.49 1.64 1.78 2.06 2.4 2.82 3.48 4.43 5.52 6.81 8.55];
 
+dir_sounds     = [basepath_SQAT 'sound_files' filesep 'validation'        filesep 'Sharpness_DIN45692' filesep];
+dir_ref_sounds = [basepath_SQAT 'sound_files' filesep 'reference_signals' filesep 'Sharpness_DIN45692' filesep];
+% dir_ref_values = [basepath_SQAT 'validation' filesep 'Loudness_ISO532_1' filesep 'reference_values' filesep];
+
 % load calibration signal 
 
 % path='SQAT_open_source\sound_files\reference_signals\sharpness_DIN45692\'; % path of the sound file for reference
-[CalSignal,~]=audioread('1KHZ60DB.wav');
+[RefSignal,~]=audioread([dir_ref_sounds '1KHZ60DB.WAV']);
+
+%%% Calibration using the concept of dB full scale:
+lvl_cal_signal = 60;                               % from file name: 'calibration signal sine 1kHz 60dB.wav'
+% dBFS_in = lvl_cal_signal-20*log10(rms(RefSignal)); % difference between target and actual full-scale value 
+% dBFS_out = 94; % dB full scale convention in SQAT: amplitude of 1 = 1 Pa, or 94 dB SPL
+% dB_correction = dBFS_in - dBFS_out;
+    
+[~,~,dBFS]=calibrate(RefSignal,RefSignal,lvl_cal_signal); % just to obtain the dBFS value
 
 % load narrowband signals, calibrate, compute loudness and sharpness 
+SPL_narrowband = zeros([length(freq_narrowband) 1]);
 for i=1:length(freq_narrowband)
 
     % load test signal 
-    [TestSignal,fs]=audioread(['BP' sprintf( '%02d',freq_narrowband(i) ) '.wav']); % 'SQAT_open_source\sound_files\validation\sharpness_DIN45692\'; % path of the sound file for reference
+    fname_insig = ['BP' sprintf( '%02d',freq_narrowband(i) ) '.wav'];
+    [insig,fs]=audioread([dir_sounds fname_insig]); % 'SQAT_open_source\sound_files\validation\sharpness_DIN45692\'; % path of the sound file for reference
 
+    %%% Calibration using Gil's script:
     % calibrated .wav signal
-    [ycal]=calibrate(TestSignal,CalSignal,60); 
+    [insig_cal]=calibrate(insig,RefSignal,lvl_cal_signal); 
+    SPL_narrowband(i) = 20*log10(rms(insig_cal))+dBFS;
+    %% Alejandro says: Gil: here you are not only adjusting the proper dBFS, 
+    %%   but also changing the level of your signals (attenuation by 3 dB).
+    %%   It seems that '1KHZ60DB.WAV' is stored using a dBFS value of 90 dB SPL
+    %%   while the test sounds are stored at 93 dB SPL (check)
+    
+    % %%% Calibration method using dBFS values:
+    % insig_cal = insig * 10^(dB_correction/20);
     
     % stationary loudness calculation
-    L_narrow = Loudness_ISO532_1( ycal, fs,...   % input signal and sampling freq.
+    L_narrow = Loudness_ISO532_1( insig_cal, fs,...   % input signal and sampling freq.
                                   0,...   % field; free field = 0; diffuse field = 1;
                                   1,...   % method; stationary (from input 1/3 octave unweighted SPL)=0; stationary = 1; time varying = 2; 
                                   0.5,... % time_skip, in seconds for level (stationary signals) and statistics (stationary and time-varying signals) calculations
@@ -72,17 +93,20 @@ freq_broadband= [250 350 450 570 700 840 1000 1170 1370 1600 1850 2150 2500 2900
 bark_broadband=2.5:21.5;
 acum_broadband=[2.7 2.74 2.78 2.85 2.91 2.96 3.05 3.12 3.20 3.3 3.42 3.53 3.69 3.89 4.12 4.49 5.04 5.69 6.47 7.46];
 
+SPL_broadband = zeros([length(freq_broadband) 1]);
+
 % load broadband signals, calibrate, compute loudness and sharpness 
 for i=1:length(freq_broadband)
 
     % load test signal 
-    [TestSignal,fs]=audioread(['LC' sprintf( '%02d',freq_broadband(i) ) '.wav']); % 'SQAT_open_source\sound_files\validation\sharpness_DIN45692\'; % path of the sound file for reference
+    [insig,fs]=audioread([dir_sounds 'LC' sprintf( '%02d',freq_broadband(i) ) '.wav']); % 'SQAT_open_source\sound_files\validation\sharpness_DIN45692\'; % path of the sound file for reference
 
     % calibrated .wav signal
-    [ycal]=calibrate(TestSignal,CalSignal,60); 
+    insig_cal=calibrate(insig,RefSignal,lvl_cal_signal); 
+    SPL_broadband(i) = 20*log10(rms(insig_cal))+dBFS;
     
     % stationary loudness calculation
-    L_broad = Loudness_ISO532_1( ycal, fs,...   % input signal and sampling freq.
+    L_broad = Loudness_ISO532_1( insig_cal, fs,...   % input signal and sampling freq.
                                   0,...   % field; free field = 0; diffuse field = 1;
                                   1,...   % method; stationary (from input 1/3 octave unweighted SPL)=0; stationary = 1; time varying = 2; 
                                   0.5,... % time_skip, in seconds for level (stationary signals) and statistics (stationary and time-varying signals) calculations
@@ -141,11 +165,18 @@ xlabel('Critical band, $z$ (Bark)','Interpreter','Latex');
 set(gcf,'color','w');
 
 if save_figs==1
-figuresdir = [pwd '\figs\']; 
-saveas(gcf,strcat(figuresdir, 'sharpness_validation_narrowband_and_broadband'), 'fig');
-saveas(gcf,strcat(figuresdir, 'sharpness_validation_narrowband_and_broadband'), 'pdf');
-saveas(gcf,strcat(figuresdir, 'sharpness_validation_narrowband_and_broadband'), 'png');
-else
+    figures_dir = [fileparts(mfilename('fullpath')) filesep 'figs' filesep];
+    if ~exist(figures_dir,'dir')
+        mkdir(figures_dir);
+    end
+    figname_short = 'sharpness_validation_narrowband_and_broadband';
+    figname_out = [figures_dir figname_short];
+    
+    saveas(gcf,figname_out, 'fig');
+    saveas(gcf,figname_out, 'pdf');
+    saveas(gcf,figname_out, 'png');
+    
+    fprintf('%s.m: figure %s was saved on disk\n\t(full name: %s)\n',mfilename,figname_short,figname_out);
 end
 
 %%  plot error for narrowband and broadband
@@ -182,11 +213,14 @@ set(gcf,'color','w');
      ax.YAxis.MinorTickValues = -0.2:0.01:0.2;
      
 if save_figs==1
-figuresdir = [pwd '\figs\']; 
-saveas(gcf,strcat(figuresdir, 'sharpness_validation_narrowband_broadband_error'), 'fig');
-saveas(gcf,strcat(figuresdir, 'sharpness_validation_narrowband_broadband_error'), 'pdf');
-saveas(gcf,strcat(figuresdir, 'sharpness_validation_narrowband_broadband_error'), 'png');
-else
+    figname_short = 'sharpness_validation_narrowband_broadband_error';
+    figname_out = [figures_dir figname_short];
+    
+    saveas(gcf,figname_out, 'fig');
+    saveas(gcf,figname_out, 'pdf');
+    saveas(gcf,figname_out, 'png');
+    
+    fprintf('%s.m: figure %s was saved on disk\n\t(full name: %s)\n',mfilename,figname_short,figname_out);
 end
 
 %% narrow band comparison between models 
@@ -222,11 +256,14 @@ xlabel('Critical band, $z$ (Bark)','Interpreter','Latex');
 set(gcf,'color','w');
 
 if save_figs==1
-figuresdir = [pwd '\figs\']; 
-saveas(gcf,strcat(figuresdir, 'sharpness_validation_narrowband_compare_models'), 'fig');
-saveas(gcf,strcat(figuresdir, 'sharpness_validation_narrowband_compare_models'), 'pdf');
-saveas(gcf,strcat(figuresdir, 'sharpness_validation_narrowband_compare_models'), 'png');
-else
+    figname_short = 'sharpness_validation_narrowband_compare_models';
+    figname_out = [figures_dir figname_short];
+    
+    saveas(gcf,figname_out, 'fig');
+    saveas(gcf,figname_out, 'pdf');
+    saveas(gcf,figname_out, 'png');
+    
+    fprintf('%s.m: figure %s was saved on disk\n\t(full name: %s)\n',mfilename,figname_short,figname_out);
 end
 
 %% narrow band comparison
@@ -264,10 +301,13 @@ ax = gca;
 set(gcf,'color','w');
 
 if save_figs==1
-figuresdir = [pwd '\figs\']; 
-saveas(gcf,strcat(figuresdir, 'sharpness_validation_broadband_model_comparison'), 'fig');
-saveas(gcf,strcat(figuresdir, 'sharpness_validation_broadband_model_comparison'), 'pdf');
-saveas(gcf,strcat(figuresdir, 'sharpness_validation_broadband_model_comparison'), 'png');
-else
+    figname_short = 'sharpness_validation_broadband_model_comparison';
+    figname_out = [figures_dir figname_short];
+    
+    saveas(gcf,figname_out, 'fig');
+    saveas(gcf,figname_out, 'pdf');
+    saveas(gcf,figname_out, 'png');
+    
+    fprintf('%s.m: figure %s was saved on disk\n\t(full name: %s)\n',mfilename,figname_short,figname_out);
 end
 
