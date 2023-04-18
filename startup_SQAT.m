@@ -51,6 +51,9 @@ T_main        = [bp 'psychoacoustic_metrics' filesep 'Tonality_Aures1985'       
 T_validation  = [bp 'validation'             filesep 'Tonality_Aures1985'            filesep];
 T_example     = [bp 'examples'               filesep 'Tonality_Aures1985'            filesep];
 
+PA_Di_main    = [bp 'psychoacoustic_metrics' filesep 'PsychoacousticAnnoyance_Di2016' filesep];
+PA_Di_example = [bp 'examples'               filesep 'PsychoacousticAnnoyance_Di2016' filesep];
+
 % L_main  = [bp 'psychoacoustic_metrics' filesep 'Loudness_Chalupper2002'        filesep];
 % % fs_tue_basepath = '/home/alejandro/Documents/MATLAB/fluctuation-strength-TUe/';
 bAdd = ~exist('Loudness_ISO532_1.m','file');
@@ -89,7 +92,8 @@ if bAdd
     addpath(T_example);
 end
  
-% bAdd = ~exist('rmsdb.m','file');
-% if bAdd
-%     addpath([bp 'utilities' filesep]);
-% end
+bAdd = ~exist('PsychoacousticAnnoyance_Di2016.m','file');
+if bAdd
+    addpath(PA_Di_main);
+    addpath(PA_Di_example);
+end

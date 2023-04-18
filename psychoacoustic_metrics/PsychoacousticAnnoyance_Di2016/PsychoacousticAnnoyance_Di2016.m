@@ -1,17 +1,15 @@
 function OUT = PsychoacousticAnnoyance_Di2016(insig,fs,LoudnessField,time_skip,showPA,show)
-
-%% FUNCTION:
-%   OUT = PsychoacousticAnnoyance_Di2016(insig,fs,LoudnessField,time_skip,showPA,show)
+% function OUT = PsychoacousticAnnoyance_Di2016(insig,fs,LoudnessField,time_skip,showPA,show)
 %
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% This function calculates the Di et al's modified psychoacoustic annoyance 
+%   model from an input acoustic signal
 %
-%   This function calculates the Di's modified psychoacoustic annoyance model from an input acoustic signal
+% The modified psychoacoustic annoyance model is according to: (page 201)
+%  [1] Di et al., Improvement of Zwicker's psychoacoustic annoyance model 
+%      aiming at tonal noises, Applied Acoustics 105 (2016) 164-170
 %
-%   The modified psychoacoustic annoyance model is according to: (page 201)
-%  [1] Di et al., Improvement of Zwicker’s psychoacoustic annoyance model aiming at tonal noises, Applied Acoustics 105 (2016) 164-170
-%
-% - This metric combines 5 psychoacoustic metrics to quantitatively describe annoyance:
-%
+% - This metric combines five psychoacoustic metrics to quantitatively 
+%   describe annoyance:
 %    1) Loudness, N (sone) - calculated hereafter following ISO 532-1:2017
 %       type <help loudness_ISO532_1> for more info
 %
@@ -21,34 +19,36 @@ function OUT = PsychoacousticAnnoyance_Di2016(insig,fs,LoudnessField,time_skip,s
 %       type <help sharpness_DIN45692_from_loudness>
 %
 %    3) Roughness, R (asper) - calculated hereafter following Daniel & Weber model
-%       type <help roughness_DanielWeber1997> for more info
+%       type <help roughness_Daniel1997> for more info
 %
-%    4) Fluctuation strength, FS (vacil) - calculated hereafter following Osses et al. model
-%       type <help fluctuation_strength_Ossesetal2016> for more info
+%    4) Fluctuation strength, FS (vacil) - calculated hereafter following 
+%       Osses et al. model type <help fluctuation_strength_Osses2016> for more info
 %
 %    4) Tonality, K (t.u.) - calculated hereafter following Aures' model
 %       type <help Tonality_Aures1985> for more info
-%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
 % INPUT:
 %   insig : array
 %   acoustic signal [1,nTimeSteps], monophonic (Pa)
 %
 %   fs : integer
-%   sampling frequency (Hz) - preferible 48 kHz or 44.1 kHz (default by the authors and takes less time to compute)
+%   sampling frequency (Hz) - preferible 48 kHz or 44.1 kHz (default by the
+%     authors and takes less time to compute)
 %
 %   time_skip : integer
 %   skip start of the signal in <time_skip> seconds for statistics calculations
 %
 %   LoudnessField : integer
-%   chose field for loudness calculation; free field = 0; diffuse field = 1; (used in the loudness and tonality codes)
+%   chose field for loudness calculation; free field = 0; diffuse field = 1; 
+%     (used in the loudness and tonality codes)
 %   type <help loudness_ISO532_1> for more info
-
+%
 %   show : logical(boolean)
-%   optional parameter, display results of loudness, sharpness, roughness, fluctuation strength and tonality
-%   'false' (disable, default value) or 'true' (enable).
-
+%   optional parameter, display results of loudness, sharpness, roughness,
+%     fluctuation strength and tonality 'false' (disable, default value) or
+%     'true' (enable).
+%
 %   showPA : logical(boolean)
 %   optional parameter, display results of psychoacoustic annoyance
 %   'false' (disable, default value) or 'true' (enable).
@@ -57,8 +57,11 @@ function OUT = PsychoacousticAnnoyance_Di2016(insig,fs,LoudnessField,time_skip,s
 %   OUT: struct
 %      * include results from the psychoacoustic annoyance
 %             ** InstantaneousPA: instantaneous quantity (unity) vs time
-%             ** ScalarPA : PA (scalar value) computed using the percentile values of each metric.
-%                           NOTE: if the signal's length is smaller than 2s, this is the only output as no time-varying PA is calculated
+%             ** ScalarPA : PA (scalar value) computed using the percentile
+%                           values of each metric.
+%                           NOTE: if the signal's length is smaller than 2s, 
+%                           this is the only output as no time-varying PA 
+%                           is calculated
 %             ** time : time vector in seconds
 %             ** wt : tonality and loudness weighting function (not squared)
 %             ** wfr : fluctuation strength and roughness weighting function (not squared)
@@ -72,39 +75,68 @@ function OUT = PsychoacousticAnnoyance_Di2016(insig,fs,LoudnessField,time_skip,s
 %               *** PAx : x percentile of the PA metric exceeded during x percent of the time
 %
 %      * include structs with the results from the other metrics computed
-%        **  L : struct with Loudness results, type <help loudness_ISO532_1> for more info
+%        **  L : struct with Loudness results, type <help loudness_ISO532_1>
+%                for more info
 %        **  S : struct with Sharpness, type <help sharpness_DIN45692_from_loudness>
 %        **  R : strcut with roughness results, type <help roughness_DanielWeber1997> for more info
-%        ** FS : struct with fluctuation strength results, type <help fluctuation_strength_Ossesetal2016> for more info
-%        **  K : struct with tonality results, type <help Tonality_Aures1985> for more info
-%
+%        ** FS : struct with fluctuation strength results, type 
+%                <help fluctuation_strength_Ossesetal2016> for more info
+%        **  K : struct with tonality results, type <help Tonality_Aures1985> 
+%                for more info
 %
 %  NOTE: 1) Input signals should be in pascal values or calibrated .wav files
 %
-%        2) Fluctuation strength window has length of 2s. If the signal is less than 2s long, the FS calculation will be automatically
-%           changed to stationary (i.e. uses a window with length equal to signal's size). in this case, no time-varying PA is available.
+%        2) Fluctuation strength window has length of 2s. If the signal is 
+%           less than 2s long, the FS calculation will be automatically
+%           changed to stationary (i.e. uses a window with length equal to 
+%           signal's size). in this case, no time-varying PA is available.
 %
-%        3) Be aware that, because of item 2), if the signal is more than 2s long, the last 2 seconds of the input signal are LOST !!!!
+%        3) Be aware that, because of item 2), if the signal is more than 
+%           2s long, the last 2 seconds of the input signal are LOST !!!!
 %
-%        4) is a best practice to compute percentile values following a time_skip (s) after the signal's beginning to avoid misleading results caused by possible transient effects caused by digital filtering
+%        4) is a best practice to compute percentile values following a 
+%           time_skip (s) after the signal's beginning to avoid misleading 
+%           results caused by possible transient effects caused by digital 
+%           filtering
 %
-%        5) because of item 2), the PA(t) outputs are also 2s smaller, but the percentile values are calculed inside each function before this cut
+%        5) because of item 2), the PA(t) outputs are also 2s smaller, but 
+%           the percentile values are calculed inside each function before 
+%           this cut
 %
-%        6) Loudness and sharpness have the same time vector, but roughness, FS and tonality differ because of their window lengths.
-%           Therefore, in order to have the same time vector, after each respective metric calculation, the outputs are interpolated with respect to the loudness time vector and all cutted in the end
-%           to the final time corresponding to the FS metric
+%        6) Loudness and sharpness have the same time vector, but roughness, 
+%           FS and tonality differ because of their window lengths.
+%           Therefore, in order to have the same time vector, after each 
+%           respective metric calculation, the outputs are interpolated 
+%           with respect to the loudness time vector and all cutted in the 
+%           end to the final time corresponding to the FS metric
 %
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%
-%  Gil Felix Greco, Braunschweig 05.04.2023
-%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Author: Gil Felix Greco, Braunschweig 05.04.2023
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+if nargin == 0
+    help PsychoacousticAnnoyance_Di2016
+    return;
+end
+
+if nargin < 6
+    if nargout == 0
+        show = 1;
+    else
+        show = 0;
+    end
+end
+if nargin < 5
+    if nargout == 0
+        showPA = 1; 
+    else
+        showPA = 0;
+    end
+end
 
 time_insig=(0 : length(insig)-1) ./ fs;  % time vector of the audio input, in seconds
 
 if time_insig(end) < 2
     
-    fprintf('\nWARNING: the signal''s length is smaller than 2 seconds.\nDue to the minimum window size used for the fluctuation strength, the computation of a time-varying psychoacoustic annoyance is not possible !!!\nOnly scalar psychoacoustic annoyance number will be calculated for this signal!\n');
+    warning('WARNING: the signal''s length is smaller than 2 seconds. Due to the minimum window size used for the fluctuation strength, the computation of a time-varying psychoacoustic annoyance is not possible !!! Only scalar psychoacoustic annoyance number will be calculated for this signal!');
     method_FS=0; % stationary method used for the fluctuation strength
     
 else
@@ -167,8 +199,7 @@ OUT.K=K; % output fluctuation strength results
 
 %% for signal with length smaller than 2 s, only scalar psychoacoustic annoyance can be computed
 
-if time_insig(end) < 2
-    
+if time_insig(end) < 2    
     %% (scalar) psychoacoustic annoyance - computed directly from percentile values
     
     % sharpness influence
@@ -193,9 +224,9 @@ if time_insig(end) < 2
     % Di's modified psychoacoustic annoyance
     PA_scalar = L.N5*( 1 + sqrt( ws^2 + wfr^2 + wt^2 ) );
     
-    %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %   output struct for time-varying signals
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     
     % main output results
     OUT.ScalarPA = PA_scalar;               % Annoyance calculated from the percentiles of each variable
@@ -346,86 +377,85 @@ else % for signals larger than 2 seconds
     
     if show == true
         
-        plotter(OUT.time,L.InstantaneousLoudness,L.N5,'loudness');
+        il_plotter(OUT.time,L.InstantaneousLoudness,L.N5,'loudness');
         
-        plotter(OUT.time,S.InstantaneousSharpness,S.S5,'sharpness');
+        il_plotter(OUT.time,S.InstantaneousSharpness,S.S5,'sharpness');
         
-        plotter(OUT.time,roughness,R.R5,'roughness');
+        il_plotter(OUT.time,roughness,R.R5,'roughness');
         
-        plotter(OUT.time,fluctuation,FS.FS5,'fluctuation');
+        il_plotter(OUT.time,fluctuation,FS.FS5,'fluctuation');
         
-        plotter(OUT.time,tonality,K.K5,'tonality');
+        il_plotter(OUT.time,tonality,K.K5,'tonality');
         
     end
     
     if showPA == true
         
-        plotter(OUT.time,OUT.InstantaneousPA,OUT.PA5,'annoyance')
+        il_plotter(OUT.time,OUT.InstantaneousPA,OUT.PA5,'annoyance')
         
     end
     
 end
+end % end PA function
 
 %% function plotter
 
-    function plotter(time,Instantaneous,percentile,variable)
-        
-        x_axis='Time, $t$ (s)';  % string for the x-axis
-        
-        switch variable
-            
-            case 'loudness'
-                p='$N'; % string for percentile legend
-                y_axis='Loudness, $N$ (sone)';  % string for the y-axis
-                h  =figure('NAME','Loudness');
-                
-            case 'sharpness'
-                p='$S'; % string for percentile legend
-                y_axis='Sharpness, $S$ (acum)'; % string for the y-axis
-                h  =figure('NAME','Sharpness');
-                
-            case 'roughness'
-                p='$R'; % string for percentile legend
-                y_axis='Roughness, $R$ (asper)'; % string for the y-axis
-                h  =figure('NAME','Roughness');
-                
-            case 'fluctuation'
-                p='FS$'; % string for percentile legend
-                y_axis='Fluctuation strength, $F$ (vacil)'; % string for the y-axis
-                h  =figure('NAME','Fluctuation strength');
-                
-            case 'tonality'
-                p='K$'; % string for percentile legend
-                y_axis='Aures tonality, $K$ (t.u.)'; % string for the y-axis
-                h  =figure('NAME','Aures tonality');
-                
-            case 'annoyance'
-                p='PA$'; % string for percentile legend
-                y_axis='Psychoacoustic annoyance, PA (-)'; % string for the y-axis
-                h  =figure('NAME','Psychoacoustic annoyance');
-        end
-        
-        % begin plot
-        
-        set(h,'Units','Inches');
-        pos = get(h,'Position');
-        set(h,'PaperPositionMode','Auto','PaperUnits','Inches','PaperSize',[pos(3), pos(4)])
-        
-        plot( time,Instantaneous,'k','Linewidth',0.5,'HandleVisibility','off'); hold on;
-        plot( time,percentile.*ones(length(time)),'r--','Linewidth',0.5);
-        
-        legend(sprintf('%s_5=%.2f$',p,percentile),'Location','NorthEast','Interpreter','Latex');
-        legend boxoff
-        
-        ylabel(sprintf('%s',y_axis),'Interpreter','Latex');
-        xlabel(sprintf('%s',x_axis),'Interpreter','Latex');
-        grid off
-        
-        set(gcf,'color','w');
-        
-    end % end plotter function
+function il_plotter(time,Instantaneous,percentile,variable)
 
-end % end PA function
+x_axis='Time, $t$ (s)';  % string for the x-axis
+
+switch variable
+
+    case 'loudness'
+        p='$N'; % string for percentile legend
+        y_axis='Loudness, $N$ (sone)';  % string for the y-axis
+        h  =figure('NAME','Loudness');
+
+    case 'sharpness'
+        p='$S'; % string for percentile legend
+        y_axis='Sharpness, $S$ (acum)'; % string for the y-axis
+        h  =figure('NAME','Sharpness');
+
+    case 'roughness'
+        p='$R'; % string for percentile legend
+        y_axis='Roughness, $R$ (asper)'; % string for the y-axis
+        h  =figure('NAME','Roughness');
+
+    case 'fluctuation'
+        p='FS$'; % string for percentile legend
+        y_axis='Fluctuation strength, $F$ (vacil)'; % string for the y-axis
+        h  =figure('NAME','Fluctuation strength');
+
+    case 'tonality'
+        p='K$'; % string for percentile legend
+        y_axis='Aures tonality, $K$ (t.u.)'; % string for the y-axis
+        h  =figure('NAME','Aures tonality');
+
+    case 'annoyance'
+        p='PA$'; % string for percentile legend
+        y_axis='Psychoacoustic annoyance, PA (-)'; % string for the y-axis
+        h  =figure('NAME','Psychoacoustic annoyance');
+end
+
+% begin plot
+
+set(h,'Units','Inches');
+pos = get(h,'Position');
+set(h,'PaperPositionMode','Auto','PaperUnits','Inches','PaperSize',[pos(3), pos(4)])
+
+plot( time,Instantaneous,'k','Linewidth',0.5,'HandleVisibility','off'); hold on;
+plot( time,percentile.*ones(length(time)),'r--','Linewidth',0.5);
+
+legend(sprintf('%s_5=%.2f$',p,percentile),'Location','NorthEast','Interpreter','Latex');
+legend boxoff
+
+ylabel(sprintf('%s',y_axis),'Interpreter','Latex');
+xlabel(sprintf('%s',x_axis),'Interpreter','Latex');
+grid off
+
+set(gcf,'color','w');
+
+end % end plotter function
 
 %**************************************************************************
 %

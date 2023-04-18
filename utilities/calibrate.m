@@ -22,7 +22,7 @@ function[CalibratedSignal,CalFactor,dBFS]=calibrate(InputSignal,RefSignal,Refere
 %   See validation_Sharpness_DIN45692_narrowband_and_broadband_signals.m
 %
 % Author: Gil Greco, Braunschweig, 31/01/2020
-% Author: Alejandro Osses, code with extra comments
+% Author: Alejandro Osses, code with extra comments and extra outputs
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 if nargin == 0
