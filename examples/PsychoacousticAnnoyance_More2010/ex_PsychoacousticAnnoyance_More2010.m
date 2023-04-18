@@ -1,20 +1,18 @@
-clc; clear all; close all;
-
-%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%   
+% Script ex_PsychoacousticAnnoyance_More2010
+%
 % Example: compute More's modified psychoacoustic annoyance of signal 14 from the ISO 532-1:2017 
 %
 % FUNCTION:
-%   OUT = PsychoacousticAnnoyance_More2011(insig,fs,LoudnessField,time_skip,showPA,show)
-%   type <help PsychoacousticAnnoyance_More2011> for more info
+%   OUT = PsychoacousticAnnoyance_More2010(insig,fs,LoudnessField,time_skip,showPA,show)
+%   type <help PsychoacousticAnnoyance_More2010> for more info
 %
 % FUNCTION:
-%   OUT = PsychoacousticAnnoyance_More2011_from_percentile(N,S,R,FS,K)
-%   type <help PsychoacousticAnnoyance_More2011_from_percentile> for more info
+%   OUT = PsychoacousticAnnoyance_More2010_from_percentile(N,S,R,FS,K)
+%   type <help PsychoacousticAnnoyance_More2010_from_percentile> for more info
 %
-% Gil Felix Greco, Braunschweig 05.04.2023
-%
+% Author: Gil Felix Greco, Braunschweig 05.04.2023
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+clc; clear all; close all;
 
 %% load .wav RefSignal 
 
