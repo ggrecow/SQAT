@@ -17,7 +17,7 @@ clc; clear all; close all;
 %% load .wav RefSignal 
 
 dir_sounds = [basepath_SQAT 'sound_files' filesep 'validation' filesep 'Loudness_ISO532_1' filesep];
-% path='SQAT_open_source\sound_files\validation\Loudness_ISO532_1\';   % path of the sound file for reference
+
 [CalSignal,fs]=audioread([dir_sounds 'calibration signal sine 1kHz 60dB.wav']);
 lvl_cal_signal = 60; % dB SPL, from the file name
 

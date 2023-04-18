@@ -1,9 +1,6 @@
-function OUT = PsychoacousticAnnoyance_More2011_from_percentile(N,S,R,FS,K)
-
-%% FUNCTION:
-%   OUT = PsychoacousticAnnoyance_More2011_from_percentile(N,S,R,FS,K)
+function OUT = PsychoacousticAnnoyance_More2010_from_percentile(N,S,R,FS,K)
+% function OUT = PsychoacousticAnnoyance_More2010_from_percentile(N,S,R,FS,K)
 %
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %   This function calculates the More's modified psychoacoustic annoyance model from scalar inputs
 %   corresponding to the percentile values of loudness, sharpness, roughness, fluctuation strength and tonality
 %
@@ -22,7 +19,7 @@ function OUT = PsychoacousticAnnoyance_More2011_from_percentile(N,S,R,FS,K)
 %
 %    5) Tonality, K (t.u.)
 %
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
 % INPUT:
 %   N: scalar
@@ -44,11 +41,11 @@ function OUT = PsychoacousticAnnoyance_More2011_from_percentile(N,S,R,FS,K)
 %   OUT : scalar
 %   modified psychoacoustic annoyance computed using the input percentile values of each metric
 %
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
 %  Gil Felix Greco, Braunschweig 05.04.2023
 %
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %% modified PA model constants (Ref. [1] pg. 204)
 
@@ -83,9 +80,9 @@ wt( isinf(wt) | isnan(wt) ) = 0;  % replace inf and NaN with zeros
 % More's modified psychoacoustic annoyance
 PA_scalar = abs(N*( 1 + sqrt( gamma_0 + (gamma_1*ws^2) + (gamma_2* wfr^2) + (gamma_3*wt) ) ));
 
-%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %   OUTPUT
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % main output results
 

@@ -19,7 +19,7 @@ function OUT = PsychoacousticAnnoyance_Di2016_from_percentile(N,S,R,FS,K)
 %
 %    5) Tonality, K (t.u.)
 %
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
 % INPUT:
 %   N: scalar
@@ -41,11 +41,11 @@ function OUT = PsychoacousticAnnoyance_Di2016_from_percentile(N,S,R,FS,K)
 %   OUT : scalar
 %   modified psychoacoustic annoyance computed using the input percentile values of each metric
 %
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
 %  Gil Felix Greco, Braunschweig 05.04.2023
 %
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %% modified PA model constants (Ref. [1] pg. 168, eq (9))
 
@@ -82,7 +82,7 @@ PA_scalar = N*( 1 + sqrt( ws^2 + wfr^2 + wt^2 ) );
 
 % main output results
 
-OUT=PA_scalar;               % Annoyance calculated from the percentiles of each variable
+OUT=PA_scalar; % Annoyance calculated from the percentiles of each variable
 
 end % end PA function
 

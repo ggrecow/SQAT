@@ -51,6 +51,9 @@ T_main        = [bp 'psychoacoustic_metrics' filesep 'Tonality_Aures1985'       
 T_validation  = [bp 'validation'             filesep 'Tonality_Aures1985'            filesep];
 T_example     = [bp 'examples'               filesep 'Tonality_Aures1985'            filesep];
 
+PA_More_main    = [bp 'psychoacoustic_metrics' filesep 'PsychoacousticAnnoyance_More2010' filesep];
+PA_More_example = [bp 'examples'               filesep 'PsychoacousticAnnoyance_More2010' filesep];
+
 PA_Di_main    = [bp 'psychoacoustic_metrics' filesep 'PsychoacousticAnnoyance_Di2016' filesep];
 PA_Di_example = [bp 'examples'               filesep 'PsychoacousticAnnoyance_Di2016' filesep];
 
@@ -91,7 +94,13 @@ if bAdd
     addpath(T_validation);
     addpath(T_example);
 end
- 
+
+bAdd = ~exist('PsychoacousticAnnoyance_More2010.m','file');
+if bAdd
+    addpath(PA_More_main);
+    addpath(PA_More_example);
+end
+
 bAdd = ~exist('PsychoacousticAnnoyance_Di2016.m','file');
 if bAdd
     addpath(PA_Di_main);
