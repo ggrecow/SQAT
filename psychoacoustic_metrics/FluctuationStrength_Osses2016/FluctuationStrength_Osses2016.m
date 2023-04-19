@@ -6,13 +6,9 @@ function OUT = FluctuationStrength_Osses2016(insig,fs,method,time_skip,show)
 %    "Modelling the sensation of fluctuation strength." Proceedings of 
 %    Meetings on Acoustics 22 ICA. Vol. 28, 050005. doi:10.1121/2.0000410
 %
-%  SOURCE:
-%  https://github.com/aosses-tue/mb/tree/master/FluctuationStrength_TUe
-%  (accessed 04/03/2020)
-%
 %  Reference signal: 60 dBSPL 1 kHz tone 100% modulated at 4 Hz should yield 1 vacil.
 %
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
 % INPUT:
 %   insig : [Nx1] array
@@ -55,6 +51,9 @@ function OUT = FluctuationStrength_Osses2016(insig,fs,method,time_skip,show)
 %         ** FSx : percentile fluctuation strength exceeded during x percent
 %              of the signal (vacil)
 %
+% Original file name: FluctuationStrength_TUe.m from 
+%   https://github.com/aosses-tue/mb/tree/master/FluctuationStrength_TUe (accessed 04/03/2020)
+%
 % Author: Alejandro Osses, HTI, TU/e, the Netherlands, 2014-2016
 % Author: Rodrigo Garcia, HTI, TU/e, the Netherlands, 2014-2016
 % Author: Gil Felix Greco, Braunschweig 04.03.2020 - Modifications
@@ -64,6 +63,11 @@ function OUT = FluctuationStrength_Osses2016(insig,fs,method,time_skip,show)
 %     2) include possibility to choose method (stationary or time-varying) 
 %        which affects the window size
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+if nargin == 0
+    help FluctuationStrength_Osses2016;
+    return;
+end
+
 if nargin < 5
     % Default for show
     if nargout == 0

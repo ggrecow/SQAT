@@ -1,9 +1,5 @@
 function OUT = Loudness_ISO532_1(insig, fs, field, method, time_skip, show)
-
-%% FUNCTION:
-%   OUT = Loudness_ISO532_1(insig, fs, field, method, time_skip, show)
-%   
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% function OUT = Loudness_ISO532_1(insig, fs, field, method, time_skip, show)
 %
 %  Zwicker Loudness model according to ISO 532-1 for stationary 
 %  signals (Method A) and arbitrary signals (Method B)  
@@ -67,13 +63,27 @@ function OUT = Loudness_ISO532_1(insig, fs, field, method, time_skip, show)
 %                     therefore, it is a good practice to consider a time_skip to compute the statistics 
 %                     due to transient effects in the beginning of the loudness calculations
 %
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Source: C code is provided in the ISO532 Annex A (2014). 
-% This code is based on the MATLAB code by Ella Manor for AARAE (2015)
-% The original MATLAB code was modified and verified against test signals from ISO 532-1:2017 by:
-% Gil Felix Greco, Braunschweig 22.02.2023
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Source: C code is provided in the ISO532 Annex A (2014).
 %
-%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Author: Ella Manor - MATLAB implementation for AARAE (2015)
+% Author: Gil Felix Greco, Braunschweig 22.02.2023 - adapted and validatec 
+%                   for SQAT. The validation was based on the test signals
+%                   provided from ISO 532-1:2017
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+if nargin == 0
+    help Loudness_ISO532_1;
+    return;
+end
+
+if nargin < 6
+    if nargout == 0
+        show = 1;
+    else
+        show = 0;
+    end
+end
 
 if method==0
     

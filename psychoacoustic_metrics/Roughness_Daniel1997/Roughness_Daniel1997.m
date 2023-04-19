@@ -1,30 +1,14 @@
 function OUT = Roughness_Daniel1997(insig,fs,time_skip,show)
-
-%% FUNCTION:
-%   OUT = Roughness_Daniel1997(insig,fs,time_skip,show)
-%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% function OUT = Roughness_Daniel1997(insig,fs,time_skip,show)
 %
 %   This function calculates time-varying roughness and time-averaged specific
-%   roughness using the roughness model by Daniel & Weber:
-%   Daniel, P., & Weber, R. (1997). Psychoacoustical roughness: implementation
-%   of an optimized model. Acustica(83), 113-123.
+%     roughness using the roughness model by Daniel & Weber:
+%     Daniel, P., & Weber, R. (1997). Psychoacoustical roughness: implementation
+%     of an optimized model. Acustica(83), 113-123.
 %
 %   Reference signal: 60 dB 1 kHz tone 100% modulated at 70 Hz should yield 1 asper.
 %
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%
-%   The original code for this implementation was provided by Dik Hermes. This code
-%   is based on the implementation for PsySound3 by Matt Flax (2006), with further
-%   changes by Farhan Rizwi (2007).
-%
-%   SOURCE:
-%   https://github.com/densilcabrera/aarae/blob/master/Analysers/Level%20and%20Strength/RoughnessDW.m
-%   (accessed 11/02/2020)
-%
-%   It was modified, adapted and verified to SQAT by Gil Felix Greco (2023).
-%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
 % INPUT:
 %   insig : array [Nx1]
@@ -43,10 +27,14 @@ function OUT = Roughness_Daniel1997(insig,fs,time_skip,show)
 % OUTPUT:
 %   OUT : struct containing the following fields
 %
-%       * InstantaneousRoughness: instantaneous roughness (asper) vs time
-%       * InstantaneousSpecificRoughness: specific roughness(asper/Bark) vs time and Bark scale
-%       * TimeAveragedSpecificRoughness: time-averaged specific roughness(asper/Bark) vs Bark scale
-%       * barkAxis : vector of Bark band numbers used for specific roughness computation
+%       * InstantaneousRoughness: instantaneous roughness (asper) as a 
+%         function of time
+%       * InstantaneousSpecificRoughness: specific roughness(asper/Bark) as
+%         a function of time and frequency (Bark scale)
+%       * TimeAveragedSpecificRoughness: time-averaged specific roughness 
+%         (asper/Bark) as a function of frequency (Bark scale)
+%       * barkAxis : vector of Bark band numbers used for the computation
+%         of specific roughness computation
 %       * time : time vector in seconds
 %       * Several statistics based on the InstantaneousRoughness
 %         ** Rmean : mean value of instantaneous roughness (asper)
@@ -55,8 +43,25 @@ function OUT = Roughness_Daniel1997(insig,fs,time_skip,show)
 %         ** Rmin : minimum of instantaneous roughness (asper)
 %         ** Rx : percentile roughness exceeded during x percent of the signal (asper)
 %
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Original file name: roughnessDW.m obtained from 
+%   https://github.com/densilcabrera/aarae/ (accessed 11/02/2020)
+% Author: Dik Hermes (2000-2005)
+% Author: Matt Flax (2006) and Farhan Rizwi (2007), adapted for the PsySound3 toolbox
+% Author: Gil Félix Greco (2023). Adapted (and verified) for SQAT. 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+if nargin == 0
+    help Roughness_Daniel1997;
+    return;
+end
+
+if nargin < 4
+    if nargout == 0
+        show = 1;
+    else
+        show = 0;
+    end
+end
 %% window settings
 
 time_resolution=0.2;  % time-step for the windowing

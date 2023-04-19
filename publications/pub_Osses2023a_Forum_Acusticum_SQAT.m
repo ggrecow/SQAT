@@ -1,6 +1,14 @@
 function pub_Osses2023a_Forum_Acusticum_SQAT
 % function pub_Osses2023a_Forum_Acusticum_SQAT
 %
+% Generates the tables and figures presented in the contribution to be 
+%   presented at Forum Acusticum in September 2023.
+%
+% Reference:
+% Osses, A., Felix Greco, G., and Merino-Martinez, R. (2023) Considerations
+%   for the perceptual evaluation of steady-state and time vareying sounds 
+%   using psychoacoustic metrics. Forum Acusticum.
+%
 % Author: Alejandro Osses
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 close all
@@ -67,8 +75,8 @@ if do_table2
         for i_files = 1:length(files)
             [insig,fs] = audioread([dir_here files{i_files}]);
             
-            il_get_the_metrics(insig,fs,dBFS,list_metrics,dir_datasets{i_dir,1});
-            [res,res_description,outs] = il_get_the_metrics(insig,fs,dBFS,list_metrics,dir_datasets{i_dir,1});
+            il_get_the_metrics(insig,fs,dBFS,list_metrics);
+            [res,res_description,outs] = il_get_the_metrics(insig,fs,dBFS,list_metrics);
             
             gain4reproduction = dBFS-dBFS_4_reproduction;
             disp(''); close; % sound(gain4reproduction*insig(min(outs.idx):max(outs.idx),:),fs);
@@ -84,11 +92,6 @@ if do_fig1 || do_table3 || do_fig_raw
     % Starts by repeating the calculation as in do_table1, but here we are 
     %   interested in the exact time of the sound event 'idx'.
     
-    % List_psy_metrics = {'Loudness_ISO532_1'};
-    % List_psy_metrics = {'Sharpness_DIN45692'};
-    % List_psy_metrics = {'Roughness_Daniel1997'};
-    % List_psy_metrics = {'FluctuationStrength_Osses2016'};
-    % List_psy_metrics = {'Tonality_Aures1985'};
     List_psy_metrics = {'Loudness_ISO532_1', ...
                         'Sharpness_DIN45692', ...
                         'Roughness_Daniel1997', ...
@@ -132,7 +135,7 @@ if do_fig1 || do_table3 || do_fig_raw
                 end
 
                 [insig,fs] = audioread([dir_here files{i_files}]);
-                [res_SLM,res_description_SLM,outs] = il_get_the_metrics(insig,fs,dBFS,list_metrics,dir_datasets{i_dir,1});
+                [res_SLM,res_description_SLM,outs] = il_get_the_metrics(insig,fs,dBFS,list_metrics);
 
                 res = []; % where the psychoacoustic metrics will be stored
                 res_description = [];
