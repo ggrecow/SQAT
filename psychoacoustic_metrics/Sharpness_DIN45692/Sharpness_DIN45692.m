@@ -63,6 +63,24 @@ function OUT = Sharpness_DIN45692(insig, fs, weight_type, field, method, time_sk
 %
 % Author: Gil Felix Greco, Braunschweig 09.03.2023
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+if nargin == 0
+    help Sharpness_DIN45692;
+    return;
+end
+if nargin < 8
+    if nargout == 0
+        show_loudness = 1;
+    else
+        show_loudness = 0;
+    end
+end
+if nargin < 7
+    if nargout == 0
+        show_sharpness = 1;
+    else
+        show_sharpness = 0;
+    end
+end
 
 if method==1 % stationary loudness calculation
     

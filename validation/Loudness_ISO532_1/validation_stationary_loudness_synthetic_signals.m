@@ -13,16 +13,7 @@ clc; clear all; close all;
 %% save figs flag
 
 save_figs=0;
-% %% Validation signal 1: 
-% %   Signal 1 is specified as one-third octave band levels:
-% i = 1;
-% signal_1=[-60 -60 78 79 89 72 80 89 75 87 85 79 86 80 71 70 72 71 72 74 69 65 67 77 68 58 45 30]; % 1/3 octave levels provided by ISO 532-1:2017 - Annex B.2.  
-% 
-% [OUT.L{1},OUT.RefScalar{1}]=il_compute_and_plot(i,...     % insig_num
-%                                              signal_1,... % insig name str
-%                                              save_figs,['validation_stationary_loudness_signal_' sprintf('%g',1)]... % savefig inputs
-%                                                   );
-%                                               
+                                  
 %% validation signals 1 to 5
 %       signal 1 is a numeric array, specified as one-third octave band levels
 %       signals 2-5 are wave files.
@@ -76,6 +67,9 @@ function [OUT,table] = il_compute_and_plot(insig_num,fname_insig,save_figs)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% signals from ISO 532-2:2017
 
+dir_analysis_name = 'synthetic_signals_stationary_loudness';
+dir_out = [fileparts(mfilename('fullpath')) filesep dir_analysis_name filesep];
+
 if isnumeric(fname_insig)
     bFrom_wav_file = 0;
     insig = fname_insig;
@@ -83,8 +77,8 @@ else
     bFrom_wav_file = 1;
 end
     
-dir_sounds = [basepath_SQAT 'sound_files' filesep 'validation' filesep 'Loudness_ISO532_1' filesep];
-dir_ref_values = [basepath_SQAT 'validation' filesep 'Loudness_ISO532_1' filesep 'reference_values' filesep];
+dir_sounds = get_dir_validation_sounds('Loudness_ISO532_1');
+dir_ref_values = get_dir_reference_values('Loudness_ISO532_1',dir_analysis_name);
 
 if bFrom_wav_file
     % calculate stationary loudness using SQAT for signals 2 to 5, method == 1
@@ -180,7 +174,10 @@ grid off
 set(gcf,'color','w');
 
 if save_figs==1
-    figures_dir = [fileparts(mfilename('fullpath')) filesep 'figs' filesep];
+    if ~exist(dir_out,'dir')
+        mkdir(dir_out);
+    end
+    figures_dir = [dir_out 'figs' filesep];
     if ~exist(figures_dir,'dir')
         mkdir(figures_dir);
     end

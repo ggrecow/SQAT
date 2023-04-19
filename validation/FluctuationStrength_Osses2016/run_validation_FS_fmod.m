@@ -14,6 +14,9 @@ clc; clear all; close all;
 
 save_figs=0; %% save figs flag
 
+dir_out_name = 'AM_tones_fmod';
+dir_out = [fileparts(mfilename('fullpath')) filesep dir_out_name filesep];
+
 %% reference data from Osses et al 2019
 
 ref=[1    2    4    8    16    32    ; % fmod (Hz)
@@ -26,7 +29,7 @@ j=1; % init counter
 
 res=cell(1,size(ref,2));  % declaring for memory allocation
 
-dir_sounds = [basepath_SQAT 'sound_files' filesep 'validation' filesep 'FluctuationStrength_Osses2016' filesep];
+dir_sounds = get_dir_validation_sounds('FluctuationStrength_Osses2016');
 
 dBFS_in  = 100; % dB full scale convention from the input sounds
 dBFS_out =  94; % dB full scale convention in SQAT: amplitude of 1 = 1 Pa, or 94 dB SPL
@@ -93,7 +96,10 @@ set(gcf,'color','w');
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 if save_figs==1
-    figures_dir = [fileparts(mfilename('fullpath')) filesep 'figs' filesep];
+    if ~exist(dir_out,'dir')
+        mkdir(dir_out);
+    end
+    figures_dir = [dir_out 'figs' filesep];
     if ~exist(figures_dir,'dir')
         mkdir(figures_dir);
     end

@@ -14,7 +14,10 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 clear all; close all; clc;
 
-dir_sounds = [basepath_SQAT 'sound_files' filesep 'validation' filesep 'Tonality_Aures1985' filesep];
+dir_analysis_name = 'signal_to_noise_ratio';
+dir_sounds = get_dir_validation_sounds('Tonality_Aures1985'); 
+
+dir_out = [fileparts(mfilename('fullpath')) filesep dir_analysis_name filesep];
 
 %% save settings
 
@@ -113,7 +116,10 @@ set(gcf,'color','w');
 %%
 
 if save_figs==1
-    figures_dir = [fileparts(mfilename('fullpath')) filesep 'figs' filesep];
+    if ~exist(dir_out,'dir')
+        mkdir(dir_out);
+    end
+    figures_dir = [dir_out 'figs' filesep];
     if ~exist(figures_dir,'dir')
         mkdir(figures_dir);
     end

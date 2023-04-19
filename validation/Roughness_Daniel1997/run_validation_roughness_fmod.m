@@ -16,10 +16,12 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 clc;clear all; close all;
 
+dir_analysis_name = 'modulation_freq';
+dir_out = [fileparts(mfilename('fullpath')) filesep dir_analysis_name filesep];
 save_figs=0; %% save figs flag
 
 % Figure where the figures (and the results) will be stored:
-figures_dir = [fileparts(mfilename('fullpath')) filesep 'figs' filesep];
+figures_dir = [dir_out 'figs' filesep];
 if ~exist(figures_dir,'dir')
     mkdir(figures_dir);
 end
@@ -36,8 +38,7 @@ end
 bLoad = ~bCalculation;
 
 %% load  reference data
-% dir_sounds = [basepath_SQAT 'sound_files' filesep 'validation' filesep 'Loudness_ISO532_1' filesep];
-dir_ref_values = [basepath_SQAT 'validation' filesep 'Roughness_Daniel1997' filesep 'reference_values' filesep];
+dir_ref_values = get_dir_reference_values('Roughness_Daniel1997',dir_analysis_name); 
 
 fmod_125hz = [];
 load([dir_ref_values 'fmod_125hz.mat']);
