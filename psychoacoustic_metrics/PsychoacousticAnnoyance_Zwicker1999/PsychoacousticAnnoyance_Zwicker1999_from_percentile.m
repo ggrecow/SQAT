@@ -1,9 +1,5 @@
-function OUT = PsychoacousticAnnoyance_Fastl1999_from_percentile(N,S,R,FS)
-
-%% FUNCTION:
-%   OUT = PsychoacousticAnnoyance_Fastl1999_from_percentile(N,S,R,FS)
-%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function OUT = PsychoacousticAnnoyance_Zwicker1999_from_percentile(N,S,R,FS)
+% function OUT = PsychoacousticAnnoyance_Zwicker1999_from_percentile(N,S,R,FS)
 %
 %   This function calculates the Zwicker's psychoacoustic annoyance model from scalar inputs
 %   corresponding to the percentile values of loudness, sharpness, roughness and fluctuation strength
@@ -21,7 +17,7 @@ function OUT = PsychoacousticAnnoyance_Fastl1999_from_percentile(N,S,R,FS)
 %
 %    4) Fluctuation strength, FS (vacil)
 %
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
 % INPUT:
 %   N: scalar
@@ -40,11 +36,8 @@ function OUT = PsychoacousticAnnoyance_Fastl1999_from_percentile(N,S,R,FS)
 %   OUT : scalar
 %   Psychoacoustic Annoyance computed using the input percentile values of each metric
 %
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%
-%  Gil Felix Greco, Braunschweig 14.03.2023
-%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Author: Gil Felix Greco, Braunschweig 14.03.2023
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %% (scalar) psychoacoustic annoyance - computed directly from percentile values
 

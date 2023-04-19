@@ -80,7 +80,7 @@ switch model_name
         params.show = 0;
         params.show_description = 'Plots the outputs (optional parameter)';
         
-    case 'PsychoacousticAnnoyance_Di2016'
+    case {'PsychoacousticAnnoyance_Di2016','PsychoacousticAnnoyance_More2010','PsychoacousticAnnoyance_Zwicker1999'}
         params.Loudness_field = 0; 
         params.Loudness_field_description = 'Loudness: 0 = free field; 1 = diffuse field';
         params.time_skip = 0.2;

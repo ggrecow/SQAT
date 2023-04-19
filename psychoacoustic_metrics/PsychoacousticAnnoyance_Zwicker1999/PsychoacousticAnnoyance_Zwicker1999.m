@@ -1,9 +1,5 @@
-function OUT = PsychoacousticAnnoyance_Fastl1999(insig,fs,LoudnessField,time_skip,showPA,show)
-
-%% FUNCTION:
-%   OUT = PPsychoacousticAnnoyance_Fastl1999(insig,fs,LoudnessField,time_skip,showPA,show)
-%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function OUT = PsychoacousticAnnoyance_Zwicker1999(insig,fs,LoudnessField,time_skip,showPA,show)
+% function OUT = PsychoacousticAnnoyance_Zwicker1999(insig,fs,LoudnessField,time_skip,showPA,show)
 %
 %   This function calculates the Zwicker's psychoacoustic annoyance model from an input acoustic signal
 %
@@ -13,18 +9,18 @@ function OUT = PsychoacousticAnnoyance_Fastl1999(insig,fs,LoudnessField,time_ski
 % - This metric combines 4 psychoacoustic metrics to quantitatively describe annoyance:
 %
 %    1) Loudness (sone) - calculated hereafter following ISO 532-1:2017
-%       type <help loudness_ISO532_1> for more info
+%       type <help Loudness_ISO532_1> for more info
 %
 %    2) Sharpness (acum) - calculated hereafter following DIN 45692:2009
 %       NOTE: uses DIN 45692 weighting function by default, please change code if
 %       the use of a different withgitng function is desired).
-%       type <help sharpness_DIN45692_from_loudness>
+%       type <help Sharpness_DIN45692_from_loudness>
 %
 %    3) Roughness (asper) - calculated hereafter following Daniel & Weber model
-%       type <help roughness_DanielWeber1997> for more info
+%       type <help Roughness_Daniel1997> for more info
 %
 %    4) Fluctuation strength (vacil) - calculated hereafter following Osses et al. model
-%       type <help fluctuation_strength_Ossesetal2016> for more info
+%       type <help FluctuationStrength_Osses2016> for more info
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
@@ -41,11 +37,11 @@ function OUT = PsychoacousticAnnoyance_Fastl1999(insig,fs,LoudnessField,time_ski
 %   LoudnessField : integer
 %   chose field for loudness calculation; free field = 0; diffuse field = 1;
 %   type <help loudness_ISO532_1> for more info
-
+%
 %   show : logical(boolean)
 %   optional parameter, display results of loudness, sharpness, roughness and fluctuation strength
 %   'false' (disable, default value) or 'true' (enable).
-
+%
 %   showPA : logical(boolean)
 %   optional parameter, display results of psychoacoustic annoyance
 %   'false' (disable, default value) or 'true' (enable).
@@ -89,11 +85,26 @@ function OUT = PsychoacousticAnnoyance_Fastl1999(insig,fs,LoudnessField,time_ski
 %           Therefore, in order to have the same time vector, after each respective metric calculation, the outputs are interpolated with respect to the loudness time vector and all cutted in the end
 %           to the final time corresponding to the FS metric
 %
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%
-%  Gil Felix Greco, Braunschweig 04.03.2020 (updated 14.03.2023)
-%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Author: Gil Felix Greco, Braunschweig 04.03.2020 (updated 14.03.2023)
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+if nargin == 0
+    help PsychoacousticAnnoyance_Zwicker1999;
+    return;
+end
+if nargin < 6
+    if nargout == 0
+        show = 1;
+    else
+        show = 0;
+    end
+end
+if nargin < 5
+    if nargout == 0
+        showPA = 1; 
+    else
+        showPA = 0;
+    end
+end
 
 time_insig=(0 : length(insig)-1) ./ fs;  % time vector of the audio input, in seconds
 

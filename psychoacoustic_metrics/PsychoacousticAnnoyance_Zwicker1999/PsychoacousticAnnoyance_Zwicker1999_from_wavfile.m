@@ -1,33 +1,28 @@
-function OUT = PsychoacousticAnnoyance_More2010_from_wavfile(wavfilename,dBFS,LoudnessField,time_skip,showPA,show)
-% function OUT = PsychoacousticAnnoyance_More2010_from_wavfile(wavfilename,dBFS,LoudnessField,time_skip,showPA,show)
+function OUT = PsychoacousticAnnoyance_Zwicker1999_from_wavfile(wavfilename,dBFS,LoudnessField,time_skip,showPA,show)
+% function OUT = PsychoacousticAnnoyance_Zwicker1999_from_wavfile(wavfilename,dBFS,LoudnessField,time_skip,showPA,show)
 %
-%   This function calculates the More's modified psychoacoustic annoyance 
-%   model from an input acoustic signal
+%   This function calculates the Zwicker's psychoacoustic annoyance model from an input acoustic signal
 %
-%   The modified psychoacoustic annoyance model is according to: (page 201)
-%   [1] More, Shashikant. Aircraft noise characteristics and metrics. 
-%       PhD Thesis, Purdue University, 2010
+%   The psychoacoustic annoyance model is according to: (page 327) Zwicker, E. and Fastl, H. Second ed,
+%   Psychoacoustics, Facts and Models, 2nd ed. M.R. Schroeder. Springer-Verlag, Berlin, 1999.
 %
-% - This metric combines 5 psychoacoustic metrics to quantitatively describe annoyance:
+% - This metric combines 4 psychoacoustic metrics to quantitatively describe annoyance:
 %
-%    1) Loudness, N (sone) - calculated hereafter following ISO 532-1:2017
+%    1) Loudness (sone) - calculated hereafter following ISO 532-1:2017
 %       type <help Loudness_ISO532_1> for more info
 %
-%    2) Sharpness, S (acum) - calculated hereafter following DIN 45692:2009
+%    2) Sharpness (acum) - calculated hereafter following DIN 45692:2009
 %       NOTE: uses DIN 45692 weighting function by default, please change code if
 %       the use of a different withgitng function is desired).
 %       type <help Sharpness_DIN45692_from_loudness>
 %
-%    3) Roughness, R (asper) - calculated hereafter following Daniel & Weber model
+%    3) Roughness (asper) - calculated hereafter following Daniel & Weber model
 %       type <help Roughness_Daniel1997> for more info
 %
-%    4) Fluctuation strength, FS (vacil) - calculated hereafter following 
-%       Osses et al. model, type <help FluctuationStrength_Osses2016> for more info
+%    4) Fluctuation strength (vacil) - calculated hereafter following Osses et al. model
+%       type <help FluctuationStrength_Osses2016> for more info
 %
-%    5) Tonality, K (t.u.) - calculated hereafter following Aures' model
-%       type <help Tonality_Aures1985> for more info
-%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
 % INPUT:
 %   insig : array
@@ -40,11 +35,11 @@ function OUT = PsychoacousticAnnoyance_More2010_from_wavfile(wavfilename,dBFS,Lo
 %   skip start of the signal in <time_skip> seconds for statistics calculations
 %
 %   LoudnessField : integer
-%   chose field for loudness calculation; free field = 0; diffuse field = 1; (used in the loudness and tonality codes)
+%   chose field for loudness calculation; free field = 0; diffuse field = 1;
 %   type <help loudness_ISO532_1> for more info
 %
 %   show : logical(boolean)
-%   optional parameter, display results of loudness, sharpness, roughness, fluctuation strength and tonality
+%   optional parameter, display results of loudness, sharpness, roughness and fluctuation strength
 %   'false' (disable, default value) or 'true' (enable).
 %
 %   showPA : logical(boolean)
@@ -58,7 +53,6 @@ function OUT = PsychoacousticAnnoyance_More2010_from_wavfile(wavfilename,dBFS,Lo
 %             ** ScalarPA : PA (scalar value) computed using the percentile values of each metric.
 %                           NOTE: if the signal's length is smaller than 2s, this is the only output as no time-varying PA is calculated
 %             ** time : time vector in seconds
-%             ** wt : tonality and loudness weighting function (not squared)
 %             ** wfr : fluctuation strength and roughness weighting function (not squared)
 %             ** ws : sharpness and loudness weighting function (not squared)
 %
@@ -74,19 +68,16 @@ function OUT = PsychoacousticAnnoyance_More2010_from_wavfile(wavfilename,dBFS,Lo
 %        **  S : struct with Sharpness, type <help sharpness_DIN45692_from_loudness>
 %        **  R : strcut with roughness results, type <help roughness_DanielWeber1997> for more info
 %        ** FS : struct with fluctuation strength results, type <help fluctuation_strength_Ossesetal2016> for more info
-%        **  K : struct with tonality results, type <help Tonality_Aures1985> for more info
 %
-% Stand-alone example:
 %   dBFS = 103; % dBFS for this sound
 %   dir_sounds = [basepath_SQAT 'sound_files' filesep 'validation' filesep 'Loudness_ISO532_1' filesep];
 %   fname = [dir_sounds 'Test signal 14 (propeller-driven airplane).wav'];
-%   PsychoacousticAnnoyance_More2010_from_wavfile(fname,dBFS);
+%   PsychoacousticAnnoyance_Zwicker1999_from_wavfile(fname,dBFS);
 %
 % Author: Alejandro Osses
-% See also: PsychoacousticAnnoyance_More2010.m
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 if nargin == 0
-    help PsychoacousticAnnoyance_More2010_from_wavfile;
+    help PsychoacousticAnnoyance_Zwicker1999_from_wavfile;
     return;
 end
 if nargin < 6
@@ -104,12 +95,12 @@ if nargin < 5
     end
 end
 if nargin <4
-    pars = psychoacoustic_metrics_get_defaults('PsychoacousticAnnoyance_More2010');
+    pars = psychoacoustic_metrics_get_defaults('PsychoacousticAnnoyance_Zwicker1999');
     time_skip = pars.time_skip;
     fprintf('%s.m: Default time_skip value = %.0f is being used\n',mfilename,pars.time_skip);
 end
 if nargin <3
-    pars = psychoacoustic_metrics_get_defaults('PsychoacousticAnnoyance_More2010');
+    pars = psychoacoustic_metrics_get_defaults('PsychoacousticAnnoyance_Zwicker1999');
     LoudnessField = pars.Loudness_field;
     fprintf('%s.m: Default Loudness_field value = %.0f is being used\n',mfilename,pars.Loudness_field);
 end
@@ -122,7 +113,7 @@ end
 gain_factor = 10^((dBFS-94)/20);
 insig = gain_factor*insig;
 
-OUT = PsychoacousticAnnoyance_More2010(insig,fs,LoudnessField,time_skip,showPA,show);
+OUT = PsychoacousticAnnoyance_Zwicker1999(insig,fs,LoudnessField,time_skip,showPA,show);
 
 end % end of file
 
