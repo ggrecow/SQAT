@@ -42,11 +42,11 @@ function OUT = PsychoacousticAnnoyance_More2010(insig,fs,LoudnessField,time_skip
 %   LoudnessField : integer
 %   chose field for loudness calculation; free field = 0; diffuse field = 1; (used in the loudness and tonality codes)
 %   type <help loudness_ISO532_1> for more info
-
+%
 %   show : logical(boolean)
 %   optional parameter, display results of loudness, sharpness, roughness, fluctuation strength and tonality
 %   'false' (disable, default value) or 'true' (enable).
-
+%
 %   showPA : logical(boolean)
 %   optional parameter, display results of psychoacoustic annoyance
 %   'false' (disable, default value) or 'true' (enable).
@@ -102,6 +102,24 @@ function OUT = PsychoacousticAnnoyance_More2010(insig,fs,LoudnessField,time_skip
 %
 % Author: Gil Felix Greco, Braunschweig 05.04.2023
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+if nargin == 0
+    help PsychoacousticAnnoyance_More2010;
+    return;
+end
+if nargin < 6
+    if nargout == 0
+        show = 1;
+    else
+        show = 0;
+    end
+end
+if nargin < 5
+    if nargout == 0
+        showPA = 1; 
+    else
+        showPA = 0;
+    end
+end
 
 time_insig=(0 : length(insig)-1) ./ fs;  % time vector of the audio input, in seconds
 

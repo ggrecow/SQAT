@@ -66,18 +66,28 @@ switch model_name
         params.weight_type = weight_type;
         params.weight_type_description = weight_type_description;
         
-    case 'Roughness_Daniel1997'
+    case {'Roughness_Daniel1997','Roughness_Daniel1997_from_wavfile'}
         params.time_skip = 0;
         params.time_skip_description = 'time_skip';
         params.show = 0;
         params.show_description = 'Plots the outputs (optional parameter)';
         
-    case 'Tonality_Aures1985'
+    case {'Tonality_Aures1985','Tonality_Aures1985_from_wavfile'}
         params.Loudness_field = 0; 
         params.Loudness_field_description = 'Loudness: 0 = free field; 1 = diffuse field';
         params.time_skip = 0;
         params.time_skip_description = 'time_skip';
         params.show = 0;
         params.show_description = 'Plots the outputs (optional parameter)';
-         
+        
+    case 'PsychoacousticAnnoyance_Di2016'
+        params.Loudness_field = 0; 
+        params.Loudness_field_description = 'Loudness: 0 = free field; 1 = diffuse field';
+        params.time_skip = 0.2;
+        params.time_skip_description = 'time_skip';
+        params.showPA = 0; % show results of PA, 'false' (disable, default value) or 'true' (enable)
+        params.showPA_description = 'Plots the outputs for psychoacoustic annoyance (optional parameter)';
+        params.show = 0;
+        params.show_description = 'Plots the outputs (optional parameter)';
+        
 end

@@ -70,7 +70,6 @@ function OUT = Loudness_ISO532_1(insig, fs, field, method, time_skip, show)
 % Author: Gil Felix Greco, Braunschweig 22.02.2023 - adapted and validatec 
 %                   for SQAT. The validation was based on the test signals
 %                   provided from ISO 532-1:2017
-%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 if nargin == 0
     help Loudness_ISO532_1;

@@ -14,7 +14,8 @@ function OUT = FluctuationStrength_Osses2016_from_wavfile(wavfilename,dBFS,metho
 %   wavfilename : char
 %   wavfilename specifies the file name of a wav file to be processed
 %
-%   dBFS : full scale convention. Internally the this algorithm works with 
+%   dBFS : integer
+%          Full scale convention. Internally the this algorithm works with 
 %          a convention of full scale being equal to 94 dB SPL, or dBFS=94.
 %          if the specified dBFS is different from 94 dB SPL, then a gain 
 %          factor will be applied
@@ -59,6 +60,7 @@ function OUT = FluctuationStrength_Osses2016_from_wavfile(wavfilename,dBFS,metho
 %   FluctuationStrength_Osses2016_from_wavfile(fname,dBFS);
 %
 % Author: Alejandro Osses
+% See also: FluctuationStrength_Osses2016.m
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 if nargin == 0
@@ -87,7 +89,7 @@ if nargin <3
 end
 
 [insig,fs] = audioread(wavfilename);
-if isempty(dBFS) || nargin < 2
+if nargin < 2 || isempty(dBFS)
     dBFS = 94; % dB
     fprintf('%s.m: Assuming the default full scale convention, with dBFS = %.0f\n',mfilename,dBFS);
 end

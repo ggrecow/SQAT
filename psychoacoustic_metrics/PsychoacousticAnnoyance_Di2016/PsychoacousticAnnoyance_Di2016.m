@@ -136,7 +136,7 @@ time_insig=(0 : length(insig)-1) ./ fs;  % time vector of the audio input, in se
 
 if time_insig(end) < 2
     
-    warning('WARNING: the signal''s length is smaller than 2 seconds. Due to the minimum window size used for the fluctuation strength, the computation of a time-varying psychoacoustic annoyance is not possible !!! Only scalar psychoacoustic annoyance number will be calculated for this signal!');
+    warning('WARNING: the signal is shorter than 2 seconds. Due to the minimum window size used for the fluctuation strength, the computation of a time-varying psychoacoustic annoyance is not possible ! Only scalar psychoacoustic annoyance number will be calculated for this signal!');
     method_FS=0; % stationary method used for the fluctuation strength
     
 else
@@ -229,9 +229,22 @@ if time_insig(end) < 2
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     
     % main output results
-    OUT.ScalarPA = PA_scalar;               % Annoyance calculated from the percentiles of each variable
+    OUT.ScalarPA = PA_scalar; % Annoyance calculated from the percentiles of each variable
     
-else % for signals larger than 2 seconds
+    if show == true
+        fprintf('No plots are shown because the signal is too short, but:\n');
+        fprintf('\tThe mean loudness is OUT.L.Nmean=%.2f (sones)\n',OUT.L.Nmean);
+        fprintf('\tThe mean fluctuation strength is OUT.R.Rmean=%.2f (asper)\n',OUT.R.Rmean);
+        fprintf('\tThe mean roughness is OUT.FS.FSmean=%.2f (vacil)\n',OUT.FS.FSmean);
+        fprintf('\tThe mean tonality is OUT.K.Kmean=%.2f (t.u.)\n',OUT.K.Kmean);
+    end
+    
+    if showPA == true
+        fprintf('\nThe obtained psychoacoustic annoyance (PA) using the previous metrics is:\n')
+        fprintf('\tPA is equal to OUT.ScalarPA=%.1f\n',PA_scalar);
+        
+    end
+else % for signals longer than 2 seconds
     
     %% interpolation due to different output lengths of the different metrics
     
