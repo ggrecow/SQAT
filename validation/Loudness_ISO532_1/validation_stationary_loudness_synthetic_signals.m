@@ -166,7 +166,7 @@ handle_b=plot( OUT.barkAxis, OUT.SpecificLoudness,'k','Linewidth',1); % calculat
 % legend([handle_a,handle_b],'ISO 532-1:2017, 5 \% tolerance','SQAT','Location','Best');
 % legend box off
 
-ylabel('Specific loudness, $N^{\prime}$ (sone)','Interpreter','Latex');
+ylabel('Specific loudness, $N^{\prime}$ (sone/Bark)','Interpreter','Latex');
 xlabel('Critical band rate, $z$ (Bark)','Interpreter','Latex'); 
 
 grid off
