@@ -140,7 +140,7 @@ percentage_difference_loudness_level=( (OUT.LoudnessLevel-reference_loudness_lev
 table=[reference_loudness,OUT.Loudness,percentage_difference_loudness;
        reference_loudness_level,OUT.LoudnessLevel,percentage_difference_loudness_level ];
 
-%% plot results (specific loudness over time)
+%% plot results (specific loudness)
 
 title_fig = sprintf('Loudness - signal %g',insig_num);
 h = figure('Name',title_fig);
