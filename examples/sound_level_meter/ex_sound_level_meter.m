@@ -58,6 +58,6 @@ fprintf('\tA-weighted maximum sound pressure level Lmax=%.1f dB(A)\n',LAFmax);
 fprintf('\tA-weighted equivalent sound pressure level Leq=%.1f dB(A)\n',LAeq);
 fprintf('\tA-weighted sound exposure level SEL=%.1f dB(A)\n\n',SEL);
 
-fprintf('\tZ-weighted maximum sound pressure level Lmax=%.1f dB(A)\n',LZFmax);
-fprintf('\tZ-weighted equivalent sound pressure level Leq=%.1f dB(A)\n',LZeq);
-fprintf('\tZ-weighted sound exposure level SEL=%.1f dB(A)\n',SEL_Z);
+fprintf('\tZ-weighted maximum sound pressure level Lmax=%.1f dB(Z)\n',LZFmax);
+fprintf('\tZ-weighted equivalent sound pressure level Leq=%.1f dB(Z)\n',LZeq);
+fprintf('\tZ-weighted sound exposure level SEL=%.1f dB(Z)\n',SEL_Z);
