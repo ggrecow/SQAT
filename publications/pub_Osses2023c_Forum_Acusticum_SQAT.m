@@ -1,5 +1,5 @@
-function pub_Osses2023a_Forum_Acusticum_SQAT
-% function pub_Osses2023a_Forum_Acusticum_SQAT
+function pub_Osses2023c_Forum_Acusticum_SQAT
+% function pub_Osses2023c_Forum_Acusticum_SQAT
 %
 % Generates the tables and figures presented in the contribution to be 
 %   presented at Forum Acusticum in September 2023.
