@@ -1,13 +1,10 @@
 % Script ex_sound_level_meter
 %
-% Example: compute loudness (ISO 532-1) of stationary and time-varying inputs
-%
-% FUNCTION:
-%   OUT = Loudness_ISO532_1(insig, fs, field, method, time_skip, show)
-%   type <help Loudness_ISO532_1> for more info
-%
-% test signal: narrow band noise with a center frequency of 1kHz,
-%              an overall level of 40 dB should yield a loudness value of 1 sone
+% It analyses the sound '1KHZ60DB.wav' using the complementary analyses 
+%   from the sound_level_meter module.
+% This example is meant to show how to use the functions Do_SLM and Get_Leq,
+%   and the selected sound file can be replaced by any other wavfilename
+%   available on disk.
 %
 % Author: Alejandro Osses
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
