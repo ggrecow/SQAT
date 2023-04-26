@@ -1,10 +1,12 @@
 function OUT = PsychoacousticAnnoyance_Zwicker1999_from_wavfile(wavfilename,dBFS,LoudnessField,time_skip,showPA,show)
 % function OUT = PsychoacousticAnnoyance_Zwicker1999_from_wavfile(wavfilename,dBFS,LoudnessField,time_skip,showPA,show)
 %
-%   This function calculates the Zwicker's psychoacoustic annoyance model from an input acoustic signal
+%   This function calculates the Zwicker's psychoacoustic annoyance model 
+%     from an input acoustic signal.
 %
-%   The psychoacoustic annoyance model is according to: (page 327) Zwicker, E. and Fastl, H. Second ed,
-%   Psychoacoustics, Facts and Models, 2nd ed. M.R. Schroeder. Springer-Verlag, Berlin, 1999.
+%   The psychoacoustic annoyance model is according to: (page 327) Zwicker, 
+%     E. and Fastl, H. Second ed, Psychoacoustics, Facts and Models, 
+%     2nd ed. M.R. Schroeder. Springer-Verlag, Berlin, 1999.
 %
 % - This metric combines 4 psychoacoustic metrics to quantitatively describe annoyance:
 %
@@ -22,14 +24,22 @@ function OUT = PsychoacousticAnnoyance_Zwicker1999_from_wavfile(wavfilename,dBFS
 %    4) Fluctuation strength (vacil) - calculated hereafter following Osses et al. model
 %       type <help FluctuationStrength_Osses2016> for more info
 %
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%  This script, PsychoacousticAnnoyance_Zwicker1999_from_wavfile, calls 
+%    internally the main algorithm, PsychoacousticAnnoyance_Zwicker1999. The 
+%    only difference is that PsychoacousticAnnoyance_Zwicker1999_from_wavfile 
+%    requires a file name as first input argument and the dBFS convention 
+%    value as the second input argument.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
 % INPUT:
-%   insig : array
-%   acoustic signal [1,nTimeSteps], monophonic (Pa)
+%   wavfilename : char
+%   wavfilename specifies the file name of a wav file to be processed
 %
-%   fs : integer
-%   sampling frequency (Hz) - preferible 48 kHz or 44.1 kHz (default by the authors and takes less time to compute)
+%   dBFS : integer
+%          Full scale convention. Internally this algorithm works with 
+%          a convention of full scale being equal to 94 dB SPL, or dBFS=94.
+%          if the specified dBFS is different from 94 dB SPL, then a gain 
+%          factor will be applied
 %
 %   time_skip : integer
 %   skip start of the signal in <time_skip> seconds for statistics calculations
@@ -75,6 +85,7 @@ function OUT = PsychoacousticAnnoyance_Zwicker1999_from_wavfile(wavfilename,dBFS
 %   PsychoacousticAnnoyance_Zwicker1999_from_wavfile(fname,dBFS);
 %
 % Author: Alejandro Osses
+% See also: PsychoacousticAnnoyance_Zwicker1999.m
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 if nargin == 0
     help PsychoacousticAnnoyance_Zwicker1999_from_wavfile;

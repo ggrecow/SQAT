@@ -336,17 +336,16 @@ else % for signals larger than 2 seconds
     PA_scalar = abs(L.N5*( 1 + sqrt( gamma_0 + (gamma_1*ws^2) + (gamma_2* wfr^2) + (gamma_3*wt) ) ));
     
     %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    %   output struct for time-varying signals
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    % Output struct for time-varying signals
     
     % main output results
     OUT.InstantaneousPA = PA;               % instantaneous Annoyance
     OUT.ScalarPA = PA_scalar;               % Annoyance calculated from the percentiles of each variable
     OUT.time = L.time;                      % time vector
     
-    % statistics from Time-varying PA
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    % Statistics from Time-varying PA
+        
     [~,idx] = min( abs(OUT.time-time_skip) ); % find idx of time_skip on time vector
     
     OUT.PAmean = mean(PA(idx:end));

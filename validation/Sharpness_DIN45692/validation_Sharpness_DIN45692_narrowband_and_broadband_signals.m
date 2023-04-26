@@ -85,7 +85,7 @@ end
 
 %% Sharpness of broadband test sounds
 
-% Tabelle A.3 — Sollwerte der Schärfe für Breitbandrauschen mit fester oberer Eckfrequenz 
+% Tabelle A.3: Sollwerte der Schärfe für Breitbandrauschen mit fester oberer Eckfrequenz 
 % von 10 kHz und variabler unterer Eckfrequenz fu mit der Lautheit 4 sone (entsprechend dem Standard-Prüfsignal bei 1 kHz und 60 dB)
 
 % Reference values from the standard DIN45692 for the broadband test sounds

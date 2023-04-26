@@ -67,7 +67,7 @@ function OUT = Loudness_ISO532_1(insig, fs, field, method, time_skip, show)
 % Source: C code is provided in the ISO532 Annex A (2014).
 %
 % Author: Ella Manor - MATLAB implementation for AARAE (2015)
-% Author: Gil Felix Greco, Braunschweig 22.02.2023 - adapted and validatec 
+% Author: Gil Felix Greco, Braunschweig 22.02.2023 - adapted and validated 
 %                   for SQAT. The validation was based on the test signals
 %                   provided from ISO 532-1:2017
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

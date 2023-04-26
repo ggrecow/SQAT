@@ -6,6 +6,12 @@ function OUT = FluctuationStrength_Osses2016_from_wavfile(wavfilename,dBFS,metho
 %    "Modelling the sensation of fluctuation strength." Proceedings of 
 %    Meetings on Acoustics 22 ICA. Vol. 28, 050005. doi:10.1121/2.0000410
 %
+%  This script, FluctuationStrength_Osses2016_from_wavfile, calls internally
+%    the main algorithm, FluctuationStrength_Osses2016. The only difference
+%    is that FluctuationStrength_Osses2016_from_wavfile requires a file 
+%    name as first input argument and the dBFS convention value as the 
+%    second input argument.
+%
 %  Reference signal: 60 dBSPL 1 kHz tone 100% modulated at 4 Hz should yield 1 vacil.
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

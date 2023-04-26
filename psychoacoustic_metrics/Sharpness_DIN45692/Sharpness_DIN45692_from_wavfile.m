@@ -2,20 +2,27 @@ function OUT = Sharpness_DIN45692_from_wavfile(wavfilename, dBFS, weight_type, f
 % function OUT = Sharpness_DIN45692_from_wavfile(wavfilename, dBFS, weight_type, field, method, time_skip, show_sharpness, show_loudness)
 %
 %  Stationary and time-varying sharpness calculation according to DIN 45692
-%    (2009) from an input signal. The loudness calculation, required as pre-
-%    processing for sharpness, is included in this code.
+%    (2009) from a waveform (wav file). The loudness calculation, required 
+%    as pre-processing for sharpness, is included in this code.
+%
+%  This script, Sharpness_DIN45692_from_wavfile, calls internally the main
+%    sharpness algorithm, Sharpness_DIN45692. The only difference is that 
+%    Sharpness_DIN45692_from_wavfile requires a file name as first input
+%    argument and the dBFS convention value as the second input argument.
 %
 %  Loudness calculation is conducted according to ISO 532:1-2017
 %  (type <help loudness_ISO532_1> for more info)
 %
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
 % INPUT ARGUMENTS
-%   insig : [Nx1] array
-%   calibrated audio signal (Pa), 1 channel only
+%   wavfilename : file name containing the input signal 'insig' to be 
+%       processed and the sampling frequency 'fs' of insig. Wavfilename 
+%       should be visible to MATLAB.
 %
-%   fs : integer
-%   sampling frequency (Hz). For method = 3, provide a dummy scalar
+%   dBFS: dB sound pressure level equivalent to the full scale value. If 
+%       dBFS is 94 dB SPL (default), the amplitudes of 'insig' are interpreted
+%       as expressed in pressure units (Pa).
 %
 %   weight_type : string
 %   sharpness calculation using weighting function according to:
@@ -24,7 +31,9 @@ function OUT = Sharpness_DIN45692_from_wavfile(wavfilename, dBFS, weight_type, f
 %       - 'aures' (dependent on the specific loudness level)
 %
 %   method : integer
-%   method used for loudness calculation - method used for loudness calculation: stationary (from input 1/3 octave unweighted SPL)=0 (not accepted in this context); stationary = 1; time varying = 2;
+%   method used for loudness calculation - method used for loudness 
+%        calculation: stationary (from input 1/3 octave unweighted SPL)=0 (not 
+%        accepted in this context); stationary = 1; time varying = 2;
 %
 %   field : integer
 %   type of field used for loudness calculation; free field = 0; diffuse field = 1;
@@ -48,7 +57,8 @@ function OUT = Sharpness_DIN45692_from_wavfile(wavfilename, dBFS, weight_type, f
 % OUTPUTS (method==1; time-varying)
 %   OUT : struct containing the following fields
 %
-%       * loudness: output struct from loudness calculation (type <help loudness_ISO532_1> for more info)
+%       * loudness: output struct from loudness calculation (type 
+%         <help loudness_ISO532_1> for more info)
 %       * InstantaneousSharpness: instantaneous sharpness (acum) vs time
 %       * time : time vector in seconds
 %       * Several statistics based on the InstantaneousSharpness (acum)
@@ -58,8 +68,9 @@ function OUT = Sharpness_DIN45692_from_wavfile(wavfilename, dBFS, weight_type, f
 %         ** Smin : minimum of InstantaneousSharpness (acum)
 %         ** Sx : percentile sharpness exceeded during x percent of the signal (acum)
 %           *** HINT: time-varying loudness calculation takes some time to
-%                     have a steady-response (thus sharpness too!). Therefore, it is a good practice
-%                     to consider a time_skip to compute the statistics
+%                     have a steady-response (thus sharpness too!). 
+%                     Therefore, it is a good practice to consider a 
+%                     time_skip to compute the statistics
 %
 % % Stand-alone example:
 %     dir_ref_sounds = get_dir_reference_sounds('Sharpness_DIN45692');
@@ -67,7 +78,8 @@ function OUT = Sharpness_DIN45692_from_wavfile(wavfilename, dBFS, weight_type, f
 %     dBFS = 90; % We know this information in advance
 %     Sharpness_DIN45692_from_wavfile(fname_insig,dBFS);
 %
-% Author: Gil Felix Greco, Braunschweig 09.03.2023
+% Author: Alejandro Osses, based on the code by Gil Felix Greco
+% See also: Sharpness_DIN45692.m
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 if nargin == 0
     help Sharpness_DIN45692_from_wavfile;

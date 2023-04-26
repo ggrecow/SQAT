@@ -313,79 +313,78 @@ else % for signals larger than 2 seconds
     
     if show == true
         
-        plotter(OUT.time,L.InstantaneousLoudness,L.N5,'loudness');
+        il_plotter(OUT.time,L.InstantaneousLoudness,L.N5,'loudness');
         
-        plotter(OUT.time,S.InstantaneousSharpness,S.S5,'sharpness');
+        il_plotter(OUT.time,S.InstantaneousSharpness,S.S5,'sharpness');
         
-        plotter(OUT.time,roughness,R.R5,'roughness');
+        il_plotter(OUT.time,roughness,R.R5,'roughness');
         
-        plotter(OUT.time,fluctuation,FS.FS5,'fluctuation');
+        il_plotter(OUT.time,fluctuation,FS.FS5,'fluctuation');
         
     end
     
     if showPA == true
         
-        plotter(OUT.time,OUT.InstantaneousPA,OUT.PA5,'annoyance')
+        il_plotter(OUT.time,OUT.InstantaneousPA,OUT.PA5,'annoyance')
         
     end
     
 end
 
-%% function plotter
-
-    function plotter(time,Instantaneous,percentile,variable)
-        
-        x_axis='Time, $t$ (s)';  % string for the x-axis
-        
-        switch variable
-            
-            case 'loudness'
-                p='$N'; % string for percentile legend
-                y_axis='Loudness, $N$ (sone)';  % string for the y-axis
-                h  =figure('NAME','Loudness');
-                
-            case 'sharpness'
-                p='$S'; % string for percentile legend
-                y_axis='Sharpness, $S$ (acum)'; % string for the y-axis
-                h  =figure('NAME','Sharpness');
-                
-            case 'roughness'
-                p='$R'; % string for percentile legend
-                y_axis='Roughness, $R$ (asper)'; % string for the y-axis
-                h  =figure('NAME','Roughness');
-                
-            case 'fluctuation'
-                p='FS$'; % string for percentile legend
-                y_axis='Fluctuation strength, $F$ (vacil)'; % string for the y-axis
-                h  =figure('NAME','Fluctuation strength');
-                
-            case 'annoyance'
-                p='PA$'; % string for percentile legend
-                y_axis='Psychoacoustic annoyance, PA (-)'; % string for the y-axis
-                h  =figure('NAME','Psychoacoustic annoyance');
-        end
-        
-        % begin plot
-        
-        set(h,'Units','Inches');
-        pos = get(h,'Position');
-        set(h,'PaperPositionMode','Auto','PaperUnits','Inches','PaperSize',[pos(3), pos(4)])
-        
-        plot( time,Instantaneous,'k','Linewidth',0.5,'HandleVisibility','off'); hold on;
-        plot( time,percentile.*ones(length(time)),'r--','Linewidth',0.5);
-        
-        legend(sprintf('%s_5=%.2f$',p,percentile),'Location','NorthEast','Interpreter','Latex');
-        legend boxoff
-        
-        ylabel(sprintf('%s',y_axis),'Interpreter','Latex');
-        xlabel(sprintf('%s',x_axis),'Interpreter','Latex');
-        grid off
-        
-        set(gcf,'color','w');
-        
-    end % end plotter function
-
 end % end PA function
+
+%% function plotter
+function il_plotter(time,Instantaneous,percentile,variable)
+
+    x_axis='Time, $t$ (s)';  % string for the x-axis
+
+    switch variable
+
+        case 'loudness'
+            p='$N'; % string for percentile legend
+            y_axis='Loudness, $N$ (sone)';  % string for the y-axis
+            h  =figure('NAME','Loudness');
+
+        case 'sharpness'
+            p='$S'; % string for percentile legend
+            y_axis='Sharpness, $S$ (acum)'; % string for the y-axis
+            h  =figure('NAME','Sharpness');
+
+        case 'roughness'
+            p='$R'; % string for percentile legend
+            y_axis='Roughness, $R$ (asper)'; % string for the y-axis
+            h  =figure('NAME','Roughness');
+
+        case 'fluctuation'
+            p='FS$'; % string for percentile legend
+            y_axis='Fluctuation strength, $F$ (vacil)'; % string for the y-axis
+            h  =figure('NAME','Fluctuation strength');
+
+        case 'annoyance'
+            p='PA$'; % string for percentile legend
+            y_axis='Psychoacoustic annoyance, PA (-)'; % string for the y-axis
+            h  =figure('NAME','Psychoacoustic annoyance');
+    end
+
+    % begin plot
+
+    set(h,'Units','Inches');
+    pos = get(h,'Position');
+    set(h,'PaperPositionMode','Auto','PaperUnits','Inches','PaperSize',[pos(3), pos(4)])
+
+    plot( time,Instantaneous,'k','Linewidth',0.5,'HandleVisibility','off'); hold on;
+    plot( time,percentile.*ones(length(time)),'r--','Linewidth',0.5);
+
+    legend(sprintf('%s_5=%.2f$',p,percentile),'Location','NorthEast','Interpreter','Latex');
+    legend boxoff
+
+    ylabel(sprintf('%s',y_axis),'Interpreter','Latex');
+    xlabel(sprintf('%s',x_axis),'Interpreter','Latex');
+    grid off
+
+    set(gcf,'color','w');
+
+end % end plotter function
 
 %**************************************************************************
 %

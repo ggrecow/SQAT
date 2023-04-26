@@ -146,8 +146,8 @@ for iFrame = 1:nFrames
     %     (see model_par.filterbank == 'terhardt', in _debug version):
     
     dBFS = 94; % corresponds to 1 Pa (new default in SQAT)
-    % dBFS = 100; % unit amplitude corresponds to 100 dB (AMT Toolbox convention, default by original authors)
-
+    % dBFS = 100; % unit amplitude corresponds to 100 dB (AMT Toolbox 
+                  % convention, default by the original authors)
     ei   = il_TerhardtExcitationPatterns_v3(signal,fs,dBFS);
     z    = 0.5:.5:23.5; % Bark
     fc   = bark2hz(z);
@@ -184,7 +184,7 @@ OUT.InstantaneousFluctuationStrength = fluct;             % instantaneous fluctu
 OUT.InstantaneousSpecificFluctuationStrength = fi;        % time-varying specific fluctuation strength
 OUT.TimeAveragedSpecificFluctuationStrength = mean(fi,1); % mean specific fluctuation strength
 OUT.time = t;                                             % time
-OUT.barkAxis = transpose(z) ;                             % critical band rate (for specific roughness)
+OUT.barkAxis = transpose(z) ;                             % critical band rate (for specific fluctuation strength)
 
 %% Fluctuation Strength statistics based on InstantaneousFS:
 [~,idx] = min( abs(OUT.time-time_skip) ); % find idx of time_skip on time vector
@@ -231,9 +231,9 @@ if show == true && method==1
     
     title('Time-averaged specific fluctuation strength','Interpreter','Latex');
     xlabel('Critical band, $z$ (Bark)','Interpreter','Latex');
-    ylabel('Specific roughness, $\mathrm{FS}^{\prime}$ (vacil/Bark)','Interpreter','Latex');
+    ylabel('Specific fluctuation strength, $\mathrm{FS}^{\prime}$ (vacil/Bark)','Interpreter','Latex');
     
-    % Specific roughness spectrogram
+    % Specific fluctuation strength spectrogram
     subplot(2,2,4)
     
     [xx,yy]=meshgrid(t,z); 

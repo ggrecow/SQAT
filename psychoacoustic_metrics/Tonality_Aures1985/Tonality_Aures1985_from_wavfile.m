@@ -12,6 +12,11 @@ function OUT = Tonality_Aures1985_from_wavfile(wavfilename,dBFS,Loudness_field,t
 %       extraction of pitch and pitch salience from complex tonal signals. 
 %       J. Acoust. Soc. Am., 71, 679-688. doi:10.1121/1.387544
 %
+%  This script, Tonality_Aures1985_from_wavfile, calls internally the main
+%    algorithm, Tonality_Aures1985. The only difference is that 
+%    Tonality_Aures1985_from_wavfile requires a file name as first input
+%    argument and the dBFS convention value as the second input argument.
+%
 %   Reference: a pure tone with 1000 Hz and 60 dBSPL has a tonality of 1 t.u.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %

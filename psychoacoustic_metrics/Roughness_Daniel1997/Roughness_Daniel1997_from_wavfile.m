@@ -1,10 +1,15 @@
 function OUT = Roughness_Daniel1997_from_wavfile(wavfilename,dBFS,time_skip,show)
 % function OUT = Roughness_Daniel1997_from_wavfile(wavfilename,dBFS,time_skip,show)
 %
-%   This function calculates time-varying roughness and time-averaged specific
-%     roughness using the roughness model by Daniel & Weber:
+%   This function calculates time-varying roughness and time-averaged 
+%     specific roughness using the roughness model by Daniel & Weber:
 %     Daniel, P., & Weber, R. (1997). Psychoacoustical roughness: implementation
 %     of an optimized model. Acustica(83), 113-123.
+%
+%  This script, Roughness_Daniel1997_from_wavfile, calls internally the main
+%    roughness algorithm, Roughness_Daniel1997. The only difference is that 
+%    Roughness_Daniel1997_from_wavfile requires a file name as first input
+%    argument and the dBFS convention value as the second input argument.
 %
 %   Reference signal: 60 dB 1 kHz tone 100% modulated at 70 Hz should yield 1 asper.
 %

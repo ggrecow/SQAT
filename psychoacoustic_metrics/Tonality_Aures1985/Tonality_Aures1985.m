@@ -51,7 +51,11 @@ function OUT = Tonality_Aures1985(insig,fs,Loudness_field,time_skip,show)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 if nargin < 5
-    show = 0;
+    if nargout == 0
+        show = 1;
+    else
+        show = 0;
+    end
 end
 
 %% resampling
@@ -122,9 +126,9 @@ for iFrame = 1:nFrames
     SpectralEnergy = abs( fft(Winsig.*fftgain) ).^2;
     SPL = 10.*log10( (SpectralEnergy+TINY_VALUE)./4e-10 ); % dBSPL    
         
-    %%%% check plot  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %%%% check plot (only for debugging) %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %      figure; plot(Freq,SPL) % check plot   
-    % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     
     %% Find peaks according to Terhard's criteria for each time-frame
     
@@ -261,13 +265,13 @@ for iFrame = 1:nFrames
                 
             end
             
-            %%%% check plot  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            %%%% check plot (only for debugging) %%%%%%%%%%%%%%%%%%%%%%%%%%
             % figure; semilogy(FreqSingleSidedinsigSpectrum,abs(SingleSidedinsigSpectrum).^2);
             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             
             doubleSideFilteredSpectrum = [SingleSidedinsigSpectrum; conj(flipud(SingleSidedinsigSpectrum(2:end-1)))]; % double-side the filtered spectrum
             
-            %%%% check plot  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            %%%% check plot (only for debugging) %%%%%%%%%%%%%%%%%%%%%%%%%%
             % figure; semilogy(Freq,abs(doubleSideFilteredSpectrum).^2);
             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             

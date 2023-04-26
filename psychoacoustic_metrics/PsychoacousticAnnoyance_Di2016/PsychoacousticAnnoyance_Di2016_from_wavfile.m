@@ -26,6 +26,13 @@ function OUT = PsychoacousticAnnoyance_Di2016_from_wavfile(wavfilename,dBFS,Loud
 %
 %    4) Tonality, K (t.u.) - calculated hereafter following Aures' model
 %       type <help Tonality_Aures1985> for more info
+%
+%  This script, PsychoacousticAnnoyance_Di2016_from_wavfile, calls internally 
+%    the main algorithm, PsychoacousticAnnoyance_Di2016. The only difference 
+%    is that PsychoacousticAnnoyance_Di2016_from_wavfile requires a file 
+%    name as first input argument and the dBFS convention value as the 
+%    second input argument.
+%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
 % INPUT:
@@ -33,7 +40,7 @@ function OUT = PsychoacousticAnnoyance_Di2016_from_wavfile(wavfilename,dBFS,Loud
 %   wavfilename specifies the file name of a wav file to be processed
 %
 %   dBFS : integer
-%          Full scale convention. Internally the this algorithm works with 
+%          Full scale convention. Internally this algorithm works with 
 %          a convention of full scale being equal to 94 dB SPL, or dBFS=94.
 %          if the specified dBFS is different from 94 dB SPL, then a gain 
 %          factor will be applied

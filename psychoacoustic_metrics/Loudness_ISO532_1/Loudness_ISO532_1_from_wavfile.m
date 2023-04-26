@@ -1,20 +1,26 @@
 function OUT = Loudness_ISO532_1_from_wavfile(wavfilename, dBFS, field, method, time_skip, show)
 % function OUT = Loudness_ISO532_1_from_wavfile(wavfilename, dBFS, field, method, time_skip, show)
 %
-%  Zwicker Loudness model according to ISO 532-1 for stationary 
-%  signals (Method A) and arbitrary signals (Method B)  
+%  Zwicker Loudness model according to ISO 532-1:2017 for stationary 
+%    signals (Method A) and arbitrary signals (Method B).
+%
+%  This script, Loudness_ISO532_1_from_wavfile, calls internally the main
+%    loudness algorithm, Loudness_ISO532_1. The only difference is that 
+%    Loudness_ISO532_1_from_wavfile requires a file name as first input
+%    argument and the dBFS convention value as the second input argument.
 %
 %  Reference signal: 40 dBSPL 1 kHz tone yields 1 sone
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
 % INPUT ARGUMENTS
-%   insig : array 
-%   for method = 0 [1xN] array, insig is an array containing N=28 third octave unweighted SPL from 25 Hz to 12500 Hz
-%   for method = 1 and method = 2 [Nx1] array, insig is a monophonic calibrated audio signal (Pa), 1 channel only as specified by the standard
+%   wavfilename : file name containing the input signal 'insig' to be 
+%       processed and the sampling frequency 'fs' of insig. Wavfilename 
+%       should be visible to MATLAB.
 %
-%   fs : integer 
-%   sampling frequency (Hz). For method = 0, provide a dummy scalar
+%   dBFS: dB sound pressure level equivalent to the full scale value. If 
+%       dBFS is 94 dB SPL (default), the amplitudes of 'insig' are interpreted
+%       as expressed in pressure units (Pa).
 %
 %   field : integer 
 %   free field = 0; diffuse field = 1;

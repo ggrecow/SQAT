@@ -1,14 +1,10 @@
-function OUT = Sharpness_DIN45692_from_loudness(SpecificLoudness, weight_type, method, time, time_skip, show)
-
-%% FUNCTION:
-%   OUT = Sharpness_DIN45692_from_loudness(SpecificLoudness, weight_type, method, time, time_skip, show)
-%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function OUT = Sharpness_DIN45692_from_loudness(SpecificLoudness, weight_type, method, time, time_skip, show_sharpness)
+% function OUT = Sharpness_DIN45692_from_loudness(SpecificLoudness, weight_type, method, time, time_skip, show_sharpness)
 %
 %  Stationary and time-varying sharpness calculation according to DIN 45692(2009)
 %  from input specific loudness (i.e. the loudness calculation is not included within this code)
 %
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
 % INPUT ARGUMENTS
 %   SpecificLoudness : array
@@ -25,10 +21,12 @@ function OUT = Sharpness_DIN45692_from_loudness(SpecificLoudness, weight_type, m
 %       stationary = 0; time varying = 1;
 %
 %   time : array
-%       time vector of the specific loudness [1,nTimeSteps] - used only for plot purposes if method = 1 (time-varying)
+%       time vector of the specific loudness [1,nTimeSteps] - used only for
+%       plot purposes if method = 1 (time-varying)
 %
 %   time_skip : integer
-%   skip start of the signal in <time_skip> seconds for statistics calculations (method=1 (time-varying) only)
+%   skip start of the signal in <time_skip> seconds for statistics 
+%       calculations (method=1 (time-varying) only)
 %
 %   show : logical(boolean)
 %   optional parameter for figures (results) display (only method=1)
@@ -51,12 +49,19 @@ function OUT = Sharpness_DIN45692_from_loudness(SpecificLoudness, weight_type, m
 %         ** Smin : minimum of InstantaneousSharpness (acum)
 %         ** Sx : percentile sharpness exceeded during x percent of the signal (acum)
 %           *** HINT: time-varying loudness calculation takes some time to
-%                     have a steady-response (thus sharpness too!). Therefore, it is a good practice
-%                     to consider a time_skip to compute the statistics
+%                     have a steady-response (thus sharpness too!). 
+%                     Therefore, it is a good practice to consider a 
+%                     time_skip to compute the statistics
 %
-% Gil Felix Greco, Braunschweig 09.03.2023
-%
-%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Author: Gil Felix Greco, Braunschweig 09.03.2023
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+if nargin < 6
+    if nargout == 0
+        show_sharpness = 1;
+    else
+        show_sharpness = 0;
+    end
+end
 
 n = size(SpecificLoudness,2);
 z=linspace(0.1,24,n);   % create bark axis
@@ -67,45 +72,45 @@ for i=1:size(SpecificLoudness,1)
     loudness_sones(i)=sum(SpecificLoudness(i,:),2).*0.10;
 end
 
-%% Sharpness calculation %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Sharpness calculation
 
 switch weight_type
-    case 'DIN45692'   % Widmann model
+    case 'DIN45692' % Widmann model
         
-        g=sharpWeights(z,'standard',[]); % calculate sharpness weighting factors
+        g=il_sharpWeights(z,'standard',[]); % calculate sharpness weighting factors
         k=0.11; % adjusted to yield 1 acum using SQAT - DIN45692 allows 0.105<=k<=0.0115 for this weighting function
         
         for i=1:size(SpecificLoudness,1)
             s(i) = k * sum(SpecificLoudness(i,:).*g.*z.*0.10,2) ./ loudness_sones(i);
         end
+        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         
-        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    case 'aures'           % aures model
+    case 'aures' % Aures model
         
         for i=1:size(SpecificLoudness,1)
-            g(i,:)=sharpWeights(z,'aures',loudness_sones(i)); % calculate sharpness weighting factor
+            g(i,:)=il_sharpWeights(z,'aures',loudness_sones(i)); % calculate sharpness weighting factor
             s(i) = 0.11 * sum(SpecificLoudness(i,:).*g(i,:).*z.*0.10,2) ./ loudness_sones(i);
         end
         
-        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    case 'bismarck'        % von bismarck
-        g=sharpWeights(z,'bismarck',[]); % calculate sharpness weighting factor
+        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    case 'bismarck' % von Bismarck
+        g=il_sharpWeights(z,'bismarck',[]); % calculate sharpness weighting factor
         
         for i=1:size(SpecificLoudness,1)
             s(i) = 0.11 * sum(SpecificLoudness(i,:).*g.*z.*0.10,2) ./ loudness_sones(i);
         end
         
-        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 end
 
-%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %   output struct for time-varying signals
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 if method==1 % (time-varying sharpness)
     
-    OUT.InstantaneousSharpness = s;                       % instantaneous sharpness
-    OUT.time = time;                                      % time vector
+    OUT.InstantaneousSharpness = s; % instantaneous sharpness
+    OUT.time = time;                % time vector
     
     % statistics from Time-varying sharpness (acum)
     
@@ -130,11 +135,11 @@ if method==1 % (time-varying sharpness)
     OUT.S80 = prctile(s(idx:end),20);
     OUT.S90 = prctile(s(idx:end),10);
     
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    %% show plots (time-varying)
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    % Show plots (time-varying)
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     
-    if show == true
+    if show_sharpness == true
         
         figure('name','Sharpness analysis (time-varying)')
         
@@ -156,35 +161,32 @@ elseif method==0 % (stationary sharpness)
     OUT.Sharpness = s;                       % sharpness
     
 end
+end % end of function
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% embedded function (compute weighting functions according to required model type)
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Embedded function (compute weighting functions according to required model type)
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-    function g=sharpWeights(z,type,N)
-        
-        g=zeros(1,length(z));
-        
-        switch type
-            case 'standard' % Widmann model according to DIN 45692 (2009)
-                g(z<15.8)=1;
-                g(z>=15.8)=0.15.*exp( 0.42.*((z(z>=15.8))-15.8) ) + 0.85;
-                
-            case 'bismarck' % von bismark's model according to DIN 45692 (2009)
-                g(z<15)=1;
-                g(z>=15)=0.2.*exp( 0.308.*(z(z>=15)-15) ) + 0.8;
-                
-            case 'aures'    % Aures' model according to DIN 45692 (2009)
-                for nt=1:length(N)
-                    g(nt,:)=0.078.*( exp(0.171.*z)./z ).*( N(nt)./log(0.05.*N(nt)+1));
-                end
-                
-        end
+function g = il_sharpWeights(z,type,N)
+
+    g=zeros(1,length(z));
+
+    switch type
+        case 'standard' % Widmann model according to DIN 45692 (2009)
+            g(z<15.8)=1;
+            g(z>=15.8)=0.15.*exp( 0.42.*((z(z>=15.8))-15.8) ) + 0.85;
+
+        case 'bismarck' % von bismark's model according to DIN 45692 (2009)
+            g(z<15)=1;
+            g(z>=15)=0.2.*exp( 0.308.*(z(z>=15)-15) ) + 0.8;
+
+        case 'aures'    % Aures' model according to DIN 45692 (2009)
+            for nt=1:length(N)
+                g(nt,:)=0.078.*( exp(0.171.*z)./z ).*( N(nt)./log(0.05.*N(nt)+1));
+            end
+
     end
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 end
-
 
 %**************************************************************************
 %

@@ -24,13 +24,16 @@ function OUT = Sharpness_DIN45692(insig, fs, weight_type, field, method, time_sk
 %       - 'aures' (dependent on the specific loudness level)
 %
 %   method : integer
-%   method used for loudness calculation - method used for loudness calculation: stationary (from input 1/3 octave unweighted SPL)=0 (not accepted in this context); stationary = 1; time varying = 2;
+%   method used for loudness calculation - method used for loudness 
+%       calculation: stationary (from input 1/3 octave unweighted SPL)=0 (not 
+%       accepted in this context); stationary = 1; time varying = 2;
 %
 %   field : integer
 %   type of field used for loudness calculation; free field = 0; diffuse field = 1;
 %
 %   time_skip : integer
-%   skip start of the signal in <time_skip> seconds for statistics calculations (method=1 (time-varying) only)
+%   skip start of the signal in <time_skip> seconds for statistics 
+%        calculations (method=1 (time-varying) only)
 %
 %   show_loudness : logical(boolean)
 %   optional parameter to display loudness results (only method=1)
@@ -48,7 +51,8 @@ function OUT = Sharpness_DIN45692(insig, fs, weight_type, field, method, time_sk
 % OUTPUTS (method==1; time-varying)
 %   OUT : struct containing the following fields
 %
-%       * loudness: output struct from loudness calculation (type <help loudness_ISO532_1> for more info)
+%       * loudness: output struct from loudness calculation (type 
+%         <help loudness_ISO532_1> for more info)
 %       * InstantaneousSharpness: instantaneous sharpness (acum) vs time
 %       * time : time vector in seconds
 %       * Several statistics based on the InstantaneousSharpness (acum)
@@ -58,8 +62,9 @@ function OUT = Sharpness_DIN45692(insig, fs, weight_type, field, method, time_sk
 %         ** Smin : minimum of InstantaneousSharpness (acum)
 %         ** Sx : percentile sharpness exceeded during x percent of the signal (acum)
 %           *** HINT: time-varying loudness calculation takes some time to
-%                     have a steady-response (thus sharpness too!). Therefore, it is a good practice
-%                     to consider a time_skip to compute the statistics
+%                     have a steady-response (thus sharpness too!).
+%                     Therefore, it is a good practice to consider a 
+%                     time_skip to compute the statistics
 %
 % Author: Gil Felix Greco, Braunschweig 09.03.2023
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -118,44 +123,43 @@ end
 
 z=linspace(0.1,24,n); % create bark axis
 
-%% Sharpness calculation %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Sharpness calculation %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 switch weight_type
     case 'DIN45692'   % Widmann model
         
-        g=sharpWeights(z,'standard',[]); % calculate sharpness weighting factors
+        g=il_sharpWeights(z,'standard',[]); % calculate sharpness weighting factors
         k=0.11; % adjusted to yield 1 acum using SQAT - DIN45692 allows 0.105<=k<=0.0115 for this weighting function
         
         for i=1:size(SpecificLoudness,1)
             s(i) = k * sum(SpecificLoudness(i,:).*g.*z.*0.10,2) ./ loudness_sones(i);
         end
         
-        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    case 'aures'           % aures model
+        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    case 'aures' % Aures model
         
         for i=1:size(SpecificLoudness,1)
-            g(i,:)=sharpWeights(z,'aures',loudness_sones(i)); % calculate sharpness weighting factor
+            g(i,:)=il_sharpWeights(z,'aures',loudness_sones(i)); % calculate sharpness weighting factor
             s(i) = 0.11 * sum(SpecificLoudness(i,:).*g(i,:).*z.*0.10,2) ./ loudness_sones(i);
         end
         
-        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    case 'bismarck'        % von bismarck
-        g=sharpWeights(z,'bismarck',[]); % calculate sharpness weighting factor
+        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    case 'bismarck' % von Bismarck
+        g=il_sharpWeights(z,'bismarck',[]); % calculate sharpness weighting factor
         
         for i=1:size(SpecificLoudness,1)
             s(i) = 0.11 * sum(SpecificLoudness(i,:).*g.*z.*0.10,2) ./ loudness_sones(i);
         end
 end
 
-%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%   output struct for time-varying signals
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Output struct for time-varying signals
 
 if method==2 % (time-varying sharpness)
     
-    OUT.InstantaneousSharpness = s;                       % instantaneous sharpness
-    OUT.time = L.time;                                    % time vector
-    OUT.loudness=L;                                       % output struct from the loudness calculation
+    OUT.InstantaneousSharpness = s; % instantaneous sharpness
+    OUT.time = L.time;              % time vector
+    OUT.loudness=L;                 % output struct from the loudness calculation
     
     % statistics from Time-varying sharpness (acum)
     
@@ -180,9 +184,9 @@ if method==2 % (time-varying sharpness)
     OUT.S80 = prctile(s(idx:end),20);
     OUT.S90 = prctile(s(idx:end),10);
     
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    %% show plots (time-varying)
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    % Show plots (time-varying)
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     
     if show_sharpness == true
         
@@ -207,33 +211,32 @@ elseif method==1 % (stationary sharpness)
     
 end
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% embedded function (compute weighting functions according to required model type)
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+end % End of Sharpness_DIN45692
 
-    function g=sharpWeights(z,type,N)
-        
-        g=zeros(1,length(z));
-        
-        switch type
-            case 'standard' % Widmann model according to DIN 45692 (2009)
-                g(z<15.8)=1;
-                g(z>=15.8)=0.15.*exp( 0.42.*((z(z>=15.8))-15.8) ) + 0.85;
-                
-            case 'bismarck' % von bismark's model according to DIN 45692 (2009)
-                g(z<15)=1;
-                g(z>=15)=0.2.*exp( 0.308.*(z(z>=15)-15) ) + 0.8;
-                
-            case 'aures'    % Aure's model according to DIN 45692 (2009)
-                for nt=1:length(N)
-                    g(nt,:)=0.078.*( exp(0.171.*z)./z ).*( N(nt)./log(0.05.*N(nt)+1));
-                end
-                
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Embedded function (compute weighting functions according to required model type)
+
+function g = il_sharpWeights(z,type,N)
+
+g=zeros(1,length(z));
+
+switch type
+    case 'standard' % Widmann model according to DIN 45692 (2009)
+        g(z<15.8)=1;
+        g(z>=15.8)=0.15.*exp( 0.42.*((z(z>=15.8))-15.8) ) + 0.85;
+
+    case 'bismarck' % von bismark's model according to DIN 45692 (2009)
+        g(z<15)=1;
+        g(z>=15)=0.2.*exp( 0.308.*(z(z>=15)-15) ) + 0.8;
+
+    case 'aures'    % Aure's model according to DIN 45692 (2009)
+        for nt=1:length(N)
+            g(nt,:)=0.078.*( exp(0.171.*z)./z ).*( N(nt)./log(0.05.*N(nt)+1));
         end
-    end
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 end
+
+end % end of il_sharpWeights
 
 %**************************************************************************
 %

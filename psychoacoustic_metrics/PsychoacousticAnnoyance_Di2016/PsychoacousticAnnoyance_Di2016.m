@@ -248,10 +248,12 @@ else % for signals longer than 2 seconds
     
     %% interpolation due to different output lengths of the different metrics
     
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    % step 1) find idx related to the last time step of output from the fluctuation strength function (shorter output signal)
-    % step 2) cut instaneous quantities - only 1st idx till index related to the last time step of fluctuation strength remain
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    % step 1) find idx related to the last time step of output from the 
+    %     fluctuation strength function (shorter output signal)
+    % step 2) cut instaneous quantities - only 1st idx till index related 
+    %     to the last time step of fluctuation strength remain
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     
     LastTime=FS.time(end);          % take last time of the fluctuation strength
     
@@ -353,17 +355,17 @@ else % for signals longer than 2 seconds
     % Di's modified psychoacoustic annoyance
     PA_scalar = L.N5*( 1 + sqrt( ws^2 + wfr^2 + wt^2 ) );
     
-    %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    %   output struct for time-varying signals
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    % Output struct for time-varying signals
+        
     % main output results
     OUT.InstantaneousPA = PA;               % instantaneous Annoyance
     OUT.ScalarPA = PA_scalar;               % Annoyance calculated from the percentiles of each variable
     OUT.time = L.time;                      % time vector
     
-    % statistics from Time-varying PA
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    % Statistics from Time-varying PA
+    
     
     [~,idx] = min( abs(OUT.time-time_skip) ); % find idx of time_skip on time vector
     
