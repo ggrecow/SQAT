@@ -140,7 +140,7 @@ percentage_difference_loudness_level=( (OUT.LoudnessLevel-reference_loudness_lev
 table=[reference_loudness,OUT.Loudness,percentage_difference_loudness;
        reference_loudness_level,OUT.LoudnessLevel,percentage_difference_loudness_level ];
 
-%% plot results (total loudness over time)
+%% plot results (specific loudness)
 
 title_fig = sprintf('Loudness - signal %g',insig_num);
 h = figure('Name',title_fig);
@@ -166,7 +166,7 @@ handle_b=plot( OUT.barkAxis, OUT.SpecificLoudness,'k','Linewidth',1); % calculat
 % legend([handle_a,handle_b],'ISO 532-1:2017, 5 \% tolerance','SQAT','Location','Best');
 % legend box off
 
-ylabel('Specific loudness, $N^{\prime}$ (sone)','Interpreter','Latex');
+ylabel('Specific loudness, $N^{\prime}~(\mathrm{sone}/\mathrm{Bark})$','Interpreter','Latex');
 xlabel('Critical band rate, $z$ (Bark)','Interpreter','Latex'); 
 
 grid off
