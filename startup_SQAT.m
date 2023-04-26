@@ -60,6 +60,8 @@ PA_Di_example = [bp 'examples'               filesep 'PsychoacousticAnnoyance_Di
 PA_Zwicker_main    = [bp 'psychoacoustic_metrics' filesep 'PsychoacousticAnnoyance_Zwicker1999' filesep];
 PA_Zwicker_example = [bp 'examples'               filesep 'PsychoacousticAnnoyance_Zwicker1999' filesep];
 
+SLM_example        = [bp 'examples'               filesep 'sound_level_meter' filesep];
+
 % L_main  = [bp 'psychoacoustic_metrics' filesep 'Loudness_Chalupper2002'        filesep];
 % % fs_tue_basepath = '/home/alejandro/Documents/MATLAB/fluctuation-strength-TUe/';
 bAdd = ~exist('Loudness_ISO532_1.m','file');
@@ -114,4 +116,9 @@ bAdd = ~exist('PsychoacousticAnnoyance_Di2016.m','file');
 if bAdd
     addpath(PA_Di_main);
     addpath(PA_Di_example);
+end
+
+bAdd = ~exist('ex_sound_level_meter.m','file');
+if bAdd
+    addpath(SLM_example);
 end

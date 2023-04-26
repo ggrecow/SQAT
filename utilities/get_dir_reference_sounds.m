@@ -13,5 +13,5 @@ dir_ref_sounds = [basepath_SQAT 'sound_files' filesep 'reference_signals' filese
 
 if ~exist(dir_ref_sounds,'dir')
     dir_ref_sounds = '';
-    fprintf('%s.m: The directory %s was not found. Maybe the folder for ref. sounds will still be found....\n',mfilename,dir_);
+    fprintf('%s.m: The directory %s was not found. Maybe the folder for ref. sounds will still be found....\n',mfilename,dir_ref_sounds);
 end
