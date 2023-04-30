@@ -1,5 +1,5 @@
-function OUT = Tonality_Aures1985_from_wavfile(wavfilename,dBFS,Loudness_field,time_skip,show)
-% function OUT = Tonality_Aures1985_from_wavfile(wavfilename,dBFS,Loudness_field,time_skip,show)
+function OUT = Tonality_Aures1985_from_wavfile(wavfilename,dBFS,LoudnessField,time_skip,show)
+% function OUT = Tonality_Aures1985_from_wavfile(wavfilename,dBFS,LoudnessField,time_skip,show)
 %
 %   This function calculates tonality metric by:
 %
@@ -98,7 +98,7 @@ end
 gain_factor = 10^((dBFS-94)/20);
 insig = gain_factor*insig;
 
-OUT = Tonality_Aures1985(insig,fs,Loudness_field,time_skip,show);
+OUT = Tonality_Aures1985(insig,fs,LoudnessField,time_skip,show);
 
 end % End of file
 
