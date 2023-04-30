@@ -11,7 +11,7 @@ function OUT = Sharpness_DIN45692_from_wavfile(wavfilename, dBFS, weight_type, f
 %    argument and the dBFS convention value as the second input argument.
 %
 %  Loudness calculation is conducted according to ISO 532:1-2017
-%  (type <help loudness_ISO532_1> for more info)
+%  (type <help Loudness_ISO532_1> for more info)
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
