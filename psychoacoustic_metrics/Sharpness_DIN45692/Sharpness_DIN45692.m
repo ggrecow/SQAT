@@ -6,7 +6,7 @@ function OUT = Sharpness_DIN45692(insig, fs, weight_type, field, method, time_sk
 %    processing for sharpness, is included in this code.
 %
 %  Loudness calculation is conducted according to ISO 532:1-2017
-%  (type <help loudness_ISO532_1> for more info)
+%  (type <help Loudness_ISO532_1> for more info)
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
