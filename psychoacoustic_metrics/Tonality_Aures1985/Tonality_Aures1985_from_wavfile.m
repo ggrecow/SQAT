@@ -86,7 +86,7 @@ if nargin <4
 end
 if nargin <3
     pars = psychoacoustic_metrics_get_defaults('Tonality_Aures1985');
-    Loudness_field = pars.Loudness_field;
+    LoudnessField = pars.Loudness_field;
     fprintf('%s.m: Default Loudness_field value = %.0f is being used\n',mfilename,pars.Loudness_field);
 end
 
