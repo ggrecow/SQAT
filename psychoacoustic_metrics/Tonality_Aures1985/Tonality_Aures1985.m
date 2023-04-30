@@ -1,5 +1,5 @@
-function OUT = Tonality_Aures1985(insig,fs,Loudness_field,time_skip,show)
-% function OUT = Tonality_Aures1985(insig,fs,Loudness_field,time_skip,show)
+function OUT = Tonality_Aures1985(insig,fs,LoudnessField,time_skip,show)
+% function OUT = Tonality_Aures1985(insig,fs,LoudnessField,time_skip,show)
 %
 %   This function calculates tonality metric by:
 %
@@ -286,7 +286,7 @@ for iFrame = 1:nFrames
             % assume a stationary loudness within iFrame
             
             L_total = Loudness_ISO532_1(y, fs,...   % input signal and sampling freq.
-                                Loudness_field,...   % field; free field = 0; diffuse field = 1;
+                                LoudnessField,...   % field; free field = 0; diffuse field = 1;
                                             1,...   % method; stationary (from input 1/3 octave unweighted SPL)=0; stationary = 1; time varying = 2;
                          time_resolution*0.05,...   % time_skip, in seconds for level (stationary signals) and statistics (stationary and time-varying signals) calculations
                                             0);     % show results; 0=no, 1=yes
@@ -295,7 +295,7 @@ for iFrame = 1:nFrames
             % assume a stationary loudness within the iFrame
             
             L_filtered = Loudness_ISO532_1(filtered_signal,fs,...   % input signal and sampling freq.
-                                                Loudness_field,...   % field; free field = 0; diffuse field = 1;
+                                                LoudnessField,...   % field; free field = 0; diffuse field = 1;
                                                             1,...   % method; stationary (from input 1/3 octave unweighted SPL)=0; stationary = 1; time varying = 2;
                                          time_resolution*0.05,...   % time_skip, in seconds for level (stationary signals) and statistics (stationary and time-varying signals) calculations
                                                             0);     % show results; 0=no, 1=yes
