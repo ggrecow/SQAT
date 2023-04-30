@@ -3,7 +3,7 @@ function OUT = Tonality_Aures1985_from_wavfile(wavfilename,dBFS,Loudness_field,t
 %
 %   This function calculates tonality metric by:
 %
-%   [1] Aures, Wilhelm (1985). "Berechnungsverfahren für den sensorischen Wohlklang 
+%   [1] Aures, Wilhelm (1985). "Berechnungsverfahren fÃ¼r den sensorischen Wohlklang 
 %       beliebiger Schallsignale." Acta Acustica united with Acustica 59: p. 130-141.
 %
 %   The Aures' tonality is based on Terhard's virtual pitch theory, given by:
@@ -11,6 +11,9 @@ function OUT = Tonality_Aures1985_from_wavfile(wavfilename,dBFS,Loudness_field,t
 %   [2] Terhardt, E., Stoll, G. and Seewann, M. (1982). Algorithm for 
 %       extraction of pitch and pitch salience from complex tonal signals. 
 %       J. Acoust. Soc. Am., 71, 679-688. doi:10.1121/1.387544
+%
+%  Loudness calculation is conducted according to ISO 532:1-2017
+%  (type <help Loudness_ISO532_1> for more info)
 %
 %  This script, Tonality_Aures1985_from_wavfile, calls internally the main
 %    algorithm, Tonality_Aures1985. The only difference is that 
@@ -32,7 +35,7 @@ function OUT = Tonality_Aures1985_from_wavfile(wavfilename,dBFS,Loudness_field,t
 %
 %   LoudnessField : integer
 %   chose field for loudness calculation; free field = 0; diffuse field = 1;
-%   type <help loudness_ISO532_1> for more info
+%   type <help Loudness_ISO532_1> for more info
 %
 %   time_skip : integer
 %   skip start of the signal in <time_skip> seconds for statistic calculations
