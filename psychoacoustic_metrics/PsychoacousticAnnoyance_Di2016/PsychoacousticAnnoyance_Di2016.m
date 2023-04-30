@@ -11,18 +11,18 @@ function OUT = PsychoacousticAnnoyance_Di2016(insig,fs,LoudnessField,time_skip,s
 % - This metric combines five psychoacoustic metrics to quantitatively 
 %   describe annoyance:
 %    1) Loudness, N (sone) - calculated hereafter following ISO 532-1:2017
-%       type <help loudness_ISO532_1> for more info
+%       type <help Loudness_ISO532_1> for more info
 %
 %    2) Sharpness, S (acum) - calculated hereafter following DIN 45692:2009
 %       NOTE: uses DIN 45692 weighting function by default, please change code if
 %       the use of a different withgitng function is desired).
-%       type <help sharpness_DIN45692_from_loudness>
+%       type <help Sharpness_DIN45692_from_loudness>
 %
 %    3) Roughness, R (asper) - calculated hereafter following Daniel & Weber model
-%       type <help roughness_Daniel1997> for more info
+%       type <help Roughness_Daniel1997> for more info
 %
 %    4) Fluctuation strength, FS (vacil) - calculated hereafter following 
-%       Osses et al. model type <help fluctuation_strength_Osses2016> for more info
+%       Osses et al. model type <help FluctuationStrength_Osses2016> for more info
 %
 %    4) Tonality, K (t.u.) - calculated hereafter following Aures' model
 %       type <help Tonality_Aures1985> for more info
