@@ -6,7 +6,7 @@
 %    centered around the tone 
 %   
 %  The reference data is taken from:
-%    Aaron Hastings, Kyoung Hoon Lee, Patricia Davies, and Aimée M. Surprenant
+%    Aaron Hastings, Kyoung Hoon Lee, Patricia Davies, and AimÃ©e M. Surprenant
 %    "Measurement of the attributes of complex tonal components commonly 
 %    found in product sound" Noise Control Eng. J. 51, 2003.
 %
@@ -27,15 +27,15 @@ save_figs=0;
 % Source: Hastings et al. (2003), fig. 1
 
 ref=[
-0  0
+0  0.015823397764229252
 10  0.07533719859035015
-20  0.2106359366048477
-30  0.39928132412994843
+20  0.20912727004956122
+30  0.40794580496985177
 40  0.5923422380983235
 50  0.7627954783966964
-60  0.884892892884656
-70  0.9592512633054631
-80  0.9871305523642211
+60  0.8820348816074157
+70  0.9558121564573688
+80  0.9825276908062728
      ];
 
 %% load signals
@@ -82,7 +82,7 @@ plot(5,0.1);hold on;
 ylim([0 1.1]);
 xlim([0 80]);
 
-ylabel('Aures tonality, $K$ (t.u.)','Interpreter','Latex');
+ylabel('Time-averaged tonality, $K_{\mathrm{mean}}$ (t.u.)','Interpreter','Latex');
 xlabel(sprintf('Signal to noise ratio in the critical band\n centered about the tone (dBSPL)'),'Interpreter','Latex'); 
 grid off
 
@@ -98,7 +98,7 @@ plot(0:10:80,results'-ref(:,2),'o-','MarkerSize',4,'MarkerFaceColor',[0.85,0.33,
 
 ylim([-0.2 0.2]);
 
-ylabel('SQAT minus Literature (t.u.)','Interpreter','Latex');
+ylabel('SQAT minus Reference (t.u.)','Interpreter','Latex');
 
 ax = gca;
 ax.XAxis.MinorTick = 'on';
