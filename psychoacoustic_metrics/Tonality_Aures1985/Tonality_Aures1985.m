@@ -137,7 +137,7 @@ for iFrame = 1:nFrames
     
     SPLcrop = SPL(MinFrequencyindex:MaxFrequencyIndex); % crop SPL vector from MinFrequencyindex to MaxFrequencyIndex
     
-    threshold = 5.5;  % condition for tonal component, in dBSPL
+    threshold = 7;  % condition for tonal component, in dBSPL
     
     ToneIdx = zeros(length(SPLcrop),1); % initialize vector, tonal components idx
     k = 1; % initialize counter
