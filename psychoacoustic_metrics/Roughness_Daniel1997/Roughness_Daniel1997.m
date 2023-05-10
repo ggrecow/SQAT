@@ -47,7 +47,8 @@ function OUT = Roughness_Daniel1997(insig,fs,time_skip,show)
 %   https://github.com/densilcabrera/aarae/ (accessed 11/02/2020)
 % Author: Dik Hermes (2000-2005)
 % Author: Matt Flax (2006) and Farhan Rizwi (2007), adapted for the PsySound3 toolbox
-% Author: Gil Félix Greco (2023). Adapted (and verified) for SQAT. 
+% Author: Gil Felix Greco (2023). Adapted (and verified) for SQAT. 
+% Author: Alejandro Osses, 10/05/2023. Appropriate scaling for the specific roughness.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 if nargin == 0
@@ -189,7 +190,8 @@ MinExcdB = interp1(HTres(:,1),HTres(:,2),Barkno(k));
 
 %% Initialize constants and variables
 
-z    = (0.5:0.5:23.5)';
+dz   = 0.5; % Barks
+z    = (0.5:dz:23.5)'; % frequency in Barks
 zb    = sort([Bf(1,:),Cf(1,:)]);
 MinBf = MinExcdB(zb);
 ei    = zeros(47,N);
@@ -413,7 +415,7 @@ AmpCal = db2mag(91.2)*2/(N*mean(blackman(N, 'periodic')));
 % blackman window and FFT will follow)
 
 Chno	=	47;     % number of channels
-Cal	 	=	0.25;   % calibration factor - this is only applied to the Roughnesses. designed to compensate for signal level...
+Cal	 	=	0.50;   % calibration factor, twice the old value (0.25)
 qb		=	N0:1:Ntop;
 freqs	=	(qb+1)*fs/N;
 hBPi	=	zeros(Chno,N);
@@ -425,7 +427,7 @@ ri		=	zeros(1,Chno);
 startIndex = 1;
 endIndex = N;
 [TimePoints,R_mat,SPL_mat] = deal(zeros(n,1));
-ri_mat = zeros(47,n);
+ri_mat = zeros(Chno,n);
 
 for windowNum = 1:n    %for each frame
     
@@ -462,8 +464,8 @@ for windowNum = 1:n    %for each frame
     whichZ(1,:)	= floor(2*Barkno(whichL(qd)+N01));  % get bark band numbers
     whichZ(2,:)	= ceil(2*Barkno(whichL(qd)+N01));
     
-    ExcAmp = zeros(sizL,47);
-    Slopes = zeros(sizL,47);
+    ExcAmp = zeros(sizL,Chno);
+    Slopes = zeros(sizL,Chno);
     
     for k=1:1:sizL    %loop over freq indices above threshold
         Ltmp = LdB(whichL(k)); % copy FFT magnitude (in dB) above threshold
@@ -476,7 +478,7 @@ for windowNum = 1:n    %for each frame
             end
         end
         
-        for l = whichZ(2,k):1:47 % loop up to ceil'd bark number
+        for l = whichZ(2,k):1:Chno % loop up to ceil'd bark number
             Stemp =	(S2(k)*((l*0.5)-Btmp))+Ltmp;
             if Stemp>MinBf(l)
                 Slopes(k,l)=db2mag(Stemp); % critical filterbank upper side
@@ -484,7 +486,7 @@ for windowNum = 1:n    %for each frame
         end
     end
     
-    for k=1:1:47    % loop over each channel
+    for k=1:Chno % loop over each channel
         etmp = zeros(1,N);
         for l=1:1:sizL   % for each l index of fft bin in human hearing freq range
             N1tmp = whichL(l); % get freq index of bin
@@ -542,7 +544,9 @@ for windowNum = 1:n    %for each frame
     
     ri(46)	=	(gzi(46)*mdept(46)*ki(44))^2;
     ri(47)	=	(gzi(47)*mdept(47)*ki(45))^2;
-    R		=	Cal*sum(ri);
+    
+    ri      = Cal*ri; % appropriately scaled specific roughness
+    R       = dz*sum(ri); % total R = integration of the specific R pattern
     
     SPL = mean(rms(dataIn));
     if SPL > 0
@@ -553,7 +557,7 @@ for windowNum = 1:n    %for each frame
     
     % matrices to return
     R_mat(windowNum) = R;
-    ri_mat(1:47,windowNum) = ri;
+    ri_mat(1:Chno,windowNum) = ri;
     SPL_mat(windowNum) = SPL;
     
     startIndex = startIndex+hopsize;
@@ -575,6 +579,7 @@ OUT.InstantaneousSpecificRoughness = ri_mat;              % time-varying specifi
 OUT.TimeAveragedSpecificRoughness = mean(ri_mat,2);       % mean specific roughness
 OUT.time = TimePoints;                                    % time
 OUT.barkAxis = z;                                         % critical band rate (for specific roughness)
+OUT.dz = dz;
 
 % Roughness statistics based on InstantaneousRoughness
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

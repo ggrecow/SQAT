@@ -60,7 +60,7 @@ cd(dir_SQAT); % We change to dir_SQAT to avoid the risk of shadowing
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % dir_sounds = '/home/alejandro/Desktop/SQM_paper/FA2023_paper/Sounds-selection_no-commit/';
-dir_sounds = [basepath_SQAT 'sound_files' filesep 'publications' filesep 'pub_Osses2023a_Forum_Acusticum_SQAT' filesep];
+dir_sounds = [basepath_SQAT 'sound_files' filesep 'publications' filesep 'pub_Osses2023c_Forum_Acusticum_SQAT' filesep];
 
 % ../MATLAB_SQAT/sound_files/publications/pub_Osses2023a_Forum_Acusticum_SQAT/
 % files_1 = { 'Flyover1_Airbus319-114-dBFS.wav'; 'Flyover2_Airbus319-114-dBFS.wav'; 'Flyover3_Boeing737-114-dBFS.wav'; 'Flyover4_Boeing737-114-dBFS.wav'; 'Flyover5_Fokker70-114-dBFS.wav';  'Flyover6_Fokker70-114-dBFS.wav'};
@@ -677,6 +677,9 @@ if do_fig1a || do_fig1b || do_fig1c || do_fig2a || do_fig2b || do_fig2c
                         N_spec_90{i_files} = Nspec_90;
                         
                         N_freq{i_files} = out.barkAxis;
+                        if do_fig1c
+                            N_spec_inst{i_files} = out.InstantaneousSpecificLoudness;
+                        end
                         
                         res(1,end+1) = out.N50;     res_description{1,end+1} = 'N50 (sone)';
                         res(1,end+1) = Nmax;        res_description{1,end+1} = 'Nmax (sone)';
@@ -728,6 +731,11 @@ if do_fig1a || do_fig1b || do_fig1c || do_fig2a || do_fig2b || do_fig2c
                     R_spec_50{i_files} = Rspec_50;
                     R_spec_90{i_files} = Rspec_90;
                     
+                    if do_fig1c
+                        Cal = 0.25; % hard coded in Roughness_Daniel1997
+                        R_spec_inst{i_files} = Cal*out.InstantaneousSpecificRoughness;
+                    end
+                        
                     f = out.barkAxis;
                     R_freq{i_files} = f;
                     
@@ -758,6 +766,10 @@ if do_fig1a || do_fig1b || do_fig1c || do_fig2a || do_fig2b || do_fig2c
                     F_spec_max{i_files} = Fspec_max;
                     F_spec_50{i_files} = Fspec_50;
                     F_spec_90{i_files} = Fspec_90;
+                    
+                    if do_fig1c
+                        F_spec_inst{i_files} = out.InstantaneousSpecificFluctuationStrength; % calibrated spec fluctuation strength
+                    end
                     
                     f = out.barkAxis;
                     F_freq{i_files} = f;
@@ -821,7 +833,7 @@ if do_fig1a || do_fig1b || do_fig1c || do_fig2a || do_fig2b || do_fig2c
     LW      = [2 1 2];
     
     if do_fig1a || do_fig1b || do_fig1c
-        Pos =  [138    38   350   500]; % 900];
+        Pos =  [138    38   350   450]; % 500];
         figure('Position',Pos);
         tiledlayout(5,1,'tilespacing','compact');
 
@@ -841,7 +853,11 @@ if do_fig1a || do_fig1b || do_fig1c || do_fig2a || do_fig2b || do_fig2c
             % title(files{i_files},'interpreter','none'); 
             xlim(t_show);
         end
-        title(sprintf('Sound 1: %s\nSound 2: %s',files{1}(1:end-4),files{2}(1:end-4)),'interpreter','none');
+        
+        title2add = {   sprintf('Sound 1: %s',files{1}(1:end-4)); ...
+                        sprintf('Sound 2: %s',files{2}(1:end-4))};
+        text(0,1.30,title2add{1},'Units','Normalized','FontSize',8.8,'Color','b','interpreter','none','FontWeight','Bold');
+        text(0,1.10,title2add{2},'Units','Normalized','FontSize',8.8,'Color','r','interpreter','none','FontWeight','Bold');
 
         % Sharpness
         nexttile(2);
@@ -875,6 +891,35 @@ if do_fig1a || do_fig1b || do_fig1c || do_fig2a || do_fig2b || do_fig2c
             xlim(t_show);
         end
 
+        if do_fig1c
+            flow_Bark  = 2.8; % Bark, as written in the paper
+            fhigh_Bark = 9.2; % Bark, as written in the paper
+            % % Adding extra analysis
+            i_files = 1;
+            
+            f = R_freq{i_files};
+            
+            t = R_time{i_files};
+            idxi = find(f>=flow_Bark ,1,'first');
+            idxf = find(f<=fhigh_Bark,1,'last');
+            if size(R_spec_inst{i_files},1) == length(f)
+                dim4avg = 1; % this should not be the SQAT default
+            elseif size(R_spec_inst{i_files},2) == length(f)
+                dim4avg = 2;
+            end
+            
+            style_here = {Colours{3},'LineWidth',LW(3)};
+            switch dim4avg
+                case 1
+                    R_t = sum(R_spec_inst{i_files}(idxi:idxf,:),dim4avg);
+                case 2
+                    R_t = sum(R_spec_inst{i_files}(:,idxi:idxf),dim4avg);
+            end
+            plot(t,R_t,style_here{:}); hold on; grid on
+            
+            ylim([-.05 0.45])
+        end
+        
         % Fluctuation strength
         nexttile(4);
         for i_files = 1:length(files)
@@ -891,7 +936,34 @@ if do_fig1a || do_fig1b || do_fig1c || do_fig2a || do_fig2b || do_fig2c
             xlim(t_show);
         end
 
-            % Tonality
+        if do_fig1c
+            % % Adding extra analysis
+            i_files = 1;
+            
+            f = F_freq{i_files};
+            
+            t = F_time{i_files};
+            idxi = find(f>=flow_Bark ,1,'first');
+            idxf = find(f<=fhigh_Bark,1,'last');
+            if size(F_spec_inst{i_files},1) == length(f)
+                dim4avg = 1; % this should not be the SQAT default
+            elseif size(F_spec_inst{i_files},2) == length(f)
+                dim4avg = 2;
+            end
+            
+            style_here = {Colours{3},'LineWidth',LW(3)};
+            switch dim4avg
+                case 1
+                    F_t = sum(F_spec_inst{i_files}(idxi:idxf,:),dim4avg);
+                case 2
+                    F_t = sum(F_spec_inst{i_files}(:,idxi:idxf),dim4avg);
+            end
+            plot(t,F_t,style_here{:}); hold on; grid on
+            ylim([-0.05 0.35]);
+            set(gca,'YTick',0:.1:.3);
+        end
+        
+        % Tonality
         nexttile(5);
         for i_files = 1:length(files)
             t = K_time{i_files};

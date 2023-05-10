@@ -62,6 +62,8 @@ function OUT = FluctuationStrength_Osses2016(insig,fs,method,time_skip,show)
 %        process of IIR filters for modeling the Hweigth parameter
 %     2) include possibility to choose method (stationary or time-varying) 
 %        which affects the window size
+% Author: Alejandro Osses, 10/05/2023. Appropriate scaling for the specific 
+%            fluctuation strength.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 if nargin == 0
     help FluctuationStrength_Osses2016;
@@ -149,7 +151,8 @@ for iFrame = 1:nFrames
     % dBFS = 100; % unit amplitude corresponds to 100 dB (AMT Toolbox 
                   % convention, default by the original authors)
     ei   = il_TerhardtExcitationPatterns_v3(signal,fs,dBFS);
-    z    = 0.5:.5:23.5; % Bark
+    dz   = 0.5; % Barks, frequency step
+    z    = 0.5:dz:23.5; % Bark
     fc   = bark2hz(z);
     flow = bark2hz(z-.5); flow(1) = 0.01;
     fup  = bark2hz(z+.5);
@@ -170,7 +173,7 @@ for iFrame = 1:nFrames
     gzi_fr(iFrame,:) = gzi;
     md_fr(iFrame,:) = mdept;
     fi(iFrame,:)  = model_par.cal * fi_;
-    fluct(iFrame) = sum(fi(iFrame,:));
+    fluct(iFrame) = dz*sum(fi(iFrame,:)); % total fluct = integration of the specific fluct. strength pattern
     
 end
 
@@ -185,6 +188,7 @@ OUT.InstantaneousSpecificFluctuationStrength = fi;        % time-varying specifi
 OUT.TimeAveragedSpecificFluctuationStrength = mean(fi,1); % mean specific fluctuation strength
 OUT.time = t;                                             % time
 OUT.barkAxis = transpose(z) ;                             % critical band rate (for specific fluctuation strength)
+OUT.dz = dz;
 
 %% Fluctuation Strength statistics based on InstantaneousFS:
 [~,idx] = min( abs(OUT.time-time_skip) ); % find idx of time_skip on time vector
@@ -378,15 +382,8 @@ end
 mdept = md;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
 function params = il_Get_fluctuation_strength_params(N,fs)
 % function params = il_Get_fluctuation_strength_params(N,fs)
-
-dataset = 0; % 0 = Approved version
-
-if nargin < 1
-    N = 2*fs; % 2 seconds
-end
 
 params         = struct;
 params.fs      = fs;
@@ -403,7 +400,7 @@ params.p_k     = 1.7; % warning('Temporal value')
 params.a0_in_time = 1;
 params.a0_in_freq = ~params.a0_in_time;
 
-params.cal     = 0.2490; % on 15/06/2016
+params.cal     = 0.4980; % this value is twice 0.2490 on 15/06/2016
 params.bIdle   = 1; % v5
 %%%        
 

@@ -2,6 +2,7 @@
 *.m~
 *.asv
 *no-commit*
+*.wav
 *.zip
 Interim_results/*.mat
 sound_files/validation/*
