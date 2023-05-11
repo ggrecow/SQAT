@@ -3,7 +3,7 @@
 % Example: compute stationary and time-varying Sharpness (DIN 45692) from input signal
 %
 % FUNCTION:
-%   OUT = Sharpness_DIN45692(insig, fs, Weight_Type, field, method, time_skip, show_sharpness, show_loudness)
+%   OUT = Sharpness_DIN45692(insig, fs, weight_type, LoudnessField, LoudnessMethod, time_skip, show_sharpness, show_loudness)
 %
 % test signal: narrow band noise with a center frequency of 1kHz,
 %              a bandwidth of 160 Hz (920 Hz to 1080 Hz) and an overall level of 60 dB

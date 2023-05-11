@@ -36,7 +36,7 @@ function OUT = PsychoacousticAnnoyance_Zwicker1999(insig,fs,LoudnessField,time_s
 %
 %   LoudnessField : integer
 %   chose field for loudness calculation; free field = 0; diffuse field = 1;
-%   type <help loudness_ISO532_1> for more info
+%   type <help Loudness_ISO532_1> for more info
 %
 %   show : logical(boolean)
 %   optional parameter, display results of loudness, sharpness, roughness and fluctuation strength
@@ -64,10 +64,10 @@ function OUT = PsychoacousticAnnoyance_Zwicker1999(insig,fs,LoudnessField,time_s
 %               *** PAx : x percentile of the PA metric exceeded during x percent of the time
 %
 %      * include structs with the results from the other metrics computed
-%        **  L : struct with Loudness results, type <help loudness_ISO532_1> for more info
-%        **  S : struct with Sharpness, type <help sharpness_DIN45692_from_loudness>
-%        **  R : strcut with roughness results, type <help roughness_DanielWeber1997> for more info
-%        ** FS : struct with fluctuation strength results, type <help fluctuation_strength_Ossesetal2016> for more info
+%        **  L : struct with Loudness results, type <help Loudness_ISO532_1> for more info
+%        **  S : struct with Sharpness, type <help Sharpness_DIN45692_from_loudness>
+%        **  R : strcut with roughness results, type <help Roughness_Daniel1997> for more info
+%        ** FS : struct with fluctuation strength results, type <help FluctuationStrength_Osses2016> for more info
 %
 %
 %  NOTE: 1) Input signals should be in pascal values or calibrated .wav files

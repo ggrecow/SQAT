@@ -3,7 +3,7 @@ function OUT = Tonality_Aures1985(insig,fs,LoudnessField,time_skip,show)
 %
 %   This function calculates tonality metric by:
 %
-%   [1] Aures, Wilhelm (1985). "Berechnungsverfahren für den sensorischen Wohlklang 
+%   [1] Aures, Wilhelm (1985). "Berechnungsverfahren fuer den sensorischen Wohlklang 
 %       beliebiger Schallsignale." Acta Acustica united with Acustica 59: p. 130-141.
 %
 %   The Aures' tonality is based on Terhard's virtual pitch theory, given by:
