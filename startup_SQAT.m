@@ -6,7 +6,6 @@ function startup_SQAT(bp)
 
 if nargin == 0
     bp = [fileparts(mfilename('fullpath')) filesep]; % obtains the folder where this script is
-    % 'bp' in Alejandro's computer: /home/alejandro/Documents/MATLAB/MATLAB_ENS/fastACI_sim/MATLAB/tb_Brazuca/
 end
 
 main_dirs = { 'examples', ...

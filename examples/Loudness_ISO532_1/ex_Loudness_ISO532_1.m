@@ -6,7 +6,7 @@
 %   OUT = Loudness_ISO532_1(insig, fs, field, method, time_skip, show)
 %   type <help Loudness_ISO532_1> for more info
 %
-% test signal: narrow band noise with a center frequency of 1kHz,
+% test signal: pure tone with a center frequency of 1kHz,
 %              an overall level of 40 dB should yield a loudness value of 1 sone
 %
 % Author: Gil Felix Greco, Braunschweig 28.02.2023
@@ -14,11 +14,10 @@
 clc;clear all;close all;
 
 %% load .wav RefSignal 
-dir_ref_sounds = [basepath_SQAT 'sound_files' filesep 'reference_signals' filesep ...
-    'Loudness_ISO532_1' filesep];
 
-% path=SQAT_open_source\sound_files\reference_signals\loudness_ISO532_1\'; %  % path of the sound file for reference
-[RefSignal,fs]=audioread([dir_ref_sounds 'RefSignal_loudness_1kHz_40dBSPL_48khz_64bit.wav']);
+dir_ref_sounds = [basepath_SQAT 'sound_files' filesep 'reference_signals' filesep];
+
+[RefSignal,fs]=audioread([dir_ref_sounds 'RefSignal_Loudness_ISO532_1.wav']);
 
 %% loudness (stationary) calculation 
 
