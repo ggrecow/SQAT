@@ -13,7 +13,7 @@ dir_validation = get_dir_validation(psychoacoustic_model);
 switch psychoacoustic_model
     case 'Loudness_ISO532_1'
         switch dir_analysis
-            case 'synthetic_signals_stationary_loudness'
+            case '1_synthetic_signals_stationary_loudness'
                 dir_ref_values = [dir_validation dir_analysis filesep 'reference_values' filesep];
         end
         
