@@ -61,7 +61,7 @@ function OUT = FluctuationStrength_Osses2016_from_wavfile(wavfilename,dBFS,metho
 %              of the signal (vacil)
 %
 % Stand-alone example:
-%   fname = [basepath_SQAT 'sound_files' filesep 'reference_signals' filesep 'FluctuationStrength_Osses2016' filesep 'RefSignal_FS_1vacil_48kHz_32bit.wav'];
+%   fname = [basepath_SQAT 'sound_files' filesep 'reference_signals' filesep 'RefSignal_FluctuationStrength_Osses2016.wav'];
 %   dBFS = 94; % default for SQAT
 %   FluctuationStrength_Osses2016_from_wavfile(fname,dBFS);
 %
@@ -86,18 +86,18 @@ end
 if nargin <4
     pars = psychoacoustic_metrics_get_defaults('FluctuationStrength_Osses2016');
     time_skip = pars.time_skip;
-    fprintf('%s.m: Default time_skip value = %.0f is being used\n',mfilename,pars.time_skip);
+    fprintf('\n%s.m: Default time_skip value = %.0f is being used\n',mfilename,pars.time_skip);
 end
 if nargin <3
     pars = psychoacoustic_metrics_get_defaults('FluctuationStrength_Osses2016');
     method = pars.method;
-    fprintf('%s.m: Default method = %.0f is being used\n',mfilename,pars.method);
+    fprintf('\n%s.m: Default method = %.0f is being used\n',mfilename,pars.method);
 end
 
 [insig,fs] = audioread(wavfilename);
 if nargin < 2 || isempty(dBFS)
     dBFS = 94; % dB
-    fprintf('%s.m: Assuming the default full scale convention, with dBFS = %.0f\n',mfilename,dBFS);
+    fprintf('\n%s.m: Assuming the default full scale convention, with dBFS = %.0f\n',mfilename,dBFS);
 end
 gain_factor = 10^((dBFS-94)/20); %
 insig = gain_factor*insig;

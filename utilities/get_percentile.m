@@ -29,6 +29,10 @@ X_index = floor( (100-PercentileValue)/100 * nSamples );
 
 nq_sort = sort( input );
 
-OUT = nq_sort( X_index );
-   
+if X_index==0
+    OUT = NaN;
+else
+    OUT = nq_sort( X_index );
+end
+
 end

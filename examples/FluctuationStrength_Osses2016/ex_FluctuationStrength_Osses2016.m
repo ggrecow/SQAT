@@ -14,13 +14,11 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 clc; clear all; close all;
 
-dir_ref_sounds = [basepath_SQAT 'sound_files' filesep 'reference_signals' filesep ...
-    'FluctuationStrength_Osses2016' filesep];
-
 %% Load .wav RefSignal 
 
-% path='SQAT_open_source\sound_files\reference_signals\fluctuation_strength_Ossesetal2016' % path of the sound file for reference
-[RefSignal,fs]=audioread([dir_ref_sounds 'RefSignal_FS_1vacil_48kHz_32bit.wav']);
+dir_ref_sounds = [basepath_SQAT 'sound_files' filesep 'reference_signals' filesep];
+
+[RefSignal,fs]=audioread([dir_ref_sounds 'RefSignal_FluctuationStrength_Osses2016.wav']); % 'sound_files\reference_signals\' -  path of the sound file for reference  
 
 time_insig=(0 : length(RefSignal)-1) ./ fs;  % time vector of the audio input, in seconds
 
@@ -43,7 +41,8 @@ set(h,'PaperPositionMode','Auto','PaperUnits','Inches','PaperSize',[pos(3), pos(
 % pressure 
 yyaxis left
 plot(time_insig,RefSignal); hold on;
-axis([0 10 -0.1 0.1]);
+ylim([-0.1 0.1]);
+
 ylabel('Acoustic pressure, $p$ (Pa)','Interpreter','Latex');
 xlabel('Time, $t$ (s)','Interpreter','Latex'); 
 

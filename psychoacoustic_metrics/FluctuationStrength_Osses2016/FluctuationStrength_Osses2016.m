@@ -94,6 +94,7 @@ end
 
 %% Checking which method
 if method==1 % 'time_varying'
+    
     % This is the default from the original authors.
     time_resolution = 2;  % window length fixed in 2s (Osses et al., 2016)
     N=round(fs*time_resolution);
@@ -193,26 +194,28 @@ OUT.barkAxis = transpose(z) ;                             % critical band rate (
 OUT.dz = dz;
 
 %% Fluctuation Strength statistics based on InstantaneousFS:
+
 [~,idx] = min( abs(OUT.time-time_skip) ); % find idx of time_skip on time vector
 
 OUT.FSmax = max(fluct(idx:end));
 OUT.FSmin = min(fluct(idx:end));
 OUT.FSmean = mean(fluct(idx:end));
 OUT.FSstd = std(fluct(idx:end));
-OUT.FS1 = prctile(fluct(idx:end),99);
-OUT.FS2 = prctile(fluct(idx:end),98);
-OUT.FS3 = prctile(fluct(idx:end),97);
-OUT.FS4 = prctile(fluct(idx:end),96);
-OUT.FS5 = prctile(fluct(idx:end),95);
-OUT.FS10 = prctile(fluct(idx:end),90);
-OUT.FS20 = prctile(fluct(idx:end),80);
-OUT.FS30 = prctile(fluct(idx:end),70);
-OUT.FS40 = prctile(fluct(idx:end),60);
+OUT.FS1 = get_percentile(fluct(idx:end),1);
+OUT.FS2 = get_percentile(fluct(idx:end),2);
+OUT.FS3 = get_percentile(fluct(idx:end),3);
+OUT.FS4 = get_percentile(fluct(idx:end),4);
+OUT.FS5 = get_percentile(fluct(idx:end),5);
+OUT.FS10 = get_percentile(fluct(idx:end),10);
+OUT.FS20 = get_percentile(fluct(idx:end),20);
+OUT.FS30 = get_percentile(fluct(idx:end),30);
+OUT.FS40 = get_percentile(fluct(idx:end),40);
 OUT.FS50 = median(fluct(idx:end));
-OUT.FS60 = prctile(fluct(idx:end),40);
-OUT.FS70 = prctile(fluct(idx:end),30);
-OUT.FS80 = prctile(fluct(idx:end),20);
-OUT.FS90 = prctile(fluct(idx:end),10); 
+OUT.FS60 = get_percentile(fluct(idx:end),60);
+OUT.FS70 = get_percentile(fluct(idx:end),70);
+OUT.FS80 = get_percentile(fluct(idx:end),80);
+OUT.FS90 = get_percentile(fluct(idx:end),90);
+OUT.FS95 = get_percentile(fluct(idx:end),95);
 
 %% plots
 
