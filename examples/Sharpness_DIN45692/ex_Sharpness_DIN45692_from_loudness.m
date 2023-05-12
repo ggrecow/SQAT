@@ -15,8 +15,10 @@
 clc; clear all; close all;
 
 %% load test signal
-dir_ref_sounds = [basepath_SQAT 'sound_files' filesep 'reference_signals' filesep 'Sharpness_DIN45692' filesep];
-[TestSignal,fs]=audioread([dir_ref_sounds '1KHZ60DB.WAV']);
+
+dir_ref_sounds = [basepath_SQAT 'sound_files' filesep 'reference_signals' filesep];
+
+[TestSignal,fs]=audioread([dir_ref_sounds 'RefSignal_Sharpness_DIN45692.wav']);
 lvl_cal_signal = 60; % information from the file name...
 
 dBFS_in = lvl_cal_signal-20*log10(rms(TestSignal)); % difference between target and actual full-scale value 
@@ -34,10 +36,9 @@ L_stationary = Loudness_ISO532_1( insig_cal, fs,...   % input signal and samplin
                                                            
 %% sharpness (stationary) calculation using SQAT
 
-S_stationary = Sharpness_DIN45692_from_loudness(L_stationary.SpecificLoudness,... % input (stationary) specific loudness
-                                                                   'DIN45692',... % Weight_Type, type of weighting function used for sharpness calculation
-                                                                           0);    % method=0 (stationary); method=1 (time-varying)
-
+S_stationary = Sharpness_DIN45692_from_loudness(L_stationary.SpecificLoudness,  ... % input (stationary) specific loudness
+                                                                   'DIN45692'); ... % Weight_Type, type of weighting function used for sharpness calculation
+                                                                           
 fprintf('\nCalculation of reference signal (60 dBSPL at 1kHz) based on a stationary loudness\n');
 fprintf('\tcalculation yields a sharpness value of %g (acum) using the DIN45692 weighting function\n',S_stationary.Sharpness);
 

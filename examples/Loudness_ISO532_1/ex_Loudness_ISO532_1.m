@@ -11,7 +11,7 @@
 %
 % Author: Gil Felix Greco, Braunschweig 28.02.2023
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-clc;clear all;close all;
+clc; clear all; close all;
 
 %% load .wav RefSignal 
 

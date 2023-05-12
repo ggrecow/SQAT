@@ -1,5 +1,5 @@
-function OUT = Sharpness_DIN45692_from_loudness(SpecificLoudness, weight_type, method, time, time_skip, show_sharpness)
-% function OUT = Sharpness_DIN45692_from_loudness(SpecificLoudness, weight_type, method, time, time_skip, show_sharpness)
+function OUT = Sharpness_DIN45692_from_loudness(SpecificLoudness, weight_type, time, time_skip, show_sharpness)
+% function OUT = Sharpness_DIN45692_from_loudness(SpecificLoudness, weight_type, time, time_skip, show_sharpness)
 %
 %  Stationary and time-varying sharpness calculation according to DIN 45692(2009)
 %  from input specific loudness (i.e. the loudness calculation is not included within this code)
@@ -16,9 +16,6 @@ function OUT = Sharpness_DIN45692_from_loudness(SpecificLoudness, weight_type, m
 %       - 'DIN45692'
 %       - 'bismarck'
 %       - 'aures' (dependent on the specific loudness level)
-%
-%   method : integer
-%       stationary = 0; time varying = 1;
 %
 %   time : array
 %       time vector of the specific loudness [1,nTimeSteps] - used only for
@@ -55,7 +52,7 @@ function OUT = Sharpness_DIN45692_from_loudness(SpecificLoudness, weight_type, m
 %
 % Author: Gil Felix Greco, Braunschweig 09.03.2023
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-if nargin < 6
+if nargin < 5
     if nargout == 0
         show_sharpness = 1;
     else
@@ -65,6 +62,12 @@ end
 
 n = size(SpecificLoudness,2);
 z=linspace(0.1,24,n);   % create bark axis
+
+if size(SpecificLoudness,1)==1 % define method based on the size of the input specific loudness
+    method = 0; % (stationary) - Specific loudness [1,sone/Bark]
+else
+    method = 1; % (time-varying) - Instantaneous specific loudness [nTimeSteps,sone/Bark]
+end
 
 loudness_sones=zeros(size(SpecificLoudness,1),1); % pre allocate memory
 

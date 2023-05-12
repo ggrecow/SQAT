@@ -4,6 +4,7 @@
 %
 % FUNCTION:
 %   OUT = Sharpness_DIN45692(insig, fs, weight_type, LoudnessField, LoudnessMethod, time_skip, show_sharpness, show_loudness)
+%   type <help Sharpness_DIN45692> for more info
 %
 % test signal: narrow band noise with a center frequency of 1kHz,
 %              a bandwidth of 160 Hz (920 Hz to 1080 Hz) and an overall level of 60 dB
@@ -15,10 +16,9 @@ clc; clear all; close all;
 
 %% load test signal
 
-dir_ref_sounds = [basepath_SQAT 'sound_files' filesep 'reference_signals' filesep 'Sharpness_DIN45692' filesep];
+dir_ref_sounds = [basepath_SQAT 'sound_files' filesep 'reference_signals' filesep];
 
-% path=SQAT_open_source\sound_files\reference_signals\sharpness_DIN45692\'; %  path of the sound file for reference
-[TestSignal,fs]=audioread([dir_ref_sounds '1KHZ60DB.WAV']);
+[TestSignal,fs]=audioread([dir_ref_sounds 'RefSignal_Sharpness_DIN45692.wav']);
 lvl_cal_signal = 60; % information from the file name...
 
 dBFS_in = lvl_cal_signal-20*log10(rms(TestSignal)); % difference between target and actual full-scale value 
@@ -28,7 +28,7 @@ insig_cal = TestSignal * 10^(dB_correction/20);
 
 %% sharpness (stationary) calculation using SQAT
 
-S_stationary = Sharpness_DIN45692(insig_cal, fs,...     % input signal and sampling frequency
+S_stationary = Sharpness_DIN45692(insig_cal, fs,...      % input signal and sampling frequency
                                       'DIN45692',...     % Weight_Type, type of weighting function used for sharpness calculation
                                                0,...     % field used for loudness calculation; free field = 0; diffuse field = 1;
                                                1,...     % method used for loudness calculation: stationary (from input 1/3 octave unweighted SPL)=0; stationary = 1; time varying = 2;     
@@ -72,9 +72,7 @@ S_time_varying_aures = Sharpness_DIN45692(insig_cal, fs,...     % input signal a
                                                      0.5,...     % time_skip (second) for statistics calculation
                                                        0,...     % show sharpness results
                                                        0);       % show loudness results
-                                             
-
-                                              
+                                                                                           
 %% plot sharpness (time-varying) calculation using SQAT - compare results obtained using different weighting functions
 
 figure('NAME','Sharpness analysis (comparison of weighting functions)');  

@@ -73,10 +73,9 @@ function OUT = Sharpness_DIN45692_from_wavfile(wavfilename, dBFS, weight_type, L
 %                     time_skip to compute the statistics
 %
 % % Stand-alone example:
-%     dir_ref_sounds = get_dir_reference_sounds('Sharpness_DIN45692');
-%     fname_insig = [dir_ref_sounds '1KHZ60DB.WAV'];
+%     fname = [basepath_SQAT 'sound_files' filesep 'reference_signals' filesep 'RefSignal_Sharpness_DIN45692.wav'];
 %     dBFS = 90; % We know this information in advance
-%     Sharpness_DIN45692_from_wavfile(fname_insig,dBFS);
+%     Sharpness_DIN45692_from_wavfile(fname,dBFS);
 %
 % Author: Alejandro Osses, based on the code by Gil Felix Greco
 % See also: Sharpness_DIN45692.m
