@@ -1,5 +1,4 @@
-clc;clear all; close all;
-%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Script validation_synthetic_signals_time_varying
 %
 % This code computes time-varying loudness from the reference signals 
 % provided by ISO 532-1:2017 - Annex B.4. using SQAT and plot the 
@@ -7,6 +6,8 @@ clc;clear all; close all;
 %
 % Author: Gil Felix Greco, Braunschweig 27.02.2023
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+clc; clear all; close all;
+
 %% save figs flag
 
 save_figs=0;
