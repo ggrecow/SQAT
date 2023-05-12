@@ -82,18 +82,18 @@ end
 if nargin <4
     pars = psychoacoustic_metrics_get_defaults('Tonality_Aures1985');
     time_skip = pars.time_skip;
-    fprintf('%s.m: Default time_skip value = %.0f is being used\n',mfilename,pars.time_skip);
+    fprintf('\n%s.m: Default time_skip value = %.0f is being used\n',mfilename,pars.time_skip);
 end
 if nargin <3
     pars = psychoacoustic_metrics_get_defaults('Tonality_Aures1985');
     LoudnessField = pars.Loudness_field;
-    fprintf('%s.m: Default Loudness_field value = %.0f is being used\n',mfilename,pars.Loudness_field);
+    fprintf('\n%s.m: Default Loudness_field value = %.0f is being used\n',mfilename,pars.Loudness_field);
 end
 
 [insig,fs] = audioread(wavfilename);
 if nargin < 2 || isempty(dBFS)
     dBFS = 94; % dB
-    fprintf('%s.m: Assuming the default full scale convention, with dBFS = %.0f\n',mfilename,dBFS);
+    fprintf('\n%s.m: Assuming the default full scale convention, with dBFS = %.0f\n',mfilename,dBFS);
 end
 gain_factor = 10^((dBFS-94)/20);
 insig = gain_factor*insig;

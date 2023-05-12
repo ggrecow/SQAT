@@ -17,7 +17,7 @@ clc; clear all; close all;
 
 dir_ref_sounds = [basepath_SQAT 'sound_files' filesep 'reference_signals' filesep];
 
-[RefSignal,fs]=audioread([dir_ref_sounds 'RefSignal_Loudness_ISO532_1.wav']);
+[RefSignal,fs]=audioread([dir_ref_sounds 'RefSignal_Loudness_ISO532_1.wav']); % 'sound_files\reference_signals\' -  path of the sound file for reference  
 
 %% loudness (stationary) calculation 
 

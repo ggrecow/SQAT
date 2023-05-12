@@ -18,7 +18,7 @@ clc; clear all; close all;
 
 dir_ref_sounds = [basepath_SQAT 'sound_files' filesep 'reference_signals' filesep];
 
-[TestSignal,fs]=audioread([dir_ref_sounds 'RefSignal_Sharpness_DIN45692.wav']);
+[TestSignal,fs]=audioread([dir_ref_sounds 'RefSignal_Sharpness_DIN45692.wav']); % 'sound_files\reference_signals\' -  path of the sound file for reference  
 lvl_cal_signal = 60; % information from the file name...
 
 dBFS_in = lvl_cal_signal-20*log10(rms(TestSignal)); % difference between target and actual full-scale value 

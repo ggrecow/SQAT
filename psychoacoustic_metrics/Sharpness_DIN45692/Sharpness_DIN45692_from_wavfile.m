@@ -101,27 +101,27 @@ end
 if nargin < 6
     pars = psychoacoustic_metrics_get_defaults('Sharpness_DIN45692');
     time_skip = pars.time_skip;
-    fprintf('%s.m: Default time_skip value = %.0f is being used\n',mfilename,pars.time_skip);
+    fprintf('\n%s.m: Default time_skip value = %.0f is being used\n',mfilename,pars.time_skip);
 end
 if nargin < 5
     pars = psychoacoustic_metrics_get_defaults('Sharpness_DIN45692');
     LoudnessMethod = pars.method;
-    fprintf('%s.m: Default method value = %.0f is being used\n',mfilename,pars.method);
+    fprintf('\n%s.m: Default method value = %.0f is being used\n',mfilename,pars.method);
 end
 if nargin < 4
     pars = psychoacoustic_metrics_get_defaults('Sharpness_DIN45692');
     LoudnessField = pars.field;
-    fprintf('%s.m: Default field value = %.0f is being used\n',mfilename,pars.field);
+    fprintf('\n%s.m: Default field value = %.0f is being used\n',mfilename,pars.field);
 end
 if nargin < 3
     pars = psychoacoustic_metrics_get_defaults('Sharpness_DIN45692');
     weight_type = pars.weight_type;
-    fprintf('%s.m: Default weight_type value = %s is being used\n',mfilename,pars.weight_type);
+    fprintf('\n%s.m: Default weight_type value = %s is being used\n',mfilename,pars.weight_type);
 end
 [insig,fs] = audioread(wavfilename);
 if nargin < 2 || isempty(dBFS)
     dBFS = 94; % dB
-    fprintf('%s.m: Assuming the default full scale convention, with dBFS = %.0f\n',mfilename,dBFS);
+    fprintf('\n%s.m: Assuming the default full scale convention, with dBFS = %.0f\n',mfilename,dBFS);
 end
 gain_factor = 10^((dBFS-94)/20);
 insig = gain_factor*insig;
