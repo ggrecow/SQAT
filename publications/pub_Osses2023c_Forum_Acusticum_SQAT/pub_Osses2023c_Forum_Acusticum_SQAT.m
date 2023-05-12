@@ -14,6 +14,7 @@ function pub_Osses2023c_Forum_Acusticum_SQAT
 close all
 
 h = [];
+hname = [];
 
 do_table2  = 0; %  Acoustic characterisation, all
 do_table3  = 0; %  Psychoacoustic characterisation, all
@@ -151,11 +152,7 @@ if do_table3 || do_fig_raw
             bDo = ~exist(file2save_full,'file');
             
             if bDo
-                if do_fig_raw || do_table3
-                    h = [];
-                    hname = [];
-                end
-
+                
                 [insig,fs] = audioread([dir_here files{i_files}]);
                 [res_SLM,res_description_SLM,outs] = il_get_the_metrics(insig,fs,dBFS,list_metrics);
 
@@ -1182,6 +1179,9 @@ if do_fig3
     end
 end
 if do_fig3b
+    figures_dir = [dir_sounds 'figs' filesep];
+    file2save_full = [figures_dir 'fig3b-cochlear-filt-out'];
+    
     fs = 44100;
     dt = 1/fs;
     dur = 0.5; % s
@@ -1190,7 +1190,7 @@ if do_fig3b
     f = 1000; % 1 kHz
     
     dBFS = 94; % dB SPL to meet SQAT convention
-    lvl_target = [20 40 60]; % RMS target
+    lvl_target = [40 60 80]; % RMS target
     
     A_peak = 10.^((lvl_target+3)/20); % target peak amplitude 3 dB above the RMS (for sinusoids)
     
@@ -1203,20 +1203,62 @@ if do_fig3b
     cd(dir_new)
     
     for i = 1:length(lvl_target)
-        [ei,ei_f,freq] = TerhardtExcitationPatterns_v3(insigs(:,i),fs,dBFS);
+        
+        insig_here = il_PeripheralHearingSystem_t(transpose(insigs(:,i)),fs); % since 14/05
+    
+        insig_here = 10^(-55/20)*insig_here; % -35 dB gain
+        [ei,ei_f,freq] = TerhardtExcitationPatterns_v3(insig_here,fs,dBFS); % this function requires that it is a row array
+        
+        band_lvls(i,:) = 20*log10(rms(transpose(ei)))+dBFS;
+        
+        band_max(i) = max(band_lvls(i,:));
+        band_lvls(i,:) = band_lvls(i,:)-band_max(i);
+        
+        disp('')
     end
     
     cd(curdir)
+    freq_z = .5:.5:23.5;
+    freq = bark2hz(freq_z); % bark
     
-    disp('')
+    Pos =  [138    38   450   300]; % before=500
+    figure('Position',Pos);
     
+    Colours = {'b-','r-','m--'};
+    LW = [1 1 2];
+    for i = 1:length(lvl_target)
+        plot(freq_z,band_lvls(i,:),Colours{i},'LineWidth',LW(i)); hold on;
+    end
+    
+    % hz2bark([500 2000])
+    xlim([5.5 13.5])
+    
+    XT = 5:13;
+    XTL = round(bark2hz(XT));
+    
+    ylim([-53 3]);
+    set(gca,'YTick',-50:5:0);
+    grid on;
+    
+    set(gca,'XTick',XT);
+    set(gca,'XTickLabel',XTL);
+    xlabel('Frequency (Hz)');
+    ylabel('Cochlear filter output (dB re. max)');
+    
+    legend('40-dB tone','60-dB tone','80-dB tone','Location','SouthWest');
+end
+if do_fig1a || do_fig1b || do_fig1c || do_fig2 || do_fig3 || do_fig3b
+    h(end+1) = gcf;
 end
 
-h(end+1) = gcf;
-
 for i = 1:length(h)
-    % figname_short = hname{i};
-    figname_out = file2save_full;
+    if do_fig_raw == 0
+        % for all figures:
+        figname_out = file2save_full;
+    else
+        figures_dir = [dir_sounds 'figs' filesep];
+        figname_out = [figures_dir hname{i}];
+    end
 
     saveas(h(i),figname_out, 'fig' );
     saveas(h(i),figname_out, 'epsc'); % vectorial format
@@ -1333,3 +1375,65 @@ if ~exist('var2latex.m','file')
 else
     var2latex(metrics_row);
 end
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function outsig = il_PeripheralHearingSystem_t(insig,fs)
+% function outsig = il_PeripheralHearingSystem_t(insig,fs)
+% 
+% Applies the effect of transmission from free field to the cochlea to a
+% given signal. Time domain version.
+% 
+% Inputs:
+% insig: The signal to process. insig has to be a row vector.
+% fs: Sampling frequency,
+% 
+
+K = 2^12; % FIR filter order 
+
+% B = il_calculate_a0(fs,K);
+B = il_calculate_a0_idle(fs,K);
+
+outsig = filter(B,1,[insig zeros(1,K/2)]);
+outsig = outsig(K/2+1:end);
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function B = il_calculate_a0_idle(fs,N)
+% No resonance of the ear canal accounted for.
+
+df    = fs/N;
+N0    = round(20/df)+1;
+Ntop  = round(20e3/df)+1;
+qb    = N0:Ntop;
+freqs = (qb-1)*df;
+
+Bark = Get_Bark(N,qb,freqs);
+
+a0tab = [
+    0       0
+    10      0
+    19      0
+    20      -1.43
+    21		-2.59
+    21.5	-3.57
+    22		-5.19
+    22.5	-7.41
+    23		-11.3
+    23.5	-20
+    24		-40
+    25		-130
+    26		-999
+];
+
+a0            = zeros(1,N);
+a0(qb)        = 10.^( interp1(a0tab(:,1),a0tab(:,2),Bark(qb)) )/20;
+a0(isnan(a0)) = 0;
+
+B = il_create_a0_FIR(freqs,a0(qb),N,fs);
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function B = il_create_a0_FIR(f,a0,N,fs)
+
+f = [0 f fs/2];
+a0 = [a0(1) a0 a0(end)];
+
+B = fir2(N,f/(fs/2),a0);

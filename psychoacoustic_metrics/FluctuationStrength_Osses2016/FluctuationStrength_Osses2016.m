@@ -64,6 +64,8 @@ function OUT = FluctuationStrength_Osses2016(insig,fs,method,time_skip,show)
 %        which affects the window size
 % Author: Alejandro Osses, 10/05/2023. Appropriate scaling for the specific 
 %            fluctuation strength.
+% Author: Alejandro Osses, 11/05/2023. Moving TerhardtExcitationPatterns_v3, 
+%            Get_Bark to the private folder (old il_* functions)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 if nargin == 0
     help FluctuationStrength_Osses2016;
@@ -150,7 +152,7 @@ for iFrame = 1:nFrames
     dBFS = 94; % corresponds to 1 Pa (new default in SQAT)
     % dBFS = 100; % unit amplitude corresponds to 100 dB (AMT Toolbox 
                   % convention, default by the original authors)
-    ei   = il_TerhardtExcitationPatterns_v3(signal,fs,dBFS);
+    ei   = TerhardtExcitationPatterns_v3(signal,fs,dBFS);
     dz   = 0.5; % Barks, frequency step
     z    = 0.5:dz:23.5; % Bark
     fc   = bark2hz(z);
@@ -406,7 +408,7 @@ params.bIdle   = 1; % v5
 
 params.Hweight = Get_Hweight_fluctuation(fs);
 params.Hweight = Get_Hweight_fluctuation(fs);
-params.gzi     = Get_gzi_fluctuation(params.Chno);
+params.gzi     = il_Get_gzi_fluctuation(params.Chno);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function outsig = il_Do_cos_ramp(insig,fs,attack_ms,release_ms)
@@ -452,7 +454,7 @@ Ntop  = round(20e3/df)+1;
 qb    = N0:Ntop;
 freqs = (qb-1)*df;
 
-Bark = il_Get_Bark(N,qb,freqs);
+Bark = Get_Bark(N,qb,freqs);
 
 a0tab = [ % lower slope from middle ear (fig_a0.c, see Figure_Psychoacoustics_tex)
     0       -999
@@ -516,7 +518,7 @@ Ntop  = round(20e3/df)+1;
 qb    = N0:Ntop;
 freqs = (qb-1)*df;
 
-Bark = il_Get_Bark(N,qb,freqs);
+Bark = Get_Bark(N,qb,freqs);
 
 a0tab = [
     0       0
@@ -564,223 +566,8 @@ if nargout == 0
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [ei,ei_f,freq] = il_TerhardtExcitationPatterns_v3(insig,fs,dBFS)
-% function [ei,ei_f,freq] = il_TerhardtExcitationPatterns_v3(insig,fs,dBFS)
-
-if nargin < 3
-    dBFS = 100; % AMT toolbox convention
-end
-corr = dBFS + 3;
-
-dB2calibrate = rmsdb(insig)+dBFS;
-
-% General parameters
-params = il_calculate_params(insig,fs);
-N01 = params.N01;
-freqs = params.freqs;
-
-dfreq = fs/params.N;
-freq = dfreq*(1:params.N); % freqs and freq are the same array, but freqs starts at bin N0
-
-% Transforms input signal to frequency domain
-insig = il_From_dB(corr)*fft(insig)/params.N; % 3 dB added to adjust the SPL values to be put into slope equations
-
-% Use only samples that fall into the audible range
-Lg  = abs(insig(params.qb));
-LdB = il_To_dB(Lg);
-
-% Use only components that are above the hearing threshold
-whichL = find(LdB > params.MinExcdB);
-nL     = length(whichL);
-
-% Steepness of slopes
-S1 = -27;			
-S2 = zeros(1,nL);
-for w = 1:nL
-    steep = -24 - (230 / freqs(whichL(w))) + (0.2 * LdB(whichL(w))); 
-    if steep < 0
-        S2(w) = steep;
-    end
-end
-
-whichZ      = zeros(2,nL);
-whichZ(1,:)	= floor(2 * params.Barkno(whichL+N01));
-whichZ(2,:)	=  ceil(2 * params.Barkno(whichL+N01));
-
-% Calculate slopes from steep values
-Slopes = zeros(nL,params.Chno);
-Slopes_dB = nan(nL,params.Chno);
-
-for l = 1:nL
-    Li = LdB(whichL(l));
-    zi = params.Barkno(whichL(l)+N01);
-    
-    for k = 1:whichZ(1,l)
-        zk = k * 0.5;
-        delta_z = zi - zk;
-        Stemp =	(S1 * delta_z) + Li;
-        if Stemp > params.MinBf(k)
-            Slopes(l,k) = il_From_dB(Stemp);
-            Slopes_dB(l,k) = Stemp;
-        end
-    end
-
-    for k = whichZ(2,l):params.Chno
-        zk = k * 0.5;
-        delta_z = zk - zi;
-        Stemp = S2(l) * delta_z + Li;
-        if Stemp > params.MinBf(k)
-            Slopes(l,k) = il_From_dB(Stemp);
-            Slopes_dB(l,k) = Stemp;
-        end
-    end 
-end
-
-% Excitation patterns:
-%   Each frequency having a level above the absolute threshold is looked at.
-%   The contribution of that level (and frequency) onto the other critical
-%   band levels is computed and then assigned.
-ExcAmp  = zeros(nL,params.Chno);
-ei      = zeros(params.Chno,params.N);
-for i = 1:params.Chno
-    etmp = zeros(1,params.N);
-    for l = 1:nL
-        N1tmp = whichL(l);
-        N2tmp = N1tmp + N01;
-
-        if i == 24
-            disp('')
-        end
-        if whichZ(1,l) == i
-            ExcAmp(N1tmp,i)	= 1;
-        elseif whichZ(2,l) == i
-            ExcAmp(N1tmp,i)	= 1;
-        elseif whichZ(2,l) > i
-            ExcAmp(N1tmp,i) = Slopes(l,i+1)/Lg(N1tmp);
-        else % whichZ(1,l) < k
-            ExcAmp(N1tmp,i) = Slopes(l,i-1)/Lg(N1tmp);
-        end
-
-        etmp(N2tmp) = ExcAmp(N1tmp,i)*insig(N2tmp); % for each level, the level is projected to that in the respective critical band i
-    end
-
-    if nargout >= 2
-        ei_f(i,:) = il_To_dB(abs(etmp));
-    end
-    ei(i,:) = 2*params.N*real(ifft(etmp)); % figure; plot(To_dB(abs(etmp)),'x','LineWidth',4); xlim([1950 2050])
-end
-
-outsig = sum(ei,1);
-gain = dB2calibrate - (rmsdb(outsig)+dBFS);
-
-ei = il_From_dB(gain)*ei;
-
-disp('');
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function params = il_calculate_params(x,fs)
-
-params      = struct;
-params.N    = length(x);
-params.Chno = 47;
-
-% Defines audible range indexes and frequencies
-df           = fs/params.N;
-N0           = round(20/df)+1; % start at 20 Hz
-Ntop         = round(20e3/df)+1; % start at 20 kHz
-params.N01   = N0-1;
-params.qb    = N0:Ntop;
-params.freqs = (params.qb-1)*df;
-
-[params.Barkno,Bark_raw] = il_Get_Bark(params.N,params.qb,params.freqs);
-% Loudness threshold related parameters
-params.MinExcdB = il_calculate_MinExcdB(params.N01,params.qb,params.Barkno);
-params.MinBf    = il_calculate_MinBf(params.N01,df,Bark_raw,params.MinExcdB);
-   
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function MinExcdB = il_calculate_MinExcdB(N01,qb,Barkno)
-
-HTres = [
-    0		130
-    0.01    70
-    0.17    60
-    0.8     30
-    1       25
-    1.5     20
-    2		15
-    3.3     10
-    4		8.1
-    5		6.3
-    6		5
-    8		3.5
-    10		2.5
-    12		1.7
-    13.3	0
-    15		-2.5
-    16		-4
-    17		-3.7
-    18		-1.5
-    19		1.4
-    20		3.8
-    21		5
-    22		7.5
-    23      15
-    24      48
-    24.5 	60
-    25		130
-];
-
-MinExcdB            = zeros(1,length(qb));
-MinExcdB(qb-N01)    = interp1(HTres(:,1),HTres(:,2),Barkno(qb));
-   
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function MinBf = il_calculate_MinBf(N01,df,Bark,MinExcdB)
-    
-Cf = round(Bark(2:25,2)'/df)-N01+1;
-Bf = round(Bark(1:25,3)'/df)-N01+1;  
-
-zb      = sort([Bf Cf]);
-MinBf   = MinExcdB(zb);
-
-function [Bark,Bark_raw] = il_Get_Bark(N,qb,freqs)
-
-Bark_raw = [
-    0   0       50      0.5
-    1   100     150     1.5
-    2   200     250     2.5
-    3   300     350     3.5
-    4   400     450     4.5
-    5   510     570     5.5
-    6   630     700     6.5
-    7   770     840     7.5
-    8   920     1000	8.5
-    9   1080	1170	9.5
-    10  1270	1370	10.5
-    11  1480	1600	11.5
-    12  1720	1850	12.5
-    13  2000	2150	13.5
-    14  2320	2500	14.5
-    15  2700	2900	15.5
-    16  3150	3400	16.5
-    17  3700	4000	17.5
-    18  4400	4800	18.5
-    19  5300	5800	19.5
-    20  6400	7000	20.5
-    21  7700	8500	21.5
-    22  9500	10500	22.5
-    23  12000	13500	23.5
-    24  15500   20000   24.5
-]; 
-
-
-Bark_sorted = [  sort([Bark_raw(:,2);Bark_raw(:,3)]),... % frequencies
-                 sort([Bark_raw(:,1);Bark_raw(:,4)])];   % Bark
-
-Bark     = zeros(1,round(N/2+1));
-Bark(qb) = interp1(Bark_sorted(:,1),Bark_sorted(:,2),freqs);
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function gzi = Get_gzi_fluctuation(Chno)
-% function gzi = Get_gzi_fluctuation(Chno)
+function gzi = il_Get_gzi_fluctuation(Chno)
+% function gzi = il_Get_gzi_fluctuation(Chno)
 %
 % Returns gzi parameters using the specified number of channels.
 
@@ -794,15 +581,6 @@ g0 = transpose(g0);
 gzi = interp1(g0(:,1),g0(:,2),(1:Chno)*Chstep);
 gzi(isnan(gzi)) = g0(end,2); % 0
    
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function gain_dB = il_To_dB(gain)
-% function gain_dB = il_To_dB(gain)
-% 
-% 1. Description:
-%   To_dB: Convert voltage gain to decibels.
-%   gain_dB = To_dB(gain)
-
-gain_dB = 20 * log10(gain);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function gain = il_From_dB(gain_dB,div)
 % function gain = il_From_dB(gain_dB,div)
