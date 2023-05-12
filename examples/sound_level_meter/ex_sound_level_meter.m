@@ -51,6 +51,8 @@ ylabel('Sound pressure level (dB)');
 
 legend({'dB(A)','dB(Z)'});
 
+set(gcf,'color','w');
+        
 fprintf('\n%s.m: The level information for sound in %s, analysed using a %s time weighting\n',mfilename,wavfilename,weight_time);
 fprintf('\tAverage (RMS) level using dBFS=%.0f: lvl_rms=%.1f dB(Z)\n',dBFS,rms_val);
 fprintf('\tDuration of the sound: dur=%.1f s\n\n',T);
