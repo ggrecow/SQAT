@@ -590,20 +590,21 @@ OUT.Rmax = max(R_mat(idx:end));
 OUT.Rmin = min(R_mat(idx:end));
 OUT.Rmean = mean(R_mat(idx:end));
 OUT.Rstd = std(R_mat(idx:end));
-OUT.R1 = prctile(R_mat(idx:end),99);
-OUT.R2 = prctile(R_mat(idx:end),98);
-OUT.R3 = prctile(R_mat(idx:end),97);
-OUT.R4 = prctile(R_mat(idx:end),96);
-OUT.R5 = prctile(R_mat(idx:end),95);
-OUT.R10 = prctile(R_mat(idx:end),90);
-OUT.R20 = prctile(R_mat(idx:end),80);
-OUT.R30 = prctile(R_mat(idx:end),70);
-OUT.R40 = prctile(R_mat(idx:end),60);
+OUT.R1 = get_percentile(R_mat(idx:end),1);
+OUT.R2 = get_percentile(R_mat(idx:end),2);
+OUT.R3 = get_percentile(R_mat(idx:end),3);
+OUT.R4 = get_percentile(R_mat(idx:end),4);
+OUT.R5 = get_percentile(R_mat(idx:end),5);
+OUT.R10 = get_percentile(R_mat(idx:end),10);
+OUT.R20 = get_percentile(R_mat(idx:end),20);
+OUT.R30 = get_percentile(R_mat(idx:end),30);
+OUT.R40 = get_percentile(R_mat(idx:end),40);
 OUT.R50 = median(R_mat(idx:end));
-OUT.R60 = prctile(R_mat(idx:end),40);
-OUT.R70 = prctile(R_mat(idx:end),30);
-OUT.R80 = prctile(R_mat(idx:end),20);
-OUT.R90 = prctile(R_mat(idx:end),10);
+OUT.R60 = get_percentile(R_mat(idx:end),60);
+OUT.R70 = get_percentile(R_mat(idx:end),70);
+OUT.R80 = get_percentile(R_mat(idx:end),80);
+OUT.R90 = get_percentile(R_mat(idx:end),90);
+OUT.R95 = get_percentile(R_mat(idx:end),95);
 
 %% plots
 

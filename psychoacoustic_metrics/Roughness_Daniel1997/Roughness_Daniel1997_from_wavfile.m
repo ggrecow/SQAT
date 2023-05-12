@@ -52,7 +52,7 @@ function OUT = Roughness_Daniel1997_from_wavfile(wavfilename,dBFS,time_skip,show
 %         ** Rx : percentile roughness exceeded during x percent of the signal (asper)
 %
 % Stand-alone example:
-%   fname = [basepath_SQAT 'sound_files' filesep 'reference_signals' filesep 'Roughness_Daniel1997' filesep 'RefSignal_Roughness_1asper_48kHz_32bit.wav'];
+%   fname = [basepath_SQAT 'sound_files' filesep 'reference_signals' filesep 'RefSignal_Roughness_Daniel1997.wav'];
 %   dBFS = 94; % default for SQAT
 %   Roughness_Daniel1997_from_wavfile(fname,dBFS);
 %
@@ -75,13 +75,13 @@ end
 if nargin <3
     pars = psychoacoustic_metrics_get_defaults('Roughness_Daniel1997');
     time_skip = pars.time_skip;
-    fprintf('%s.m: Default time_skip value = %.0f is being used\n',mfilename,pars.time_skip);
+    fprintf('\n%s.m: Default time_skip value = %.0f is being used\n',mfilename,pars.time_skip);
 end
 
 [insig,fs] = audioread(wavfilename);
 if nargin < 2 || isempty(dBFS)
     dBFS = 94; % dB
-    fprintf('%s.m: Assuming the default full scale convention, with dBFS = %.0f\n',mfilename,dBFS);
+    fprintf('\n%s.m: Assuming the default full scale convention, with dBFS = %.0f\n',mfilename,dBFS);
 end
 gain_factor = 10^((dBFS-94)/20);
 insig = gain_factor*insig;
