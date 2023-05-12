@@ -1,5 +1,5 @@
-function OUT = Sharpness_DIN45692(insig, fs, weight_type, field, method, time_skip, show_sharpness, show_loudness)
-% function OUT = Sharpness_DIN45692(insig, fs, weight_type, field, method, time_skip, show_sharpness, show_loudness)
+function OUT = Sharpness_DIN45692(insig, fs, weight_type, LoudnessField, LoudnessMethod, time_skip, show_sharpness, show_loudness)
+% function OUT = Sharpness_DIN45692(insig, fs, weight_type, LoudnessField, LoudnessMethod, time_skip, show_sharpness, show_loudness)
 %
 %  Stationary and time-varying sharpness calculation according to DIN 45692
 %    (2009) from an input signal. The loudness calculation, required as pre-
@@ -23,13 +23,13 @@ function OUT = Sharpness_DIN45692(insig, fs, weight_type, field, method, time_sk
 %       - 'bismarck'
 %       - 'aures' (dependent on the specific loudness level)
 %
-%   method : integer
+%   LoudnessField : integer
+%   type of field used for loudness calculation; free field = 0; diffuse field = 1;
+%
+%   LoudnessMethod : integer
 %   method used for loudness calculation - method used for loudness 
 %       calculation: stationary (from input 1/3 octave unweighted SPL)=0 (not 
 %       accepted in this context); stationary = 1; time varying = 2;
-%
-%   field : integer
-%   type of field used for loudness calculation; free field = 0; diffuse field = 1;
 %
 %   time_skip : integer
 %   skip start of the signal in <time_skip> seconds for statistics 
@@ -87,11 +87,11 @@ if nargin < 7
     end
 end
 
-if method==1 % stationary loudness calculation
+if LoudnessMethod==1 % stationary loudness calculation
     
     L = Loudness_ISO532_1(insig, fs,... % input signal and sampling freq.
-                              field,... % free field = 0; diffuse field = 1;
-                             method,... % method used for loudness calculation: stationary (from input 1/3 octave unweighted SPL)=0; stationary = 1; time varying = 2;
+                      LoudnessField,... % free field = 0; diffuse field = 1;
+                     LoudnessMethod,... % method used for loudness calculation: stationary (from input 1/3 octave unweighted SPL)=0; stationary = 1; time varying = 2;
                           time_skip,... % time_skip
                       show_loudness);   % show loudness results
     
@@ -103,11 +103,11 @@ if method==1 % stationary loudness calculation
         loudness_sones(i)=sum(L.SpecificLoudness(i,:),2).*0.10;
     end
     
-elseif method==2 % time-varying loudness calculation
+elseif LoudnessMethod==2 % time-varying loudness calculation
     
     L = Loudness_ISO532_1(insig, fs,... % input signal and sampling freq.
-                              field,... % free field = 0; diffuse field = 1;
-                             method,... % method used for loudness calculation: stationary (from input 1/3 octave unweighted SPL)=0; stationary = 1; time varying = 2;
+                      LoudnessField,... % free field = 0; diffuse field = 1;
+                     LoudnessMethod,... % method used for loudness calculation: stationary (from input 1/3 octave unweighted SPL)=0; stationary = 1; time varying = 2;
                           time_skip,... % time_skip
                       show_loudness);   % show loudness results
     
@@ -155,7 +155,7 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Output struct for time-varying signals
 
-if method==2 % (time-varying sharpness)
+if LoudnessMethod==2 % (time-varying sharpness)
     
     OUT.InstantaneousSharpness = s; % instantaneous sharpness
     OUT.time = L.time;              % time vector
@@ -205,7 +205,7 @@ if method==2 % (time-varying sharpness)
         
     end
     
-elseif method==1 % (stationary sharpness)
+elseif LoudnessMethod==1 % (stationary sharpness)
     
     OUT.Sharpness = s;                       % sharpness
     

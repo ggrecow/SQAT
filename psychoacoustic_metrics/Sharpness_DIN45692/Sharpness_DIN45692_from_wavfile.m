@@ -1,5 +1,5 @@
-function OUT = Sharpness_DIN45692_from_wavfile(wavfilename, dBFS, weight_type, field, method, time_skip, show_sharpness, show_loudness)
-% function OUT = Sharpness_DIN45692_from_wavfile(wavfilename, dBFS, weight_type, field, method, time_skip, show_sharpness, show_loudness)
+function OUT = Sharpness_DIN45692_from_wavfile(wavfilename, dBFS, weight_type, LoudnessField, LoudnessMethod, time_skip, show_sharpness, show_loudness)
+% function OUT = Sharpness_DIN45692_from_wavfile(wavfilename, dBFS, weight_type, LoudnessField, LoudnessMethod, time_skip, show_sharpness, show_loudness)
 %
 %  Stationary and time-varying sharpness calculation according to DIN 45692
 %    (2009) from a waveform (wav file). The loudness calculation, required 
@@ -30,13 +30,13 @@ function OUT = Sharpness_DIN45692_from_wavfile(wavfilename, dBFS, weight_type, f
 %       - 'bismarck'
 %       - 'aures' (dependent on the specific loudness level)
 %
-%   method : integer
+%   LoudnessField : integer
+%   type of field used for loudness calculation; free field = 0; diffuse field = 1;
+%
+%   LoudnessMethod : integer
 %   method used for loudness calculation - method used for loudness 
 %        calculation: stationary (from input 1/3 octave unweighted SPL)=0 (not 
 %        accepted in this context); stationary = 1; time varying = 2;
-%
-%   field : integer
-%   type of field used for loudness calculation; free field = 0; diffuse field = 1;
 %
 %   time_skip : integer
 %   skip start of the signal in <time_skip> seconds for statistics calculations (method=1 (time-varying) only)
@@ -106,12 +106,12 @@ if nargin < 6
 end
 if nargin < 5
     pars = psychoacoustic_metrics_get_defaults('Sharpness_DIN45692');
-    method = pars.method;
+    LoudnessMethod = pars.method;
     fprintf('%s.m: Default method value = %.0f is being used\n',mfilename,pars.method);
 end
 if nargin < 4
     pars = psychoacoustic_metrics_get_defaults('Sharpness_DIN45692');
-    field = pars.field;
+    LoudnessField = pars.field;
     fprintf('%s.m: Default field value = %.0f is being used\n',mfilename,pars.field);
 end
 if nargin < 3
@@ -127,7 +127,7 @@ end
 gain_factor = 10^((dBFS-94)/20);
 insig = gain_factor*insig;
 
-OUT = Sharpness_DIN45692(insig, fs, weight_type, field, method, time_skip, show_sharpness, show_loudness);
+OUT = Sharpness_DIN45692(insig, fs, weight_type, LoudnessField, LoudnessMethod, time_skip, show_sharpness, show_loudness);
 
 end % End of file
 

@@ -3,7 +3,7 @@ function OUT = Tonality_Aures1985(insig,fs,LoudnessField,time_skip,show)
 %
 %   This function calculates tonality metric by:
 %
-%   [1] Aures, Wilhelm (1985). "Berechnungsverfahren für den sensorischen Wohlklang 
+%   [1] Aures, Wilhelm (1985). "Berechnungsverfahren fuer den sensorischen Wohlklang 
 %       beliebiger Schallsignale." Acta Acustica united with Acustica 59: p. 130-141.
 %
 %   The Aures' tonality is based on Terhard's virtual pitch theory, given by:
@@ -172,7 +172,7 @@ for iFrame = 1:nFrames
                 
         ymx = ToneL(i); % SPL of the i-th tone
         [~,idx] = min( abs(Freq-ToneF(i)) ); % index of the i-th tone 
-        hafmax = ymx.*0.6; % target value 
+        hafmax = ymx.*0.707; % target value 
         % hafmax = ymx-3; % target value (-3 dB decay)
         
         idxrng1 = find(SPL(1:idx)<hafmax, 1, 'last');
@@ -331,7 +331,7 @@ for iFrame = 1:nFrames
             
             %% TONALITY
             
-            C=1.1134;  % is a constant such that 1 kHz pure tone with a level of 60 dB would have a tonalness of 1, which for an ideal implementaiton should be =1.09
+            C=1.11;  % is a constant such that 1 kHz pure tone with a level of 60 dB would have a tonalness of 1, which for an ideal implementaiton should be =1.09
             
             tonality(iFrame,1) = abs( C.*w_tonal(iFrame,1).^(0.29).*w_gr(iFrame,1).^(0.79) );
             
