@@ -13,19 +13,21 @@ function pub_Osses2023c_Forum_Acusticum_SQAT
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 close all
 
+h = [];
+
 do_table2  = 0; %  Acoustic characterisation, all
 do_table3  = 0; %  Psychoacoustic characterisation, all
 do_fig1a   = 0; % Psychoacoustic characterisation, selected (+plots)
 do_fig1b   = 0; % Psychoacoustic characterisation, selected (+plots)
 do_fig1c   = 0; % Psychoacoustic characterisation, selected (+plots)
-do_fig2a = 0;
-do_fig2b = 0;
-do_fig2c = 0;
+do_fig2 = 0; % specific metrics for N, R, F
+do_fig3 = 0; % external variability
+do_fig3b = 0;
 
 do_fig_raw = 0; % Psychoacoustic characterisation, all (+plots)
 
 list_tables_and_figures = {'do_table2';'do_table3';'do_fig1a'; 'do_fig1b'; 'do_fig1c'; ...
-    'do_fig2a'; 'do_fig2b'; 'do_fig2c'; 'do_fig_raw'};
+    'do_fig2'; 'do_fig3';'do_fig3b'; 'do_fig_raw'};
 for i = 1:length(list_tables_and_figures)
     fprintf('Enter %.0f to %s\n',i,list_tables_and_figures{i});
 end
@@ -44,12 +46,12 @@ switch list_tables_and_figures{bInput}
         do_fig1b = 1;
     case 'do_fig1c'
         do_fig1c = 1;
-    case 'do_fig2a'
-        do_fig2a = 1;
-    case 'do_fig2b'
-        do_fig2b = 1;
-    case 'do_fig2c'
-        do_fig2c = 1;
+    case 'do_fig2'
+        do_fig2 = 1;
+    case 'do_fig3'
+        do_fig3 = 1;
+     case 'do_fig3b'
+        do_fig3b = 1;
     case 'do_fig_raw'
         do_fig_raw = 1;
 end
@@ -163,12 +165,8 @@ if do_table3 || do_fig_raw
                     psy_metric = List_psy_metrics{i_psy};
                     params = psychoacoustic_metrics_get_defaults(psy_metric);
 
-                    if do_fig_raw
-                        bPlot = 0;
-                    else
-                        bPlot = 1; % params.show;
-                    end
-
+                    bPlot = 0;
+                    
                     switch psy_metric
                         case 'Loudness_ISO532_1'
                             params4input = {params.field, params.method, params.time_skip, bPlot};
@@ -535,54 +533,32 @@ if do_table3 || do_fig_raw
         il_var2latex(round(100*metrics_row)/100);
     end
 end
+
+Colours = {'b-','r-','m--'};
+LW      = [2 1 2];
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% List_psy_metrics = {'Loudness_ISO532_1'};
-% List_psy_metrics = {'Sharpness_DIN45692'};
-% List_psy_metrics = {'Roughness_Daniel1997'};
-% List_psy_metrics = {'FluctuationStrength_Osses2016'};
-% List_psy_metrics = {'Tonality_Aures1985'};
-
-if do_fig2a || do_fig2b || do_fig2c
-    List_psy_metrics = List_psy_metrics([1 3 4]);
-end
-
-if do_fig1a || do_fig1b || do_fig1c || do_fig2a || do_fig2b || do_fig2c
+if do_fig1a || do_fig1b || do_fig1c
     % Starts by repeating the calculation as in do_table1, but here we are 
     %   interested in the exact time of the sound event 'idx'.
-    if do_fig1a || do_fig2a
+    if do_fig1a
         % '1-Aircraft-fly-by'
         files = {'Flyover2_Airbus319-114-dBFS.wav','Flyover4_Boeing737-114-dBFS.wav'};
         i_dir = 1;
-        if do_fig1a
-            fig_pref = 'fig1a-';
-        end
-        if do_fig2a
-            fig_pref = 'fig2a-';
-        end
+        fig_pref = 'fig1a-';
         t_show = [0 10];
     end
-    if do_fig1b || do_fig2b
+    if do_fig1b
         % '2-Train-pass-by'
         files = {'train_01.wav','train_15.wav'}; % before train 01 and train 02
         i_dir = 2;
-        if do_fig1b
-            fig_pref = 'fig1b-';
-        end
-        if do_fig2b
-            fig_pref = 'fig2b-';
-        end
+        fig_pref = 'fig1b-';
         t_show = [0 10];
     end
-	if do_fig1c || do_fig2c
+    if do_fig1c
         %'3-Hummer-resonances'
         files = {'meas-ac-2-dist-ane.wav','model-ac-2-dist-ane.wav'};
         i_dir = 3;
-        if do_fig1c
-            fig_pref = 'fig1c-';
-        end
-        if do_fig2c
-            fig_pref = 'fig2c-';
-        end
+        fig_pref = 'fig1c-';
         t_show = [0 5];
     end
     dBFS = dir_datasets{i_dir,2};
@@ -603,9 +579,12 @@ if do_fig1a || do_fig1b || do_fig1c || do_fig2a || do_fig2b || do_fig2c
         figures_dir = [dir_sounds 'figs' filesep];
 
         file2save_full = [figures_dir file2save];
+        file2save_spec = [figures_dir 'spec-dataset-' num2str(i_dir)];
+        file2save_time = [figures_dir 'time-dataset-' num2str(i_dir)];
         %%%
         if do_fig1a || do_fig1b || do_fig1c
-            bDo = ~exist([file2save_full '.eps'],'file');
+            bDo = ~exist([file2save_full '.eps'],'file') || ~exist([file2save_spec '.mat'],'file') ...
+                || ~exist([file2save_time '.mat'],'file');
         else
             bDo = 1;
         end
@@ -732,8 +711,7 @@ if do_fig1a || do_fig1b || do_fig1c || do_fig2a || do_fig2b || do_fig2c
                     R_spec_90{i_files} = Rspec_90;
                     
                     if do_fig1c
-                        Cal = 0.25; % hard coded in Roughness_Daniel1997
-                        R_spec_inst{i_files} = Cal*out.InstantaneousSpecificRoughness;
+                        R_spec_inst{i_files} = out.InstantaneousSpecificRoughness;
                     end
                         
                     f = out.barkAxis;
@@ -821,16 +799,27 @@ if do_fig1a || do_fig1b || do_fig1c || do_fig2a || do_fig2b || do_fig2c
             if ~exist(figures_dir,'dir')
                 mkdir(figures_dir);
             end
-            
         else
             load(file2save_full);
             metrics_row(end+1,:) = res;
         end % if bDo
         count = count+1;
     end % if i_files
-
-    Colours = {'b-','r-','m--'};
-    LW      = [2 1 2];
+    if bDo
+        vars2save = {'N_freq','N_spec_50','F_freq','F_spec_50','R_freq','R_spec_50'};
+        if do_fig1c
+            vars2save{end+1} = 'R_spec_inst';
+            vars2save{end+1} = 'F_spec_inst';
+        end
+        save(file2save_spec,vars2save{:})
+        
+        vars2save = {'N_time','N_all','F_time','F_all','R_time','R_all'};
+        if do_fig1c
+            vars2save{end+1} = 'R_spec_inst';
+            vars2save{end+1} = 'F_spec_inst';
+        end
+        save(file2save_time,vars2save{:})
+    end
     
     if do_fig1a || do_fig1b || do_fig1c
         Pos =  [138    38   350   450]; % 500];
@@ -911,12 +900,11 @@ if do_fig1a || do_fig1b || do_fig1c || do_fig2a || do_fig2b || do_fig2c
             style_here = {Colours{3},'LineWidth',LW(3)};
             switch dim4avg
                 case 1
-                    R_t = sum(R_spec_inst{i_files}(idxi:idxf,:),dim4avg);
+                    R_t = .5*sum(R_spec_inst{i_files}(idxi:idxf,:),dim4avg);
                 case 2
-                    R_t = sum(R_spec_inst{i_files}(:,idxi:idxf),dim4avg);
+                    R_t = .5*sum(R_spec_inst{i_files}(:,idxi:idxf),dim4avg);
             end
-            plot(t,R_t,style_here{:}); hold on; grid on
-            
+            hp = plot(t,R_t,style_here{:}); hold on; grid on
             ylim([-.05 0.45])
         end
         
@@ -954,13 +942,16 @@ if do_fig1a || do_fig1b || do_fig1c || do_fig2a || do_fig2b || do_fig2c
             style_here = {Colours{3},'LineWidth',LW(3)};
             switch dim4avg
                 case 1
-                    F_t = sum(F_spec_inst{i_files}(idxi:idxf,:),dim4avg);
+                    F_t = .5*sum(F_spec_inst{i_files}(idxi:idxf,:),dim4avg);
                 case 2
-                    F_t = sum(F_spec_inst{i_files}(:,idxi:idxf),dim4avg);
+                    F_t = .5*sum(F_spec_inst{i_files}(:,idxi:idxf),dim4avg);
             end
-            plot(t,F_t,style_here{:}); hold on; grid on
+            hp = plot(t,F_t,style_here{:}); hold on; grid on
             ylim([-0.05 0.35]);
             set(gca,'YTick',0:.1:.3);
+            
+            hl = legend(hp,sprintf('NB analysis\nfor sound 1'),'FontSize',6,'Location','SouthEast','TextColor','m');
+            set(hl,'Box','off');
         end
         
         % Tonality
@@ -974,65 +965,71 @@ if do_fig1a || do_fig1b || do_fig1c || do_fig2a || do_fig2b || do_fig2c
 
             ylabel('K (t.u.)');
             xlabel('Event Time (s)');
-            % title(files{i_files},'interpreter','none'); 
             xlim(t_show);
-
-            % [Tmax, idx_max] = max(K_t);
-            % idx_above_K1 = find(K_t>out.K1);
-            % 
-            % %%% Time plot:
-            % figure;
-            % plot(t,K_t,'b','LineWidth',2); hold on; grid on
-            % 
-            % ylabel('Tonality (t.u.)');
-            % xlabel('Time (s)');
-            % title(files{i_files},'interpreter','none'); 
-            % xlim(outs.t_min_max);
-            % 
-            % for i_K = 1:length(idx_above_K1)
-            %     id = idx_above_K1(i_K);
-            %     plot(t(id),K_t(id),'md','MarkerFaceColor','m');
-            % end
-            % plot(t(idx_max),K_t(idx_max),'ko','MarkerFaceColor','k');
         end
     end
-    if do_fig2a || do_fig2b || do_fig2c
-        
-        
-        f = N_freq{1}; % should be the same frequency for all plots
-        bark_step = 2; % default = 1
-        f_Tick = .5:bark_step:23.5;
-        % f_Hz = bark2hz(f);
-        f_Tick_Hz = round( bark2hz(f_Tick) );
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+if do_fig2
+    %%%
+    figures_dir = [dir_sounds 'figs' filesep];
+    
+    Pos =  [138    38   700   600]; % before=500
+    % before: 350 = width
+    %         500 = height
+    figure('Position',Pos);
+    tiledlayout(3,3,'tilespacing','none');
 
-        f_Tick_Hz_txt = [];
-        for i_f = 1:length(f_Tick_Hz)
-            if mod(i_f,3) == 1
-                if f_Tick_Hz(i_f) < 1000
-                    f_Tick_Hz_txt{i_f} = num2str(f_Tick_Hz(i_f));
-                else
-                    f_Tick_Hz_txt{i_f} = [num2str(round(10*f_Tick_Hz(i_f)/1000)/10) ' k'];
-                end
+    bark_step = 2; % default = 1
+    f_Tick = .5:bark_step:23.5;
+    % f_Hz = bark2hz(f);
+    f_Tick_Hz = round( bark2hz(f_Tick) );
+
+    f_Tick_Hz_txt = [];
+    for i_f = 1:length(f_Tick_Hz)
+        if mod(i_f,3) == 1
+            if f_Tick_Hz(i_f) < 1000
+                f_Tick_Hz_txt{i_f} = num2str(f_Tick_Hz(i_f));
             else
-                f_Tick_Hz_txt{i_f} = '';
-            end                            
+                f_Tick_Hz_txt{i_f} = [num2str(round(10*f_Tick_Hz(i_f)/1000)/10) ' k'];
+            end
+        else
+            f_Tick_Hz_txt{i_f} = '';
+        end                            
+    end
+
+    for i_dir = 1:3
+        i_tile_i = i_dir;
+        file2save_spec = [figures_dir 'spec-dataset-' num2str(i_dir)];
+        file2save_full = [figures_dir 'fig2-spec'];
+        
+        if ~exist([file2save_spec '.mat'],'file')
+            error('run either fig1a, fig1b, or fig1c to pre-generate the MAT file')
         end
+        load(file2save_spec);
+        N_files = length(N_freq);
+        %%%
+        f = N_freq{1}; % should be the same frequency for all plots
         
-        Pos =  [138    38   700   250]; % before=500
-        % before: 350 = width
-        %         500 = height
-        figure('Position',Pos);
-        tiledlayout(1,3,'tilespacing','compact');
-        
-        nexttile(1);
-        for i_files = 1:length(files)
+        nexttile(i_tile_i);
+        for i_files = 1:N_files
             style_here = {Colours{i_files},'LineWidth',LW(i_files)};
             plot(f,N_spec_50{i_files},style_here{:}); hold on; grid on
         end
-        ylabel('N'' (sone/Bark)');
-        xlabel('Frequency (Hz)');
+        if i_dir == 3
+            ylim([-.1 1.25]);
+        else
+            ylim([-.1 4.1]);
+        end
+        
+        if i_dir == 1
+            ylabel('N'' (sone/Bark)');
+        else
+            ylabel('');
+        end
+        xlabel('');
         set(gca,'XTick',f_Tick);
-        set(gca,'XTickLabel',f_Tick_Hz_txt);
+        set(gca,'XTickLabel','');
 
         % title(sprintf('Sound 1 (blue)\nSound 2 (red)'),'interpreter','none');
         % title()
@@ -1040,84 +1037,192 @@ if do_fig1a || do_fig1b || do_fig1c || do_fig2a || do_fig2b || do_fig2c
         text(.4,.92,text4title,'Units','Normalized','FontWeight','bold','FontSize',10);
         %%%
         f = R_freq{1};
-        nexttile(2);
-        for i_files = 1:length(files)
+        
+        nexttile(i_tile_i+3);
+        for i_files = 1:N_files
             style_here = {Colours{i_files},'LineWidth',LW(i_files)};
             plot(f,R_spec_50{i_files},style_here{:}); hold on; grid on
         end
-        ylabel('R'' (asper/Bark)');
-        xlabel('Frequency (Hz)');
+        if i_dir == 1
+            ylabel('R'' (asper/Bark)');
+        else
+            ylabel('');
+        end
+        xlabel('');
         set(gca,'XTick',f_Tick);
-        set(gca,'XTickLabel',f_Tick_Hz_txt);
+        set(gca,'XTickLabel','');
 
+        ylim([-.01 0.089]);
         % title(sprintf('Sound 1 (blue)\nSound 2 (red)'),'interpreter','none');
-                
+
         %%%
-        nexttile(3);
-        for i_files = 1:length(files)
+        nexttile(i_tile_i+6);
+        for i_files = 1:N_files
             style_here = {Colours{i_files},'LineWidth',LW(i_files)};
             plot(f,F_spec_50{i_files},style_here{:}); hold on; grid on
         end
-        ylabel('F'' (vacil/Bark)');
+        if i_dir == 1
+            ylabel('F'' (vacil/Bark)');
+        else
+            ylabel('');
+        end
         xlabel('Frequency (Hz)');
         set(gca,'XTick',f_Tick);
         set(gca,'XTickLabel',f_Tick_Hz_txt);
 
-        if i_dir == 3
-            legend({'Sound 1','Sound 2'});
+        if i_dir == 1
+            ylim([-.01 0.09]);
+        else
+            ylim([-.01 0.13]);
         end
         % title(sprintf('Sound 1 (blue)\nSound 2 (red)'),'interpreter','none');
     end
-    h(end+1) = gcf;
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+if do_fig3
+    %%%
+    figures_dir = [dir_sounds 'figs' filesep];
     
-    for i = 1:length(h)
-        % figname_short = hname{i};
-        figname_out = file2save_full;
-
-        saveas(h(i),figname_out, 'fig' );
-        saveas(h(i),figname_out, 'epsc'); % vectorial format
-        saveas(h(i),figname_out, 'png' );
-
-        fprintf('%s.m: figure was saved on disk\n\t(full name: %s)\n',mfilename,figname_out);
-    end    
-%     xlim(outs.t_min_max);
-%     YL = get(gca,'YLim');
-%     plot(t(idx_max)*[1 1],[YL(1) N_t(idx_max)],'k--');
-%     plot(t(idx_perc_50(1))*[1 1],[YL(1) N_t(idx_perc_50(1))],'r-');
-%     plot(t(idx_perc_50(2))*[1 1],[YL(1) N_t(idx_perc_50(2))],'r-');
-%     plot(t(idx_perc_90(1))*[1 1],[YL(1) N_t(idx_perc_90(1))],'r--');
-%     plot(t(idx_perc_90(2))*[1 1],[YL(1) N_t(idx_perc_90(2))],'r--');
+    Pos =  [138    38   200   300]; % before=500
+    % before: 350 = width
+    %         500 = height
+    figure('Position',Pos);
     
-    % %%% Specific loudness
-    % f = N_freq{i_files};
-    % f_Tick = .5:1:23.5;
-    % % f_Hz = bark2hz(f);
-    % f_Tick_Hz = round( bark2hz(f_Tick) );
-    % 
-    % f_Tick_Hz_txt = [];
-    % for i_f = 1:length(f_Tick_Hz)
-    %     if mod(i_f,2) == 1
-    %         if f_Tick_Hz(i_f) < 1000
-    %             f_Tick_Hz_txt{i_f} = num2str(f_Tick_Hz(i_f));
-    %         else
-    %             f_Tick_Hz_txt{i_f} = [num2str(round(10*f_Tick_Hz(i_f)/1000)/10) ' k'];
-    %         end
-    %     else
-    %         f_Tick_Hz_txt{i_f} = '';
-    %     end                            
-    % end
-    % 
-    % figure;
-    % plot(f,Nspec_max,'k','LineWidth',2); hold on; grid on
-    % plot(f,Nspec_50,'r-');
-    % plot(f,Nspec_90,'r--');
-    % 
-    % set(gca,'XTick',f_Tick);
-    % set(gca,'XTickLabel',f_Tick_Hz_txt);
-    % ylabel('Specific loudness (sone/Bark)');
-    % xlabel('Frequency (Hz)');
-    % title(files{i_files},'interpreter','none'); 
+    for i_dir = 3
+        i_tile_i = i_dir;
+        file2save_time = [figures_dir 'time-dataset-' num2str(i_dir)];
+        file2save_full = [figures_dir 'fig3-ext-var'];
+        
+        if ~exist([file2save_time '.mat'],'file')
+            error('run either fig1a, fig1b, or fig1c to pre-generate the MAT file')
+        end
+        load(file2save_time);
+        N_files = length(N_time);
+        
+        T = 0.6;
+         
+        t = N_time{1};
+        dt = t(2)-t(1);
+        N_block_length = T/dt;
 
+        nexttile(i_tile_i);
+        for i_files = 1:N_files
+            t = N_time{i_files};  
+             
+            N_blocks = floor(max(t)/T);
+            idxf = N_blocks*N_block_length;
+            
+            N_tot = N_all{i_files}(1:idxf);
+            
+            N_frame = reshape(N_tot,[N_block_length N_blocks]);
+            
+            Me = N_tot;
+            yvar(i_files)  = prctile( Me, 50 );
+            yvarL(i_files) = yvar(i_files)-prctile(Me,5);
+            yvarU(i_files) = prctile(Me,95)-yvar(i_files);
+            
+            Me = prctile(N_frame,50);
+            framevar(i_files)  = prctile( Me, 50 );
+            framevarL(i_files) = framevar(i_files)-prctile(Me,5);
+            framevarU(i_files) = prctile(Me,95)-framevar(i_files);
+        end
+
+        t = R_time{1};
+        dt = t(2)-t(1);
+        N_block_length = round(T/dt);
+
+        for i_files = 1:N_files
+            
+            t = R_time{i_files};  
+             
+            N_blocks = floor(max(t)/T);
+            idxf = N_blocks*N_block_length;
+            
+            R_tot = R_all{i_files}(1:idxf);
+            R_frame = reshape(R_tot,[N_block_length N_blocks]);
+            
+            Me = R_tot;
+            yvar(end+1)  = prctile( Me, 50 );
+            yvarL(end+1) = yvar(end)-prctile(Me,5);
+            yvarU(end+1) = prctile(Me,95)-yvar(end);
+            
+            Me = prctile(R_frame,50);
+            framevar(end+1)  = prctile( Me, 50 );
+            framevarL(end+1) = framevar(end)-prctile(Me,5);
+            framevarU(end+1) = prctile(Me,95)-framevar(end);
+        end
+    
+        xvar = [1 2 4 5];
+        offx = [-.1 .1];
+        Colour = {'b','r'};
+        y_here = [yvar framevar];
+        y_hereL = [yvarL framevarL];
+        y_hereU = [yvarU framevarU];
+        for i = 1:2
+            idxs = i:2:length(y_here);
+            idxs = idxs([1 3 2 4]);
+            errorbar(xvar+offx(i),y_here(idxs),y_hereL(idxs),y_hereU(idxs),'o','Color',Colour{i}); hold on;
+        end
+        xlim([0 3]); grid on;
+        set(gca,'XTick',xvar);
+        lab = {'all','frame','all','frame'};
+        
+        set(gca,'XTickLabel',lab);
+        ylabel('Loudness (sone)');
+        
+        ylim([0 3.2]);
+        
+        YL = get(gca,'YLim');
+        set(gca,'YTick',.2:.2:YL(2)-.2);
+        
+        % plot(3*[1 1],YL,'k-');
+        % text(0.1,0.95,'N (sone)','Units','Normalized','FontWeight','Bold');
+        
+        % text(0.6,0.95,'R (asper)','Units','Normalized','FontWeight','Bold');
+    end
+end
+if do_fig3b
+    fs = 44100;
+    dt = 1/fs;
+    dur = 0.5; % s
+    t = 0:dt:dur-dt;
+    t = t(:); % column vector
+    f = 1000; % 1 kHz
+    
+    dBFS = 94; % dB SPL to meet SQAT convention
+    lvl_target = [20 40 60]; % RMS target
+    
+    A_peak = 10.^((lvl_target+3)/20); % target peak amplitude 3 dB above the RMS (for sinusoids)
+    
+    insig_orig = sin(2*pi*f*t);
+    for i = 1:length(lvl_target)
+        insigs(:,i) = A_peak(i)*insig_orig;
+    end
+    curdir = cd;
+    dir_new = [basepath_SQAT 'psychoacoustic_metrics' filesep 'FluctuationStrength_Osses2016' filesep 'private' filesep];
+    cd(dir_new)
+    
+    for i = 1:length(lvl_target)
+        [ei,ei_f,freq] = TerhardtExcitationPatterns_v3(insigs(:,i),fs,dBFS);
+    end
+    
+    cd(curdir)
+    
+    disp('')
+    
+end
+
+h(end+1) = gcf;
+
+for i = 1:length(h)
+    % figname_short = hname{i};
+    figname_out = file2save_full;
+
+    saveas(h(i),figname_out, 'fig' );
+    saveas(h(i),figname_out, 'epsc'); % vectorial format
+    saveas(h(i),figname_out, 'png' );
+
+    fprintf('%s.m: figure was saved on disk\n\t(full name: %s)\n',mfilename,figname_out);
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
