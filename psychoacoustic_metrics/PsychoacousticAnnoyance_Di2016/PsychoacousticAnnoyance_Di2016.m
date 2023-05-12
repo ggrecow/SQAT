@@ -162,7 +162,6 @@ OUT.L=L; % output loudness results
 
 S = Sharpness_DIN45692_from_loudness(L.InstantaneousSpecificLoudness,...  % input (time-varying) specific loudness
                                                           'DIN45692',...  % type of weighting function used for sharpness calculation
-                                                                   1,...  % method=0 (stationary); method=1 (time-varying)
                                                               L.time,...  % time vector of the loudness calculation
                                                            time_skip,...  % time_skip (second) for statistics calculation
                                                                   0);     % show sharpness results; true or false
@@ -372,20 +371,21 @@ else % for signals longer than 2 seconds
     OUT.PAstd = std(PA(idx:end));
     OUT.PAmax = max(PA(idx:end));
     OUT.PAmin = min(PA(idx:end));
-    OUT.PA1 = prctile(PA(idx:end),99);
-    OUT.PA2 = prctile(PA(idx:end),98);
-    OUT.PA3 = prctile(PA(idx:end),97);
-    OUT.PA4 = prctile(PA(idx:end),96);
-    OUT.PA5 = prctile(PA(idx:end),95);
-    OUT.PA10 = prctile(PA(idx:end),90);
-    OUT.PA20 = prctile(PA(idx:end),80);
-    OUT.PA30 = prctile(PA(idx:end),70);
-    OUT.PA40 = prctile(PA(idx:end),60);
+    OUT.PA1 = get_percentile(PA(idx:end),1);
+    OUT.PA2 = get_percentile(PA(idx:end),2);
+    OUT.PA3 = get_percentile(PA(idx:end),3);
+    OUT.PA4 = get_percentile(PA(idx:end),4);
+    OUT.PA5 = get_percentile(PA(idx:end),5);
+    OUT.PA10 = get_percentile(PA(idx:end),10);
+    OUT.PA20 = get_percentile(PA(idx:end),20);
+    OUT.PA30 = get_percentile(PA(idx:end),30);
+    OUT.PA40 = get_percentile(PA(idx:end),40);
     OUT.PA50 = median(PA(idx:end));
-    OUT.PA60 = prctile(PA(idx:end),40);
-    OUT.PA70 = prctile(PA(idx:end),30);
-    OUT.PA80 = prctile(PA(idx:end),20);
-    OUT.PA90 = prctile(PA(idx:end),10);
+    OUT.PA60 = get_percentile(PA(idx:end),60);
+    OUT.PA70 = get_percentile(PA(idx:end),70);
+    OUT.PA80 = get_percentile(PA(idx:end),80);
+    OUT.PA90 = get_percentile(PA(idx:end),90);
+    OUT.PA95 = get_percentile(PA(idx:end),95);
     
     %% plot
     
