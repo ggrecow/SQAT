@@ -116,7 +116,7 @@ end
 if nargin < 3
     pars = psychoacoustic_metrics_get_defaults('Sharpness_DIN45692');
     weight_type = pars.weight_type;
-    fprintf('%s.m: Default weight_type value = %.0f is being used\n',mfilename,pars.weight_type);
+    fprintf('%s.m: Default weight_type value = %s is being used\n',mfilename,pars.weight_type);
 end
 [insig,fs] = audioread(wavfilename);
 if nargin < 2 || isempty(dBFS)

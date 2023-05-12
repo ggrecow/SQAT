@@ -3,7 +3,7 @@
 % Example: compute stationary and time-varying sharpness (DIN 45692) from specific loudness inputs
 %
 % FUNCTION:
-%   OUT = Sharpness_DIN45692_from_loudness(SpecificLoudness, Weight_Type, method, time, time_skip, show)
+%   OUT = Sharpness_DIN45692_from_loudness(SpecificLoudness, weight_type, time, time_skip, show_sharpness)
 %   type <help Sharpness_DIN45692_from_loudness> for more info
 %
 % test signal: narrow band noise with a center frequency of 1kHz,
@@ -54,7 +54,6 @@ L_time_varying = Loudness_ISO532_1( insig_cal, fs,...   % input signal and sampl
 
 S_time_varying = Sharpness_DIN45692_from_loudness(L_time_varying.InstantaneousSpecificLoudness,...  % input (time-varying) specific loudness
                                                                                     'DIN45692',...  % Weight_Type, type of weighting function used for sharpness calculation
-                                                                                             1,...  % method=0 (stationary); method=1 (time-varying)
                                                                             L_time_varying.time,... % time vector of the loudness calculation
                                                                                             0.5,... % time_skip (second) for statistics calculation
                                                                                              0);    % show sharpness results; true or false
@@ -67,14 +66,12 @@ fprintf('\t weighting function.\n');
 
 S_time_varying_bismarck = Sharpness_DIN45692_from_loudness(L_time_varying.InstantaneousSpecificLoudness,... % input (time-varying) specific loudness
                                                   'bismarck',...          % Weight_Type, type of weighting function used for sharpness calculation
-                                                  1,...                   % method=0 (stationary); method=1 (time-varying)
                                                   L_time_varying.time,... % time vector of the loudness calculation
                                                   0.5,...                 % time_skip (second) for statistics calculation
                                                   0); 
                                               
 S_time_varying_aures = Sharpness_DIN45692_from_loudness(L_time_varying.InstantaneousSpecificLoudness,... % input (time-varying) specific loudness
                                                   'aures',...             % Weight_Type, type of weighting function used for sharpness calculation
-                                                  1,...                   % method=0 (stationary); method=1 (time-varying)
                                                   L_time_varying.time,... % time vector of the loudness calculation
                                                   0.5,...                 % time_skip (second) for statistics calculation
                                                   0); 

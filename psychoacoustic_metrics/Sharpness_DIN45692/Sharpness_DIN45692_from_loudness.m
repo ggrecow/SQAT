@@ -123,20 +123,21 @@ if method==1 % (time-varying sharpness)
     OUT.Smin = min(s(idx:end));
     OUT.Smean = mean(s(idx:end));
     OUT.Sstd = std(s(idx:end));
-    OUT.S1 = prctile(s(idx:end),99);
-    OUT.S2 = prctile(s(idx:end),98);
-    OUT.S3 = prctile(s(idx:end),97);
-    OUT.S4 = prctile(s(idx:end),96);
-    OUT.S5 = prctile(s(idx:end),95);
-    OUT.S10 = prctile(s(idx:end),90);
-    OUT.S20 = prctile(s(idx:end),80);
-    OUT.S30 = prctile(s(idx:end),70);
-    OUT.S40 = prctile(s(idx:end),60);
+    OUT.S1 = get_percentile(s(idx:end),1);
+    OUT.S2 = get_percentile(s(idx:end),2);
+    OUT.S3 = get_percentile(s(idx:end),3);
+    OUT.S4 = get_percentile(s(idx:end),4);
+    OUT.S5 = get_percentile(s(idx:end),5);
+    OUT.S10 = get_percentile(s(idx:end),10);
+    OUT.S20 = get_percentile(s(idx:end),20);
+    OUT.S30 = get_percentile(s(idx:end),30);
+    OUT.S40 = get_percentile(s(idx:end),40);
     OUT.S50 = median(s(idx:end));
-    OUT.S60 = prctile(s(idx:end),40);
-    OUT.S70 = prctile(s(idx:end),30);
-    OUT.S80 = prctile(s(idx:end),20);
-    OUT.S90 = prctile(s(idx:end),10);
+    OUT.S60 = get_percentile(s(idx:end),60);
+    OUT.S70 = get_percentile(s(idx:end),70);
+    OUT.S80 = get_percentile(s(idx:end),80);
+    OUT.S90 = get_percentile(s(idx:end),90);
+    OUT.S95 = get_percentile(s(idx:end),95);
     
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % Show plots (time-varying)

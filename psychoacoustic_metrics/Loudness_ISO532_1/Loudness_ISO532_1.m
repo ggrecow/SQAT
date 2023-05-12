@@ -872,21 +872,22 @@ if method == 2 % time-varying from audio signal
     OUT.Nmin = min(Total_Loudness(idx:end));
     OUT.Nmean = mean(Total_Loudness(idx:end));
     OUT.Nstd = std(Total_Loudness(idx:end));
-    OUT.N1 = prctile(Total_Loudness(idx:end),99);
-    OUT.N2 = prctile(Total_Loudness(idx:end),98);
-    OUT.N3 = prctile(Total_Loudness(idx:end),97);
-    OUT.N4 = prctile(Total_Loudness(idx:end),96);
-    OUT.N5 = prctile(Total_Loudness(idx:end),95);
-    OUT.N10 = prctile(Total_Loudness(idx:end),90);
-    OUT.N20 = prctile(Total_Loudness(idx:end),80);
-    OUT.N30 = prctile(Total_Loudness(idx:end),70);
-    OUT.N40 = prctile(Total_Loudness(idx:end),60);
+    OUT.N1 = get_percentile(Total_Loudness(idx:end),1);
+    OUT.N2 = get_percentile(Total_Loudness(idx:end),2);
+    OUT.N3 = get_percentile(Total_Loudness(idx:end),3);
+    OUT.N4 = get_percentile(Total_Loudness(idx:end),4);
+    OUT.N5 = get_percentile(Total_Loudness(idx:end),5);
+    OUT.N10 = get_percentile(Total_Loudness(idx:end),10);
+    OUT.N20 = get_percentile(Total_Loudness(idx:end),20);
+    OUT.N30 = get_percentile(Total_Loudness(idx:end),30);
+    OUT.N40 = get_percentile(Total_Loudness(idx:end),40);
     OUT.N50 = median(Total_Loudness(idx:end));
-    OUT.N60 = prctile(Total_Loudness(idx:end),40);
-    OUT.N70 = prctile(Total_Loudness(idx:end),30);
-    OUT.N80 = prctile(Total_Loudness(idx:end),20);
-    OUT.N90 = prctile(Total_Loudness(idx:end),10);
-    OUT.N_ratio=prctile(Total_Loudness(idx:end),5)/prctile(Total_Loudness(idx:end),95); % ratio between N5/N95 (1.1 (stationary)> N_ratio>1.1 (time varying)
+    OUT.N60 = get_percentile(Total_Loudness(idx:end),60);
+    OUT.N70 = get_percentile(Total_Loudness(idx:end),70);
+    OUT.N80 = get_percentile(Total_Loudness(idx:end),80);
+    OUT.N90 = get_percentile(Total_Loudness(idx:end),90);
+    OUT.N95 = get_percentile(Total_Loudness(idx:end),95);
+    OUT.N_ratio=OUT.N5/OUT.N95; % ratio between N5/N95 (1.1 (stationary)> N_ratio>1.1 (time varying)
     
     %% **********************************************************************
     % show plots (time-varying)
