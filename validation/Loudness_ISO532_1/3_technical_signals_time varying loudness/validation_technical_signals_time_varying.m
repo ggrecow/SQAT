@@ -10,7 +10,7 @@ clc; clear all; close all;
 
 %% save figs flag
 
-save_figs=1;
+save_figs=0;
 
 %% input files
 
