@@ -85,9 +85,8 @@ function OUT = PsychoacousticAnnoyance_More2010_from_wavfile(wavfilename,dBFS,Lo
 %        **  K : struct with tonality results, type <help Tonality_Aures1985> for more info
 %
 % Stand-alone example:
-%   dBFS = 103; % dBFS for this sound
-%   dir_sounds = [basepath_SQAT 'sound_files' filesep 'validation' filesep 'Loudness_ISO532_1' filesep];
-%   fname = [dir_sounds 'Test signal 14 (propeller-driven airplane).wav'];
+%   fname = [basepath_SQAT 'sound_files' filesep 'reference_signals' filesep 'RefSignal_Loudness_ISO532_1.wav'];
+%   dBFS = 94; % default for SQAT
 %   PsychoacousticAnnoyance_More2010_from_wavfile(fname,dBFS);
 %
 % Author: Alejandro Osses
@@ -119,13 +118,13 @@ end
 if nargin <3
     pars = psychoacoustic_metrics_get_defaults('PsychoacousticAnnoyance_More2010');
     LoudnessField = pars.Loudness_field;
-    fprintf('%s.m: Default Loudness_field value = %.0f is being used\n',mfilename,pars.Loudness_field);
+    fprintf('\n%s.m: Default Loudness_field value = %.0f is being used\n',mfilename,pars.Loudness_field);
 end
 
 [insig,fs] = audioread(wavfilename);
 if nargin < 2 || isempty(dBFS)
     dBFS = 94; % dB
-    fprintf('%s.m: Assuming the default full scale convention, with dBFS = %.0f\n',mfilename,dBFS);
+    fprintf('\n%s.m: Assuming the default full scale convention, with dBFS = %.0f\n',mfilename,dBFS);
 end
 gain_factor = 10^((dBFS-94)/20);
 insig = gain_factor*insig;
