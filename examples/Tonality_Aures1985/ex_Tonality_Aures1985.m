@@ -11,11 +11,12 @@
 clc; clear all; close all;
 
 save_figs=0;
+
 %% load .wav RefSignal 
 
-dir_ref_sounds = [basepath_SQAT 'sound_files' filesep 'reference_signals' filesep 'Tonality_Aures1985' filesep];
+dir_ref_sounds = [basepath_SQAT 'sound_files' filesep 'reference_signals' filesep];
 
-[RefSignal,fs]=audioread([dir_ref_sounds 'RefSignal_Tonality_Aures1985_1kHz_60dBSPL_44100hz_64bit.wav']);
+[RefSignal,fs]=audioread([dir_ref_sounds 'RefSignal_Tonality_Aures1985.wav']);
 
 time_insig=(0 : length(RefSignal)-1) ./ fs;  % time vector of the audio input, in seconds
 

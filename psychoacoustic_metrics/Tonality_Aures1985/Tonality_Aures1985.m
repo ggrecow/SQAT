@@ -357,20 +357,21 @@ OUT.Kmean = mean(tonality(idx:end));
 OUT.Kstd = std(tonality(idx:end));
 OUT.Kmax = max(tonality(idx:end));
 OUT.Kmin = min(tonality(idx:end));
-OUT.K1 = prctile(tonality(idx:end),99);
-OUT.K2 = prctile(tonality(idx:end),98);
-OUT.K3 = prctile(tonality(idx:end),97);
-OUT.K4 = prctile(tonality(idx:end),96);
-OUT.K5 = prctile(tonality(idx:end),95);
-OUT.K10 = prctile(tonality(idx:end),90);
-OUT.K20 = prctile(tonality(idx:end),80);
-OUT.K30 = prctile(tonality(idx:end),70);
-OUT.K40 = prctile(tonality(idx:end),60);
+OUT.K1 = get_percentile(tonality(idx:end),1);
+OUT.K2 = get_percentile(tonality(idx:end),2);
+OUT.K3 = get_percentile(tonality(idx:end),3);
+OUT.K4 = get_percentile(tonality(idx:end),4);
+OUT.K5 = get_percentile(tonality(idx:end),5);
+OUT.K10 = get_percentile(tonality(idx:end),10);
+OUT.K20 = get_percentile(tonality(idx:end),20);
+OUT.K30 = get_percentile(tonality(idx:end),30);
+OUT.K40 = get_percentile(tonality(idx:end),40);
 OUT.K50 = median(tonality(idx:end));
-OUT.K60 = prctile(tonality(idx:end),40);
-OUT.K70 = prctile(tonality(idx:end),30);
-OUT.K80 = prctile(tonality(idx:end),20);
-OUT.K90 = prctile(tonality(idx:end),10);
+OUT.K60 = get_percentile(tonality(idx:end),60);
+OUT.K70 = get_percentile(tonality(idx:end),70);
+OUT.K80 = get_percentile(tonality(idx:end),80);
+OUT.K90 = get_percentile(tonality(idx:end),90);
+OUT.K95 = get_percentile(tonality(idx:end),95);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% plots

@@ -59,7 +59,7 @@ function OUT = Tonality_Aures1985_from_wavfile(wavfilename,dBFS,LoudnessField,ti
 %         ** Kx : percentile InstantaneousTonality exceeded during x percent of the signal (t.u.)
 %
 % Stand-alone example:
-%   fname = [basepath_SQAT 'sound_files' filesep 'reference_signals' filesep 'Tonality_Aures1985' filesep 'RefSignal_Tonality_Aures1985_1kHz_60dBSPL_44100hz_64bit.wav'];
+%   fname = [basepath_SQAT 'sound_files' filesep 'reference_signals' filesep 'RefSignal_Tonality_Aures1985.wav'];
 %   dBFS = 94; % default for SQAT
 %   Tonality_Aures1985_from_wavfile(fname,dBFS);
 %
