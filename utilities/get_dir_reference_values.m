@@ -15,6 +15,8 @@ switch psychoacoustic_model
         switch dir_analysis
             case '1_synthetic_signals_stationary_loudness'
                 dir_ref_values = [dir_validation dir_analysis filesep 'reference_values' filesep];
+            case '2_synthetic_signals_time_varying_loudness'
+                dir_ref_values = [dir_validation dir_analysis filesep 'reference_values' filesep];
         end
         
     case 'Roughness_Daniel1997'

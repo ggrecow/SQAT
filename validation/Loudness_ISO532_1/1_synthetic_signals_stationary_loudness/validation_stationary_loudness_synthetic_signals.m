@@ -188,7 +188,7 @@ if save_figs==1
 %     saveas(gcf,figname_out, 'pdf');
     saveas(gcf,figname_out, 'png');
     
-    fprintf('%s.m: figure %s was saved on disk\n\t(full name: %s)\n',mfilename,figname_short,figname_out);
+    fprintf('\n%s.m: figure %s was saved on disk\n\t(full name: %s)\n',mfilename,figname_short,figname_out);
 end
 
 end

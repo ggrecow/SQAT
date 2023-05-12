@@ -1,11 +1,11 @@
 clc;clear all; close all;
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
-% This code computes time-varying loudness from the reference signals provided by ISO 532-1:2017 - Annex B.4. 
-% using SQAT and plot the comparison against reference values
+% This code computes time-varying loudness from the reference signals 
+% provided by ISO 532-1:2017 - Annex B.4. using SQAT and plot the 
+% comparison against reference values
 %
-% Gil Felix Greco, Braunschweig 27.02.2023
-%
+% Author: Gil Felix Greco, Braunschweig 27.02.2023
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% save figs flag
 
@@ -21,6 +21,7 @@ signal_str=[ {'Test signal 6 (tone 250 Hz 30 dB - 80 dB).wav'},...
              {'Test signal 11 (tone pulse 1 kHz 50 ms 70 dB).wav'},...
              {'Test signal 12 (tone pulse 1 kHz 500 ms 70 dB).wav'},...
              {'Test signal 13 (combined tone pulses 1 kHz).wav'} ];
+disp('');
          
 %% validation
 
@@ -36,7 +37,7 @@ end
 
 %% function (compute loudness and plot comparison
 
-function [OUT,table]=compute_and_plot(insig_num,insig,save_figs,tag,tag_2)
+function [OUT,table]=compute_and_plot(insig_num,fname_insig,save_figs,tag,tag_2)
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
@@ -70,15 +71,21 @@ function [OUT,table]=compute_and_plot(insig_num,insig,save_figs,tag,tag_2)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% signals from ISO 532-2:2017
 
+dir_analysis_name = '2_synthetic_signals_time_varying_loudness';
+dir_out = [fileparts(mfilename('fullpath')) filesep];
+  
+dir_sounds = get_dir_validation_sounds('Loudness_ISO532_1');
+dir_ref_values = get_dir_reference_values('Loudness_ISO532_1',dir_analysis_name);
+
 % calibration signal provided in the Annex C of the ISO 532-1:2017
 
-% path='SQAT_open_source\sound_files\validation\loudness_ISO532_1\';   % path of the sound file for reference
-[RefSignal,~]=audioread('calibration signal sine 1kHz 60dB.wav');
+% path='sound_files\validation\loudness_ISO532_1\';   % path of the sound file for reference
+[RefSignal,~]=audioread([dir_sounds 'calibration signal sine 1kHz 60dB.wav']);
     
 % Test signal provided in the Annex B.4 of the ISO 532-1:2017
 
-% path='SQAT_open_source\sound_files\validation\loudness_ISO532_1\synthetic_signals_time_varying_loudness\';% path of the sound file for reference
-[signal,fs]=audioread(insig);
+% path='sound_files\validation\loudness_ISO532_1\';% path of the sound file for reference
+[signal,fs]=audioread([dir_sounds fname_insig]);
 
 %% calibrated .wav signal
 
@@ -115,7 +122,9 @@ set(h,'Units','Inches');
 pos = get(h,'Position');
 set(h,'PaperPositionMode','Auto','PaperUnits','Inches','PaperSize',[pos(3), pos(4)])
 
-load([pwd '\reference_values\' 'reference_values_ISO532_1_2017_signal_' sprintf('%g',insig_num) '.mat']); % load reference vectors
+reference = []; % to be loaded in the next line...
+fname = sprintf('%sreference_values_ISO532_1_2017_signal_%g.mat', dir_ref_values, insig_num);
+load(fname); % load reference vectors
 
 % plot reference values
 
@@ -130,25 +139,32 @@ plot( reference(:,1), reference(:,6),'Color',[1 0 0],'Linewidth',0.5); % ref N_m
 % plot SQAT values
 c=plot( OUT.time, OUT.InstantaneousLoudness,'k','Linewidth',1); % calculated specific loudness
 
-% legend([a,b,c],'ISO 532-1:2017, 5 \% tolerance','ISO 532-1:2017, 10 \% tolerance','SQAT','Location','NE');
-% legend box off
+legend([a,b,c],'5\% tolerance','10\% tolerance','SQAT','Location','Best');
 
 ylabel('Loudness, $N$ (sone)','Interpreter','Latex');
 xlabel('Time, $t$ (s)','Interpreter','Latex'); 
 grid off
 
 axis([ 0 max(OUT.time) 0 max(reference(:,6)) ])
-% ax = axis; 
-% ylim([0 ax(4)+6])
 
 set(gcf,'color','w');
-        
+
 if save_figs==1
-figuresdir = [pwd '\figs\']; 
-saveas(gcf,strcat(figuresdir, tag), 'fig');
-saveas(gcf,strcat(figuresdir, tag), 'pdf');
-saveas(gcf,strcat(figuresdir, tag), 'png');
-else
+    if ~exist(dir_out,'dir')
+        mkdir(dir_out);
+    end
+    figures_dir = [dir_out 'figs' filesep];
+    if ~exist(figures_dir,'dir')
+        mkdir(figures_dir);
+    end
+    figname_short = tag;
+    figname_out = [figures_dir figname_short];
+    
+%     saveas(gcf,figname_out, 'fig');
+%     saveas(gcf,figname_out, 'pdf');
+    saveas(gcf,figname_out, 'png');
+    
+    fprintf('\n%s.m: figure %s was saved on disk\n\t(full name: %s)\n',mfilename,figname_short,figname_out);
 end
 
 %% plot results (specific loudness at a target Bark value)
@@ -158,7 +174,9 @@ set(h,'Units','Inches');
 pos = get(h,'Position');
 set(h,'PaperPositionMode','Auto','PaperUnits','Inches','PaperSize',[pos(3), pos(4)])
 
-load([pwd '\reference_values\' 'reference_values_ISO532_1_2017_signal_' sprintf('%g',insig_num) '_specific_loudness.mat']); % load reference vectors
+reference_2 = []; % to be loaded in the next line...
+fname_2 = sprintf('%sreference_values_ISO532_1_2017_signal_%g_specific_loudness.mat', dir_ref_values, insig_num);
+load(fname_2); % load reference vectors
 
 % plot reference values
 % plot( reference(:,1), reference_2(:,2),'b','Linewidth',0.5); % ref N'
@@ -173,7 +191,7 @@ plot( reference(:,1), reference_2(:,5),'r-','Linewidth',0.5); % ref N'_max (10% 
 
 % find index for a given bark
 for i=1:size(OUT.barkAxis,2) % time_skip in seconds - from beginning of the signal to start computing the percentile values (avoid transient effects)
-E(i) = abs(OUT.barkAxis(i)-target_bark);  % error vector    
+    E(i) = abs(OUT.barkAxis(i)-target_bark);  % error vector
 end
 
 M = min(E);
@@ -181,8 +199,8 @@ M = min(E);
     
 c=plot( OUT.time, OUT.InstantaneousSpecificLoudness(:,idx),'k','Linewidth',1); % calculated specific loudness
 
-% legend([a,b,c],'ISO 532-1:2017, 5 \% tolerance','ISO 532-1:2017, 10 \% tolerance','SQAT','Location','NW');
-% legend box off
+legend([a,b,c],'5\% tolerance','10\% tolerance','SQAT','Location','Best');
+
 ylabel('Specific loudness, $N^{\prime}$ ($\mathrm{sone}/\mathrm{Bark}$)','Interpreter','Latex');
 xlabel('Time, $t$ (s)','Interpreter','Latex'); 
 grid off
@@ -190,12 +208,21 @@ grid off
 set(gcf,'color','w');
 
 if save_figs==1
-figuresdir = 'figs\'; 
-saveas(gcf,strcat(figuresdir, tag_2), 'fig');
-saveas(gcf,strcat(figuresdir, tag_2), 'pdf');
-saveas(gcf,strcat(figuresdir, tag_2), 'png');
-else
+    if ~exist(dir_out,'dir')
+        mkdir(dir_out);
+    end
+    figures_dir = [dir_out 'figs' filesep];
+    if ~exist(figures_dir,'dir')
+        mkdir(figures_dir);
+    end
+    figname_short = tag_2;
+    figname_out = [figures_dir figname_short];
+    
+%     saveas(gcf,figname_out, 'fig');
+%     saveas(gcf,figname_out, 'pdf');
+    saveas(gcf,figname_out, 'png');
+    
+    fprintf('\n%s.m: figure %s was saved on disk\n\t(full name: %s)\n',mfilename,figname_short,figname_out);
 end
-
 
 end
