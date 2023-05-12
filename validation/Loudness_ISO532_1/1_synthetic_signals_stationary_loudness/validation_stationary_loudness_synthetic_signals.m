@@ -151,7 +151,6 @@ set(h,'PaperPositionMode','Auto','PaperUnits','Inches','PaperSize',[pos(3), pos(
 reference = []; % to be loaded in the next line...
 fname = sprintf('%sreference_values_ISO532_1_2017_signal_%g.mat', dir_ref_values, insig_num);
 load(fname); % load reference vectors
-% load([pwd '\reference_values\' 'reference_values_ISO532_1_2017_signal_' sprintf('%g',insig_num) '.mat']); % load reference vectors
 
 % reference values 
 
@@ -163,8 +162,7 @@ plot( reference(:,1), reference(:,4),'r:','Linewidth',1); % ref N'_max
 
 handle_b=plot( OUT.barkAxis, OUT.SpecificLoudness,'k','Linewidth',1); % calculated specific loudness
 
-% legend([handle_a,handle_b],'ISO 532-1:2017, 5 \% tolerance','SQAT','Location','Best');
-% legend box off
+legend([handle_a,handle_b],'5\% tolerance','SQAT','Location','Best');
 
 ylabel('Specific loudness, $N^{\prime}~(\mathrm{sone}/\mathrm{Bark})$','Interpreter','Latex');
 xlabel('Critical band rate, $z$ (Bark)','Interpreter','Latex'); 
