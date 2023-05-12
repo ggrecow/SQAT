@@ -16,21 +16,19 @@ clc; clear all; close all;
 
 %% load .wav RefSignal 
 
-dir_sounds = [basepath_SQAT 'sound_files' filesep 'validation' filesep 'Loudness_ISO532_1' filesep];
+dir_sounds = [basepath_SQAT 'sound_files' filesep 'reference_signals' filesep];
+insig_fname = [dir_sounds 'RefSignal_Loudness_ISO532_1.wav'];
 
-% path='SQAT_open_source\sound_files\validation\Loudness_ISO532_1\';   % path of the sound file for reference
-[CalSignal,fs]=audioread([dir_sounds 'calibration signal sine 1kHz 60dB.wav']);
-lvl_cal_signal = 60;
+[insig,fs]=audioread(insig_fname); %'sound_files\reference_signals\' - path of the sound file for reference
+lvl_cal_signal = 40;
 
-% path='SQAT_open_source\sound_files\validation\Loudness_ISO532_1\technical_signals_time varying_loudness';  % path of the sound file for reference
-insig_fname = [dir_sounds 'Test signal 14 (propeller-driven airplane).wav'];
-[RefSignal,fs]=audioread(insig_fname);
+[insig_cal, cal_factor, dBFS_out] = calibrate(insig,insig,lvl_cal_signal); % calibrate signal
 
-[insig_cal, cal_factor, dBFS_out] = calibrate(RefSignal,CalSignal,lvl_cal_signal); % calibrated signal
 lvl_rms = 20*log10(rms(insig_cal))+dBFS_out;
-fprintf('%s.m: the RMS level of the calibrated input signal is %.1f dB SPL\n',mfilename,lvl_rms);
-fprintf('\t(full scale value = %.0f dB SPL)\n', dBFS_out);
-fprintf('\t(file being processed: %s)\n',insig_fname);
+
+fprintf('\n%s.m: the RMS level of the calibrated input signal is %.1f dB SPL\n',mfilename,lvl_rms);
+fprintf('\n\t(full scale value = %.0f dB SPL)\n', dBFS_out);
+fprintf('\n\t(file being processed: %s)\n',insig_fname);
 
 %% compute psychoacoustic annoyance (from time-varying input signal)
 
@@ -44,9 +42,9 @@ PA_from_insig = res.PA5;
 %% compute psychoacoustic annoyance (from input percentile values)
 
 PA = PsychoacousticAnnoyance_Zwicker1999_from_percentile(res.L.N5,... % loudness percentile
-                                                       res.S.S5,... % sharpness percentile
-                                                       res.R.R5,... % roughness percentile
-                                                       res.FS.FS5); % fluctuation strength percentile
+                                                         res.S.S5,... % sharpness percentile
+                                                         res.R.R5,... % roughness percentile
+                                                         res.FS.FS5); % fluctuation strength percentile
 
-fprintf('%s.m: Psychoacoustic annoyance (PA) from the input signal=%.1f (arbitrary units)\n',mfilename, PA_from_insig);
-fprintf('\tPA estimated directly from the percentiles=%.1f (arbitrary units)\n', PA);                                                                                                                                    
+fprintf('\n%s.m: Psychoacoustic annoyance (PA) from the input signal=%.1f (arbitrary units)\n',mfilename, PA_from_insig);
+fprintf('\n\tPA estimated directly from the percentiles=%.1f (arbitrary units)\n', PA);    
