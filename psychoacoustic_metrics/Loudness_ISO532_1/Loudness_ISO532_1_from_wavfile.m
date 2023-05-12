@@ -70,7 +70,7 @@ function OUT = Loudness_ISO532_1_from_wavfile(wavfilename, dBFS, field, method, 
 %                     due to transient effects in the beginning of the loudness calculations
 %
 % Stand-alone example:
-%   fname = [basepath_SQAT 'sound_files' filesep 'reference_signals' filesep 'Loudness_ISO532_1' filesep 'RefSignal_loudness_1kHz_40dBSPL_48khz_64bit.wav'];
+%   fname = [basepath_SQAT 'sound_files' filesep 'reference_signals' filesep 'RefSignal_Loudness_ISO532_1.wav'];
 %   dBFS = 94; % default for SQAT
 %   Loudness_ISO532_1_from_wavfile(fname,dBFS);
 %
