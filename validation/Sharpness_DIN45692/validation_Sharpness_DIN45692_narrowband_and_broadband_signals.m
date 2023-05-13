@@ -26,7 +26,7 @@ freq_narrowband = [250 350 450 570 700 840 1000 1170 1370 1600 1850 2150 2500 29
 bark_narrowband = 2.5:22.5;
 acum_narrowband = [.38 .49 .60 .71 .82 .93 1 1.13 1.26 1.35 1.49 1.64 1.78 2.06 2.4 2.82 3.48 4.43 5.52 6.81 8.55];
 
-dir_sounds     = get_dir_validation_sounds('Sharpness_DIN45692');
+dir_sounds     = get_dir_validation_sounds('Sharpness_DIN45692',1);
 dir_ref_sounds = [basepath_SQAT 'sound_files' filesep 'reference_signals' filesep ];
 
 % load calibration signal 

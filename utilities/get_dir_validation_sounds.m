@@ -1,4 +1,4 @@
-function dir_sound = get_dir_validation_sounds(psychoacoustic_model)
+function dir_sound = get_dir_validation_sounds(psychoacoustic_model,version)
 % function dir_sound = get_dir_validation_sounds(psychoacoustic_model)
 %
 % It returns the main (base) path of the toolbox.
@@ -6,7 +6,11 @@ function dir_sound = get_dir_validation_sounds(psychoacoustic_model)
 % Author: Alejandro Osses
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-dir_sound = [basepath_SQAT 'sound_files' filesep 'validation' filesep psychoacoustic_model filesep];
+if version==1
+    
+dir_sound = [basepath_SQAT 'sound_files' filesep 'validation_SQAT_v1_0' filesep psychoacoustic_model filesep];
+else
+end
 
 if ~exist(dir_sound,'dir')
     dir_sound = '';

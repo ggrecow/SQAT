@@ -75,7 +75,7 @@ function [OUT,table]=compute_and_plot(insig_num,fname_insig,save_figs,tag,tag_2)
 dir_analysis_name = '2_synthetic_signals_time_varying_loudness';
 dir_out = [fileparts(mfilename('fullpath')) filesep];
   
-dir_sounds = get_dir_validation_sounds('Loudness_ISO532_1');
+dir_sounds = get_dir_validation_sounds('Loudness_ISO532_1',1);
 dir_ref_values = get_dir_reference_values('Loudness_ISO532_1',dir_analysis_name);
 
 % calibration signal provided in the Annex C of the ISO 532-1:2017
