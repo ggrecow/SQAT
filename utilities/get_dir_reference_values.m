@@ -23,7 +23,7 @@ switch psychoacoustic_model
         
     case 'Roughness_Daniel1997'
         switch dir_analysis
-            case 'modulation_freq'
+            case '1_modulation_freq'
                 dir_ref_values = [dir_validation dir_analysis filesep 'reference_values' filesep];
         end
 end
