@@ -58,36 +58,41 @@ switch list_tables_and_figures{bInput}
 end
 dir_SQAT = basepath_SQAT;
 
-dir_curr = [cd filesep];
 cd(dir_SQAT); % We change to dir_SQAT to avoid the risk of shadowing
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% dir_sounds = '/home/alejandro/Desktop/SQM_paper/FA2023_paper/Sounds-selection_no-commit/';
+% dir_sounds will only be used if the sounds are found inside:
 dir_sounds = [basepath_SQAT 'sound_files' filesep 'publications' filesep 'pub_Osses2023c_Forum_Acusticum_SQAT' filesep];
 
-% ../MATLAB_SQAT/sound_files/publications/pub_Osses2023a_Forum_Acusticum_SQAT/
-% files_1 = { 'Flyover1_Airbus319-114-dBFS.wav'; 'Flyover2_Airbus319-114-dBFS.wav'; 'Flyover3_Boeing737-114-dBFS.wav'; 'Flyover4_Boeing737-114-dBFS.wav'; 'Flyover5_Fokker70-114-dBFS.wav';  'Flyover6_Fokker70-114-dBFS.wav'};
 files_1 = { 'Flyover2_Airbus319-114-dBFS.wav'; 'Flyover3_Boeing737-114-dBFS.wav'; 
             'Flyover4_Boeing737-114-dBFS.wav'; 'Flyover6_Fokker70-114-dBFS.wav'};
-% ../MATLAB_SQAT/sound_files/publications/pub_Osses2023a_Forum_Acusticum_SQAT/2-Train-pass-by/
-files_2 = { 'train_01.wav'; 'train_11.wav'; 'train_13.wav'; 'train_15.wav'; 'train_20.wav'};
-    % Selection until 5/05/2023: { 'train_01.wav'; 'train_02.wav'; 'train_11.wav'; 'train_15.wav'; 'train_18.wav'; 'train_20.wav'};
 
-% ../MATLAB_SQAT/sound_files/publications/pub_Osses2023a_Forum_Acusticum_SQAT/3-Hummer-resonances/
+files_2 = { 'train_01.wav'; 'train_11.wav'; 'train_13.wav'; 'train_15.wav'; 'train_20.wav'};
+
 files_3 = {'meas-ac-2-dist-ane.wav'; 'model-ac-2-dist-ane.wav'}; 
-% {'meas-ac-2-dist-ane.wav'; 'meas-ac-4-dist-ane-HP.wav'; 'model-ac-2-dist-ane.wav'; 'model-ac-4-dist-ane.wav'};
 
 dir_datasets = {'1-Aircraft-fly-by'  ,114    , files_1; ...
                 '2-Train-pass-by'    ,140.55 , files_2; ...
                 '3-Hummer-resonances',100    , files_3};
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Other common parameters:
+List_psy_metrics = {'Loudness_ISO532_1', ...
+                    'Sharpness_DIN45692', ...
+                    'Roughness_Daniel1997', ...
+                    'FluctuationStrength_Osses2016', ...
+                    'Tonality_Aures1985'};
+list_metrics = {'LAeq','LAFmax','LZeq','T','SEL','Delta_Leq','LAFmax_min_LAeq'};
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 if do_table2
     
     dBFS_4_reproduction = 120; % not too loud not too soft
-    list_metrics = {'LAeq','LAFmax','LZeq','T','SEL','Delta_Leq','LAFmax_min_LAeq'};
     metrics_row = [];
     for i_dir = 1:size(dir_datasets,1)
         dBFS = dir_datasets{i_dir,2};
         dir_here = [dir_sounds dir_datasets{i_dir,1} filesep];
+        if ~exist(dir_here,'dir')
+            dir_here = ''; % dir_here does not exist, but maybe the sounds are already on disk (somewhere)
+        end
         files = dir_datasets{i_dir,3};
         
         N(i_dir) = length(files);
@@ -99,9 +104,11 @@ if do_table2
             il_get_the_metrics(insig,fs,dBFS,list_metrics);
             [res,res_description,outs] = il_get_the_metrics(insig,fs,dBFS,list_metrics);
             
+            %%% The following was only used to inspect the sounds (informally)
             gain4reproduction = dBFS-dBFS_4_reproduction;
             disp(''); close; % sound(gain4reproduction*insig(min(outs.idx):max(outs.idx),:),fs);
             metrics_row(end+1,:) = res;
+            %%%
         end
     end
     idxT = find(strcmp(res_description,'T'));
@@ -111,15 +118,8 @@ if do_table2
     res_description = res_description(idx);
     res_description
     il_var2latex(round(10*metrics_row)/10)
-    disp('')
 end
 
-List_psy_metrics = {'Loudness_ISO532_1', ...
-                    'Sharpness_DIN45692', ...
-                    'Roughness_Daniel1997', ...
-                    'FluctuationStrength_Osses2016', ...
-                    'Tonality_Aures1985'};
-list_metrics = {'LAeq','LAFmax','LZeq','T','SEL','Delta_Leq','LAFmax_min_LAeq'};
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 if do_table3 || do_fig_raw
     % Starts by repeating the calculation as in do_table1, but here we are 
@@ -130,6 +130,9 @@ if do_table3 || do_fig_raw
     for i_dir = 1:size(dir_datasets,1)
         dBFS = dir_datasets{i_dir,2};
         dir_here = [dir_sounds dir_datasets{i_dir,1} filesep];
+        if ~exist(dir_here,'dir')
+            dir_here = ''; % dir_here does not exist, but maybe the sounds are already on disk (somewhere)
+        end
         
         %%%
         if do_table3 || do_fig_raw
@@ -527,7 +530,7 @@ if do_table3 || do_fig_raw
         idx = find(strcmp(res_description,'tmax (s)'));
         res_description(idx) = [];
         metrics_row(:,idx) = [];
-        il_var2latex(round(100*metrics_row)/100);
+        il_var2latex(rAound(100*metrics_row)/100);
     end
 end
 
@@ -560,6 +563,9 @@ if do_fig1a || do_fig1b || do_fig1c
     end
     dBFS = dir_datasets{i_dir,2};
     dir_here = [dir_sounds dir_datasets{i_dir,1} filesep];
+    if ~exist(dir_here,'dir')
+        dir_here = ''; % dir_here does not exist, but maybe the sounds are already on disk (somewhere)
+    end
     
     metrics_row = [];
     count = 1;
@@ -609,7 +615,7 @@ if do_fig1a || do_fig1b || do_fig1c
                     case 'Tonality_Aures1985'
                         params4input = {params.Loudness_field, params.time_skip, bPlot};
                     otherwise
-                        error('Continue!');
+                        error('The metric %s has not been added to the list of metrics to be analysed',psy_metric);
                 end
 
                 bEvent = 1;
@@ -786,12 +792,6 @@ if do_fig1a || do_fig1b || do_fig1c
                 end
             end
             metrics_row(end+1,:) = res;
-
-
-            % dir_out = '/home/alejandro/Documents/Documenten-ENS/01-Text/05-Doc/lx2023-04-11-FA-Psycho-test-figures/Figures-all-NEW/';
-            % if ~exist(dir_out,'dir')
-            %     mkdir(dir_out);
-            % end
 
             if ~exist(figures_dir,'dir')
                 mkdir(figures_dir);
@@ -1028,8 +1028,6 @@ if do_fig2
         set(gca,'XTick',f_Tick);
         set(gca,'XTickLabel','');
 
-        % title(sprintf('Sound 1 (blue)\nSound 2 (red)'),'interpreter','none');
-        % title()
         text4title = ['Dataset ' num2str(i_dir)];
         text(.4,.92,text4title,'Units','Normalized','FontWeight','bold','FontSize',10);
         %%%
@@ -1172,10 +1170,6 @@ if do_fig3
         YL = get(gca,'YLim');
         set(gca,'YTick',.2:.2:YL(2)-.2);
         
-        % plot(3*[1 1],YL,'k-');
-        % text(0.1,0.95,'N (sone)','Units','Normalized','FontWeight','Bold');
-        
-        % text(0.6,0.95,'R (asper)','Units','Normalized','FontWeight','Bold');
     end
 end
 if do_fig3b
@@ -1251,20 +1245,22 @@ if do_fig1a || do_fig1b || do_fig1c || do_fig2 || do_fig3 || do_fig3b
     h(end+1) = gcf;
 end
 
-for i = 1:length(h)
-    if do_fig_raw == 0
-        % for all figures:
-        figname_out = file2save_full;
-    else
-        figures_dir = [dir_sounds 'figs' filesep];
-        figname_out = [figures_dir hname{i}];
+try
+    for i = 1:length(h)
+        if do_fig_raw == 0
+            % for all figures:
+            figname_out = file2save_full;
+        else
+            figures_dir = [dir_sounds 'figs' filesep];
+            figname_out = [figures_dir hname{i}];
+        end
+
+        saveas(h(i),figname_out, 'fig' );
+        saveas(h(i),figname_out, 'epsc'); % vectorial format
+        saveas(h(i),figname_out, 'png' );
+
+        fprintf('%s.m: figure was saved on disk\n\t(full name: %s)\n',mfilename,figname_out);
     end
-
-    saveas(h(i),figname_out, 'fig' );
-    saveas(h(i),figname_out, 'epsc'); % vectorial format
-    saveas(h(i),figname_out, 'png' );
-
-    fprintf('%s.m: figure was saved on disk\n\t(full name: %s)\n',mfilename,figname_out);
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

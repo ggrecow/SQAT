@@ -1,6 +1,11 @@
 function startup_SQAT(bp)
 % function startup_SQAT(bp)
 %
+% This scripts initialises the toolbox. As recommended by the authors, the
+%   added paths will be removed from the MATLAB directories when MATLAB is
+%   closed. This means that startup_SQAT needs to be run once after MATLAB
+%   has started.
+%
 % Author: Alejandro Osses
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -50,19 +55,17 @@ T_main        = [bp 'psychoacoustic_metrics' filesep 'Tonality_Aures1985'       
 T_validation  = [bp 'validation'             filesep 'Tonality_Aures1985'            filesep];
 T_example     = [bp 'examples'               filesep 'Tonality_Aures1985'            filesep];
 
-PA_More_main    = [bp 'psychoacoustic_metrics' filesep 'PsychoacousticAnnoyance_More2010' filesep];
-PA_More_example = [bp 'examples'               filesep 'PsychoacousticAnnoyance_More2010' filesep];
+PA_More_main       = [bp 'psychoacoustic_metrics' filesep 'PsychoacousticAnnoyance_More2010'    filesep];
+PA_More_example    = [bp 'examples'               filesep 'PsychoacousticAnnoyance_More2010'    filesep];
 
-PA_Di_main    = [bp 'psychoacoustic_metrics' filesep 'PsychoacousticAnnoyance_Di2016' filesep];
-PA_Di_example = [bp 'examples'               filesep 'PsychoacousticAnnoyance_Di2016' filesep];
+PA_Di_main         = [bp 'psychoacoustic_metrics' filesep 'PsychoacousticAnnoyance_Di2016'      filesep];
+PA_Di_example      = [bp 'examples'               filesep 'PsychoacousticAnnoyance_Di2016'      filesep];
 
 PA_Zwicker_main    = [bp 'psychoacoustic_metrics' filesep 'PsychoacousticAnnoyance_Zwicker1999' filesep];
 PA_Zwicker_example = [bp 'examples'               filesep 'PsychoacousticAnnoyance_Zwicker1999' filesep];
 
 SLM_example        = [bp 'examples'               filesep 'sound_level_meter' filesep];
 
-% L_main  = [bp 'psychoacoustic_metrics' filesep 'Loudness_Chalupper2002'        filesep];
-% % fs_tue_basepath = '/home/alejandro/Documents/MATLAB/fluctuation-strength-TUe/';
 bAdd = ~exist('Loudness_ISO532_1.m','file');
 if bAdd
     addpath(L_main);
@@ -83,7 +86,6 @@ if bAdd
     addpath(FS_validation);
     addpath(FS_example);
 end
-% bAdd = ~exist('Loudness_Chalupper2002.m','file');
 
 bAdd = ~exist('Sharpness_DIN45692.m','file');
 if bAdd
@@ -120,4 +122,21 @@ end
 bAdd = ~exist('ex_sound_level_meter.m','file');
 if bAdd
     addpath(SLM_example);
+end
+
+%%% Adding the publications' directory (alphabetical order):
+bAdd = ~exist('pub_Greco2023_Internoise.m','file');
+if bAdd
+    dir2add = [bp 'publications' filesep 'pub_Greco2023_Internoise' filesep];
+    if exist(dir2add,'dir')
+        addpath(dir2add)
+    end
+end
+
+bAdd = ~exist('pub_Osses2023c_Forum_Acusticum_SQAT.m','file');
+if bAdd
+    dir2add = [bp 'publications' filesep 'pub_Osses2023c_Forum_Acusticum_SQAT' filesep];
+    if exist(dir2add,'dir')
+        addpath(dir2add)
+    end
 end
