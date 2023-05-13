@@ -5,7 +5,7 @@ This is the repository of SQAT, a **S**ound **Q**uality **A**nalysis **T**oolbox
 The toolbox has the following directories:
 - **psychoacoustic_metrics**: This is the main directory of the toolbox. It contains a number of algorithms implementing a specific psychoacoustic metric. 
 - **examples**: An example script is provided for each metric.
-- **validation**: This directory contains scripts used to validate each algorithm. In order to reproduce the validation codes, the dataset of test sounds needs to be downloaded from Zenodo ([link](https://doi.org/10.5281/zenodo.7933206)) and the paste <validation_SQAT_v1_0> has to be included in the <sound_files> folder of the toolbox.
+- `validation`: This directory contains scripts used to validate each algorithm. In order to reproduce the validation codes, the dataset of test sounds needs to be downloaded from Zenodo ([link](https://doi.org/10.5281/zenodo.7933206)) and the paste `validation_SQAT_v1_0` has to be included in the `sound_files` folder of the toolbox.
 - **sound_files**: This directory hosts specific wav files that are used in the toolbox. Due to the size of the subfolders, some of the sounds need to be downloaded from Zenodo and placed in the corresponding folders (instructions will be uploaded soon)
 - **sound_level_meter**: Contains scripts to obtain sound pressure levels in dB(A), dB(C), or dB(Z), using fast or slow time weightings.
 - **utilities**: Contains some scripts that are complementary to any of the toolbox functions.
