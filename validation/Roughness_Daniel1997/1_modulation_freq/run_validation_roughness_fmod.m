@@ -308,6 +308,7 @@ xlabel('Modulation frequency, $f_{\mathrm{mod}}$ (Hz)','Interpreter','Latex');
 
 set(gcf,'color','w');
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 if save_figs==1
     figname_short = 'validation_roughness_fmod_2k_8k';
     figname_out = [figures_dir figname_short];
@@ -318,6 +319,7 @@ if save_figs==1
     
     fprintf('%s.m: figure %s was saved on disk\n\t(full name: %s)\n',mfilename,figname_short,figname_out);
 end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %% plot 1 kHz
 h  =figure;

@@ -82,6 +82,7 @@ xlabel('Modulation depth, $m_{\mathrm{d}}$','Interpreter','Latex');
 
 set(gcf,'color','w');
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 if save_figs==1
     
     % Figure where the figures (and the results) will be stored:
@@ -99,6 +100,7 @@ if save_figs==1
     
     fprintf('%s.m: figure %s was saved on disk\n\t(full name: %s)\n',mfilename,figname_short,figname_out);
 end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %% function used to generate the signals (only for reference, not used here)
 

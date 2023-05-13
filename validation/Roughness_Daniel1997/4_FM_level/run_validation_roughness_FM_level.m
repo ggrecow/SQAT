@@ -1,46 +1,40 @@
-% Script run_validation_roughness_fm_fmod
-%   This routine plots the verification of DW roughness code for FM tones dependence 
-%   on the modulation frequency
-%   
-%   signals by functions within the code: FM tones with carrier frequency of 1.6 kHz, 
-%   freq deviation of 800 Hz and L=60dBSPL as a function of modulation frequency
+% Script run_validation_roughness_FM_level
 %
-%   Source: fig 9 from (reference results are the experimental data from this fig
-%   Daniel, P. and Weber, R.: Psychoacoustical roughness: implementation of an optimized model. Acustica – Acta Acustica 81, 1–12 (1995).
+%   This routine plot the validation of DW roughness code for FM tones dependence
+%   on the level
+%   
+%   signals used: FM tones with carrier frequency of 1.6 kHz, freq deviation of 800 Hz
+%   fmod=70 Hz as a function of the SPL, from 40 dBSPL to 80dBSPL in 10 dBSPL steps
+%
+%   Source: fig 11 from (reference results are the experimental data from this fig
+%   Daniel, P. and Weber, R.: Psychoacoustical roughness: implementation of an optimized model. 
+%   Acustica – Acta Acustica 81, 1–12 (1995).
 %
 %   Author: Gil Felix Greco, Braunschweig 02.03.2020 (updated 13.05.2023)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-clc; clear all; close all;
+clc;clear all; close all;
 
-save_figs = 0; %% save figs flag
+save_figs=0; %% save figs flag
 
 %% path settings 
 
-dir_analysis_name = '3_FM_modulation_depth';
+dir_analysis_name = '4_FM_level';
 dir_out = [fileparts(mfilename('fullpath')) filesep];
 
 %% load  reference data
 
 dir_ref_values = get_dir_reference_values('Roughness_Daniel1997',dir_analysis_name); 
 
-load([dir_ref_values 'REF_FM_fmod.mat']);
+load([dir_ref_values 'REF_FM_level.mat']);
 
 %% load  signals to compute roughness (.mat variables in time [s] x sound pressure [Pa] (all with fs=48 kHz)
 
 SQAT_version=1; % v1.0
 dir_sounds = get_dir_validation_sounds('Roughness_Daniel1997',SQAT_version);
 
-load([dir_sounds 'FM_fmod_fc_1600hz.mat']); % load signals with varying fmod
-load([dir_sounds 'FM_fmod_fc_1600hz_reference_tone.mat']); % load ref signal (fmod=70Hz)
-
-%% generate signals to compute roughness (.mat variables in time [s] x sound pressure [Pa] (all with fs=48 kHz)
-
-% generate signals with varying fmod
-s=make_FM_fmod_fc_1600hz;
-
-% generate ref signal (fmod=70Hz)
-s_ref=make_FM_fmod_fc_1600hz_reference_tone;
-
+load([dir_sounds 'FM_fmod_fc_1600hz_reference_tone.mat']); % load ref signal 
+load([dir_sounds 'FM_fmod70_fc1600hz_fdev800_SPL40-80.mat']);  % load signals with varying level
+ 
 %% compute FS from signals
 
 fs=48e3;
@@ -54,7 +48,7 @@ for i=1:size(s_ref,1)
     res_ref{i} = Roughness_Daniel1997(s_ref(i,:)',fs,0,false);
 end
 
-%% store mean roughness value in vector results[nfmod,nFc] 
+%% store mean roughness value in vector results[nfmod,nFc]
 
 for i=1:size(s,1)
     results(i)=res{1,i}.Rmean;
@@ -64,40 +58,37 @@ for i=1:size(s_ref,1)
     results_ref(i)=res_ref{1,i}.Rmean;
 end
 
-%% plot 1 kHz
+%% plot
 
 h  =figure;
 set(h,'Units','Inches');
 pos = get(h,'Position');
 set(h,'PaperPositionMode','Auto','PaperUnits','Inches','PaperSize',[pos(3), pos(4)])
 
-hAx=axes;                     % new axes; save handle
-
 % plot reference curves
-err= (0.17*REF_FM_fmod(:,2));
-errorbar(REF_FM_fmod(:,1),REF_FM_fmod(:,2),err,'k-*','MarkerSize',6,'Linewidth',.5);hold all % results from SQAT
+err= (0.17*REF_FM_level(:,2));
+errorbar(REF_FM_level(:,1),REF_FM_level(:,2),err,'k-*','MarkerSize',6,'Linewidth',.5);hold all % results from SQAT
 
-% semilogx(REF_FM_fmod(:,1),REF_FM_fmod(:,2),'k*-','MarkerSize',8);hold all;
+% plot(REF_FM_level(:,1),REF_FM_level(:,2),'k*-','MarkerSize',8);hold all;
 
 % plot computed results
-semilogx(REF_FM_fmod(:,1),results.*100./results_ref,'ko:','MarkerSize',8);hold all;
-
-hAx.XScale='log';              % turn to semilogx form
+plot(REF_FM_level(:,1),results.*100./results_ref,'ko:','MarkerSize',8);hold all;
 
 legend('Reference $\pm\:17\:\%\:(\mathrm{JND})$','SQAT','Location','NW','Interpreter','Latex');
 legend boxoff
 
-axis([0 500 0 180]);
+axis([40 80 0 180]);
+
 ax = gca;
-set(ax,'XTick',[10 100]);
+set(ax,'XTick',[40 50 60 70 80]);
 set(ax,'YTick',[0 20 40 60 80 100 120 140 160 180]);
 ax.XAxis.MinorTick = 'on';
 %ax.XAxis.MinorTickValues =  0:10:160;
 ax.YAxis.MinorTick = 'on';
 ax.YAxis.MinorTickValues = 0:0.1:3;
-
+     
 ylabel('$R/R_0$ (\%)','Interpreter','Latex');
-xlabel('Modulation frequency, $f_{\mathrm{mod}}$ (Hz)','Interpreter','Latex');
+xlabel('Sound pressure level, $L_{\mathrm{p}}$ (dB re 20 $\mu$Pa)','Interpreter','Latex');
 
 set(gcf,'color','w');
 
@@ -110,7 +101,7 @@ if save_figs==1
         mkdir(figures_dir);
     end
     
-    figname_short = 'validation_FS_fmod_FM_tones';
+    figname_short = 'validation_FS_fmod_FM_tones_level';
     figname_out = [figures_dir figname_short];
     
     %     saveas(gcf,figname_out, 'fig');
@@ -119,26 +110,25 @@ if save_figs==1
     
     fprintf('%s.m: figure %s was saved on disk\n\t(full name: %s)\n',mfilename,figname_short,figname_out);
 end
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-%% function used to generate the FM signals with varying fmod (only for reference, not used here)
+%% function used to generate the FM signals with varying level (only for reference, not used here)
 
-function s = make_FM_fmod_fc_1600hz
-
+function s=make_FM_fmod_fc_1600hz
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Generates signals for roughness algorithm validation
 %
-%   Generates signals for roughness algorithm validation
+% FM tones with carrier frequency of 1.6 kHz, freq deviation of 800 Hz
+% fmod=70 Hz as a function of the SPL
 %
-%   FM tones with carrier frequency of 1.6 kHz, freq deviation of 800 Hz and L=60dBSPL 
-%   as a function of modulation frequency
 %
-%   Gil Felix Greco, Braunschweig 02.03.2020 (updated 10.03.2023)
-% 
+% Gil Felix Greco, Braunschweig 02.03.2020 (updated 10.03.2023)
+%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %% Specify signal temporal characteristics
 
-L=5;                            % signal duration (seconds)
+L=5;                             % signal duration (seconds)
 fs=48000;                        % sampling frequency
 dt=1/fs;                         % time step
 t = 0:dt:L;                      % Time vector
@@ -151,68 +141,62 @@ freq_dev=800;              % frequency deviation
 
 %% make modulation signal
 
-fmod=[10 20 40 60 80 100 120 150 200 300 500]; % modulation frequency (Hz)
+fmod=70; % modulation frequency (Hz)
 
-for i=1:length(fmod)
-    
-    s2(i,:) =sin(2*pi*fc.*t+(Am*freq_dev/fmod(i)).*sin(2*pi.*fmod(i).*t));
-    
-end
+s2=sin(2*pi*fc.*t+(Am*freq_dev/fmod).*sin(2*pi.*fmod.*t));
 
 %% modulated signal
 
-LevelIn=60;
+LevelIn=[40 50 60 70 80];
 
-A=20e-6*10^(LevelIn/20)*sqrt(2);
-A=A.*ones(1,length(fmod));
+A(1:5)=20e-6*10.^(LevelIn(1:5)./20).*sqrt(2);
 
-for i=1:length(fmod)
-    s(i,:)=A(i)*s2(i,:); % output signals
+for i=1:length(A)
+    s(i,:)=A(i)*s2; % output signals
 end
 
-for i=1:length(fmod)
+for i=1:length(A)
     SPL(i)=20.*log10(rms(s(i,:))/2e-5);
 end
 
-%% save generated signal
+%% save signal 
 
 % save s s
-
-%% plot signal
-
+% 
+% %% plot signal
+% 
 % h  =figure;
 % set(h,'Units','Inches');
 % pos = get(h,'Position');
 % set(h,'PaperPositionMode','Auto','PaperUnits','Inches','PaperSize',[pos(3), pos(4)])
 % 
-% plot(t,s(1,:)); hold on;                
+% plot(t,s(1,:)); hold on;              
 % 
 % xlim([0 1]);ylim([-.1 0.1]);
-% ylabel('Amplitude [Pa]','Interpreter','Latex'); xlabel('Time, $t$ [s]','Interpreter','Latex'); 
+% ylabel('Amplitude (Pa)','Interpreter','Latex'); xlabel('Time, $t$ (s)','Interpreter','Latex'); 
 % 
 % % box off
 % set(gcf,'color','w');
 
 end
-
 %% function used to generate the reference FM signal (only for reference, not used here)
 
-function s_ref = make_FM_fmod_fc_1600hz_reference_tone
+function s=make_FM_fmod_fc_1600hz_reference_tone
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Generates signals for roughness algorithm validation
 %
-%   Generates signals for roughness algorithm validation
+% FM tones with carrier frequency of 1.6 kHz, freq deviation of 800 Hz and L=60dB 
+% as a function of modulation frequency
 %
-%   FM tones with carrier frequency of 1.6 kHz, freq deviation of 800 Hz and L=60dB 
-%   as a function of modulation frequency
 %
-%   Gil Felix Greco, Braunschweig 17.02.2020 (updated 10.03.2023)
+% Gil Felix Greco, Braunschweig 02.03.2020 (updated 10.03.2023)
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %% Specify signal temporal characteristics
 
-L=5;                             % signal duration (seconds)
+L=10;                            % signal duration (seconds)
 fs=48000;                        % sampling frequency
 dt=1/fs;                         % time step
 t = 0:dt:L;                      % Time vector
@@ -238,32 +222,36 @@ A=20e-6*10^(LevelIn/20)*sqrt(2);
 A=A.*ones(1,length(fmod));
 
 for i=1:length(fmod)
-    s(i,:)=A(i)*s2(i,:);
+    s(i,:)=A(i)*s2(i,:); % output signals
 end
 
 for i=1:length(fmod)
     SPL(i)=20.*log10(rms(s(i,:))/2e-5);
 end
 
-%% save generated signal
+%% save generated signal 
 
-s_ref=s;
-
+% s_ref=s;
+% 
 % save s_ref s_ref
-
-%% plot signal
-
+% 
+% 
+% %% plot signal
+% 
 % h  =figure;
 % set(h,'Units','Inches');
 % pos = get(h,'Position');
 % set(h,'PaperPositionMode','Auto','PaperUnits','Inches','PaperSize',[pos(3), pos(4)])
 % 
-% plot(t,s(1,:)); hold on;               
+% plot(t,s(1,:)); hold on;                 
 % 
 % xlim([0 1]);ylim([-.1 0.1]);
 % ylabel('Amplitude [Pa]','Interpreter','Latex'); xlabel('Time, $t$ [s]','Interpreter','Latex'); 
 % 
+% 
+% % box off
 % set(gcf,'color','w');
 
 end
+
 
