@@ -14,10 +14,9 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 clear all; close all; clc;
 
-dir_analysis_name = 'signal_to_noise_ratio';
 dir_sounds = get_dir_validation_sounds('Tonality_Aures1985',1); 
 
-dir_out = [fileparts(mfilename('fullpath')) filesep dir_analysis_name filesep];
+dir_out = [fileparts(mfilename('fullpath')) filesep];
 
 %% save settings
 
@@ -127,8 +126,8 @@ if save_figs==1
     figname_short = 'tonality_validation_SNR_tone_85dBSPL_1khz';
     figname_out = [figures_dir figname_short];
     
-    saveas(gcf, figname_out, 'fig');
-    saveas(gcf, figname_out, 'pdf');
+%     saveas(gcf, figname_out, 'fig');
+%     saveas(gcf, figname_out, 'pdf');
     saveas(gcf, figname_out, 'png');
     
     fprintf('%s.m: figure %s was saved on disk\n\t(full name: %s)\n',mfilename,figname_short,figname_out);
