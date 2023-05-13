@@ -25,6 +25,8 @@ switch psychoacoustic_model
         switch dir_analysis
             case '1_modulation_freq'
                 dir_ref_values = [dir_validation dir_analysis filesep 'reference_values' filesep];
+            case '3_FM_modulation_depth'
+                dir_ref_values = [dir_validation dir_analysis filesep 'reference_values' filesep];
         end
 end
 

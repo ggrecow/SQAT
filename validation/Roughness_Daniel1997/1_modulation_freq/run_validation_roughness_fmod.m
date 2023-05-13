@@ -72,37 +72,30 @@ SQAT_version=1; % v1.0
 dir_sounds = get_dir_validation_sounds('Roughness_Daniel1997',SQAT_version);
 
 % variable s_125hz
-fc=125;
 s_125hz = load ([dir_sounds 'vary_modulation_freq_fmod_125hz.mat']); 
 s_125hz=transpose(cell2mat(struct2cell(s_125hz)));
 
 % variable s_250hz
-fc=250;
 s_250hz = load ([dir_sounds 'vary_modulation_freq_fmod_250hz.mat']); 
 s_250hz=transpose(cell2mat(struct2cell(s_250hz)));
 
 % variable s_500hz
-fc=500;
 s_500hz = load ([dir_sounds 'vary_modulation_freq_fmod_500hz.mat']); 
 s_500hz=transpose(cell2mat(struct2cell(s_500hz)));
 
 % variable s_1khz
-fc=1000;
 s_1khz = load ([dir_sounds 'vary_modulation_freq_fmod_1khz.mat']); 
 s_1khz=transpose(cell2mat(struct2cell(s_1khz)));
 
 % variable s_2khz
-fc=2000;
 s_2khz = load ([dir_sounds 'vary_modulation_freq_fmod_2khz.mat']); 
 s_2khz=transpose(cell2mat(struct2cell(s_2khz)));
 
 % variable s_4khz
-fc=4000;
 s_4khz = load ([dir_sounds 'vary_modulation_freq_fmod_4khz.mat']); 
 s_4khz=transpose(cell2mat(struct2cell(s_4khz)));
 
 % variable s_8khz
-fc=8000;
 s_8khz = load ([dir_sounds 'vary_modulation_freq_fmod_8khz.mat']); 
 s_8khz=transpose(cell2mat(struct2cell(s_8khz)));
 
