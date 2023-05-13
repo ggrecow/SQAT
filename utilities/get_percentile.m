@@ -23,16 +23,15 @@ function OUT = get_percentile(input,PercentileValue)
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-nSamples=length(input);
-
-X_index = floor( (100-PercentileValue)/100 * nSamples );
-
-nq_sort = sort( input );
+X_index = floor( (100-PercentileValue)/100 * length(input) );
 
 if X_index==0
-    OUT = NaN;
+    X_index=1;
 else
-    OUT = nq_sort( X_index );
 end
+
+sort_input = sort( input );
+
+OUT = sort_input( X_index );
 
 end
