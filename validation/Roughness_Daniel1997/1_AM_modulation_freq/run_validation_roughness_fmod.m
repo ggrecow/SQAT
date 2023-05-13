@@ -21,7 +21,7 @@ save_figs=0; %% save figs flag
 
 %% path settings 
 
-dir_analysis_name = '1_modulation_freq';
+dir_analysis_name = '1_AM_modulation_freq';
 dir_out = [fileparts(mfilename('fullpath')) filesep];
  
 % Figure where the figures (and the results) will be stored:
