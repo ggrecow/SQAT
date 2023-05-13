@@ -20,7 +20,7 @@ The folowing psychoacoustic-based metrics are available in the `psychoacoustic_m
 - `Roughness_Daniel1997`: Roughness model from Daniel & Weber (see validation [here](validation/Roughness_Daniel1997)). 
 - `FluctuationStrength_Osses2016`: Fluctuation strength model from Osses et al. (see validation [here](validation/FluctuationStrength_Osses2016)). 
 - `Tonality_Aures1985`: Tonality model from Aures (see validation [here](validation/Tonality_Aures1985)). 
-- `PsychoacousticAnnoyance_Zwicker1999`: psychoacoustic annoyance model from Zwicker et al. 
+- `PsychoacousticAnnoyance_Zwicker1999`: psychoacoustic annoyance model from Zwicker et al. (see example [here](examples/PsychoacousticAnnoyance_Zwicker1999/ex_PsychoacousticAnnoyance_Zwicker1999.m))
 - `PsychoacousticAnnoyance_More2010`: psychoacoustic annoyance model from More.
 - `PsychoacousticAnnoyance_Di2016`: psychoacoustic annoyance model from Di et al.  
 
