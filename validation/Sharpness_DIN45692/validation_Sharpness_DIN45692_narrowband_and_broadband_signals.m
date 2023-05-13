@@ -32,7 +32,6 @@ dir_ref_sounds = [basepath_SQAT 'sound_files' filesep 'reference_signals' filese
 
 % load calibration signal 
 
-% path='sound_files\reference_signals\sharpness_DIN45692\'; % path of the sound file for reference
 [RefSignal,~]=audioread([dir_ref_sounds 'RefSignal_Sharpness_DIN45692.wav']);
 
 %%% Calibration using the concept of dB full scale:
@@ -45,7 +44,7 @@ for i=1:length(freq_narrowband)
 
     % load test signal 
     fname_insig = ['narrowband_' sprintf( '%02d',freq_narrowband(i) ) '.wav'];
-    [insig,fs]=audioread([dir_sounds fname_insig]); % 'sound_files\validation\Sharpness_DIN45692\'; % path of the sound file for reference
+    [insig,fs]=audioread([dir_sounds fname_insig]); 
 
     % calibrate .wav signal
     [insig_cal]=calibrate(insig,RefSignal,lvl_cal_signal); 
@@ -85,7 +84,7 @@ acum_broadband=[2.7 2.74 2.78 2.85 2.91 2.96 3.05 3.12 3.20 3.3 3.42 3.53 3.69 3
 for i=1:length(freq_broadband)
 
     % load test signal 
-    [insig,fs]=audioread([dir_sounds 'broadband_' sprintf( '%02d',freq_broadband(i) ) '.wav']);  'sound_files\validation\Sharpness_DIN45692\'; % path of the sound file for reference
+    [insig,fs]=audioread([dir_sounds 'broadband_' sprintf( '%02d',freq_broadband(i) ) '.wav']);  'sound_files\validation\Sharpness_DIN45692\'; 
 
     % calibrated .wav signal
     insig_cal=calibrate(insig,RefSignal,lvl_cal_signal); 

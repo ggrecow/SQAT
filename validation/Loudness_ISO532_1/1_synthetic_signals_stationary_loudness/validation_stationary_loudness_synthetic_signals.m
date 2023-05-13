@@ -86,7 +86,6 @@ if bFrom_wav_file
     
     % calibration signal provided in the Annex C of the ISO 532-1:2017
 
-    % path='sound_files\validation\Loudness_ISO532_1\';   % path of the sound file for reference
     [RefSignal,~]=audioread([dir_sounds 'calibration signal sine 1kHz 60dB.wav']);
     
     %%% Calibration using the concept of dB full scale:
@@ -97,7 +96,6 @@ if bFrom_wav_file
     
     % Test signal provided in the Annex B.3 of the ISO 532-1:2017
     
-    % path='sound_files\validation\Loudness_ISO532_1\';   % path of the sound file for reference
     [insig,fs]=audioread([dir_sounds fname_insig]);
 
     %%% Calibration using Gil's script:

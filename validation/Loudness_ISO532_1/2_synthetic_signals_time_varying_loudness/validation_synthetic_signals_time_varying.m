@@ -81,12 +81,10 @@ dir_ref_values = get_dir_reference_values('Loudness_ISO532_1',dir_analysis_name)
 
 % calibration signal provided in the Annex C of the ISO 532-1:2017
 
-% path='sound_files\validation\loudness_ISO532_1\';   % path of the sound file for reference
 [RefSignal,~]=audioread([dir_sounds 'calibration signal sine 1kHz 60dB.wav']);
     
 % Test signal provided in the Annex B.4 of the ISO 532-1:2017
 
-% path='sound_files\validation\loudness_ISO532_1\';% path of the sound file for reference
 [signal,fs]=audioread([dir_sounds fname_insig]);
 
 %% calibrated .wav signal
