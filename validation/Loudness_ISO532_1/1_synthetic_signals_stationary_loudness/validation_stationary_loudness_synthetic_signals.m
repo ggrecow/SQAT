@@ -77,7 +77,8 @@ else
     bFrom_wav_file = 1;
 end
     
-dir_sounds = get_dir_validation_sounds('Loudness_ISO532_1',1);
+SQAT_version=1; % v1.0
+dir_sounds = get_dir_validation_sounds('Loudness_ISO532_1',SQAT_version);
 dir_ref_values = get_dir_reference_values('Loudness_ISO532_1',dir_analysis_name);
 
 if bFrom_wav_file

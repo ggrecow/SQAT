@@ -14,13 +14,16 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 clear all; close all; clc;
 
-dir_sounds = get_dir_validation_sounds('Tonality_Aures1985',1); 
-
-dir_out = [fileparts(mfilename('fullpath')) filesep];
-
 %% save settings
 
 save_figs=0;
+
+%% define input/output paths
+
+SQAT_version=1; % v1.0
+dir_sounds = get_dir_validation_sounds('Tonality_Aures1985',SQAT_version); 
+
+dir_out = [fileparts(mfilename('fullpath')) filesep];
 
 %% reference data 
 % Source: Hastings et al. (2003), fig. 1
