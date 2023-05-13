@@ -11,7 +11,7 @@ The toolbox has the following directories:
 - `validation`: this directory contains scripts used to validate each algorithm. In order to reproduce the validation codes, the dataset of test sounds needs to be downloaded from Zenodo ([link](https://doi.org/10.5281/zenodo.7933206)) and the paste `validation_SQAT_v1_0` has to be included in the `sound_files` folder of the toolbox. 
 
 # How to use the toolbox
-After downloading this repository, you just need to add the toolbox into the path of your MATLAB. The `startup_SQAT` code provided can be used to automatically include all folders to the MATLAB path. However, in order to avoid conflicts, the `startup_SQAT` needs to be used everytime MATLAB is restarted. If you just want to use the metrics and no `sound_files`, you can add manually only the relevant folders to the path (e.g., `psychoacoustic_metrics`, `sound_level_meter` and `utilities`). 
+After downloading this repository, you just need to add the toolbox into the path of your MATLAB. The `startup_SQAT` code provided can be used to automatically include all folders to the MATLAB path. However, in order to avoid conflicts, the `startup_SQAT` needs to be used everytime MATLAB is (re)started. If you just want to use the metrics and no `sound_files`, you can add manually only the relevant folders to the path (e.g., `psychoacoustic_metrics`, `sound_level_meter` and `utilities`). 
 
 # Sound quality metrics available in SQAT v1.0
 The folowing psychoacoustic-based metrics are available in the `psychoacoustic_metrics` folder :
