@@ -13,6 +13,10 @@ The toolbox has the following directories:
 # How to use the toolbox
 After downloading this repository, you just need to add the toolbox into the path of your MATLAB. The `startup_SQAT` code provided can be used to automatically include all folders to the MATLAB path. However, in order to avoid conflicts, the `startup_SQAT` needs to be used everytime MATLAB is restarted. If you just want to use the metrics and no `sound_files`, you can add manually only the relevant folders to the path (e.g., `psychoacoustic_metrics`, `sound_level_meter` and `utilities`). 
 
+# Sound quality metrics available in SQAT v1.0
+The folowing psychoacoustic metrics are available:
+- `Loudness_ISO532_1`: Zwicker loudness model according to ISO 532-1:2016 (see validation ([here](validation/Loudness_ISO532_1)).
+- 
 # How to cite this repository
 This repository can be cited as follows: 
 
