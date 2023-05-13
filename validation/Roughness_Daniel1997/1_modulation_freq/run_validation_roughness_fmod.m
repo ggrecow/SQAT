@@ -13,7 +13,7 @@
 %     (refer to the function in the end of this script to see how the
 %     signals were originally generated)
 %
-% Author: Gil Greco, Braunschweig, 21/02/2020 (updated 10.09.2023)
+% Author: Gil Greco, Braunschweig, 21/02/2020 (updated 13.05.2023)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 clc; clear all; close all;
 
@@ -217,8 +217,15 @@ set(h,'PaperPositionMode','Auto','PaperUnits','Inches','PaperSize',[pos(3), pos(
 fmod_125=20:10:100;  % modulation freq vector for reference values 
 fmod=20:10:160;  % modulation freq vector for reference values 
 
-plot(fmod_125,fmod_125hz,'k-*','MarkerSize',6);hold all;
-plot(fmod,fmod_500hz,'b-*','MarkerSize',6);hold all;
+err_125hz= (0.17*fmod_125hz);
+errorbar(fmod_125,fmod_125hz,err_125hz,'k-*','MarkerSize',6,'Linewidth',.5);hold all % results from SQAT
+
+% plot(fmod_125,fmod_125hz,'k-*','MarkerSize',6);hold all;
+
+err_500hz= (0.17*fmod_500hz);
+errorbar(fmod,fmod_500hz,err_500hz,'b-*','MarkerSize',6,'Linewidth',.5);hold all % results from SQAT
+
+% plot(fmod,fmod_500hz,'b-*','MarkerSize',6);hold all;
 
 % plot computed results
 fmod_125_computed=0:10:100;  % modulation freq vector for reference values 
@@ -227,22 +234,22 @@ fmod_computed=0:10:160;      % modulation freq vector for reference values
 plot(fmod_125_computed,results_125hz(1:11),'ko:','MarkerSize',8);hold all;
 plot(fmod_computed,results_500hz,'bo:','MarkerSize',8);
 
-legend('Ref. - $f_{\mathrm{c}}$=125 Hz',...
-       'Ref. - $f_{\mathrm{c}}$=500 Hz',...  
+legend('Ref. - $f_{\mathrm{c}}$=125 Hz$\pm17\:\%\:(\mathrm{JND})$',...
+       'Ref. - $f_{\mathrm{c}}$=500 Hz$\pm17\:\%\:(\mathrm{JND})$',...  
        'SQAT - $f_{\mathrm{c}}$=125 Hz',...
        'SQAT - $f_{\mathrm{c}}$=500 Hz',... 
        'Location','NorthEast','Interpreter','Latex');
    
 legend boxoff
 
-axis([0 160 0 1.1]);
+axis([0 160 0 1.2]);
  ax = gca;
      set(ax,'XTick',[0 20 40 60 80 100 120 140 160]);
      set(ax,'YTick',[0 0.2 0.4 0.6 .8 1]);
      ax.XAxis.MinorTick = 'on';
      ax.XAxis.MinorTickValues =  0:10:160; 
      ax.YAxis.MinorTick = 'on';
-     ax.YAxis.MinorTickValues = 0:0.1:1.1; 
+     ax.YAxis.MinorTickValues = 0:0.1:1.2; 
      
 ylabel('Roughness, $R$ (asper)','Interpreter','Latex');
 xlabel('Modulation frequency, $f_{\mathrm{mod}}$ (Hz)','Interpreter','Latex');
@@ -270,8 +277,15 @@ set(h,'PaperPositionMode','Auto','PaperUnits','Inches','PaperSize',[pos(3), pos(
 
 fmod=20:10:160;  % modulation freq vector for reference values 
 
-plot(fmod,fmod_2khz,'b-*','MarkerSize',6);hold all;
-plot(fmod,fmod_8khz,'k-*','MarkerSize',6);hold all;
+err_2khz= (0.17*fmod_2khz);
+errorbar(fmod,fmod_2khz,err_2khz,'b-*','MarkerSize',6,'Linewidth',.5);hold all % results from SQAT
+
+% plot(fmod,fmod_2khz,'b-*','MarkerSize',6);hold all;
+
+err_8khz= (0.17*fmod_8khz);
+errorbar(fmod,fmod_8khz,err_8khz,'k-*','MarkerSize',6,'Linewidth',.5);hold all % results from SQAT
+
+% plot(fmod,fmod_8khz,'k-*','MarkerSize',6);hold all;
 
 % plot computed results
 fmod_computed=0:10:160;      % modulation freq vector for reference values 
@@ -279,22 +293,22 @@ fmod_computed=0:10:160;      % modulation freq vector for reference values
 plot(fmod_computed,results_2khz,'bo:','MarkerSize',8);
 plot(fmod_computed,results_8khz,'ko:','MarkerSize',8);hold all;
 
-legend('Ref. - $f_{\mathrm{c}}$=2 kHz',...
-       'Ref. - $f_{\mathrm{c}}$=8 kHz',...  
+legend('Ref. - $f_{\mathrm{c}}$=2 kHz$\pm17\:\%\:(\mathrm{JND})$',...
+       'Ref. - $f_{\mathrm{c}}$=8 kHz$\pm17\:\%\:(\mathrm{JND})$',...  
        'SQAT - $f_{\mathrm{c}}$=2 kHz',...
        'SQAT - $f_{\mathrm{c}}$=8 kHz',... 
-       'Location','NorthEast','Interpreter','Latex');
+       'Location','NW','Interpreter','Latex');
    
 legend boxoff
 
-axis([0 160 0 1.1]);
+axis([0 160 0 1.4]);
  ax = gca;
      set(ax,'XTick',[0 20 40 60 80 100 120 140 160]);
-     set(ax,'YTick',[0 0.2 0.4 0.6 .8 1]);
+     set(ax,'YTick',[0 0.2 0.4 0.6 .8 1 1.2]);
      ax.XAxis.MinorTick = 'on';
      ax.XAxis.MinorTickValues =  0:10:160; 
      ax.YAxis.MinorTick = 'on';
-     ax.YAxis.MinorTickValues = 0:0.1:1.1; 
+     ax.YAxis.MinorTickValues = 0:0.1:1.4; 
      
 ylabel('Roughness, $R$ (asper)','Interpreter','Latex');
 xlabel('Modulation frequency, $f_{\mathrm{mod}}$ (Hz)','Interpreter','Latex');
@@ -322,27 +336,30 @@ set(h,'PaperPositionMode','Auto','PaperUnits','Inches','PaperSize',[pos(3), pos(
 
 fmod=20:10:160;  % modulation freq vector for reference values 
 
-plot(fmod,fmod_1khz,'k-*','MarkerSize',6);hold all;
+err_1khz= (0.17*fmod_1khz);
+errorbar(fmod,fmod_1khz,err_1khz,'k-*','MarkerSize',6,'Linewidth',.5);hold all % results from SQAT
+
+% plot(fmod,fmod_1khz,'k-*','MarkerSize',6);hold all;
 
 % plot computed results
 fmod_computed=0:10:160;      % modulation freq vector for reference values 
 
 plot(fmod_computed,results_1khz,'ko:','MarkerSize',8);hold all;
 
-legend('Ref. - $f_{\mathrm{c}}$=1 kHz',...
+legend('Ref. - $f_{\mathrm{c}}$=1 kHz$\pm17\:\%\:(\mathrm{JND})$',...
        'SQAT - $f_{\mathrm{c}}$=1 kHz',...  
-       'Location','NorthEast','Interpreter','Latex');
+       'Location','NW','Interpreter','Latex');
    
 legend boxoff
 
-axis([0 160 0 1.1]);
+axis([0 160 0 1.6]);
  ax = gca;
      set(ax,'XTick',[0 20 40 60 80 100 120 140 160]);
-     set(ax,'YTick',[0 0.2 0.4 0.6 .8 1]);
+     set(ax,'YTick',[0 0.2 0.4 0.6 .8 1 1.2 1.4]);
      ax.XAxis.MinorTick = 'on';
      ax.XAxis.MinorTickValues =  0:10:160; 
      ax.YAxis.MinorTick = 'on';
-     ax.YAxis.MinorTickValues = 0:0.1:1.1; 
+     ax.YAxis.MinorTickValues = 0:0.1:1.6; 
      
 ylabel('Roughness, $R$ (asper)','Interpreter','Latex');
 xlabel('Modulation frequency, $f_{\mathrm{mod}}$ (Hz)','Interpreter','Latex');
@@ -371,9 +388,15 @@ set(h,'PaperPositionMode','Auto','PaperUnits','Inches','PaperSize',[pos(3), pos(
 fmod_250=20:10:130;  % modulation freq vector for reference values 
 fmod=20:10:160;  % modulation freq vector for reference values 
 
+err_250hz= (0.17*fmod_250hz);
+errorbar(fmod_250,fmod_250hz,err_250hz,'k-*','MarkerSize',6,'Linewidth',.5);hold all % results from SQAT
 
-plot(fmod_250,fmod_250hz,'k-*','MarkerSize',6);hold all;
-plot(fmod,fmod_4khz,'b-*','MarkerSize',6);hold all;
+% plot(fmod_250,fmod_250hz,'k-*','MarkerSize',6);hold all;
+
+err_4khz= (0.17*fmod_4khz);
+errorbar(fmod,fmod_4khz,err_4khz,'b-*','MarkerSize',6,'Linewidth',.5);hold all % results from SQAT
+
+% plot(fmod,fmod_4khz,'b-*','MarkerSize',6);hold all;
 
 % plot computed results
 fmod_computed=0:10:160;      % modulation freq vector for reference values 
@@ -381,22 +404,22 @@ fmod_computed=0:10:160;      % modulation freq vector for reference values
 plot(fmod_computed,results_250hz,'ko:','MarkerSize',8);hold all;
 plot(fmod_computed,results_4khz,'bo:','MarkerSize',8);
 
-legend('Ref. - $f_{\mathrm{c}}$=250 Hz',...
-       'Ref. - $f_{\mathrm{c}}$=4 kHz',...  
+legend('Ref. - $f_{\mathrm{c}}$=250 Hz$\pm17\:\%\:(\mathrm{JND})$',...
+       'Ref. - $f_{\mathrm{c}}$=4 kHz$\pm17\:\%\:(\mathrm{JND})$',...  
        'SQAT - $f_{\mathrm{c}}$=250 Hz',...
        'SQAT - $f_{\mathrm{c}}$=4 kHz',... 
-       'Location','NorthEast','Interpreter','Latex');
+       'Location','NW','Interpreter','Latex');
    
 legend boxoff
 
-axis([0 160 0 1.1]);
+axis([0 160 0 1.2]);
  ax = gca;
      set(ax,'XTick',[0 20 40 60 80 100 120 140 160]);
-     set(ax,'YTick',[0 0.2 0.4 0.6 .8 1]);
+     set(ax,'YTick',[0 0.2 0.4 0.6 .8 1 1.2]);
      ax.XAxis.MinorTick = 'on';
      ax.XAxis.MinorTickValues =  0:10:160; 
      ax.YAxis.MinorTick = 'on';
-     ax.YAxis.MinorTickValues = 0:0.1:1.1; 
+     ax.YAxis.MinorTickValues = 0:0.1:1.2; 
      
 ylabel('Roughness, $R$ (asper)','Interpreter','Latex');
 xlabel('Modulation frequency, $f_{\mathrm{mod}}$ (Hz)','Interpreter','Latex');
@@ -414,8 +437,8 @@ if save_figs==1
     fprintf('%s.m: figure %s was saved on disk\n\t(full name: %s)\n',mfilename,figname_short,figname_out);
 end
 
-%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% not used in this script, but was originally used to generate the signals
+%% function used to generate the signals (only for reference, not used here)
+
 function insig = il_make_AM_fmod(fc)
 % Generates signals for roughness algorithm validation
 %
