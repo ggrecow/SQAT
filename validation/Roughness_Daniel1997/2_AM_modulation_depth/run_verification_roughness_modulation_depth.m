@@ -13,6 +13,9 @@
 %       17% in roughness. Source: Zwicker, E. and Fastl, H. Second ed,
 %       Psychoacoustics, Facts and Models, page 260
 %
+% Roughness computed using:
+%   OUT = Roughness_Daniel1997(insig,fs,time_skip,show) 
+%   type <help Roughness_Daniel1997> for more info
 %
 % Author: Gil Felix Greco, Braunschweig 17.02.2020 (updated in 13.05.2023)
 %

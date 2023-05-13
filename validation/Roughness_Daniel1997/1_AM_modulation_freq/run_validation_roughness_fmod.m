@@ -13,6 +13,10 @@
 %     (refer to the function in the end of this script to see how the
 %     signals were originally generated)
 %
+% Roughness computed using:
+%   OUT = Roughness_Daniel1997(insig,fs,time_skip,show) 
+%   type <help Roughness_Daniel1997> for more info
+%
 % Author: Gil Greco, Braunschweig, 21/02/2020 (updated 13.05.2023)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 clc; clear all; close all;

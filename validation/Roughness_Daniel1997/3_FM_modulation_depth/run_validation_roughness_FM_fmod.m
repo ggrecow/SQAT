@@ -1,4 +1,5 @@
 % Script run_validation_roughness_fm_fmod
+%
 %   This routine plots the verification of DW roughness code for FM tones dependence 
 %   on the modulation frequency
 %   
@@ -7,6 +8,10 @@
 %
 %   Source: fig 9 from (reference results are the experimental data from this fig
 %   Daniel, P. and Weber, R.: Psychoacoustical roughness: implementation of an optimized model. Acustica – Acta Acustica 81, 1–12 (1995).
+%
+% Roughness computed using:
+%   OUT = Roughness_Daniel1997(insig,fs,time_skip,show) 
+%   type <help Roughness_Daniel1997> for more info
 %
 %   Author: Gil Felix Greco, Braunschweig 02.03.2020 (updated 13.05.2023)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
