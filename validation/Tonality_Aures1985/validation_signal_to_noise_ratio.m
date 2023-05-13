@@ -15,7 +15,7 @@
 clear all; close all; clc;
 
 dir_analysis_name = 'signal_to_noise_ratio';
-dir_sounds = get_dir_validation_sounds('Tonality_Aures1985'); 
+dir_sounds = get_dir_validation_sounds('Tonality_Aures1985',1); 
 
 dir_out = [fileparts(mfilename('fullpath')) filesep dir_analysis_name filesep];
 
