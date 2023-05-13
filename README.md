@@ -1,5 +1,5 @@
 # SQAT: A sound quality analysis toolbox for MATLAB
-This is the repository of SQAT, a **S**ound **Q**uality **A**nalysis **T**oolbox for MATLAB.
+This is the repository of SQAT, an open-source **S**ound **Q**uality **A**nalysis **T**oolbox for MATLAB.
 
 # Toolbox structure
 The toolbox has the following directories:
