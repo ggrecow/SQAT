@@ -29,9 +29,11 @@ do_fig_raw = 0; % Psychoacoustic characterisation, all (+plots)
 
 list_tables_and_figures = {'do_table2';'do_table3';'do_fig1a'; 'do_fig1b'; 'do_fig1c'; ...
     'do_fig2'; 'do_fig3';'do_fig3b'; 'do_fig_raw'};
+
 for i = 1:length(list_tables_and_figures)
     fprintf('Enter %.0f to %s\n',i,list_tables_and_figures{i});
 end
+
 bInput = input('Which table/figure you want to obtain (enter the corresponding number)?: ');
 % % Setting to 1 the selected choice:
 % exp2eval = sprintf('%s=1;',list_tables_and_figures{bInput});
@@ -74,6 +76,7 @@ files_3 = {'meas-ac-2-dist-ane.wav'; 'model-ac-2-dist-ane.wav'};
 dir_datasets = {'1-Aircraft-fly-by'  ,114    , files_1; ...
                 '2-Train-pass-by'    ,140.55 , files_2; ...
                 '3-Hummer-resonances',100    , files_3};
+            
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Other common parameters:
 List_psy_metrics = {'Loudness_ISO532_1', ...
@@ -83,6 +86,7 @@ List_psy_metrics = {'Loudness_ISO532_1', ...
                     'Tonality_Aures1985'};
 list_metrics = {'LAeq','LAFmax','LZeq','T','SEL','Delta_Leq','LAFmax_min_LAeq'};
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 if do_table2
     
     dBFS_4_reproduction = 120; % not too loud not too soft

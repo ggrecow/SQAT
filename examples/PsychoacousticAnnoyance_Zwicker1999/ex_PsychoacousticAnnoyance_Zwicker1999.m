@@ -1,6 +1,6 @@
 % Script ex_PsychoacousticAnnoyance_Zwicker1999
 %
-% Example: computes Zwicker & Fastl's psychoacoustic annoyance of signal 14 from the ISO 532-1:2017 
+% Example: computes Zwicker & Fastl's psychoacoustic annoyance of RefSignal_Loudness_ISO532_1 
 %
 % FUNCTION:
 %   OUT = PsychoacousticAnnoyance_Zwicker1999(insig,fs,LoudnessField,time_skip,showPA,show)

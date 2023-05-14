@@ -16,7 +16,7 @@
 %
 %   Author: Gil Felix Greco, Braunschweig 02.03.2020 (updated 13.05.2023)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-clc;clear all; close all;
+clc; clear all; close all;
 
 save_figs=0; %% save figs flag
 

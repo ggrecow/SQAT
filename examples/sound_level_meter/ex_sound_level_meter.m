@@ -10,7 +10,7 @@
 %
 % Author: Alejandro Osses
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-clc; clear all;close all;
+clc; clear all ;close all;
 
 dir_sounds = [basepath_SQAT 'sound_files' filesep 'reference_signals' filesep];
 wavfilename='RefSignal_Sharpness_DIN45692.wav';

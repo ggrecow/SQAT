@@ -11,7 +11,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 clc; clear all; close all;
 
-save_figs=1; % no=0; yes=1
+save_figs=0; % no=0; yes=1
 
 dir_out = [fileparts(mfilename('fullpath')) filesep];
 

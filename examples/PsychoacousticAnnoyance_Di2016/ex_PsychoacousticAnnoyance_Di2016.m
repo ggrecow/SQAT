@@ -1,6 +1,6 @@
 % Script PsychoacousticAnnoyance_Di2016
 %
-% Example: compute Di's modified psychoacoustic annoyance of signal 14 from the ISO 532-1:2017 
+% Example: compute Di's modified psychoacoustic annoyance of RefSignal_Loudness_ISO532_1 
 %
 % FUNCTION:
 %   OUT = PsychoacousticAnnoyance_Di2016(insig,fs,LoudnessField,time_skip,showPA,show)
