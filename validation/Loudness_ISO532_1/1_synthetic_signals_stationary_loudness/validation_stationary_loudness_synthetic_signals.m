@@ -181,8 +181,8 @@ if save_figs==1
     figname_short = sprintf('validation_stationary_loudness_signal_%g',insig_num);
     figname_out = [figures_dir figname_short];
     
-%     saveas(gcf,figname_out, 'fig');
-%     saveas(gcf,figname_out, 'pdf');
+    % saveas(gcf,figname_out, 'fig');
+    % saveas(gcf,figname_out, 'pdf');
     saveas(gcf,figname_out, 'png');
     
     fprintf('\n%s.m: figure %s was saved on disk\n\t(full name: %s)\n',mfilename,figname_short,figname_out);

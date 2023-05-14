@@ -136,12 +136,12 @@ axis([0 24 0 11]);
 ylabel('Sharpness, $S$ (acum)','Interpreter','Latex');
 xlabel('Critical band, $z$ (Bark)','Interpreter','Latex');
 
- ax = gca;
- set(ax,'XTick',[0 4 8 12 16 20 24]);
-     ax.XAxis.MinorTick = 'on';
-     ax.XAxis.MinorTickValues =  0:0.5:24; 
-     ax.YAxis.MinorTick = 'on';
-     ax.YAxis.MinorTickValues = 0:0.5:20; 
+ax = gca;
+set(ax,'XTick',[0 4 8 12 16 20 24]);
+ax.XAxis.MinorTick = 'on';
+ax.XAxis.MinorTickValues =  0:0.5:24; 
+ax.YAxis.MinorTick = 'on';
+ax.YAxis.MinorTickValues = 0:0.5:20; 
      
 % hold off
 set(gcf,'color','w');
@@ -154,8 +154,8 @@ if save_figs==1
     figname_short = 'sharpness_validation_narrowband_and_broadband';
     figname_out = [figures_dir figname_short];
     
-%     saveas(gcf,figname_out, 'fig');
-%     saveas(gcf,figname_out, 'pdf');
+    % saveas(gcf,figname_out, 'fig');
+    % saveas(gcf,figname_out, 'pdf');
     saveas(gcf,figname_out, 'png');
     
     fprintf('\n%s.m: figure %s was saved on disk\n\t(full name: %s)\n',mfilename,figname_short,figname_out);
@@ -187,19 +187,19 @@ xlabel('Critical band, $z$ (Bark)','Interpreter','Latex');
 
 set(gcf,'color','w');
 
- ax = gca;
-      set(ax,'XTick',[0 4 8 12 16 20 24]);
-     ax.XAxis.MinorTick = 'on';
-     ax.XAxis.MinorTickValues =  0:0.5:24; 
-     ax.YAxis.MinorTick = 'on';
-     ax.YAxis.MinorTickValues = -0.2:0.01:0.2;
+ax = gca;
+set(ax,'XTick',[0 4 8 12 16 20 24]);
+ax.XAxis.MinorTick = 'on';
+ax.XAxis.MinorTickValues =  0:0.5:24; 
+ax.YAxis.MinorTick = 'on';
+ax.YAxis.MinorTickValues = -0.2:0.01:0.2;
      
 if save_figs==1
     figname_short = 'sharpness_validation_narrowband_broadband_error';
     figname_out = [figures_dir figname_short];
     
-%     saveas(gcf,figname_out, 'fig');
-%     saveas(gcf,figname_out, 'pdf');
+    % saveas(gcf,figname_out, 'fig');
+    % saveas(gcf,figname_out, 'pdf');
     saveas(gcf,figname_out, 'png');
     
     fprintf('\n%s.m: figure %s was saved on disk\n\t(full name: %s)\n',mfilename,figname_short,figname_out);
@@ -241,8 +241,8 @@ if save_figs==1
     figname_short = 'sharpness_validation_narrowband_compare_models';
     figname_out = [figures_dir figname_short];
     
-%     saveas(gcf,figname_out, 'fig');
-%     saveas(gcf,figname_out, 'pdf');
+    % saveas(gcf,figname_out, 'fig');
+    % saveas(gcf,figname_out, 'pdf');
     saveas(gcf,figname_out, 'png');
     
     fprintf('\n%s.m: figure %s was saved on disk\n\t(full name: %s)\n',mfilename,figname_short,figname_out);
@@ -286,8 +286,8 @@ if save_figs==1
     figname_short = 'sharpness_validation_broadband_model_comparison';
     figname_out = [figures_dir figname_short];
     
-%     saveas(gcf,figname_out, 'fig');
-%     saveas(gcf,figname_out, 'pdf');
+    % saveas(gcf,figname_out, 'fig');
+    % saveas(gcf,figname_out, 'pdf');
     saveas(gcf,figname_out, 'png');
     
     fprintf('\n%s.m: figure %s was saved on disk\n\t(full name: %s)\n',mfilename,figname_short,figname_out);

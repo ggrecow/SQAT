@@ -107,8 +107,8 @@ if save_figs==1
     figname_out = [figures_dir figname_short];
     % figures_dir = 'figs\'; % backslash is the fileseparator on Windows only 
     
-%     saveas(gcf,figname_out, 'fig');
-%     saveas(gcf,figname_out, 'pdf');
+    % saveas(gcf,figname_out, 'fig');
+    % saveas(gcf,figname_out, 'pdf');
     saveas(gcf,figname_out, 'png');
     
     fprintf('%s.m: figure %s was saved on disk\n\t(full name: %s)\n',mfilename,figname_short,figname_out);
