@@ -24,12 +24,14 @@ time_insig=(0 : length(RefSignal)-1) ./ fs;  % time vector of the audio input, i
 
 %% Compute fluctuation strength
 
+fprintf('\nFluctuation strength (Osses et al. model): \n');
+fprintf('\tcalculation of reference signal (60 dB 1 kHz tone 100 %% modulated at 4 Hz)\n');
+
 OUT = FluctuationStrength_Osses2016(RefSignal,fs,...  % input signal and sampling freq.
                                                     1,...  % method=0, stationary analysis- window size=length(insig); method=1, time_varying analysis - window size=2s
                                                     0,...  % time_skip, in seconds for statistical calculations
                                                     1);    % show results, 'false' (disable, default value) or 'true' (enable)
-                                                                                             
-display(sprintf('\nFluctuation strength (Osses et al. model): \ncalculation of reference signal (60 dB 1 kHz tone 100 %% modulated at 4 Hz)\nyields a time-averaged fluctuation strength value of %g (vacil).\n',OUT.FSmean));
+fprintf('\tyields a time-averaged fluctuation strength value of %g (vacil).\n',OUT.FSmean);
                
 %% Plot 1 vacil and input signal
 
