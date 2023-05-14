@@ -10,7 +10,7 @@
 %
 % Author: Alejandro Osses
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-clc;clear all;close all;
+clc; clear all;close all;
 
 dir_sounds = [basepath_SQAT 'sound_files' filesep 'reference_signals' filesep];
 wavfilename='RefSignal_Sharpness_DIN45692.wav';
@@ -46,8 +46,8 @@ SEL_Z  = LAeq + 10*log10(T);
 figure;
 plot(t,lvl_dBA,'b-'); hold on;
 plot(t,lvl_dBZ,'r--');
-xlabel('Time (s)');
-ylabel('Sound pressure level (dB)');
+xlabel('Time, $t$ (s)','Interpreter','Latex');
+ylabel('Sound pressure level, $L_{\mathrm{p}}$ (dB re 20~$\mu$Pa)','Interpreter','Latex');
 
 legend({'dB(A)','dB(Z)'});
 
