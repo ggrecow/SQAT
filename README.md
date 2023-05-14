@@ -1,5 +1,5 @@
 # SQAT: A sound quality analysis toolbox for MATLAB
-This is the repository of SQAT, an open-source **S**ound **Q**uality **A**nalysis **T**oolbox for MATLAB.
+This is the repository of SQAT, an open-source **S**ound **Q**uality **A**nalysis **T**oolbox for MATLAB. It contains a collection of psychoacoustic-based and SPL-based sound quality metrics under dedicated folders. With SQAT you can conduct quick quantitative sound quality analysis from any calibrated input sound file, in Pascal units. We provide a number of example codes to facilitate the initial use of the algorithms and exemplary sound files. Moreover, an extensive validation of the implemented psychoacoustic-based metrics is provided. All validation codes are reproducible.
 
 # Toolbox structure
 The toolbox has the following directories:
