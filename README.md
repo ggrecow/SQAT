@@ -35,7 +35,7 @@ The following SPL-based metrics using different frequency weightings (A, C, or Z
 # How to cite this repository
 If you this toolbox in your research, please help us to gain visibility by citing SQAT:
 
-Gil Felix Greco, Roberto Merino-Martínez, & Alejandro Osses. (2023). SQAT: A sound quality analysis toolbox for MATLAB. Zenodo.[https://doi.org/10.5281/zenodo.7934709]( https://doi.org/10.5281/zenodo.7934709)
+Gil Felix Greco, Roberto Merino-Martínez, & Alejandro Osses. (2023). SQAT: A sound quality analysis toolbox for MATLAB. Zenodo. [https://doi.org/10.5281/zenodo.7934709]( https://doi.org/10.5281/zenodo.7934709)
 
 If you need to cite an specific release, please refer to the "Cite this repository" feature in the "About" section of this GitHub repository.
 
