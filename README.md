@@ -8,7 +8,7 @@ The toolbox has the following directories:
 - `utilities`: contains some scripts that are complementary to any of the toolbox functions.
 - `examples`: an example script is provided for each metric.
 - `sound_files`: this directory hosts reference sounds in .wav format that are used mainly by the `examples` codes. 
-- `validation`: this directory contains scripts used to validate each algorithm. In order to reproduce the validation codes, the dataset of test sounds used for the validation of a particular release needs to be downloaded from Zenodo. For SQAT v1.0, the test sounds can be found [here](https://doi.org/10.5281/zenodo.7933206). The obtained folder called `validation_SQAT_v1_0` has to be included in the `sound_files` folder of the toolbox. 
+- `validation`: this directory contains scripts used to validate each algorithm. Instructions on how to reprocude this codes are provided in each respective folder and directly on the header of the codes.
 - `publications`: scripts reproducing figures and/or tables for publications using SQAT are provided in this directory.
 
 # How to use the toolbox
