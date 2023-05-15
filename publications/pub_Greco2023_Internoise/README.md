@@ -1,11 +1,11 @@
 # About this code
 
-This code generates the tables and figures of the following publication:
+The `pub_Greco2023_Internoise.m` code generates the tables and figures of the following publication:
 
 Felix Greco, G., Merino-Martínez, R., Osses, A., & Langer, S. C. (2023). SQAT: a MATLAB-based toolbox for quantitative sound quality. In Proceedings of the INTER–NOISE and NOISE–CON Congress, the 52nd International Congress and Exhibition on Noise Control Engineering, Chiba, Japan, 20–23 August 2023. 
 
 # How to use this code
-This code is a wraper to the codes used to verify the psychoacoustic metrics implemented in SQAT v1.0. The following codes are called by this wraper:
+The `pub_Greco2023_Internoise.m` is a wraper to the codes used to verify the psychoacoustic metrics implemented in SQAT v1.0. The following codes are called by this wraper:
 - `Loudness_ISO532_1`: verification using synthetic stationary signals (see code [here](../../validation/Loudness_ISO532_1/1_synthetic_signals_stationary_loudness)) and time-varying technical signals (see code [here](../../validation/Loudness_ISO532_1/3_technical_signals_time_varying_loudness)).
 - `Sharpness_DIN45692`: verification using narrowband and broadband signals (see code [here](../../validation/Sharpness_DIN45692)).
 - `Roughness_Daniel1997`: verification using AM tones as a function of the modulation depth (see code [here](../../validation/Roughness_Daniel1997/2_AM_modulation_depth)) and modulation frequency (see code [here](../../validation/Roughness_Daniel1997/1_AM_modulation_freq)).  
