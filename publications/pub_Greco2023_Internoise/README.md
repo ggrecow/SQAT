@@ -1,6 +1,8 @@
 # About this code
 
-This code generates the tables and figures of the following publication: **Felix Greco, G., Merino-Martinez, R., Osses, A., Langer, S. C.** SQAT: a MATLAB-based toolbox for quantitative sound quality. In Proceedings of the INTER–NOISE and NOISE–CON Congress, the 52nd International Congress and Exhibition on Noise Control Engineering, Chiba, Japan, 20–23 August 2023. 
+This code generates the tables and figures of the following publication:
+
+**Felix Greco, G., Merino-Martinez, R., Osses, A., Langer, S. C.** SQAT: a MATLAB-based toolbox for quantitative sound quality. In Proceedings of the INTER–NOISE and NOISE–CON Congress, the 52nd International Congress and Exhibition on Noise Control Engineering, Chiba, Japan, 20–23 August 2023. 
 
 # How to use this code
 This code is a wraper to the codes used to verify the psychoacoustic metrics implemented in SQAT v1.0. The following codes are called by this fuction:
