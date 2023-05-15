@@ -1,7 +1,7 @@
 function pub_Greco2023_Internoise
 % function pub_Greco2023_Internoise
 %
-% Generates the tables and figures presented in the contribution to be 
+% Generates the figures presented in the contribution to be 
 %   presented at Inter-noise in August 2023.
 %
 % This function is a wrapper to the validation codes from ../validation/ by
