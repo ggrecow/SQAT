@@ -1,6 +1,6 @@
 # About this code
 
-The `pub_Greco2023_Internoise.m` code generates the tables and figures of the following publication:
+The `pub_Greco2023_Internoise.m` code generates the figures of the following publication:
 
 Felix Greco, G., Merino-Martínez, R., Osses, A., & Langer, S. C. (2023). SQAT: a MATLAB-based toolbox for quantitative sound quality. In Proceedings of the INTER–NOISE and NOISE–CON Congress, the 52nd International Congress and Exhibition on Noise Control Engineering, Chiba, Japan, 20–23 August 2023. 
 
