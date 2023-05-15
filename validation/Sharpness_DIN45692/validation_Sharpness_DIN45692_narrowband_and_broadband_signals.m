@@ -2,15 +2,26 @@
 %
 % - Validation of sharpness calculation of narrowband and broadband using 
 %   test signals from DIN 45692(2009)
-%   type <help Sharpness_DIN45692_from_loudness> for more info
-% 
-% - Specific Loudness is computed within this code (SQAT) according to 
-%   ISO 532:1-2017 (type <help Loudness_ISO532_1> for more info)
-%   stationary, free-field, 
 %
-%  signals are calibrated with a ref. tone of 1kHz@60dB
+% - Sharpness computed using:
+%   OUT = Sharpness_DIN45692_from_loudness(SpecificLoudness, weight_type, time, time_skip, show_sharpness)
+%   type <help Sharpness_DIN45692_from_loudness> for more info
+%
+% - Specific Loudness is computed within this code according to 
+%   ISO 532:1-2017, stationary, free-field
+%
+% - Loudness computed using:
+%   OUT = Loudness_ISO532_1(insig, fs, field, method, time_skip, show)
+%   type <help Loudness_ISO532_1> for more info
 %
 % Author: Gil Felix Greco, Braunschweig 01.03.2023 
+%
+% In order to run this code, the user needs to download the dataset of 
+%  sound files from zenodo (https://doi.org/10.5281/zenodo.7933206).
+%  The obtained folder called `validation_SQAT_v1_0` has to be included in 
+%  the `sound_files` folder of the toolbox. 
+%
+% This code is part of SQAT v1.0, released 14.05.2023
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 clear all; close all; clc;
 

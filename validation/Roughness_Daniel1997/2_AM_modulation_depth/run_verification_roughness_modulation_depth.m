@@ -1,24 +1,33 @@
 % Script run_verification_roughness_modulation_depth
 %  
-%   Roughness dependence on the modulation depth for AM tonesGenerates amplitude modulated (AM) signals for roughness algorithm validation
+% Verification of DW roughness code for roughness dependence on the 
+%  modulation depth for AM tones
 %
-%   - 1 kHz sinosoidal tone modulated at 70 Hz (60 dBSPL) with varying
-%       modulation depth, md (from 0 to 1, in 0.05 increments)
+% - Inputs, signals: 1 kHz sinosoidal tone modulated at 70 Hz (60 dBSPL) 
+%   with varying modulation depth, md (from 0 to 1, in 0.05 increments).
+%   Refer to the function in the end of this script to see how the
+%   signals were originally generated.
 %
-%   - Ref. values are the power law md^(~1.6), from 
-%       Zwicker, E. and Fastl, H. Second ed, Psychoacoustics, Facts and Models, page 258
+% - Ref. values are the power law md^(~1.6), from 
+%   Zwicker, E. and Fastl, H. Second ed, Psychoacoustics, Facts and Models, page 258
 %
-%   - An increment of roughness becomes audible for an increment in the degree
-%       of modulation of about 10%, which corresponds to an increment of about
-%       17% in roughness. Source: Zwicker, E. and Fastl, H. Second ed,
-%       Psychoacoustics, Facts and Models, page 260
+% - An increment of roughness becomes audible for an increment in the degree
+%   of modulation of about 10%, which corresponds to an increment of about
+%   17% in roughness. Source: Zwicker, E. and Fastl, H. Second ed,
+%   Psychoacoustics, Facts and Models, page 260
 %
 % Roughness computed using:
 %   OUT = Roughness_Daniel1997(insig,fs,time_skip,show) 
 %   type <help Roughness_Daniel1997> for more info
 %
 % Author: Gil Felix Greco, Braunschweig 17.02.2020 (updated in 13.05.2023)
+% 
+% In order to run this code, the user needs to download the dataset of 
+%  sound files from zenodo (https://doi.org/10.5281/zenodo.7933206).
+%  The obtained folder called `validation_SQAT_v1_0` has to be included in 
+%  the `sound_files` folder of the toolbox. 
 %
+% This code is part of SQAT v1.0, released 14.05.2023
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 clc; clear all; close all;
 

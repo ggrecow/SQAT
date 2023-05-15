@@ -1,23 +1,30 @@
 % Script run_validation_roughness_fmod
 %
-%  This routine plot the validation of DW roughness code for 100% AM tones
+% Verification of DW roughness code for 100% AM tones
 %  at different frequencies in dependence of the modulation frequency
 %   
-%   - inputs loaded: The reference data is is taken from jury-test from the 
-%       paper (FIG3): Daniel, Peter, and Reinhard Weber. "Psychoacoustical 
-%      roughness: Implementation of an optimized model." Acta Acustica united 
-%       with Acustica 83 (1997): 113-123.
+% - Inputs, ref. data: the reference data is is taken from jury-test from the 
+%   paper (FIG3): Daniel, Peter, and Reinhard Weber. "Psychoacoustical 
+%   roughness: Implementation of an optimized model." Acta Acustica united 
+%   with Acustica 83 (1997): 113-123.
 %   
-%   - load signals - AM tones with different carrier frequencies (md=1 and L=60dB) 
-%     as a function of fmod [0 10 20 30 40 50 60 70 80 90 100 110 120 130 140 150 160]
-%     (refer to the function in the end of this script to see how the
-%     signals were originally generated)
+% - Inputs, signals: AM tones with different carrier frequencies (md=1 and L=60dB) 
+%   as a function of fmod [0 10 20 30 40 50 60 70 80 90 100 110 120 130 140 150 160]
+%   (refer to the function in the end of this script to see how the
+%   signals were originally generated)
 %
 % Roughness computed using:
 %   OUT = Roughness_Daniel1997(insig,fs,time_skip,show) 
 %   type <help Roughness_Daniel1997> for more info
 %
 % Author: Gil Greco, Braunschweig, 21/02/2020 (updated 13.05.2023)
+% 
+% In order to run this code, the user needs to download the dataset of 
+%  sound files from zenodo (https://doi.org/10.5281/zenodo.7933206).
+%  The obtained folder called `validation_SQAT_v1_0` has to be included in 
+%  the `sound_files` folder of the toolbox. 
+%
+% This code is part of SQAT v1.0, released 14.05.2023
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 clc; clear all; close all;
 

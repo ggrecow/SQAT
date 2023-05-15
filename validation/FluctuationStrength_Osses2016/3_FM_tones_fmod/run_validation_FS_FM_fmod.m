@@ -1,14 +1,28 @@
 % Script run_validation_FS_FM_fmod
-%  This routine plot the validation of fluctuation strength (Osses et al. model )
+%
+% This routine plot the validation of fluctuation strength (Osses et al. model)
+%  for FM tones as a function of the modulation frequency
 %  
-%  SIGNALS: FM tones, fc=1500 Hz, freq deviation=700 Hz, 70dBSPL, and fmod=[1 2 4 8 16 32] 
+% - Inputs, signals: FM tones, fc=1500 Hz, freq deviation=700 Hz, 
+%   70dBSPL, and fmod=[1 2 4 8 16 32] 
 %
-%  Details taken from : 
-%  Osses Vecchi, Alejandro, Rodrigo García León, and Armin Kohlrausch. 
-%  "Modelling the sensation of fluctuation strength." Proceedings of Meetings on Acoustics 
-%  22ICA. Vol. 28. No. 1. Acoustical Society of America, 2016.
+% - Reference values taken from: 
+%   Osses Vecchi, Alejandro, Rodrigo García León, and Armin Kohlrausch. 
+%   "Modelling the sensation of fluctuation strength." Proceedings of Meetings on Acoustics 
+%   22ICA. Vol. 28. No. 1. Acoustical Society of America, 2016.
 %
-%  Author: Gil Felix Greco, Braunschweig, 02/03/2020 (updated in 13.03.2023)
+% Fluctuation strength computed using:
+%   OUT = FluctuationStrength_Osses2016(insig,fs,method,time_skip,show)
+%   type <help FluctuationStrength_Osses2016> for more info
+%
+% Author: Gil Felix Greco, Braunschweig, 02/03/2020 (updated in 13.03.2023)
+% 
+% In order to run this code, the user needs to download the dataset of 
+%  sound files from zenodo (https://doi.org/10.5281/zenodo.7933206).
+%  The obtained folder called `validation_SQAT_v1_0` has to be included in 
+%  the `sound_files` folder of the toolbox. 
+%
+% This code is part of SQAT v1.0, released 14.05.2023
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 clc; clear all; close all;
 

@@ -1,16 +1,27 @@
 % Script validation_signal_to_noise_ratio
 %
-%  This routine plot the validation of Aures' tonality code for pure tone 
-%    signals (85 dBSPL @ 1 kHz) and varying emergence level [0 10 20 30 40 
-%    50 60 70 80] dBSPL over a bandpass (white noise) in the critical band 
-%    centered around the tone 
+% - This routine plot the validation of Aures' tonality code for pure tone 
+%   signals (85 dBSPL @ 1 kHz) and varying emergence level [0 10 20 30 40 
+%   50 60 70 80] dBSPL over a bandpass (white noise) in the critical band 
+%   centered around the tone 
 %   
-%  The reference data is taken from:
-%    Aaron Hastings, Kyoung Hoon Lee, Patricia Davies, and Aimée M. Surprenant
-%    "Measurement of the attributes of complex tonal components commonly 
-%    found in product sound" Noise Control Eng. J. 51, 2003.
+% - The reference data is taken from:
+%   Aaron Hastings, Kyoung Hoon Lee, Patricia Davies, and Aimée M. Surprenant
+%   "Measurement of the attributes of complex tonal components commonly 
+%   found in product sound" Noise Control Eng. J. 51, 2003.
+%
+% - Tonality computed using 
+%   OUT = Tonality_Aures1985(insig,fs,LoudnessField,time_skip,show)
+%   type <help Tonality_Aures1985> for more info
 %
 % Author: Gil Felix Greco, Braunschweig, 22.03.2023
+%
+% In order to run this code, the user needs to download the dataset of 
+%  sound files from zenodo (https://doi.org/10.5281/zenodo.7933206).
+%  The obtained folder called `validation_SQAT_v1_0` has to be included in 
+%  the `sound_files` folder of the toolbox. 
+%
+% This code is part of SQAT v1.0, released 14.05.2023
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 clear all; close all; clc;
 

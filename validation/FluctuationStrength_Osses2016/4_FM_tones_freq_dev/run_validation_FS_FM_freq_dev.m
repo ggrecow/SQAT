@@ -1,13 +1,27 @@
 % Script run_validation_FS_FM_freq_dev
-%  This routine plot the validation of fluctuation strength (Osses et al. model )
 %
-%  SIGNALS: FM tones with carrier frequency of 1.5 kHz (fmod=4 Hz, md=1 and  L=70dB) as a function of frequency deviation fdev=[16 32 100 300 700];  
+% This routine plot the validation of fluctuation strength (Osses et al. model)
+%  for FM tones as a function of the frequency deviation
+%
+% - Inputs, signals: FM tones with carrier frequency of 1.5 kHz (fmod=4 Hz, md=1 and  L=70dB)
+%   as a function of frequency deviation fdev=[16 32 100 300 700];  
 %   
-%  Ref. taken from : 
-%  Zwicker, E. and Fastl, H. Second ed, Psychoacoustics, Facts and Models, ed. M.R. Schroeder. Springer-Verlag, Berlin, 1999.
-%  pg. 251
+% - Reference values taken from: 
+%   Zwicker, E. and Fastl, H. Second ed, Psychoacoustics, Facts and Models, 
+%   ed. M.R. Schroeder. Springer-Verlag, Berlin, 1999. pg. 251
+%
+% Fluctuation strength computed using:
+%   OUT = FluctuationStrength_Osses2016(insig,fs,method,time_skip,show)
+%   type <help FluctuationStrength_Osses2016> for more info
 %
 % Author: Gil Felix Greco, Braunschweig, 02/03/2020 (updated in 13.03.2023)
+% 
+% In order to run this code, the user needs to download the dataset of 
+%  sound files from zenodo (https://doi.org/10.5281/zenodo.7933206).
+%  The obtained folder called `validation_SQAT_v1_0` has to be included in 
+%  the `sound_files` folder of the toolbox. 
+%
+% This code is part of SQAT v1.0, released 14.05.2023
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 clc; clear all; close all;
 

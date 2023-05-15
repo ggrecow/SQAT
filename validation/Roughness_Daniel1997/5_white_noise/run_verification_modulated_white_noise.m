@@ -1,14 +1,17 @@
 % Script run_verification_modulated_white_noise
 %
-% Compute roughness of:
-%       1) 100% AM white noise (fmod = 70HZ)
+% Compute roughness of 100% AM white noise (fmod = 70HZ and 70 dBSPL rems) 
+%
+% - input signal are generated in the code
 %
 % Roughness computed using:
 %   OUT = Roughness_Daniel1997(insig,fs,time_skip,show) 
 %   type <help Roughness_Daniel1997> for more info
 %
 % Author: Gil Felix Greco, Braunschweig 13.05.2023
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% This code is part of SQAT v1.0, released 14.05.2023
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 clc; clear all; close all;
 
 save_figs=0; % no=0; yes=1
