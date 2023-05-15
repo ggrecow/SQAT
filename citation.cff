@@ -10,7 +10,7 @@ authors:
 - family-names: "Osses"
   given-names: "Alejandro"
   orcid: "https://orcid.org/0000-0001-8028-4936"
-title: "SQAT: a sound quality analysis toolbox for MATLAB"
+title: "SQAT: A sound quality analysis toolbox for MATLAB"
 version: 1.0
 doi: 10.5281/zenodo.7934710 
 date-released: 2023-05-14
