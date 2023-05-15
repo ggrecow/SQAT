@@ -8,7 +8,7 @@ The toolbox has the following directories:
 - `utilities`: contains some scripts that are complementary to any of the toolbox functions.
 - `examples`: an example script is provided for each metric.
 - `sound_files`: this directory hosts reference sounds in .wav format that are used mainly by the `examples` codes. 
-- `validation`: this directory contains scripts used to validate each algorithm. Instructions on how to reproduce these codes are provided in each respective folder and directly on the header of the codes.
+- `validation`: this directory contains scripts used to validate each algorithm. Instructions on how to run these codes are provided in each respective folder and directly on the header of the codes.
 - `publications`: scripts reproducing figures and/or tables for publications using SQAT are provided in this directory.
 
 # How to use the toolbox
