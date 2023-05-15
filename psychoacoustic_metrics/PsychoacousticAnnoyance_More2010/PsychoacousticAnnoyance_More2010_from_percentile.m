@@ -45,6 +45,7 @@ function OUT = PsychoacousticAnnoyance_More2010_from_percentile(N,S,R,FS,K)
 %
 %  Gil Felix Greco, Braunschweig 05.04.2023
 %
+%  This code is part of SQAT v1.0, released 14.05.2023
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %% modified PA model constants (Ref. [1] pg. 204)
@@ -73,7 +74,7 @@ wfr = ( 2.18/(N^(0.4)) ) * (0.4*FS + 0.6*R);
 wfr( isinf(wfr) | isnan(wfr) ) = 0;  % replace inf and NaN with zeros
 
 % Tonality influence
-wt = ( 1-exp(-gamma_4*N) )^2 * ( 1-exp(-gamma_5*K) )^2;
+wt = abs( ( 1-exp(-gamma_4*N) )^2 * ( 1-exp(-gamma_5*K) )^2 );
 
 wt( isinf(wt) | isnan(wt) ) = 0;  % replace inf and NaN with zeros
 

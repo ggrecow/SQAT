@@ -79,6 +79,8 @@ function OUT = Sharpness_DIN45692_from_wavfile(wavfilename, dBFS, weight_type, L
 %
 % Author: Alejandro Osses, based on the code by Gil Felix Greco
 % See also: Sharpness_DIN45692.m
+%
+% This code is part of SQAT v1.0, released 14.05.2023
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 if nargin == 0
     help Sharpness_DIN45692_from_wavfile;

@@ -66,6 +66,8 @@ function OUT = FluctuationStrength_Osses2016(insig,fs,method,time_skip,show)
 %            fluctuation strength.
 % Author: Alejandro Osses, 11/05/2023. Moving TerhardtExcitationPatterns_v3, 
 %            Get_Bark to the private folder (old il_* functions)
+%
+% This code is part of SQAT v1.0, released 14.05.2023
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 if nargin == 0
     help FluctuationStrength_Osses2016;

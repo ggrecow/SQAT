@@ -99,6 +99,8 @@ function OUT = PsychoacousticAnnoyance_Di2016_from_wavfile(wavfilename,dBFS,Loud
 %
 % Author: Alejandro Osses
 % See also: PsychoacousticAnnoyance_Di2016.m
+%
+% This code is part of SQAT v1.0, released 14.05.2023
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 if nargin == 0
     help PsychoacousticAnnoyance_Di2016_from_wavfile

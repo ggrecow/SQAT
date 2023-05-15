@@ -85,6 +85,8 @@ function OUT = PsychoacousticAnnoyance_Zwicker1999_from_wavfile(wavfilename,dBFS
 %
 % Author: Alejandro Osses
 % See also: PsychoacousticAnnoyance_Zwicker1999.m
+%
+%  This code is part of SQAT v1.0, released 14.05.2023
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 if nargin == 0
     help PsychoacousticAnnoyance_Zwicker1999_from_wavfile;

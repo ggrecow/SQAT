@@ -51,6 +51,8 @@ function OUT = Tonality_Aures1985(insig,fs,LoudnessField,time_skip,show)
 %         ** Kx : percentile InstantaneousTonality exceeded during x percent of the signal (t.u.)
 %
 % Author: Gil Felix Greco, Braunschweig 13/07/2020 (updated 14.04.2023)
+%
+% This code is part of SQAT v1.0, released 14.05.2023
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 if nargin < 5

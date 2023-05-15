@@ -43,6 +43,8 @@ function [outsig_dB, dBFS] = Do_SLM(insig,fs,weight_freq,weight_time,dBFS)
 % Last update on: 12/07/2016 
 %               : 22/03/2023, AO: Stylised output figure and independency 
 %                             of codes with respect to the LTFAT toolbox.
+%
+% This code is part of SQAT v1.0, released 14.05.2023
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 if nargin < 3

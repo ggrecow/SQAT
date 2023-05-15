@@ -67,6 +67,8 @@ function OUT = Sharpness_DIN45692(insig, fs, weight_type, LoudnessField, Loudnes
 %                     time_skip to compute the statistics
 %
 % Author: Gil Felix Greco, Braunschweig 09.03.2023
+%
+% This code is part of SQAT v1.0, released 14.05.2023
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 if nargin == 0
     help Sharpness_DIN45692;

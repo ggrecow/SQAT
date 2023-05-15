@@ -101,6 +101,8 @@ function OUT = PsychoacousticAnnoyance_More2010(insig,fs,LoudnessField,time_skip
 %           end to the final time corresponding to the FS metric
 %
 % Author: Gil Felix Greco, Braunschweig 05.04.2023
+%
+% This code is part of SQAT v1.0, released 14.05.2023
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 if nargin == 0
     help PsychoacousticAnnoyance_More2010;
@@ -209,7 +211,7 @@ if time_insig(end) < 2
     wfr( isinf(wfr) | isnan(wfr) ) = 0;  % replace inf and NaN with zeros
     
     % Tonality influence
-    wt = ( 1-exp(-gamma_4*L.N5) )^2 * ( 1-exp(-gamma_5*K.K5) )^2;
+    wt = abs( ( 1-exp(-gamma_4*L.N5) )^2 * ( 1-exp(-gamma_5*K.K5) )^2 );
     
     wt( isinf(wt) | isnan(wt) ) = 0;  % replace inf and NaN with zeros
     
@@ -297,7 +299,7 @@ else % for signals larger than 2 seconds
         wfr( isinf(wfr) | isnan(wfr) ) = 0;  % replace inf and NaN with zeros
         
         % Tonality influence
-        wt(i) = ( 1-exp(-gamma_4.*L.InstantaneousLoudness(i)) ).^2 .*( 1-exp(-gamma_5.*tonality(i)) ).^2;
+        wt(i) = abs( ( 1-exp(-gamma_4.*L.InstantaneousLoudness(i)) ).^2 .*( 1-exp(-gamma_5.*tonality(i)) ).^2 );
         
         wt( isinf(wt) | isnan(wt) ) = 0;  % replace inf and NaN with zeros
         
@@ -327,7 +329,7 @@ else % for signals larger than 2 seconds
     wfr( isinf(wfr) | isnan(wfr) ) = 0;  % replace inf and NaN with zeros
     
     % Tonality influence
-    wt = ( 1-exp(-gamma_4*L.N5) )^2 * ( 1-exp(-gamma_5*K.K5) )^2;
+    wt = abs( ( 1-exp(-gamma_4*L.N5) )^2 * ( 1-exp(-gamma_5*K.K5) )^2 );
     
     wt( isinf(wt) | isnan(wt) ) = 0;  % replace inf and NaN with zeros
     

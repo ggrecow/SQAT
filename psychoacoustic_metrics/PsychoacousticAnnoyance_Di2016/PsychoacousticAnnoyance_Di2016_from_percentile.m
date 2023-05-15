@@ -19,6 +19,7 @@ function OUT = PsychoacousticAnnoyance_Di2016_from_percentile(N,S,R,FS,K)
 %
 %    5) Tonality, K (t.u.)
 %
+% This code is part of SQAT v1.0, released 14.05.2023
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
 % INPUT:

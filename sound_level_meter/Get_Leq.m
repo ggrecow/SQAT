@@ -18,6 +18,8 @@ function Leq = Get_Leq(levels,fs,dt,framelen_s)
 % Created on    : 13/07/2016
 % Last update on: 13/07/2016 
 % Last use on   : 24/01/2017 
+%
+% This code is part of SQAT v1.0, released 14.05.2023
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 if nargin > 2

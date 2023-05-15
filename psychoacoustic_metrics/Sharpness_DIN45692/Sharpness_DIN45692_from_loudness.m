@@ -51,6 +51,8 @@ function OUT = Sharpness_DIN45692_from_loudness(SpecificLoudness, weight_type, t
 %                     time_skip to compute the statistics
 %
 % Author: Gil Felix Greco, Braunschweig 09.03.2023
+%
+% This code is part of SQAT v1.0, released 14.05.2023
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 if nargin < 5
     if nargout == 0
