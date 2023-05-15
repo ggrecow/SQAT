@@ -2,9 +2,10 @@
 
 The `pub_Greco2023_Internoise.m` code generates the figures of the following publication:
 
-Felix Greco, G., Merino-Martínez, R., Osses, A., & Langer, S. C. (2023). SQAT: a MATLAB-based toolbox for quantitative sound quality. In Proceedings of the INTER–NOISE and NOISE–CON Congress, the 52nd International Congress and Exhibition on Noise Control Engineering, Chiba, Japan, 20–23 August 2023. 
+Felix Greco, G., Merino-Martínez, R., Osses, A., & Langer, S. C. (2023). SQAT: a MATLAB-based toolbox for quantitative sound quality. **(to be presented at Internoise in August 2023)**
 
-# How to use this code
+<!--In Proceedings of the INTER–NOISE and NOISE–CON Congress, the 52nd International Congress and Exhibition on Noise Control Engineering, Chiba, Japan, 20–23 August 2023.-->
+
 The `pub_Greco2023_Internoise.m` is a wraper to the codes used to verify the psychoacoustic metrics implemented in SQAT v1.0. The following codes are called by this wraper:
 - `Loudness_ISO532_1`: verification using synthetic stationary signals (see code [here](../../validation/Loudness_ISO532_1/1_synthetic_signals_stationary_loudness)) and time-varying technical signals (see code [here](../../validation/Loudness_ISO532_1/3_technical_signals_time_varying_loudness)).
 - `Sharpness_DIN45692`: verification using narrowband and broadband signals (see code [here](../../validation/Sharpness_DIN45692)).
@@ -12,7 +13,9 @@ The `pub_Greco2023_Internoise.m` is a wraper to the codes used to verify the psy
 - `FluctuationStrength_Osses2016`: verification using AM tones as a function of the modulation frequency (see code [here](../../validation/FluctuationStrength_Osses2016/1_AM_tones_fmod)) and AM broadband noises as a function of the modulation frequency (see code [here](../../validation/FluctuationStrength_Osses2016/2_AM_BBN_fmod)).   
 - `Tonality_Aures1985`: verification using pure tones with different SNR from narrowband noises (see code [here](../../validation/Tonality_Aures1985)).
 
-In order to run the validation codes, the user needs to download the dataset of sound files from zenodo <a href="https://doi.org/10.5281/zenodo.7933206" target="_blank">here</a>. The obtained folder called `validation_SQAT_v1_0` has to be included in the `sound_files` folder of the toolbox. 
+# How to use this code
+To run the `pub_Greco2023_Internoise.m` code, the user needs to download the dataset of sound files used by the verification codes from zenodo <a href="https://doi.org/10.5281/zenodo.7933206" target="_blank">here</a>. The obtained folder called `validation_SQAT_v1_0` has to be included in the `sound_files` folder of the toolbox. 
 
+# Log
 This code is part of SQAT v1.0, released 14.05.2023
 
