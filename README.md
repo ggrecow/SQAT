@@ -1,4 +1,4 @@
-# SQAT: A sound quality analysis toolbox for MATLAB
+# SQAT: a sound quality analysis toolbox for MATLAB
 This is the repository of **SQAT**, an open-source **S**ound **Q**uality **A**nalysis **T**oolbox for MATLAB. It contains a collection of codes implementing key metrics for quantitative sound quality analysis. With **SQAT** you can conduct quick quantitative sound quality analysis from any calibrated input sound file, in Pascal units. We provide a number of example codes to facilitate the initial use of the algorithms and exemplary sound files. Moreover, an extensive validation of the implemented psychoacoustic-based metrics is provided. All validation codes are reproducible.
 
 # Toolbox structure
@@ -35,7 +35,7 @@ The following SPL-based metrics using different frequency weightings (A, C, or Z
 # How to cite this repository
 If you use this toolbox in your research, please help us to gain visibility by citing SQAT:
 
-Gil Felix Greco, Roberto Merino-Martínez, & Alejandro Osses. (2023). SQAT: A sound quality analysis toolbox for MATLAB. Zenodo. [https://doi.org/10.5281/zenodo.7934709]( https://doi.org/10.5281/zenodo.7934709)
+Gil Felix Greco, Roberto Merino-Martínez, & Alejandro Osses. (2023). SQAT: a sound quality analysis toolbox for MATLAB. Zenodo. [https://doi.org/10.5281/zenodo.7934709]( https://doi.org/10.5281/zenodo.7934709)
 
 If you need to cite  the current release of SQAT, please refer to the "Cite this repository" feature in the "About" section of this GitHub repository.
 
