@@ -5,9 +5,9 @@ This is the repository of **SQAT**, an open-source **S**ound **Q**uality **A**na
 The toolbox has the following directories:
 - `psychoacoustic_metrics`: this directory contains a number of algorithms implementing a specific psychoacoustic metric. 
 - `sound_level_meter`: contains scripts to obtain sound pressure levels in dB(A), dB(C), or dB(Z), using fast, slow or impulse time weightings.
-- `utilities`: contains some scripts that are complementary to any of the toolbox functions.
 - `examples`: an example script is provided for each metric.
 - `sound_files`: this directory hosts reference sounds in .wav format that are used mainly by the `examples` codes. 
+- `utilities`: contains some scripts that are complementary to any of the toolbox functions.
 - `validation`: this directory contains scripts used to validate each algorithm. Instructions on how to run these codes are provided in each respective folder and directly on the header of the codes.
 - `publications`: scripts reproducing figures and/or tables for publications using SQAT are provided in this directory.
 
@@ -16,7 +16,7 @@ After downloading this repository, you just need to add the toolbox into the pat
 
 # Sound quality metrics available in SQAT v1.0
 The folowing psychoacoustic-based metrics are available in the `psychoacoustic_metrics` folder :
-- `Loudness_ISO532_1`: Zwicker loudness model according to ISO 532-1:2016 (see validation [here](validation/Loudness_ISO532_1) and example [here](examples/Loudness_ISO532_1/ex_Loudness_ISO532_1.m)).
+- `Loudness_ISO532_1`: Zwicker loudness model according to ISO 532-1:2017 (see validation [here](validation/Loudness_ISO532_1) and example [here](examples/Loudness_ISO532_1/ex_Loudness_ISO532_1.m)).
 - `Sharpness_DIN45692`: Sharpness according to DIN 45692:2009 (see validation [here](validation/Sharpness_DIN45692) and example [here](examples/Sharpness_DIN45692/ex_Sharpness_DIN45692.m)). 
 - `Roughness_Daniel1997`: Roughness model from Daniel & Weber (see validation [here](validation/Roughness_Daniel1997) and example [here](examples/Roughness_Daniel1997/ex_Roughness_Daniel1997.m)).  
 - `FluctuationStrength_Osses2016`: Fluctuation strength model from Osses et al. (see validation [here](validation/FluctuationStrength_Osses2016) and example [here](examples/FluctuationStrength_Osses2016/ex_FluctuationStrength_Osses2016.m)).   
