@@ -27,7 +27,7 @@ clear all; close all; clc;
 
 %% save settings
 
-save_figs=0;
+save_figs = 0;
 
 %% define input/output paths
 
@@ -96,7 +96,7 @@ ylim([0 1.1]);
 xlim([0 80]);
 
 ylabel('Time-averaged tonality, $K_{\mathrm{mean}}$ (t.u.)','Interpreter','Latex');
-xlabel(sprintf('Signal to noise ratio in the critical band\n centered about the tone (dBSPL)'),'Interpreter','Latex'); 
+xlabel(sprintf('Signal-to-noise ratio in the critical band\n centered about the tone (dB)'),'Interpreter','Latex'); 
 grid off
 
 legend([a,b],{ 'Literature',...
