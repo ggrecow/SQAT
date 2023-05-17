@@ -28,7 +28,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 clc; clear all; close all;
 
-save_figs=0; %% save figs flag
+save_figs = 0; %% save figs flag
 
 %% path settings 
 
@@ -212,6 +212,7 @@ for i=1:N_signals
 end
 
 %% plot 125 Hz and 500 Hz
+
 h  =figure;
 set(h,'Units','Inches');
 pos = get(h,'Position');
@@ -238,40 +239,41 @@ fmod_computed=0:10:160;      % modulation freq vector for reference values
 plot(fmod_125_computed,results_125hz(1:11),'ko:','MarkerSize',8);hold all;
 plot(fmod_computed,results_500hz,'bo:','MarkerSize',8);
 
-legend('Ref. - $f_{\mathrm{c}}$=125 Hz$\pm17\:\%\:(\mathrm{JND})$',...
-       'Ref. - $f_{\mathrm{c}}$=500 Hz$\pm17\:\%\:(\mathrm{JND})$',...  
+legend('Ref. - $f_{\mathrm{c}}$=125 Hz$\:\pm\:17\:\%\:(\mathrm{JND})$',...
+       'Ref. - $f_{\mathrm{c}}$=500 Hz$\:\pm\:17\:\%\:(\mathrm{JND})$',...  
        'SQAT - $f_{\mathrm{c}}$=125 Hz',...
        'SQAT - $f_{\mathrm{c}}$=500 Hz',... 
-       'Location','NorthEast','Interpreter','Latex');
+       'Location','NW','Interpreter','Latex');
    
 legend boxoff
 
-axis([0 160 0 1.2]);
+axis([0 170 0 1.4]);
  ax = gca;
      set(ax,'XTick',[0 20 40 60 80 100 120 140 160]);
-     set(ax,'YTick',[0 0.2 0.4 0.6 .8 1]);
+     set(ax,'YTick',[0 0.2 0.4 0.6 .8 1 1.2 1.4]);
      ax.XAxis.MinorTick = 'on';
      ax.XAxis.MinorTickValues =  0:10:160; 
      ax.YAxis.MinorTick = 'on';
      ax.YAxis.MinorTickValues = 0:0.1:1.2; 
      
-ylabel('Roughness, $R$ (asper)','Interpreter','Latex');
+ylabel('Time-averaged roughness, $R_{\mathrm{mean}}$ (asper)','Interpreter','Latex');
 xlabel('Modulation frequency, $f_{\mathrm{mod}}$ (Hz)','Interpreter','Latex');
 
 set(gcf,'color','w');
 
 if save_figs==1
-    figname_short = 'validation_roughness_fmod_125_500';
+    figname_short = 'validation_roughness_fmod_125hz_500hz';
     figname_out = [figures_dir figname_short];
     
     % saveas(gcf,figname_out, 'fig');
-    % saveas(gcf,figname_out, 'pdf');
+%     saveas(gcf,figname_out, 'pdf');
     saveas(gcf,figname_out, 'png');
     
-    fprintf('%s.m: figure %s was saved on disk\n\t(full name: %s)\n',mfilename,figname_short,figname_out);
+    fprintf('\n%s.m: figure %s was saved on disk\n\t(full name: %s)\n',mfilename,figname_short,figname_out);
 end
 
-%% plot 2 kHz and 8 kHz
+%% plot 2 kHz  
+
 h  =figure;
 set(h,'Units','Inches');
 pos = get(h,'Position');
@@ -286,53 +288,46 @@ errorbar(fmod,fmod_2khz,err_2khz,'b-*','MarkerSize',6,'Linewidth',.5);hold all %
 
 % plot(fmod,fmod_2khz,'b-*','MarkerSize',6);hold all;
 
-err_8khz= (0.17*fmod_8khz);
-errorbar(fmod,fmod_8khz,err_8khz,'k-*','MarkerSize',6,'Linewidth',.5);hold all % results from SQAT
-
-% plot(fmod,fmod_8khz,'k-*','MarkerSize',6);hold all;
-
 % plot computed results
 fmod_computed=0:10:160;      % modulation freq vector for reference values 
 
 plot(fmod_computed,results_2khz,'bo:','MarkerSize',8);
-plot(fmod_computed,results_8khz,'ko:','MarkerSize',8);hold all;
 
-legend('Ref. - $f_{\mathrm{c}}$=2 kHz$\pm17\:\%\:(\mathrm{JND})$',...
-       'Ref. - $f_{\mathrm{c}}$=8 kHz$\pm17\:\%\:(\mathrm{JND})$',...  
+legend('Ref. - $f_{\mathrm{c}}$=2 kHz$\:\pm\:17\:\%\:(\mathrm{JND})$',...
        'SQAT - $f_{\mathrm{c}}$=2 kHz',...
-       'SQAT - $f_{\mathrm{c}}$=8 kHz',... 
        'Location','NW','Interpreter','Latex');
    
 legend boxoff
 
-axis([0 160 0 1.4]);
+axis([0 170 0 1.4]);
  ax = gca;
      set(ax,'XTick',[0 20 40 60 80 100 120 140 160]);
-     set(ax,'YTick',[0 0.2 0.4 0.6 .8 1 1.2]);
+     set(ax,'YTick',[0 0.2 0.4 0.6 .8 1 1.2 1.4]);
      ax.XAxis.MinorTick = 'on';
      ax.XAxis.MinorTickValues =  0:10:160; 
      ax.YAxis.MinorTick = 'on';
      ax.YAxis.MinorTickValues = 0:0.1:1.4; 
      
-ylabel('Roughness, $R$ (asper)','Interpreter','Latex');
+ylabel('Time-averaged roughness, $R_{\mathrm{mean}}$ (asper)','Interpreter','Latex');
 xlabel('Modulation frequency, $f_{\mathrm{mod}}$ (Hz)','Interpreter','Latex');
 
 set(gcf,'color','w');
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 if save_figs==1
-    figname_short = 'validation_roughness_fmod_2k_8k';
+    figname_short = 'validation_roughness_fmod_2khz';
     figname_out = [figures_dir figname_short];
     
     % saveas(gcf,figname_out, 'fig');
     % saveas(gcf,figname_out, 'pdf');
     saveas(gcf,figname_out, 'png');
     
-    fprintf('%s.m: figure %s was saved on disk\n\t(full name: %s)\n',mfilename,figname_short,figname_out);
+    fprintf('\n%s.m: figure %s was saved on disk\n\t(full name: %s)\n',mfilename,figname_short,figname_out);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-%% plot 1 kHz
+%% plot 1 kHz and 8 kHz
+
 h  =figure;
 set(h,'Units','Inches');
 pos = get(h,'Position');
@@ -347,43 +342,53 @@ errorbar(fmod,fmod_1khz,err_1khz,'k-*','MarkerSize',6,'Linewidth',.5);hold all %
 
 % plot(fmod,fmod_1khz,'k-*','MarkerSize',6);hold all;
 
+err_8khz= (0.17*fmod_8khz);
+errorbar(fmod,fmod_8khz,err_8khz,'b-*','MarkerSize',6,'Linewidth',.5);hold all % results from SQAT
+
+% plot(fmod,fmod_8khz,'k-*','MarkerSize',6);hold all;
+
 % plot computed results
 fmod_computed=0:10:160;      % modulation freq vector for reference values 
 
 plot(fmod_computed,results_1khz,'ko:','MarkerSize',8);hold all;
 
-legend('Ref. - $f_{\mathrm{c}}$=1 kHz$\pm17\:\%\:(\mathrm{JND})$',...
-       'SQAT - $f_{\mathrm{c}}$=1 kHz',...  
+plot(fmod_computed,results_8khz,'bo:','MarkerSize',8);hold all;
+
+legend('Ref. - $f_{\mathrm{c}}$=1 kHz$\:\pm\:17\:\%\:(\mathrm{JND})$',...
+       'Ref. - $f_{\mathrm{c}}$=8 kHz$\:\pm\:17\:\%\:(\mathrm{JND})$',...  
+       'SQAT - $f_{\mathrm{c}}$=1 kHz',...
+       'SQAT - $f_{\mathrm{c}}$=8 kHz',... 
        'Location','NW','Interpreter','Latex');
    
 legend boxoff
 
-axis([0 160 0 1.6]);
+axis([0 170 0 1.8]);
  ax = gca;
      set(ax,'XTick',[0 20 40 60 80 100 120 140 160]);
-     set(ax,'YTick',[0 0.2 0.4 0.6 .8 1 1.2 1.4]);
+     set(ax,'YTick',[0 0.2 0.4 0.6 .8 1 1.2 1.4 1.6 1.8 2]);
      ax.XAxis.MinorTick = 'on';
      ax.XAxis.MinorTickValues =  0:10:160; 
      ax.YAxis.MinorTick = 'on';
-     ax.YAxis.MinorTickValues = 0:0.1:1.6; 
+     ax.YAxis.MinorTickValues = 0:0.1:2; 
      
-ylabel('Roughness, $R$ (asper)','Interpreter','Latex');
+ylabel('Time-averaged roughness, $R_{\mathrm{mean}}$ (asper)','Interpreter','Latex');
 xlabel('Modulation frequency, $f_{\mathrm{mod}}$ (Hz)','Interpreter','Latex');
 
 set(gcf,'color','w');
 
 if save_figs==1
-    figname_short = 'validation_roughness_fmod_1k';
+    figname_short = 'validation_roughness_fmod_1khz_8khz';
     figname_out = [figures_dir figname_short];
     
     % saveas(gcf,figname_out, 'fig');
-    % saveas(gcf,figname_out, 'pdf');
+%     saveas(gcf,figname_out, 'pdf');
     saveas(gcf,figname_out, 'png');
     
-    fprintf('%s.m: figure %s was saved on disk\n\t(full name: %s)\n',mfilename,figname_short,figname_out);
+    fprintf('\n%s.m: figure %s was saved on disk\n\t(full name: %s)\n',mfilename,figname_short,figname_out);
 end
 
 %% plot 250 Hz and 4 kHz
+
 h  =figure;
 set(h,'Units','Inches');
 pos = get(h,'Position');
@@ -410,15 +415,15 @@ fmod_computed=0:10:160;      % modulation freq vector for reference values
 plot(fmod_computed,results_250hz,'ko:','MarkerSize',8);hold all;
 plot(fmod_computed,results_4khz,'bo:','MarkerSize',8);
 
-legend('Ref. - $f_{\mathrm{c}}$=250 Hz$\pm17\:\%\:(\mathrm{JND})$',...
-       'Ref. - $f_{\mathrm{c}}$=4 kHz$\pm17\:\%\:(\mathrm{JND})$',...  
+legend('Ref. - $f_{\mathrm{c}}$=250 Hz$\:\pm\:17\:\%\:(\mathrm{JND})$',...
+       'Ref. - $f_{\mathrm{c}}$=4 kHz$\:\pm\:17\:\%\:(\mathrm{JND})$',...  
        'SQAT - $f_{\mathrm{c}}$=250 Hz',...
        'SQAT - $f_{\mathrm{c}}$=4 kHz',... 
        'Location','NW','Interpreter','Latex');
    
 legend boxoff
 
-axis([0 160 0 1.2]);
+axis([0 170 0 1.2]);
  ax = gca;
      set(ax,'XTick',[0 20 40 60 80 100 120 140 160]);
      set(ax,'YTick',[0 0.2 0.4 0.6 .8 1 1.2]);
@@ -427,20 +432,20 @@ axis([0 160 0 1.2]);
      ax.YAxis.MinorTick = 'on';
      ax.YAxis.MinorTickValues = 0:0.1:1.2; 
      
-ylabel('Roughness, $R$ (asper)','Interpreter','Latex');
+ylabel('Time-averaged roughness, $R_{\mathrm{mean}}$ (asper)','Interpreter','Latex');
 xlabel('Modulation frequency, $f_{\mathrm{mod}}$ (Hz)','Interpreter','Latex');
 
 set(gcf,'color','w');
 
 if save_figs==1
-    figname_short = 'validation_roughness_fmod_250_4k';
+    figname_short = 'validation_roughness_fmod_250hz_4khz';
     figname_out = [figures_dir figname_short];
     
     % saveas(gcf,figname_out, 'fig');
     % saveas(gcf,figname_out, 'pdf');
     saveas(gcf,figname_out, 'png');
     
-    fprintf('%s.m: figure %s was saved on disk\n\t(full name: %s)\n',mfilename,figname_short,figname_out);
+    fprintf('\n%s.m: figure %s was saved on disk\n\t(full name: %s)\n',mfilename,figname_short,figname_out);
 end
 
 %% function used to generate the signals (only for reference, not used here)
