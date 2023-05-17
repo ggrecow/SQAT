@@ -176,17 +176,13 @@ if do_fig4b
     
     cd(curr_dir);
     
-    idx = 3; % a priori knowledge, plot of 1 kHz
+    idx = 3; % a priori knowledge, plot of 1 kHz and 8 kHz
     h(end+1) = idx;
     figure(h(end));
-    
-    idx = 2; % a priori knowledge, plot of 8 kHz
-    h(end+1) = idx;
-    figure(h(end));
-    
+        
     N_figs = 4; % a priori knowledge
     idx_figs = 1:N_figs;
-    idx_figs([h(1) h(2)]) = [];
+    idx_figs([h(1)]) = [];
     for i = 1:length(idx_figs)
         % Closes all figures that are not used
         close(figure(idx_figs(i)));
