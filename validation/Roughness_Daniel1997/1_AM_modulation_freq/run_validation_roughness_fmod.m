@@ -23,7 +23,6 @@
 %  the `sound_files` folder of the toolbox. 
 %
 % Author: Gil Felix Greco, Braunschweig, 21/02/2020 (updated 13.05.2023)
-%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 clc; clear all; close all;
 

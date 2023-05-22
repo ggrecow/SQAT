@@ -9,7 +9,6 @@
 %   type <help Roughness_Daniel1997> for more info
 %
 % Author: Gil Felix Greco, Braunschweig 13.05.2023
-%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 clc; clear all; close all;
 

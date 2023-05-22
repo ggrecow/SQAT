@@ -90,9 +90,6 @@ function OUT = PsychoacousticAnnoyance_More2010_from_wavfile(wavfilename,dBFS,Lo
 %   PsychoacousticAnnoyance_More2010_from_wavfile(fname,dBFS);
 %
 % Author: Alejandro Osses
-% See also: PsychoacousticAnnoyance_More2010.m
-%
-% This code is part of SQAT v1.0, released 14.05.2023
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 if nargin == 0
     help PsychoacousticAnnoyance_More2010_from_wavfile;

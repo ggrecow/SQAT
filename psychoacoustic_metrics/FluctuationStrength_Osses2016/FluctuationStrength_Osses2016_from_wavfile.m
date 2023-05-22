@@ -66,9 +66,6 @@ function OUT = FluctuationStrength_Osses2016_from_wavfile(wavfilename,dBFS,metho
 %   FluctuationStrength_Osses2016_from_wavfile(fname,dBFS);
 %
 % Author: Alejandro Osses
-% See also: FluctuationStrength_Osses2016.m
-%
-% This code is part of SQAT v1.0, released 14.05.2023
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 if nargin == 0

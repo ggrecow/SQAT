@@ -41,11 +41,7 @@ function OUT = PsychoacousticAnnoyance_More2010_from_percentile(N,S,R,FS,K)
 %   OUT : scalar
 %   modified psychoacoustic annoyance computed using the input percentile values of each metric
 %
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%
-%  Gil Felix Greco, Braunschweig 05.04.2023
-%
-%  This code is part of SQAT v1.0, released 14.05.2023
+% Author: Gil Felix Greco, Braunschweig 05.04.2023
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %% modified PA model constants (Ref. [1] pg. 204)

@@ -20,8 +20,7 @@
 %  The obtained folder called `validation_SQAT_v1_0` has to be included in 
 %  the `sound_files` folder of the toolbox. 
 %
-% Author: Gil Felix Greco, Braunschweig 02.03.2020 (updated 13.05.2023)
-% 
+% Author: Gil Felix Greco, Braunschweig 02.03.2020 (updated 13.05.2023) 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 clc; clear all; close all;
 

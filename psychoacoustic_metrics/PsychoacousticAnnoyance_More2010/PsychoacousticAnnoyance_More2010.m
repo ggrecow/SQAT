@@ -101,8 +101,6 @@ function OUT = PsychoacousticAnnoyance_More2010(insig,fs,LoudnessField,time_skip
 %           end to the final time corresponding to the FS metric
 %
 % Author: Gil Felix Greco, Braunschweig 05.04.2023
-%
-% This code is part of SQAT v1.0, released 14.05.2023
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 if nargin == 0
     help PsychoacousticAnnoyance_More2010;

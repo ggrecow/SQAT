@@ -9,7 +9,6 @@
 %   OUT = FluctuationStrength_Osses2016(insig,fs,time_skip,show)
 %   type <help FluctuationStrength_Osses2016> for more info
 %
-% See also: FluctuationStrength_Osses2016, run_validation_FS_fmod
 % Author: Gil Felix Greco, Braunschweig 13.03.2023
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 clc; clear all; close all;

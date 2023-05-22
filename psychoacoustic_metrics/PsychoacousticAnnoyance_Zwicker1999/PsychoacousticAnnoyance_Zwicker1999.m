@@ -86,8 +86,6 @@ function OUT = PsychoacousticAnnoyance_Zwicker1999(insig,fs,LoudnessField,time_s
 %           to the final time corresponding to the FS metric
 %
 % Author: Gil Felix Greco, Braunschweig 04.03.2020 (updated 14.03.2023)
-%
-%  This code is part of SQAT v1.0, released 14.05.2023
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 if nargin == 0
     help PsychoacousticAnnoyance_Zwicker1999;

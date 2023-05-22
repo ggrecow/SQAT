@@ -49,8 +49,6 @@ function OUT = Roughness_Daniel1997(insig,fs,time_skip,show)
 % Author: Matt Flax (2006) and Farhan Rizwi (2007), adapted for the PsySound3 toolbox
 % Author: Gil Felix Greco (2023). Adapted (and verified) for SQAT. 
 % Author: Alejandro Osses, 10/05/2023. Appropriate scaling for the specific roughness.
-%
-%  This code is part of SQAT v1.0, released 14.05.2023
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 if nargin == 0

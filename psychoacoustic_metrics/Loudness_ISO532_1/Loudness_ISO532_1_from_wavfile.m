@@ -75,9 +75,6 @@ function OUT = Loudness_ISO532_1_from_wavfile(wavfilename, dBFS, field, method, 
 %   Loudness_ISO532_1_from_wavfile(fname,dBFS);
 %
 % Author: Alejandro Osses
-% See also: Loudness_ISO532_1.m
-%
-% This code is part of SQAT v1.0, released 14.05.2023
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 if nargin == 0
     help Loudness_ISO532_1_from_wavfile;
