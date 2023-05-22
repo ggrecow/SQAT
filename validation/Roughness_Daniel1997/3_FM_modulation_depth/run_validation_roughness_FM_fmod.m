@@ -14,15 +14,14 @@
 % Roughness computed using:
 %   OUT = Roughness_Daniel1997(insig,fs,time_skip,show) 
 %   type <help Roughness_Daniel1997> for more info
-%
-% Author: Gil Felix Greco, Braunschweig 02.03.2020 (updated 13.05.2023)
 % 
 % In order to run this code, the user needs to download the dataset of 
 %  sound files from zenodo (https://doi.org/10.5281/zenodo.7933206).
 %  The obtained folder called `validation_SQAT_v1_0` has to be included in 
 %  the `sound_files` folder of the toolbox. 
 %
-% This code is part of SQAT v1.0, released 14.05.2023
+% Author: Gil Felix Greco, Braunschweig 02.03.2020 (updated 13.05.2023)
+% 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 clc; clear all; close all;
 

@@ -17,18 +17,17 @@
 %   OUT = Roughness_Daniel1997(insig,fs,time_skip,show) 
 %   type <help Roughness_Daniel1997> for more info
 %
-% Author: Gil Greco, Braunschweig, 21/02/2020 (updated 13.05.2023)
-% 
 % In order to run this code, the user needs to download the dataset of 
 %  sound files from zenodo (https://doi.org/10.5281/zenodo.7933206).
 %  The obtained folder called `validation_SQAT_v1_0` has to be included in 
 %  the `sound_files` folder of the toolbox. 
 %
-% This code is part of SQAT v1.0, released 14.05.2023
+% Author: Gil Felix Greco, Braunschweig, 21/02/2020 (updated 13.05.2023)
+%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 clc; clear all; close all;
 
-save_figs = 0; %% save figs flag
+save_figs = 1; %% save figs flag
 
 %% path settings 
 
@@ -223,12 +222,12 @@ fmod_125=20:10:100;  % modulation freq vector for reference values
 fmod=20:10:160;  % modulation freq vector for reference values 
 
 err_125hz= (0.17*fmod_125hz);
-errorbar(fmod_125,fmod_125hz,err_125hz,'k-*','MarkerSize',6,'Linewidth',.5);hold all % results from SQAT
+errorbar(fmod_125,fmod_125hz,err_125hz,'b-*','MarkerSize',6,'Linewidth',.5);hold all % results from SQAT
 
 % plot(fmod_125,fmod_125hz,'k-*','MarkerSize',6);hold all;
 
 err_500hz= (0.17*fmod_500hz);
-errorbar(fmod,fmod_500hz,err_500hz,'b-*','MarkerSize',6,'Linewidth',.5);hold all % results from SQAT
+errorbar(fmod,fmod_500hz,err_500hz,'k-*','MarkerSize',6,'Linewidth',.5);hold all % results from SQAT
 
 % plot(fmod,fmod_500hz,'b-*','MarkerSize',6);hold all;
 
@@ -236,8 +235,8 @@ errorbar(fmod,fmod_500hz,err_500hz,'b-*','MarkerSize',6,'Linewidth',.5);hold all
 fmod_125_computed=0:10:100;  % modulation freq vector for reference values 
 fmod_computed=0:10:160;      % modulation freq vector for reference values 
 
-plot(fmod_125_computed,results_125hz(1:11),'ko:','MarkerSize',8);hold all;
-plot(fmod_computed,results_500hz,'bo:','MarkerSize',8);
+plot(fmod_125_computed,results_125hz(1:11),'bo:','MarkerSize',8);hold all;
+plot(fmod_computed,results_500hz,'ko:','MarkerSize',8);
 
 legend('Ref. - $f_{\mathrm{c}}$=125 Hz$\:\pm\:17\:\%\:(\mathrm{JND})$',...
        'Ref. - $f_{\mathrm{c}}$=500 Hz$\:\pm\:17\:\%\:(\mathrm{JND})$',...  
@@ -400,20 +399,20 @@ fmod_250=20:10:130;  % modulation freq vector for reference values
 fmod=20:10:160;  % modulation freq vector for reference values 
 
 err_250hz= (0.17*fmod_250hz);
-errorbar(fmod_250,fmod_250hz,err_250hz,'k-*','MarkerSize',6,'Linewidth',.5);hold all % results from SQAT
+errorbar(fmod_250,fmod_250hz,err_250hz,'b-*','MarkerSize',6,'Linewidth',.5);hold all % results from SQAT
 
 % plot(fmod_250,fmod_250hz,'k-*','MarkerSize',6);hold all;
 
 err_4khz= (0.17*fmod_4khz);
-errorbar(fmod,fmod_4khz,err_4khz,'b-*','MarkerSize',6,'Linewidth',.5);hold all % results from SQAT
+errorbar(fmod,fmod_4khz,err_4khz,'k-*','MarkerSize',6,'Linewidth',.5);hold all % results from SQAT
 
 % plot(fmod,fmod_4khz,'b-*','MarkerSize',6);hold all;
 
 % plot computed results
 fmod_computed=0:10:160;      % modulation freq vector for reference values 
 
-plot(fmod_computed,results_250hz,'ko:','MarkerSize',8);hold all;
-plot(fmod_computed,results_4khz,'bo:','MarkerSize',8);
+plot(fmod_computed,results_250hz,'bo:','MarkerSize',8);hold all;
+plot(fmod_computed,results_4khz,'ko:','MarkerSize',8);
 
 legend('Ref. - $f_{\mathrm{c}}$=250 Hz$\:\pm\:17\:\%\:(\mathrm{JND})$',...
        'Ref. - $f_{\mathrm{c}}$=4 kHz$\:\pm\:17\:\%\:(\mathrm{JND})$',...  
