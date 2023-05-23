@@ -5,7 +5,7 @@ The `run_validation_roughness_fmod.m` code is used to verify the implementation 
 In order to run this code and reproduce the figures available in the `figs` folder, the user needs to download the dataset of sound files from zenodo <a href="https://doi.org/10.5281/zenodo.7933206" target="_blank">here</a>. The obtained folder called `validation_SQAT_v1_0` has to be included in the `sound_files` folder of the toolbox. 
 
 # Results
-The figures below compare the results obtained using the `Roughness_Daniel1997` implementation in SQAT with reference data obtained from listening tests [1]. The error bars express the roughness JND [2]. Results computed using SQAT correspond to the time-averaged roughness $R$.   
+The figures below compare the results obtained using the `Roughness_Daniel1997` implementation in SQAT with reference data obtained from listening tests [1]. The error bars express the roughness JND [2]. Results computed using SQAT correspond to time-averaged roughness values $R$.   
   
 | ![](figs/validation_roughness_fmod_125hz_500hz.png)       | ![](figs/validation_roughness_fmod_1khz_8khz.png)       |
 | -------------- | -------------- |
