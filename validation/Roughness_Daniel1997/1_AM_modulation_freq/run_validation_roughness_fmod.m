@@ -26,7 +26,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 clc; clear all; close all;
 
-save_figs = 1; %% save figs flag
+save_figs = 0; %% save figs flag
 
 %% path settings 
 
@@ -254,7 +254,7 @@ axis([0 170 0 1.4]);
      ax.YAxis.MinorTick = 'on';
      ax.YAxis.MinorTickValues = 0:0.1:1.2; 
      
-ylabel('Time-averaged roughness, $R_{\mathrm{mean}}$ (asper)','Interpreter','Latex');
+ylabel('Roughness, $R$ (asper)','Interpreter','Latex');
 xlabel('Modulation frequency, $f_{\mathrm{mod}}$ (Hz)','Interpreter','Latex');
 
 set(gcf,'color','w');
@@ -306,7 +306,7 @@ axis([0 170 0 1.4]);
      ax.YAxis.MinorTick = 'on';
      ax.YAxis.MinorTickValues = 0:0.1:1.4; 
      
-ylabel('Time-averaged roughness, $R_{\mathrm{mean}}$ (asper)','Interpreter','Latex');
+ylabel('Roughness, $R$ (asper)','Interpreter','Latex');
 xlabel('Modulation frequency, $f_{\mathrm{mod}}$ (Hz)','Interpreter','Latex');
 
 set(gcf,'color','w');
@@ -369,7 +369,7 @@ axis([0 170 0 1.8]);
      ax.YAxis.MinorTick = 'on';
      ax.YAxis.MinorTickValues = 0:0.1:2; 
      
-ylabel('Time-averaged roughness, $R_{\mathrm{mean}}$ (asper)','Interpreter','Latex');
+ylabel('Roughness, $R$ (asper)','Interpreter','Latex');
 xlabel('Modulation frequency, $f_{\mathrm{mod}}$ (Hz)','Interpreter','Latex');
 
 set(gcf,'color','w');
@@ -430,7 +430,7 @@ axis([0 170 0 1.2]);
      ax.YAxis.MinorTick = 'on';
      ax.YAxis.MinorTickValues = 0:0.1:1.2; 
      
-ylabel('Time-averaged roughness, $R_{\mathrm{mean}}$ (asper)','Interpreter','Latex');
+ylabel('Roughness, $R$ (asper)','Interpreter','Latex');
 xlabel('Modulation frequency, $f_{\mathrm{mod}}$ (Hz)','Interpreter','Latex');
 
 set(gcf,'color','w');

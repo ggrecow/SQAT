@@ -108,7 +108,7 @@ ax.XAxis.MinorTick = 'on';
 ax.YAxis.MinorTick = 'on';
 ax.YAxis.MinorTickValues = 0:0.1:3;
 
-ylabel('$R/R_0$ (\%)','Interpreter','Latex');
+ylabel('Relative roughness, $R/R_0$ (\%)','Interpreter','Latex');
 xlabel('Modulation frequency, $f_{\mathrm{mod}}$ (Hz)','Interpreter','Latex');
 
 set(gcf,'color','w');
@@ -135,7 +135,7 @@ end
 
 %% function used to generate the FM signals with varying fmod (only for reference, not used here)
 
-function s = make_FM_fmod_fc_1600hz
+function s = il_make_FM_fmod_fc_1600hz
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
@@ -209,7 +209,7 @@ end
 
 %% function used to generate the reference FM signal (only for reference, not used here)
 
-function s_ref = make_FM_fmod_fc_1600hz_reference_tone
+function s_ref = il_make_FM_fmod_fc_1600hz_reference_tone
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %

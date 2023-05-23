@@ -95,7 +95,7 @@ ax.XAxis.MinorTick = 'on';
 ax.YAxis.MinorTick = 'on';
 ax.YAxis.MinorTickValues = 0:0.1:3;
      
-ylabel('$R/R_0$ (\%)','Interpreter','Latex');
+ylabel('Relative roughness, $R/R_0$ (\%)','Interpreter','Latex');
 xlabel('Sound pressure level, $L_{\mathrm{p}}$ (dB re 20 $\mu$Pa)','Interpreter','Latex');
 
 set(gcf,'color','w');
@@ -122,7 +122,7 @@ end
 
 %% function used to generate the FM signals with varying level (only for reference, not used here)
 
-function s=make_FM_fmod_fc_1600hz
+function s=il_make_FM_fmod_fc_1600hz
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Generates signals for roughness algorithm validation
 %
@@ -189,7 +189,7 @@ end
 end
 %% function used to generate the reference FM signal (only for reference, not used here)
 
-function s=make_FM_fmod_fc_1600hz_reference_tone
+function s=il_make_FM_fmod_fc_1600hz_reference_tone
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Generates signals for roughness algorithm validation

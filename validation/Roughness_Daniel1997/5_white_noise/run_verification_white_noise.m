@@ -51,7 +51,8 @@ set(h,'PaperPositionMode','Auto','PaperUnits','Inches','PaperSize',[pos(3), pos(
 % pressure 
 yyaxis left
 plot(t,WhiteNoise);
-% axis([0 .11 -0.1 0.1]);
+axis([0 L -1 1]);
+
 ylabel('Acoustic pressure, $p$ (Pa)','Interpreter','Latex');
 xlabel('Time, $t$ (s)','Interpreter','Latex'); 
 

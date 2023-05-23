@@ -114,7 +114,7 @@ end
 
 %% function used to generate the signals (only for reference, not used here)
 
-function [s,fs] = make_AM_varying_md
+function [s,fs] = il_make_AM_varying_md
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Generates amplitude modulated (AM) signals for roughness algorithm validation
