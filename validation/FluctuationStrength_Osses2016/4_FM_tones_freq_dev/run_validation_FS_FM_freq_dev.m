@@ -3,7 +3,7 @@
 % This routine plot the validation of fluctuation strength (Osses et al. model)
 %  for FM tones as a function of the frequency deviation
 %
-% - Inputs, signals: FM tones with carrier frequency of 1.5 kHz (fmod=4 Hz, md=1 and  L=70dB)
+% - Inputs, signals: FM tones with carrier frequency of 1.5 kHz (fmod=4 Hz and L=70dB)
 %   as a function of frequency deviation fdev=[16 32 100 300 700];  
 %   
 % - Reference values taken from: 
