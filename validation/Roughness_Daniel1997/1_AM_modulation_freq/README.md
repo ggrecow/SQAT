@@ -14,9 +14,9 @@ The figures below compare the results obtained using the `Roughness_Daniel1997` 
 It should be noted that the differences between the reference data and the `Roughness_Daniel1997` implementation are similar to the ones presented by the original implementation of Daniel & Weber (see Ref. [1], Fig. 3). Therefore, it is not clear if the differences are due to a limitation of the Daniel & Weber's model itself or attributed to the specific implementation in SQAT.
 
 # References
-[1] Daniel, P. & Weber, R. (1997). Psychoacoustical Roughness: Implementation of an Optimized Model. [Acta Acustica united with Acustica](https://www.ingentaconnect.com/content/dav/aaua/1997/00000083/00000001/art00020), 83(1):113–123, 1997.
+[1] Daniel, P., & Weber, R. (1997). Psychoacoustical Roughness: Implementation of an Optimized Model. [Acta Acustica united with Acustica](https://www.ingentaconnect.com/content/dav/aaua/1997/00000083/00000001/art00020), 83(1), 113-123.
 
-[2] Fastl, H. & Zwicker, Z. (2007). Psychoacoustics: facts and models, Third edition. [Springer-Verlag](https://doi.org/10.1007/978-3-540-68888-4).
+[2] Fastl, H., & Zwicker, Z. (2007). Psychoacoustics: facts and models, Third edition. [Springer-Verlag](https://doi.org/10.1007/978-3-540-68888-4).
 
 # Log
 This code was released in SQAT v1.0, 14.05.2023
