@@ -2,7 +2,7 @@
 The `run_verification_modulated_white_noise.m` and `run_verification_white_noise.m` codes are used to verify the implementation of the roughness model from Daniel & Weber [1] (see `Roughness_Daniel1997` code [here](../../../psychoacoustic_metrics/Roughness_Daniel1997/Roughness_Daniel1997.m)) for unmodulated and amplitude-modulated (AM) white noise, respectively, with the following parameters: 
 
 - unmodulated white noise: rms sound pressure level $L_{\mathrm{p,rms}}=70~\mathrm{dB}~ \mathrm{SPL}$, and 
-- AM white noise: $f_{\mathrm{mod}}=70~\mathrm{Hz}$, modulation depth $m_{\mathrm{d}}=1$ and rms sound pressure level $L_{\mathrm{p,rms}}=70~\mathrm{dB}~ \mathrm{SPL}$.
+- AM white noise: modulation frequency $f_{\mathrm{mod}}=70~\mathrm{Hz}$, modulation depth $m_{\mathrm{d}}=1$ and rms sound pressure level $L_{\mathrm{p,rms}}=70~\mathrm{dB}~ \mathrm{SPL}$.
 
 # How to use this code
 The signals are generated within the codes. Therefore, the user should be able to use it without any prior requirements other than the `Roughness_Daniel1997` implementation. 
@@ -12,7 +12,7 @@ One aspect of the roughness model from Daniel & Weber concerns its ability to ca
 
 The figure below presents the results obtained using the `Roughness_Daniel1997` implementation in SQAT.   
 
- Unmodulated white noise | AM white noise 
+ Unmodulated white noise ($L_{\mathrm{p,rms}}=70~\mathrm{dB}~\mathrm{SPL}$). | AM white noise<br />($f_{\mathrm{mod}}=70~\mathrm{Hz}$, $m_{\mathrm{d}}=1$ and $L_{\mathrm{p,rms}}=70~\mathrm{dB}~ \mathrm{SPL}$).
  | -------------- | -------------- |
 |![](figs/roughness_unmodulated_white_noise_70dBSPL.png)       | ![](figs/roughness_AM_fm_70Hz_white_noise_70dBSPL.png)       |
  
