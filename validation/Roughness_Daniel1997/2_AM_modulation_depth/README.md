@@ -5,7 +5,7 @@ The `run_verification_roughness_modulation_depth.m` code is used to verify the `
 In order to run this code and reproduce the figures available in the `figs` folder, the user needs to download the dataset of sound files from zenodo <a href="https://doi.org/10.5281/zenodo.7933206" target="_blank">here</a>. The obtained folder called `validation_SQAT_v1_0` has to be included in the `sound_files` folder of the toolbox. 
 
 # Results
-The figure below compares the results obtained using the `Roughness_Daniel1997` implementation in SQAT with the power law suggested Fastl & Zwicker [1]. The error bars express the roughness JND also reported in [1].
+The figure below compares the results obtained using the `Roughness_Daniel1997` implementation in SQAT with the power law suggested Fastl & Zwicker [1]. The error bars express the roughness JND also reported in [1]. Results computed using SQAT correspond to the time-averaged roughness $R$.   
 
 ![](figs/verification_roughness_dependence_md.png)   
 
