@@ -1,5 +1,5 @@
 # About this code 
-The `run_verification_modulated_white_noise.m` and `run_verification_white_noise.m` codes are used to verify the `Roughness_Daniel1997` implementation (see code [here](../../../../psychoacoustic_metrics/Roughness_Daniel1997/Roughness_Daniel1997.m)) of the roughness model from Daniel & Weber [1] for unmodulated and amplitude-modulated (AM) white noise, respectively, with the following paramters: 
+The `run_verification_modulated_white_noise.m` and `run_verification_white_noise.m` codes are used to verify the `Roughness_Daniel1997` implementation (see code [here](../../../../psychoacoustic_metrics/Roughness_Daniel1997/Roughness_Daniel1997.m)) of the roughness model from Daniel & Weber [1] for unmodulated and amplitude-modulated (AM) white noise, respectively, with the following parameters: 
 
 - unmodulated white noise: rms sound pressure level $L_{\mathrm{p,rms}}=70~\mathrm{dB}~ \mathrm{SPL}$; and 
 - AM white noise: $f_{\mathrm{mod}}=70~\mathrm{Hz}$, modulation depth $m_{\mathrm{d}}=1$ and rms sound pressure level $L_{\mathrm{p,rms}}=70~\mathrm{dB}~ \mathrm{SPL}$.
