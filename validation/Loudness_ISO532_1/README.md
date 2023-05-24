@@ -7,7 +7,7 @@ The Zwicker method for calculating the loudness of stationary and time-varying s
 
 - Criteria for time-varying loudness: for all test signals given in the Annex B.4 and B.5, the deviation of the total loudness vs. time shall differ by no more than $\pm5~\\%$ or $\pm0.1~\mathrm{sone/Bark}$ from the reference values within a temporal tolerance of $\pm2~\mathrm{ms}$. The tolerance can be extended to $\pm10~\\%$ or $\pm0.2~\mathrm{sone/Bark}$ within a temporal tolerance of $\pm2~\mathrm{ms}$, but only for maximum $1~\\%$ of the sampled total loudness vs. time function using a time resolution of $\pm2~\mathrm{ms}$.
 
-The dataset of test sounds provided by the ISO standard is freely available and can be downloaded from the following link: [http://standards.iso.org/iso/532/-1/ed-1/en](http://standards.iso.org/iso/532/-1/ed-1/en). The verification of the `Loudness_ISO532_1` implementation in SQAT is presented within this folder:    
+The dataset of test sounds provided by the ISO standard is freely available and can be downloaded from the following link: [http://standards.iso.org/iso/532/-1/ed-1/en](http://standards.iso.org/iso/532/-1/ed-1/en). In this folder, the verification of the `Loudness_ISO532_1` implementation in SQAT using the test signals from the ISO standard is presented.    
 
 - [Stationary loudness: synthetic signals provided in Annex B.2 and B.3](1_synthetic_signals_stationary_loudness)
 - [Time-varying loudness: synthetic signals provided in Annex B.4](2_synthetic_signals_time_varying_loudness)
