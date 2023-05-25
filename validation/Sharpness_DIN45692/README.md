@@ -16,10 +16,30 @@ Absolute values |  Relative error
  | -------------- | -------------- |
 |![](figs/sharpness_validation_narrowband_and_broadband.png)        | ![](figs/sharpness_validation_narrowband_broadband_error.png)     |
 
+# Comparison of weighting functions
+The DIN standard [1] defines three weighting functions for the calculation of sharpness. The standard weighting function $g(z)$ (also called the DIN 45692 weighting function) is based on the work of Widmann [3]. The two additional weighting functions $g_{\mathrm{B}}(z)$ and $g_{\mathrm{A}}(z)$ were developed by von Bismarck [4] and Aures [5], respectively. 
+
+As the sharpness results may significantly differ depending on the weighting function and the test signals, it is recommended to adequately report the method used for the sake of clarity. This is also the case for the method used to compute the loudness. Moreover, the selection of the weighting function has to be carefully made depending on the test sounds. The level-independent weighting functions $g(z)$ and $g_{\mathrm{B}}(z)$ are recommended if the sounds to be compared have similar loudness. The weighting function $g_{\mathrm{A}}(z)$ accounts for the influence of the total loudness and is thus recommended if the test sounds have a significant loudness difference [6]. 
+
+The figure below presents a comparison of sharpness values obtained using the three different weighting functions using the `Sharpness_DIN45692` implementation in SQAT and the narrowband and broadband test signals specified by the DIN standard [1]. 
+
+
+Narrowband signals |  Broadband signals 
+ | -------------- | -------------- |
+|![](figs/sharpness_validation_narrowband_compare_models.png)        | ![](figs/sharpness_validation_broadband_model_comparison.png)     |
+
 # References
 [1] Deutsches Institut für Normung. (2009). Measurement technique for the simulation of the auditory sensation of sharpness (DIN Standard No. 45692).
 
 [2] International Organization for Standardization. (2017). Acoustics - Methods for calculating loudness - Part 1: Zwicker method (ISO Standard No. 532-1).
+
+[3] Widmann, U. (1993). Untersuchungen zur Schärfe und zur Lästigkeit von Rauschen unterschiedlicher Spektralverteilung, DAGA 93, S. 644-647.
+
+[4] von Bismarck, G. (1974). Sharpness as an Attribute of the Timbre of Steady Sounds. [Acta Acustica united with Acustica](https://www.ingentaconnect.com/content/dav/aaua/1974/00000030/00000003/art00006), 30(3), 159-172.
+
+[5] Aures, W. (1985). Berechnungsverfahren für den sensorischen Wohlklang beliebiger Schallsignale (A model for calculating the sensory euphony of various sounds). [Acta Acustica united with Acustica](https://www.ingentaconnect.com/content/dav/aaua/1985/00000059/00000002/art00008), 59(2), 130-141.
+
+[6] Head acoustics. (2018). Psychoacoustic analyses I, Application note. [https://cdn.head-acoustics.com/fileadmin/data/global/Application-Notes/SVP/Psychoacoustic-Analyses-I-02.2018.pdf](https://cdn.head-acoustics.com/fileadmin/data/global/Application-Notes/SVP/Psychoacoustic-Analyses-I-02.2018.pdf) (Last viewed: May 25, 2023)
 
 # Log
 This code was released in SQAT v1.0, 14.05.2023
