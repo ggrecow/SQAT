@@ -8,14 +8,12 @@
 %   OUT = Loudness_ISO532_1(insig, fs, field, method, time_skip, show)
 %   type <help Loudness_ISO532_1> for more info
 %
-% Author: Gil Felix Greco, Braunschweig 27.02.2023
-%
 % In order to run this code, the user needs to download the dataset of 
 %  sound files from zenodo (https://doi.org/10.5281/zenodo.7933206).
 %  The obtained folder called `validation_SQAT_v1_0` has to be included in 
 %  the `sound_files` folder of the toolbox. 
 %
-% This code is part of SQAT v1.0, released 14.05.2023
+% Author: Gil Felix Greco, Braunschweig 27.02.2023
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 clc; clear all; close all;
 

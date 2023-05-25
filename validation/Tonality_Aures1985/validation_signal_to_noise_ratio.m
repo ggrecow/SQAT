@@ -14,14 +14,12 @@
 %   OUT = Tonality_Aures1985(insig,fs,LoudnessField,time_skip,show)
 %   type <help Tonality_Aures1985> for more info
 %
-% Author: Gil Felix Greco, Braunschweig, 22.03.2023
-%
 % In order to run this code, the user needs to download the dataset of 
 %  sound files from zenodo (https://doi.org/10.5281/zenodo.7933206).
 %  The obtained folder called `validation_SQAT_v1_0` has to be included in 
 %  the `sound_files` folder of the toolbox. 
 %
-% This code is part of SQAT v1.0, released 14.05.2023
+% Author: Gil Felix Greco, Braunschweig, 22.03.2023
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 clear all; close all; clc;
 
