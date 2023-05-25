@@ -3,13 +3,13 @@ This is the repository of **SQAT**, an open-source **S**ound **Q**uality **A**na
 
 # Toolbox structure
 The toolbox has the following directories:
-- `psychoacoustic_metrics`: this directory contains a number of algorithms implementing a specific psychoacoustic metric. 
-- `sound_level_meter`: contains scripts to obtain sound pressure levels in dB(A), dB(C), or dB(Z), using fast, slow or impulse time weightings.
-- `utilities`: contains some scripts that are complementary to any of the toolbox functions.
-- `examples`: an example script is provided for each metric.
-- `sound_files`: this directory hosts reference sounds in .wav format that are used mainly by the `examples` codes. 
-- `validation`: this directory contains scripts used to validate each algorithm. Instructions on how to run these codes are provided in each respective folder and directly on the header of the codes.
-- `publications`: scripts reproducing figures and/or tables for publications using SQAT are provided in this directory.
+- `psychoacoustic_metrics`: this directory contains a number of algorithms implementing a specific psychoacoustic metric (see [folder](psychoacoustic_metrics)). 
+- `sound_level_meter`: contains scripts to obtain sound pressure levels in dB(A), dB(C), or dB(Z), using fast, slow or impulse time weightings (see [folder](sound_level_meter)). 
+- `utilities`: contains some scripts that are complementary to any of the toolbox functions (see [folder](utilities)).
+- `examples`: an example script is provided for each metric (see [folder](examples)).
+- `sound_files`: this directory hosts reference sounds in .wav format that are used mainly by the `examples` codes (see [folder](sound_files)). 
+- `validation`: this directory contains scripts used to validate each algorithm. Instructions on how to run these codes are provided in each respective folder and directly on the header of the codes (see [folder](validation)). 
+- `publications`: scripts reproducing figures and/or tables for publications using SQAT are provided in this directory (see [folder](publications)). 
 
 # How to use the toolbox
 After downloading this repository, you just need to add the toolbox into the path of your MATLAB. The `startup_SQAT` code provided can be used to automatically include all folders to the MATLAB path, until the MATLAB session ends. In order to avoid conflicts, the `startup_SQAT` needs to be used every time MATLAB is (re)started. If you just want to use the metrics and no `sound_files`, you can add manually only the relevant folders to the path (e.g., `psychoacoustic_metrics`, `sound_level_meter` and `utilities`). 
