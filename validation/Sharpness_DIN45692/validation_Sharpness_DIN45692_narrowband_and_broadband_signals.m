@@ -14,18 +14,16 @@
 %   OUT = Loudness_ISO532_1(insig, fs, field, method, time_skip, show)
 %   type <help Loudness_ISO532_1> for more info
 %
-% Author: Gil Felix Greco, Braunschweig 01.03.2023 
-%
 % In order to run this code, the user needs to download the dataset of 
 %  sound files from zenodo (https://doi.org/10.5281/zenodo.7933206).
 %  The obtained folder called `validation_SQAT_v1_0` has to be included in 
 %  the `sound_files` folder of the toolbox. 
 %
-% This code is part of SQAT v1.0, released 14.05.2023
+% Author: Gil Felix Greco, Braunschweig 01.03.2023 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 clear all; close all; clc;
 
-save_figs=0; % save figure flag
+save_figs = 0; % save figure flag
 
 %% Sharpness of narrowband test sounds
 
@@ -228,7 +226,7 @@ plot(bark_narrowband,vertcat(s_narrow.Sharpness),'ob','Linewidth',1,'MarkerSize'
 plot(bark_narrowband,vertcat(s_narrow_aures.Sharpness),'+r','Linewidth',1,'MarkerSize',8);
 plot(bark_narrowband,vertcat(s_narrow_bismarck.Sharpness),'xc','Linewidth',1,'MarkerSize',8);
 
-title('DIN 45692 - Sharpness of narrowband noise');
+% title('DIN 45692 - Sharpness of narrowband noise');
 
 legend('Ref. values from DIN 45692:2009','SQAT - DIN 45692:2009','SQAT - Aures','SQAT - von Bismarck','Location','NorthWest','Interpreter','Latex');
 legend boxoff
@@ -271,12 +269,12 @@ plot(bark_broadband,vertcat(s_broad.Sharpness),'ob','Linewidth',1,'MarkerSize',7
 plot(bark_broadband,vertcat(s_broad_aures.Sharpness),'+r','Linewidth',1,'MarkerSize',8);
 plot(bark_broadband,vertcat(s_broad_bismarck.Sharpness),'xc','Linewidth',1,'MarkerSize',8);
 
-title('DIN 45692 - Sharpness of broadband noise');
+% title('DIN 45692 - Sharpness of broadband noise');
 
 legend('Ref. values from DIN 45692:2009','SQAT - DIN 45692:2009','SQAT - Aures','SQAT - von Bismarck','Location','NorthWest','Interpreter','Latex');
 legend boxoff
  
- legend boxoff
+legend boxoff
  
 grid off
 axis([0 24 0 10]);
