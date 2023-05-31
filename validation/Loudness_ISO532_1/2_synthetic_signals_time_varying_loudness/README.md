@@ -40,7 +40,7 @@ The figures below compare the results obtained using the `Loudness_ISO532_1` imp
 | ![](figs/validation_time_varying_loudness_signal_13.png)   | ![](figs/validation_time_varying_loudness_signal_13_specific_loudness.png)  |
 
 # References
-[1]  International Organization for Standardization. (2017). Acoustics - Methods for calculating loudness - Part 1: Zwicker method (ISO Standard No. 532-1).
+[1] International Organization for Standardization. (2017). Acoustics - Methods for calculating loudness - Part 1: Zwicker method (ISO Standard No. 532-1).
 
 # Log
 This code was released in SQAT v1.0, 14.05.2023
