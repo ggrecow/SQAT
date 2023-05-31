@@ -29,7 +29,7 @@ After downloading this repository, you just need to add the toolbox into the pat
 The implemented metrics available in the `psychoacoustic_metrics` folder are listed in the table below:
 
 | Metric  | Model | Implementation | Validation | Example |
-| ------------- | ------------- |:---: |:---: |:---: |
+| :---: | :---: |:---: |:---: |:---: |
 | Loudness  | ISO 532-1:2014 [1]  |  [link](psychoacoustic_metrics/Loudness_ISO532_1) | [link](validation/Loudness_ISO532_1) | [link](examples/Loudness_ISO532_1/ex_Loudness_ISO532_1.m) |
 | Sharpness  |  DIN 45692:2009 [2]  |  [link](psychoacoustic_metrics/Sharpness_DIN45692) | [link](validation/Sharpness_DIN45692) | [link](examples/Sharpness_DIN45692/ex_Sharpness_DIN45692.m) |
 | Roughness  | Daniel & Weber [3]  |  [link](psychoacoustic_metrics/Roughness_Daniel1997) |  [link](validation/Roughness_Daniel1997) | [link](examples/Roughness_Daniel1997/ex_Roughness_Daniel1997.m) |
