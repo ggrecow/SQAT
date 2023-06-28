@@ -155,7 +155,7 @@ if do_table3 || do_fig_raw
             file2save_full = [figures_dir file2save];
             %%%
             
-            % bDo = 1; % idle variable (to manually set to 0, in debug mode)
+            % bDo = 1; warning('temporal') % idle variable (to manually set to 0, in debug mode)
             bDo = ~exist(file2save_full,'file');
             
             if bDo
@@ -534,7 +534,7 @@ if do_table3 || do_fig_raw
         idx = find(strcmp(res_description,'tmax (s)'));
         res_description(idx) = [];
         metrics_row(:,idx) = [];
-        il_var2latex(rAound(100*metrics_row)/100);
+        il_var2latex(round(100*metrics_row)/100);
     end
 end
 
@@ -801,8 +801,11 @@ if do_fig1a || do_fig1b || do_fig1c
                 mkdir(figures_dir);
             end
         else
-            load(file2save_full);
+            load([file2save_full '.mat']);
             metrics_row(end+1,:) = res;
+            
+            load([file2save_time '.mat']);
+            load([file2save_spec '.mat']);
         end % if bDo
         count = count+1;
     end % if i_files
@@ -814,7 +817,7 @@ if do_fig1a || do_fig1b || do_fig1c
         end
         save(file2save_spec,vars2save{:})
         
-        vars2save = {'N_time','N_all','F_time','F_all','R_time','R_all'};
+        vars2save = {'N_time','N_all','S_time','S_all','F_time','F_all','R_time','R_all','K_time','K_all'};
         if do_fig1c
             vars2save{end+1} = 'R_spec_inst';
             vars2save{end+1} = 'F_spec_inst';
@@ -849,6 +852,19 @@ if do_fig1a || do_fig1b || do_fig1c
         text(0,1.30,title2add{1},'Units','Normalized','FontSize',8.8,'Color','b','interpreter','none','FontWeight','Bold');
         text(0,1.10,title2add{2},'Units','Normalized','FontSize',8.8,'Color','r','interpreter','none','FontWeight','Bold');
 
+        %%% Adding panel labels:
+        if do_fig1a
+            label_here = 'A. ';
+        end
+        if do_fig1b
+            label_here = 'B. ';
+        end
+        if do_fig1c
+            label_here = 'C. ';
+        end
+            
+        text(-0.08,1.20,label_here,'FontWeight','Bold','Units','Normalized','FontSize',12);
+        
         % Sharpness
         nexttile(2);
         for i_files = 1:length(files)
@@ -1032,8 +1048,18 @@ if do_fig2
         set(gca,'XTick',f_Tick);
         set(gca,'XTickLabel','');
 
-        text4title = ['Dataset ' num2str(i_dir)];
-        text(.4,.92,text4title,'Units','Normalized','FontWeight','bold','FontSize',10);
+        %%% Adding panel labels:
+        switch i_dir
+            case 1
+                label_here = 'A. Dataset 1';
+            case 2
+                label_here = 'B. Dataset 2';
+            case 3
+                label_here = 'C. Dataset 3';
+        end
+            
+        text(-0.1,1.07,label_here,'FontWeight','Bold','Units','Normalized','FontSize',12);
+        
         %%%
         f = R_freq{1};
         
