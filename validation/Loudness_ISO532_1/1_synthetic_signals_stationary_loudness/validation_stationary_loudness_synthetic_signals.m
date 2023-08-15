@@ -173,7 +173,7 @@ handle_b=plot( OUT.barkAxis, OUT.SpecificLoudness,'k','Linewidth',1); % calculat
 legend([handle_a,handle_b],'5\% tolerance','SQAT','Location','Best');
 
 ylabel('Specific loudness, $N^{\prime}~(\mathrm{sone}/\mathrm{Bark})$','Interpreter','Latex');
-xlabel('Critical band rate, $z$ (Bark)','Interpreter','Latex'); 
+xlabel('Critical band, $z$ (Bark)','Interpreter','Latex'); 
 
 grid off
 
