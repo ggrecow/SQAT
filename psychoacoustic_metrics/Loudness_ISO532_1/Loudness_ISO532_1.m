@@ -949,7 +949,7 @@ if method == 2 % time-varying from audio signal
         shading interp; colorbar; axis tight;
         
         title('Instantaneous specific loudness','Interpreter','Latex');
-        xlabel('Time, $t$','Interpreter','Latex');
+        xlabel('Time, $t$ (s)','Interpreter','Latex');
         ylabel(colorbar, 'Specific Loudness, $N^{\prime}$ ($\mathrm{sone}/\mathrm{Bark}$)','Interpreter','Latex');
         
         %freq labels
@@ -992,7 +992,7 @@ elseif method==0 || method==1
         subplot( 2, 1, 1)
         plot( OUT.time_insig, audio); hold on;
         a=yline(rms(audio),'k--'); % plot( OUT.time_insig,rms(audio).*ones(length(OUT.time_insig)),'k--');
-        legend(a,sprintf('$p_{\\mathrm{rms}}=$%g (Pa) \n SPL=%g (dBSPL)',rms(audio),20.*log10(rms(audio)/2e-5)),'Location','NorthEast','Interpreter','Latex'); %legend boxoff
+        legend(a,sprintf('$p_{\\mathrm{rms}}=$%g (Pa) \n SPL=%g (dB SPL)',rms(audio),20.*log10(rms(audio)/2e-5)),'Location','NorthEast','Interpreter','Latex'); %legend boxoff
         ax = axis; axis([0 xmax max(audio)*-2 max(audio)*2]);
         title({sprintf('Input signal')},'Interpreter','Latex');
         xlabel('Time, $t$ (s)','Interpreter','Latex');
