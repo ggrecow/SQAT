@@ -41,7 +41,7 @@ fScale = audtofreq(eScale); % frequencies sample according to a linear ERB scale
 % fLinear = f; % save the linear frequency scale
 f = fScale;  % switch the reference frequencies to be f
 
-s = i*2*pi*f; % set up the s-plane variable
+s = 1i*2*pi*f; % set up the s-plane variable 
 
 % determine the weighting filter frequency responses convienient to 
 % accurately set the desired filter orders (n,m)
@@ -64,12 +64,12 @@ switch weightingType
    
     case 'B' % B-weighting filter
         K = 5.9862e9; 
-        freqResp = K*s.^4./((s+w1).^2 .* (s+w5).*(s+w4).^2);
+        freqResp = K*s.^3./((s+w1).^2 .* (s+w5).*(s+w4).^2);
 
         n = 4; % at most we need a 4'th order filter
         m = n; 
    
-        zrs =  [0; 0; 0; 0];
+        zrs =  [0; 0; 0];
         pls = -[w1; w1; w5; w4; w4];
 
     case 'C' % C-weighting filter
