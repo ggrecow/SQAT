@@ -2,9 +2,7 @@
 
 The `pub_Greco2023_Internoise.m` code generates the figures of the following publication:
 
-Felix Greco, G., Merino-Martínez, R., Osses, A., & Langer, S. C. (2023). SQAT: a MATLAB-based toolbox for quantitative sound quality. **(to be presented at Internoise in August 2023)**
-
-<!--In Proceedings of the INTER–NOISE and NOISE–CON Congress, the 52nd International Congress and Exhibition on Noise Control Engineering, Chiba, Japan, 20–23 August 2023.-->
+- Felix Greco, G., Merino-Martínez, R., Osses, A., & Langer, S. C. (2023). SQAT: a MATLAB-based toolbox for quantitative sound quality analysis. In Proceedings of the INTER–NOISE and NOISE–CON Congress, the 52nd International Congress and Exhibition on Noise Control Engineering, Chiba, Greater Tokyo, Japan, 20–23 August 2023. Institute of Noise Control Engineering: Reston, VA, USA, 2023. [[Link]](https://www.researchgate.net/publication/373334884_SQAT_a_MATLAB-based_toolbox_for_quantitative_sound_quality_analysis). 
 
 The `pub_Greco2023_Internoise.m` is a wraper to the codes used to verify the psychoacoustic metrics implemented in SQAT v1.0. The following codes are called by this wraper:
 - `Loudness_ISO532_1`: verification of loudness implementation according to ISO 532-1:2016 using synthetic stationary signals (see code [here](../../validation/Loudness_ISO532_1/1_synthetic_signals_stationary_loudness)) and time-varying technical signals (see code [here](../../validation/Loudness_ISO532_1/3_technical_signals_time_varying_loudness)).
