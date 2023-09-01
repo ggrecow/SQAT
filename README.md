@@ -66,11 +66,15 @@ The following SPL-based metrics using different frequency weightings (A, C, or Z
 
 
 # How to cite this repository
-If you use this toolbox in your research, please help us to gain visibility by citing SQAT:
+If you use this toolbox in your research, we would be grateful if you help us to gain visibility by citing SQAT. The following paper is the main work describing SQAT and the metrics available on its first release:
 
-Gil Felix Greco, Roberto Merino-Martínez, & Alejandro Osses. (2023). SQAT: a sound quality analysis toolbox for MATLAB. Zenodo. [https://doi.org/10.5281/zenodo.7934709]( https://doi.org/10.5281/zenodo.7934709)
+- Felix Greco, G., Merino-Martínez, R., Osses, A., & Langer, S. C. (2023). SQAT: a MATLAB-based toolbox for quantitative sound quality analysis. In Proceedings of the INTER–NOISE and NOISE–CON Congress, the 52nd International Congress and Exhibition on Noise Control Engineering, Chiba, Greater Tokyo, Japan, 20–23 August 2023. Institute of Noise Control Engineering: Reston, VA, USA, 2023. [[Link]](https://www.researchgate.net/publication/373334884_SQAT_a_MATLAB-based_toolbox_for_quantitative_sound_quality_analysis). 
 
-If you need to cite  the current release of SQAT, please refer to the "Cite this repository" feature in the "About" section of this GitHub repository.
+This is the main citation if you need to cite the toolbox repository itself:
+
+- Felix Greco, G., Merino-Martínez, R., &  Osses, A. (2023). SQAT: a sound quality analysis toolbox for MATLAB. Zenodo. [https://doi.org/10.5281/zenodo.7934709](https://doi.org/10.5281/zenodo.7934709)
+
+If you need to cite the current release of SQAT, please refer to the "Cite this repository" feature in the "About" section of this GitHub repository.
 
 
 <a rel="license" href="http://creativecommons.org/licenses/by-nc/4.0/"><img alt="Creative Commons Licence" style="border-width:0" src="https://i.creativecommons.org/l/by-nc/4.0/88x31.png" /></a><br />This work is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by-nc/4.0/">Creative Commons Attribution-NonCommercial 4.0 International License</a>.
