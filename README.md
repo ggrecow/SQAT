@@ -66,7 +66,7 @@ The following SPL-based metrics using different frequency weightings (A, C, or Z
 
 
 # How to cite this repository
-If you use this toolbox in your research, we would be grateful if you help us to gain visibility by citing SQAT. The following paper is the main work describing SQAT and the metrics available on its first release:
+If you use this toolbox in your research, we would be grateful if you help us to gain visibility by citing SQAT. The following paper is the main work describing SQAT and the metrics available in the first release:
 
 - Felix Greco, G., Merino-Martínez, R., Osses, A., & Langer, S. C. (2023). SQAT: a MATLAB-based toolbox for quantitative sound quality analysis. In Proceedings of the INTER–NOISE and NOISE–CON Congress, the 52nd International Congress and Exhibition on Noise Control Engineering, Chiba, Greater Tokyo, Japan, 20–23 August 2023. Institute of Noise Control Engineering: Reston, VA, USA, 2023. [[Link]](https://www.researchgate.net/publication/373334884_SQAT_a_MATLAB-based_toolbox_for_quantitative_sound_quality_analysis). 
 
