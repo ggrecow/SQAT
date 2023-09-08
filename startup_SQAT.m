@@ -30,7 +30,7 @@ for i_dir = 1:length(main_dirs)
                 bAdd = ~exist('Do_SLM.m','file'); % avoids adding the folder twice
         end
         if bAdd
-            addpath(main_dirs{i_dir});
+            addpath([bp main_dirs{i_dir}]);
             fprintf('%s.m: Main dir added to path:\n \t%s\n', mfilename, main_dir_i);
         end
     end
