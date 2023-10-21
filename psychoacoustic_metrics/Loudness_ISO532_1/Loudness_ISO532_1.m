@@ -159,7 +159,9 @@ switch method
         % STEP 2 - Create filter bank and filter the signal 
         % **************************************************
         [filteredaudio,fc] = Do_OB13(insig,fs,dBFS);
-        
+        filteredaudio = 2*filteredaudio; % +6 dB to compensate for the new
+                                    % -6 dB-gain (introduced by the SQAT 
+                                    % team) in Do_OB13.m.
         % ***************************************************************
         % STEP 3 - Squaring and smoothing by 3 1st order lowpass filters
         % ***************************************************************

@@ -13,8 +13,6 @@ function [outsig,fc] = Do_OB13(insig,fs,dBFS)
 %   fname = [basepath_SQAT 'sound_files' filesep 'reference_signals' filesep 'RefSignal_Loudness_ISO532_1.wav'];
 %   [insig,fs] = audioread(fname);
 %   dBFS = 94; % A priori knowledge
-%   method = 1; % 2=time-varying (default)
-%   time_skip = []; % irrelevant parameter here
 %   [OB_filt,fc] = Do_OB13(insig,fs,dBFS);
 %   % Sub example: obtaining the calibrated RMS level of each band:
 %   OB_lvls = 20*log10(rms(OB_filt))+dBFS;
@@ -37,8 +35,8 @@ function [outsig,fc] = Do_OB13(insig,fs,dBFS)
 %
 % Author: Ella Manor - MATLAB implementation for AARAE (2015)
 % Author (modifications): Gil Felix Greco (22/02/2023)
-% Author (stand-alone function): Alejandro Osses (20/10/2023) 
-
+% Author (stand-alone function): Alejandro Osses (20/10/2023), extra gain 
+%          of -6 dB to produce filters with 0-dB gain in the passband 
 %% **************************************************
 % STEP 2 - Create filter bank and filter the signal
 % ***************************************************
@@ -184,7 +182,9 @@ filtgain = [4.30764e-011;... % 25 Hz
         1.16544e-003;... % 8000 Hz
         2.27488e-003;... % 10000 Hz
         3.91006e-003];   % 12500 Hz
-    
+extra_gain = 0.5; % -6 dB to produce filters with 0-dB gain in the passband
+filtgain = extra_gain*filtgain;
+
 for n = 1:N_bands
     outsig(:,n) = filtgain(n) * filter(br(3,:),ar(3,:)-ad(3,:,n),...
         filter(br(2,:),ar(2,:)-ad(2,:,n),...
