@@ -1,10 +1,10 @@
-function [outsig,fc] = Do_OB13(insig,fs,dBFS)
+function [outsig,fc] = Do_OB13(insig,fs)
 % function Do_OB13(insig,fs,method)
 %
 % This code employs a hard-coded implementation of a one-third octave band
-%   filterbank for a sampling frequency fs=48000 Hz. For this reason, if 
+%   filterbank for a sampling frequency fs=48000 Hz. For this reason, if
 %   the input fs adopts a value different from 48 kHz, the signal is
-%   appropriately resampled. The output signal, outsig, is a vector with 
+%   appropriately resampled. The output signal, outsig, is a vector with
 %   28 columns and as many rows as elements the input signal insig has.
 % This code was extracted from the loudness implementation from the AARAE
 % toolbox refactored by the SQAT toolbox team.
@@ -13,11 +13,11 @@ function [outsig,fc] = Do_OB13(insig,fs,dBFS)
 %   fname = [basepath_SQAT 'sound_files' filesep 'reference_signals' filesep 'RefSignal_Loudness_ISO532_1.wav'];
 %   [insig,fs] = audioread(fname);
 %   dBFS = 94; % A priori knowledge
-%   [OB_filt,fc] = Do_OB13(insig,fs,dBFS);
+%   [OB_filt,fc] = Do_OB13(insig,fs);
 %   % Sub example: obtaining the calibrated RMS level of each band:
 %   OB_lvls = 20*log10(rms(OB_filt))+dBFS;
 %
-%   figure;   
+%   figure;
 %   semilogx(fc,OB_lvls,'bo-'); hold on;
 %   set(gca,'XLim',[min(fc)-1 max(fc)+1000]);
 %   set(gca,'XTick',fc);
@@ -30,13 +30,12 @@ function [outsig,fc] = Do_OB13(insig,fs,dBFS)
 %   fprintf('Level as obtained directly from the input signal=%.1f dB SPL\n',lvl_orig);
 %
 %   % The sum of the power of each band leads to the total level:
-%   lvl_from_outsig = 10*log10(sum(10.^(OB_lvls/10))); % '/10' means squared, therefore it is 10*log10() 
+%   lvl_from_outsig = 10*log10(sum(10.^(OB_lvls/10))); % '/10' means squared, therefore it is 10*log10()
 %   fprintf('Level obtained from the filtered signals=%.1f dB SPL\n',lvl_from_outsig);
 %
 % Author: Ella Manor - MATLAB implementation for AARAE (2015)
 % Author (modifications): Gil Felix Greco (22/02/2023)
-% Author (stand-alone function): Alejandro Osses (20/10/2023), extra gain 
-%          of -6 dB to produce filters with 0-dB gain in the passband 
+% Author (stand-alone function): Alejandro Osses (20/10/2023)
 %% **************************************************
 % STEP 2 - Create filter bank and filter the signal
 % ***************************************************
@@ -47,13 +46,6 @@ if fs ~= 48000
     fprintf('%s.m: This script has only been validated at a sampling frequency fs=48 kHz, resampling to this fs value\n',mfilename);
 end
 len = size(insig,1);
-
-if nargin < 3
-    dBFS = 94; % dB
-    fprintf('\n%s.m: Assuming the default full scale convention, with dBFS = %.0f\n',mfilename,dBFS);
-end
-gain_factor = 10^((dBFS-94)/20);
-insig = gain_factor*insig;
 
 % reference
 br = [1,2,1;1,0,-1;1,-2,1];
@@ -66,7 +58,7 @@ outsig = zeros(len,N_bands);
 for i = 1:N_bands
     CentreFrequency(i) = 10^(((i-1)-16)/10.) * 1000; % calculate centre frequencies
 end
-    
+
 % filter 'a' coefficient offsets TABLES A.1 A.2
 ad = cat(3,[0,-6.70260e-004,6.59453e-004;...
             0,-3.75071e-004,3.61926e-004;...
@@ -152,7 +144,7 @@ ad = cat(3,[0,-6.70260e-004,6.59453e-004;...
            [0,-2.50630e+000,1.42308e-001;...
             0,-2.19464e+000,2.76470e-001;...
             0,-1.90231e+000,1.47304e-001]); % 12500 Hz
-    
+
 % filter gains
 filtgain = [4.30764e-011;... % 25 Hz
         8.59340e-011;... % 31.5 Hz
@@ -182,13 +174,11 @@ filtgain = [4.30764e-011;... % 25 Hz
         1.16544e-003;... % 8000 Hz
         2.27488e-003;... % 10000 Hz
         3.91006e-003];   % 12500 Hz
-extra_gain = 0.5; % -6 dB to produce filters with 0-dB gain in the passband
-filtgain = extra_gain*filtgain;
 
 for n = 1:N_bands
     outsig(:,n) = filtgain(n) * filter(br(3,:),ar(3,:)-ad(3,:,n),...
         filter(br(2,:),ar(2,:)-ad(2,:,n),...
         filter(br(1,:),ar(1,:)-ad(1,:,n),insig)));
 end
-    
+
 fc = CentreFrequency;
