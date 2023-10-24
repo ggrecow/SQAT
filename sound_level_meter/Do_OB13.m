@@ -28,7 +28,7 @@ function [outsig, fc] = Do_OB13(insig, fs, fmin, fmax)
 % OUTPUT
 %
 %   outsig :  
-%   [nTime,nFreq] matrix containing nFreq = number of 1/3.OB bands and ntime rows = as many elements the input signal insig has.
+%   [nTime,nFreq] matrix containing nFreq = number of 1/3 OB bands and ntime rows = as many elements the input signal insig has.
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
@@ -72,7 +72,7 @@ elseif nargin < 4
     
 end
 
-%% STEP 1 - resample to 48 kHz if necessary
+%%  resample to 48 kHz if necessary
 
 if fs ~= 48000
     insig = resample(insig,48000,fs);
@@ -82,7 +82,7 @@ end
 
 len = size(insig,1);
 
-%% STEP 2 - Create filter bank and filter the signal
+%% Create filter bank and filter the signal
 
 % reference
 br = [1,2,1;1,0,-1;1,-2,1];
