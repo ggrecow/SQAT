@@ -113,28 +113,25 @@ SR_LOUDNESS = 500;
 TINY_VALUE = 1e-12;
 % ref value for stationary signals
 I_REF = 4e-10;
-dBFS = 94; % dBFS = 94 means that pref = 2e-5 or, I_REF=pref^2=4e-10
 % bark vector
 barkAxis=(1:240)/10;
 
-% ***************************
-% STEP 1 - Resample to 48 kHz
-% ****************************
-
 switch method
-    case 0
-        % if method == 0, no need to calculate one-third OB levels.
+    case 0 % if method == 0, no need to calculate one-third OB levels.
+         
         SampleRateLevel = 1;
         DecFactorLoudness = 1;
         NumSamplesLevel = 1;
 
-        ThirdOctaveLevel=insig; % get 1/3 octave levels from insig if method = 0
+        ThirdOctaveLevel = insig; % get 1/3 octave levels from insig if method = 0
 
-    otherwise
-        % if different from stationary (from input 1/3 octave unweighted SPL)
+    otherwise  % if different from stationary (from input 1/3 octave unweighted SPL)      
 
         audio=insig; % input signal
 
+        % **************************************************
+        % STEP 1 - resample to 48 kHz if necessary
+        % **************************************************
         if fs ~= 48000
             gcd_fs = gcd(48000,fs); % greatest common denominator
             audio = resample(audio,48000/gcd_fs,fs/gcd_fs);
@@ -143,22 +140,28 @@ switch method
         else
             len = size(audio,1);
         end
-
+        
+        % Assign values to global variables according to the selected method
         switch method
             case 1 % stationary from audio signal
                 SampleRateLevel = 1;
                 NumSamplesLevel = 1;
+                DecFactorLoudness = 1;
 
             case 2 % time_varying from audio signal
                 SampleRateLevel = SR_LEVEL;
+                SampleRateLoudness = SR_LOUDNESS;
                 DecFactorLevel = fs/SampleRateLevel;
+                DecFactorLoudness = SampleRateLevel/SampleRateLoudness;
                 NumSamplesLevel = ceil(len/DecFactorLevel);
+                NumSamplesLoudness = ceil(NumSamplesLevel/DecFactorLoudness);
         end
 
         % **************************************************
         % STEP 2 - Create filter bank and filter the signal
         % **************************************************
         [filteredaudio,fc] = Do_OB13(insig,fs);
+        
         % ***************************************************************
         % STEP 3 - Squaring and smoothing by 3 1st order lowpass filters
         % ***************************************************************
@@ -167,6 +170,7 @@ switch method
         N_bands = length(fc);
         ThirdOctaveLevel = zeros(NumSamplesLevel,N_bands);
         CentreFrequency = fc;
+        
         for i = 1:N_bands
 
             switch method
@@ -213,30 +217,10 @@ switch method
             end
         end
 
-        % *******************************************************************
-        % Assign values to global variables according to the selected method
-        % *******************************************************************
-
-        switch method
-            case 1 % stationary from audio signal
-                SampleRateLevel = 1;
-                NumSamplesLevel = 1;
-                DecFactorLoudness = 1;
-
-            case 2 % time_varying from audio signal
-                SampleRateLevel = SR_LEVEL;
-                SampleRateLoudness = SR_LOUDNESS;
-                DecFactorLevel = fs/SampleRateLevel;
-                DecFactorLoudness = SampleRateLevel/SampleRateLoudness;
-                NumSamplesLevel = ceil(len/DecFactorLevel);
-                NumSamplesLoudness = ceil(NumSamplesLevel/DecFactorLoudness);
-        end
-
-
 end
 
 %% ***********************************************************
-% STEP 4 - Apply weighting factor to first 3 1/1 octave bands
+% STEP 4 - Apply weighting factor to the first three 1/3 octave bands
 % ************************************************************
 
 % WEIGHTING BELLOW 315Hz TABLE A.3
