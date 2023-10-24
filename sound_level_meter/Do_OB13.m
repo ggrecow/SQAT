@@ -1,5 +1,5 @@
 function [outsig, fc] = Do_OB13(insig, fs, fmin, fmax)
-% function Do_OB13(insig,fs,method)
+% [outsig, fc] = Do_OB13(insig, fs, fmin, fmax)
 %
 % This code employs a hard-coded implementation of a one-third octave band
 %   filterbank for a sampling frequency fs=48000 Hz. For this reason, if
@@ -20,10 +20,10 @@ function [outsig, fc] = Do_OB13(insig, fs, fmin, fmax)
 %   sampling frequency (Hz) of insig
 %
 %   fmin : integer
-%   minimun frequency to be computed between 25 Hz - 12.5 kHz
+%   minimun center frequency to be computed between 25 Hz - 12.5 kHz (1/3 octave bands)
 %
 %   fmax : integer
-%   maximum frequency to be computed between 25 Hz - 12.5 kHz
+%   maximum center frequency to be computed between 25 Hz - 12.5 kHz (1/3 octave bands)
 %
 % OUTPUT
 %
@@ -61,12 +61,12 @@ function [outsig, fc] = Do_OB13(insig, fs, fmin, fmax)
 % Author (stand-alone function): Alejandro Osses (20/10/2023)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-if nargin < 2
+if nargin < 3
     
     fmin = 25; % min freq is 25 Hz by default
     fmax = 12500; % max freq is 12.5 kHz by default.
 
-elseif nargin < 3
+elseif nargin < 4
     
     fmax = 12500; % max freq is 12.5 kHz by default.
     
@@ -207,10 +207,10 @@ filtgain = [4.30764e-011;... % 25 Hz
 %%  calculate centre frequencies (25 Hz - 12.5 kHz)
 
 N_bands = 28; % number of bands
-CentreFrequency = zeros(N_bands,1);
+CenterFrequency = zeros(N_bands,1);
 
 for i = 1:N_bands
-    CentreFrequency(i) = 10^(((i-1)-16)/10.) * 1000; % calculate centre frequencies
+    CenterFrequency(i) = 10^(((i-1)-16)/10.) * 1000; % calculate centre frequencies
 end
 
 %% find idx of fmin and fmax and fix freq range before filtering
