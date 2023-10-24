@@ -1,13 +1,36 @@
-function [outsig,fc] = Do_OB13(insig,fs)
+function [outsig, fc] = Do_OB13(insig, fs, fmin, fmax)
 % function Do_OB13(insig,fs,method)
 %
 % This code employs a hard-coded implementation of a one-third octave band
 %   filterbank for a sampling frequency fs=48000 Hz. For this reason, if
 %   the input fs adopts a value different from 48 kHz, the signal is
-%   appropriately resampled. The output signal, outsig, is a vector with
-%   28 columns and as many rows as elements the input signal insig has.
+%   appropriately resampled. 
+%
 % This code was extracted from the loudness implementation from the AARAE
-% toolbox refactored by the SQAT toolbox team.
+%   toolbox refactored by the SQAT toolbox team. Therefore, it complies with
+%   ISO 532-1:2017 (and IEC 61260-1:2014). However, the freq range computed
+%   is only between 25 Hz - 12.5 kHz
+%
+% INPUTS:
+%
+%   insig : array
+%   [Nx1] array, corresponding to a monophonic audio signal 
+%
+%   fs : integer
+%   sampling frequency (Hz) of insig
+%
+%   fmin : integer
+%   minimun frequency to be computed between 25 Hz - 12.5 kHz
+%
+%   fmax : integer
+%   maximum frequency to be computed between 25 Hz - 12.5 kHz
+%
+% OUTPUT
+%
+%   outsig :  
+%   [nTime,nFreq] matrix containing nFreq = number of 1/3.OB bands and ntime rows = as many elements the input signal insig has.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
 % Stand-alone example:
 %   fname = [basepath_SQAT 'sound_files' filesep 'reference_signals' filesep 'RefSignal_Loudness_ISO532_1.wav'];
@@ -36,28 +59,34 @@ function [outsig,fc] = Do_OB13(insig,fs)
 % Author: Ella Manor - MATLAB implementation for AARAE (2015)
 % Author (modifications): Gil Felix Greco (22/02/2023)
 % Author (stand-alone function): Alejandro Osses (20/10/2023)
-%% **************************************************
-% STEP 2 - Create filter bank and filter the signal
-% ***************************************************
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+if nargin < 2
+    
+    fmin = 25; % min freq is 25 Hz by default
+    fmax = 12500; % max freq is 12.5 kHz by default.
+
+elseif nargin < 3
+    
+    fmax = 12500; % max freq is 12.5 kHz by default.
+    
+end
+
+%% STEP 1 - resample to 48 kHz if necessary
 
 if fs ~= 48000
     insig = resample(insig,48000,fs);
     fs = 48000;
     fprintf('%s.m: This script has only been validated at a sampling frequency fs=48 kHz, resampling to this fs value\n',mfilename);
 end
+
 len = size(insig,1);
+
+%% STEP 2 - Create filter bank and filter the signal
 
 % reference
 br = [1,2,1;1,0,-1;1,-2,1];
 ar = [1,-2,1;1,-2,1;1,-2,1];
-
-N_bands = 28; % number of bands
-CentreFrequency = zeros(N_bands,1);
-outsig = zeros(len,N_bands);
-
-for i = 1:N_bands
-    CentreFrequency(i) = 10^(((i-1)-16)/10.) * 1000; % calculate centre frequencies
-end
 
 % filter 'a' coefficient offsets TABLES A.1 A.2
 ad = cat(3,[0,-6.70260e-004,6.59453e-004;...
@@ -175,10 +204,33 @@ filtgain = [4.30764e-011;... % 25 Hz
         2.27488e-003;... % 10000 Hz
         3.91006e-003];   % 12500 Hz
 
+%%  calculate centre frequencies (25 Hz - 12.5 kHz)
+
+N_bands = 28; % number of bands
+CentreFrequency = zeros(N_bands,1);
+
+for i = 1:N_bands
+    CentreFrequency(i) = 10^(((i-1)-16)/10.) * 1000; % calculate centre frequencies
+end
+
+%% find idx of fmin and fmax and fix freq range before filtering
+
+idx_fmin = find (CenterFrequency>=fmin,1);
+idx_fmax = find (CenterFrequency>=fmax,1);
+
+filtgain = filtgain(idx_fmin:idx_fmax); % adjust filtgain to fmin and fmax 
+ad = ad(:,:,idx_fmin:idx_fmax); % adjust ad to fmin and fmax 
+
+N_bands = size(filtgain,1);
+outsig = zeros(len,N_bands);
+
+%% Filter signal
+
 for n = 1:N_bands
     outsig(:,n) = filtgain(n) * filter(br(3,:),ar(3,:)-ad(3,:,n),...
         filter(br(2,:),ar(2,:)-ad(2,:,n),...
         filter(br(1,:),ar(1,:)-ad(1,:,n),insig)));
 end
 
-fc = CentreFrequency;
+fc = CenterFrequency(idx_fmin:idx_fmax);
+
