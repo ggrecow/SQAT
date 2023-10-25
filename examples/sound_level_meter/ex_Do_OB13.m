@@ -2,6 +2,15 @@
 %
 % It produces the impulse response of the one-third octave band module 
 % included in the sound level meter of the SQAT toolbox.
+%
+% FUNCTION:
+%   [outsig, fc] = Do_OB13(insig, fs, fmin, fmax)
+%   type <help Do_OB13> for more info
+%
+% IMPORTANT INFO: the 1/3 octave band filter bank implemented complies with
+%   ISO 532-1:2017 (and IEC 61260-1:2014). However, the possible freq range computed
+%   is only between 25 Hz - 12.5 kHz.
+%
 % The calculation is done for a unit impulse (amplitude 1) of 1 second of 
 % duration at a sampling frequency of 48000 Hz, because the filter bank is
 % hard coded to work on this sampling frequency.
