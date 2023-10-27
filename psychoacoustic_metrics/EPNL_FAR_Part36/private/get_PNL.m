@@ -33,6 +33,7 @@ function [PN, PNL, PNLM, PNLM_idx] = get_PNL(input)
 %       PNLM_idx : scalar
 %       index in the PNL(t) vector where max(PNL) occurs
 %
+% Function author: Gil Felix Greco, Braunschweig 27.10.2023
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 num_times = size(input,1); % number of time steps

@@ -43,6 +43,7 @@ function [PNLT, PNLTM, PNLTM_idx] = get_PNLT( input, freq_bands, PNL )
 %       PNLTM_idx : scalar
 %       index in the PNLT(t) vector where max(PNLT) occurs
 %
+% Function author: Gil Felix Greco, Braunschweig 27.10.2023
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % DEFINITIONS

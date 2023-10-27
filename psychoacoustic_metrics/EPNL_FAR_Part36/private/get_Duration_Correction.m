@@ -47,6 +47,7 @@ function [D, idx_t1, idx_t2] = get_Duration_Correction( PNLT, PNLTM, PNLTM_idx, 
 %       idx_t2 : scalar
 %       index in the PNLT(t) vector where t(2) occurs
 %
+% Function author: Gil Felix Greco, Braunschweig 27.10.2023
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % Find the PNLTM-threshold down points (t1 and t2)
