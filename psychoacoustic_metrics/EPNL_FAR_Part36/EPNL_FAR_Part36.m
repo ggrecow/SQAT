@@ -1,16 +1,16 @@
 function OUT = EPNL_FAR_Part36( insig, fs, method, dt, threshold, show )
 % function OUT = EPNL_FAR_Part36( insig, fs, method, dt, threshold, show )
 %
-%   This function calculates the EFFECTIVE PERCEIVED NOISE LEVEL 
+%   This function calculates the EFFECTIVE PERCEIVED NOISE LEVEL
 %   based on the procedure from:
 %
-%   [1] Federal Aviation Regulations, 14 CFR Parts 36 and 91, 
-%       Docket No. FAA-2003-16526; Amendment No. 36-26, 91-288, (2005). 
+%   [1] Federal Aviation Regulations, 14 CFR Parts 36 and 91,
+%       Docket No. FAA-2003-16526; Amendment No. 36-26, 91-288, (2005).
 %   Website: https://www.ecfr.gov/current/title-14/appendix-Appendix%20A%20to%20Part%2036
 %   (Last viewed 19 Oct 2023)
 %
 %   Another relevant source describing the EPNL calculation procedure is:
-%  
+%
 %   [2] Annex 16 to the Convention on International Civil Aviation,
 %   Environmental Protection, Volume I - Aircraft Noise, Eighth Edition,
 %   July 2017, Internation Civil Aviation Organization
@@ -28,62 +28,62 @@ function OUT = EPNL_FAR_Part36( insig, fs, method, dt, threshold, show )
 %%% INPUT ARGUMENTS
 %
 %   insig :
-%   for method = 0, insig is a SPL[nTime,nFreq] matrix with nFreq=24 columns containing unweighted SPL values 
+%   for method = 0, insig is a SPL[nTime,nFreq] matrix with nFreq=24 columns containing unweighted SPL values
 %   for each third octave band from 50 Hz to 10 kHz, and nTime rows corresponding to the time-intervals on which the SPL are provided
 %        - in this case, insig is used as is (i.e. without any pre-processing before the EPNL calculation).
 %          This means that it will be assumed that each nFreq column of the input matrix corresponds to third octave bands
-%          from 50 Hz to 10 kHz, and that each nTime row are given in dt = 0.5 s intervals. 
-%          BE CAREFUL: These assumptions will be used for the EPNL calculation. If your SPL data has a different dt, 
-%          it will need to be pre-processed before used here.  
+%          from 50 Hz to 10 kHz, and that each nTime row are given in dt = 0.5 s intervals.
+%          BE CAREFUL: These assumptions will be used for the EPNL calculation. If your SPL data has a different dt,
+%          it will need to be pre-processed before used here.
 %
-%   for method = 1, insig is a [nTime,1] array corresponding to a calibrated audio signal (Pa) 
+%   for method = 1, insig is a [nTime,1] array corresponding to a calibrated audio signal (Pa)
 %        - in this case, insig will be filtered to get the third octave
 %          level from 50 Hz to 10 kHz. The third octave filters conform with
 %          the ones prescribed by ISO 532-1:2017, which comply with IEC
 %          61260-1:2014. PLEASE NOTE:  the function <DO_OB13> used to
-%          filter the insig in 1/3 octave bands is hard-coded to work considering a sampling frequency fs=48 kHz. 
+%          filter the insig in 1/3 octave bands is hard-coded to work considering a sampling frequency fs=48 kHz.
 %          Thus, insig will be resampled to this fs if necessary. After filtering, the prms per freq band is averaged
 %          in dt time intervals. dt can be provided as input (see below), but
 %          the default value is dt = 0.5 s.
-%    
-%   fs : integer 
+%
+%   fs : integer
 %   sampling frequency (Hz). For method = 0, provide a dummy scalar
 %
-%   method : integer 
-%   for method = 0 - calculates EPNL from an input [nTime,nFreq] matrix with nFreq=24 columns containing unweighted SPL values 
+%   method : integer
+%   for method = 0 - calculates EPNL from an input [nTime,nFreq] matrix with nFreq=24 columns containing unweighted SPL values
 %         for each third octave band from 50 Hz to 10 kHz, and nTime rows corresponding to the time-intervals on which the SPL are provided
 %
-%   for method = 1 - calculates EPNL from an input calibrated audio file, in Pascal unit 
+%   for method = 1 - calculates EPNL from an input calibrated audio file, in Pascal unit
 %
-%   dt : integer 
+%   dt : integer
 %   time-step, in seconds, in which the third octave SPLs are averaged to (when method = 1).
-%   When method = 0, this paramater only affects the calculation of the duration correction 
-%   applied to compute the EPNL from the PNLT curve. 
+%   When method = 0, this paramater only affects the calculation of the duration correction
+%   applied to compute the EPNL from the PNLT curve.
 %   The default value is dt = 0.5.
 %
 %   threshold : integer
-%   threshold value, in TPNdB, used to calculate the PNLT decay from PNLTM during the calculation of the 
-%   duration correction. 
+%   threshold value, in TPNdB, used to calculate the PNLT decay from PNLTM during the calculation of the
+%   duration correction.
 %   The default value is threshold = 10
 %
 %   show : logical(boolean)
 %   optional parameter for figures (results) display
 %   'false' (disable, default value) or 'true' (enable).
 %
-%%% OUTPUT  
+%%% OUTPUTS
 %
-%   OUT : struct containing the following fields 
-%            when method = 0, only quantities with (*) are provided   
-%            when method = 1, quantities with (*) and (**) are provided   
+%   OUT : struct containing the following fields
+%            when method = 0, only quantities with (*) are provided
+%            when method = 1, quantities with (*) and (**) are provided
 %
 %   - SPL quantities considering the original insig
-%       ** InstantaneousSPL_insig - overall sound pressure level over time from the original insig (sound file), in dB SPL (from third octave bands) 
-%       ** time_insig - time vector of the original input insig (sound file), in seconds 
+%       ** InstantaneousSPL_insig - overall sound pressure level over time from the original insig (sound file), in dB SPL (from third octave bands)
+%       ** time_insig - time vector of the original input insig (sound file), in seconds
 %
 %   - SPL quantities averaged in dt time-steps
 %       * InstantaneousSPL - overall sound pressure level over time, in dB SPL (from third octave bands)
 %       * time - time vector (sec). this vector is provided considering dt time-steps
-%       ** SPL_TOB_spectra - [nTime,nFreq] matrix containing SPL over nTime rows for each nFreq third octave band 
+%       ** SPL_TOB_spectra - [nTime,nFreq] matrix containing SPL over nTime rows for each nFreq third octave band
 %       * TOB_freq - nominal third octave central frequencies
 %
 %   - EPNL-related quantities
@@ -93,25 +93,25 @@ function OUT = EPNL_FAR_Part36( insig, fs, method, dt, threshold, show )
 %       * PNLT - Tone-Corrected Perceived Noise Level vs. time, in TPNdB
 %       * PNLTM - max. value of the Tone-Corrected Perceived Noise Level, in TPNdB
 %       * EPNL - Effective Perceived Noise Level, in EPNdB
-%    
+%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
-% Source: This code is based on the one provided by: 
-% Shashikant R. More, Aircraft noise characteristics and metrics, Doctoral thesis, Purdue University, 2010 (permanent link: https://docs.lib.purdue.edu/dissertations/AAI3453255/)  
+% Source: This code is based on the one provided by:
+% Shashikant R. More, Aircraft noise characteristics and metrics, Doctoral thesis, Purdue University, 2010 (permanent link: https://docs.lib.purdue.edu/dissertations/AAI3453255/)
 %
-% Author: Roberto Merino-Martinez, Delft University (2018) - MATLAB implementation, verification, adaptation   
-% Author: Gil Felix Greco, Braunschweig 27.10.2023 - adaptation/verification/tested for SQAT. 
+% Author: Roberto Merino-Martinez, Delft University (2018) - MATLAB implementation, verification, adaptation
+% Author: Gil Felix Greco, Braunschweig 27.10.2023 - adaptation/verification/tested for SQAT.
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 if nargin == 0 || nargin < 2
     help EPNL_FAR_Part36;
     return;
-elseif nargin < 3 % default situation where insig is a sound file, dt and threshold are set to default values, Plots are now shown 
+elseif nargin < 3 % default situation where insig is a sound file, dt and threshold are set to default values, Plots are now shown
     method = 1;
     dt = 0.5;
     threshold = 10;
-    show = 0;    
+    show = 0;
 elseif ( method==0 && nargin < 4 ) % default situation for method == 0, where dt and threshold are set to default values
     dt = 0.5;
     threshold = 10;
@@ -124,108 +124,112 @@ if method==0
         return;
     end
 end
-    
+
 %%  insig pre-processing stage
 
 fc_TOB = [  50 63 80, 100 125 160, 200 250 315, 400 500 630, ...
     800 1000 1250, 1600 2000 2500, 3150 4000 5000, 6300 8000 10000 ];  % nominal center freq - preferred for freq. labeling (check Tabel E.1. of IEC 61260-1:2014)
 
 num_freqs = length(fc_TOB); % number of freq bands = nFreq
-    
+
 switch method
     
     case 0 % insig is a [nTime,nFreq] matrix containing nFreq=24 columns containing unweighted SPL values for each third octave band from 50 Hz to 10 kHz
-    
-    SPL_TOB_spectra = insig;
-    num_times = size(SPL_TOB_spectra,1); % number of time steps
-    
-    if num_freqs~=size(SPL_TOB_spectra,2) % insig matrix needs to have nFreq=24 columns
-        warning('For method=0, the insig matrix should have nFreq=24 columns, which corresponds to 1/3 oct. bands from 50 Hz to 10 kHz. Please check the input matrix for the correct dimension!!!');
-        return;
-    end
-    
-    InstantaneousSPL = 10.*log10(sum(10.^(SPL_TOB_spectra./10),2));  % assumes insig is given in SPL
-    
-    time = linspace(0,dt*num_times,num_times); % time vector, in dt time-steps
-    
-    % OUTPUT  
-    OUT.InstantaneousSPL = InstantaneousSPL;
-    OUT.time = time;
-    OUT.TOB_freq = fc_TOB;    
-    
+        
+        SPL_TOB_spectra = insig;
+        num_times = size(SPL_TOB_spectra,1); % number of time steps
+        
+        if num_freqs~=size(SPL_TOB_spectra,2) % insig matrix needs to have nFreq=24 columns
+            warning('For method=0, the insig matrix should have nFreq=24 columns, which corresponds to 1/3 oct. bands from 50 Hz to 10 kHz. Please check the input matrix for the correct dimension!!!');
+            return;
+        end
+        
+        InstantaneousSPL = 10.*log10(sum(10.^(SPL_TOB_spectra./10),2));  % assumes insig is given in SPL
+        
+        time = linspace(0,dt*num_times,num_times); % time vector, in dt time-steps
+        
+        % OUTPUT
+        OUT.InstantaneousSPL = InstantaneousSPL;
+        OUT.time = time;
+        OUT.TOB_freq = fc_TOB;
+        
     case 1 % insig is a [nTime,1] array corresponding to a calibrated audio signal (Pa)
-    
-    % resample to 48 kHz if necessary (this is necessary because the function
-    % <DO_OB13> generates a 1/3 octave fitler bank which is hard-coded
-    % to work on fs=48 kHz)
-    if fs ~= 48000
-        insig = resample(insig,48000,fs);
-        fs = 48000;
-        fprintf('\n%s.m: The 1/3 octave band filter bank used in this script has only been validated at a sampling frequency fs=48 kHz, resampling to this fs value\n',mfilename);
-    end
-    
-    len_insig = size(insig,1);  % length of the (resample) input vector
-    I_REF = 4e-10; % ref. pressure^2
-    TINY_VALUE = 1e-12; % small value to avoid inf SPL values
-    
-    % filter insig to get 1/3-OB
-    fmin = 50; % min freq of 1/3-OB is 50 Hz
-    fmax = 10000; % max freq of 1/3-OB is 10 kHz
-    
-    [insig_P_TOB, ~] = Do_OB13(insig, fs, fmin, fmax); % get 1/3-OB spectra from insig - output is p [nTime,nFreq]
-    
-    insig_Psquared_TOB = insig_P_TOB.^2;  % squaring the filtered signal - output is p^2 [nTime,nFreq]
-    
-    InstantaneousSPL_insig = 10*log10( (sum(insig_Psquared_TOB,2) + TINY_VALUE)/I_REF ); % sum energetically all 1/3-OB for each time step to get the overall SPL(t)
-    time_insig = ( 1:len_insig)/fs; % time vector of insig
-    
-    % calculate SPL in dt steps
-    Nbins = round(fs*dt); % define dt in N bins
-    num_times = ceil(len_insig/Nbins); %  number of time steps of the signal in N blocks
-    
-    Psquared_TOB = zeros(num_times,num_freqs); % declare variable for memory preallocation    
-    for i = 1:num_freqs % for each i-th freq band, calculate  p^2 averaged along Nbins blocks related to dt
         
-        Psquared_TOB(:,i) = mean( buffer( insig_Psquared_TOB(:,i),Nbins ) ,1 ); % output is p^2[nTime*,nFreq] , where nTime*=round(length(insig)/N)
+        if size(insig,2)~=1 % if the insig is not a [Nx1] array
+            insig=insig';   % correct the dimension of the insig
+        end
         
-    end
-    
-    SPL_TOB_spectra = 10*log10( (Psquared_TOB+TINY_VALUE)/I_REF ); % main SPL[nTime*,nFreq] matrix used for the EPNL calculation
-    InstantaneousSPL = 10*log10( (sum(Psquared_TOB,2) + TINY_VALUE)/I_REF ); % overall SPL vs. time, in dt time-steps
-    
-    time = time_insig(1):dt:time_insig(end); % time vector, in dt time-steps 
-    
-    % OUTPUT - quantities from the original insig
-    OUT.InstantaneousSPL_insig = InstantaneousSPL_insig;
-    OUT.time_insig = time_insig;
-    
-    % OUTPUT  - quantities averaged in dt time steps
-    OUT.InstantaneousSPL = InstantaneousSPL;
-    OUT.time = time;
-    OUT.SPL_TOB_spectra = SPL_TOB_spectra;
-    OUT.TOB_freq = fc_TOB;
-    
-    clear I_REF fmin fmax insig_Psquared_toct Nbins Psquared_toct
-    
+        % resample to 48 kHz if necessary (this is necessary because the function
+        % <DO_OB13> generates a 1/3 octave fitler bank which is hard-coded
+        % to work on fs=48 kHz)
+        if fs ~= 48000
+            insig = resample(insig,48000,fs);
+            fs = 48000;
+            fprintf('\n%s.m: The 1/3 octave band filter bank used in this script has only been validated at a sampling frequency fs=48 kHz, resampling to this fs value\n',mfilename);
+        end
+        
+        len_insig = size(insig,1);  % length of the (resample) input vector
+        I_REF = 4e-10; % ref. pressure^2
+        TINY_VALUE = 1e-12; % small value to avoid inf SPL values
+        
+        % filter insig to get 1/3-OB
+        fmin = 50; % min freq of 1/3-OB is 50 Hz
+        fmax = 10000; % max freq of 1/3-OB is 10 kHz
+        
+        [insig_P_TOB, ~] = Do_OB13(insig, fs, fmin, fmax); % get 1/3-OB spectra from insig - output is p [nTime,nFreq]
+        
+        insig_Psquared_TOB = insig_P_TOB.^2;  % squaring the filtered signal - output is p^2 [nTime,nFreq]
+        
+        InstantaneousSPL_insig = 10*log10( (sum(insig_Psquared_TOB,2) + TINY_VALUE)/I_REF ); % sum energetically all 1/3-OB for each time step to get the overall SPL(t)
+        time_insig = ( 1:len_insig)/fs; % time vector of insig
+        
+        % calculate SPL in dt steps
+        Nbins = round(fs*dt); % define dt in N bins
+        num_times = ceil(len_insig/Nbins); %  number of time steps of the signal in N blocks
+        
+        Psquared_TOB = zeros(num_times,num_freqs); % declare variable for memory preallocation
+        for i = 1:num_freqs % for each i-th freq band, calculate  p^2 averaged along Nbins blocks related to dt
+            
+            Psquared_TOB(:,i) = mean( buffer( insig_Psquared_TOB(:,i),Nbins ) ,1 ); % output is p^2[nTime*,nFreq] , where nTime*=round(length(insig)/N)
+            
+        end
+        
+        SPL_TOB_spectra = 10*log10( (Psquared_TOB+TINY_VALUE)/I_REF ); % main SPL[nTime*,nFreq] matrix used for the EPNL calculation
+        InstantaneousSPL = 10*log10( (sum(Psquared_TOB,2) + TINY_VALUE)/I_REF ); % overall SPL vs. time, in dt time-steps
+        
+        time = time_insig(1):dt:time_insig(end); % time vector, in dt time-steps
+        
+        % OUTPUT - quantities from the original insig
+        OUT.InstantaneousSPL_insig = InstantaneousSPL_insig;
+        OUT.time_insig = time_insig;
+        
+        % OUTPUT  - quantities averaged in dt time steps
+        OUT.InstantaneousSPL = InstantaneousSPL;
+        OUT.time = time;
+        OUT.SPL_TOB_spectra = SPL_TOB_spectra;
+        OUT.TOB_freq = fc_TOB;
+        
+        clear I_REF fmin fmax insig_Psquared_toct Nbins Psquared_toct
+        
 end
 
 %% Calculate EPNL
 
 % Convert SPL to Perceived Noisiness (PN) and compute Perceived Noisiness Level (PNL)
-[PN, PNL, PNLM, PNLM_idx] = get_PNL(SPL_TOB_spectra); 
+[PN, PNL, PNLM, PNLM_idx] = get_PNL(SPL_TOB_spectra);
 
 % Calculate tone-correction and Tone-Corrected Perceived Noise Level (PNLT)
-[PNLT, PNLTM, PNLTM_idx] = get_PNLT(SPL_TOB_spectra, fc_TOB, PNL); 
+[PNLT, PNLTM, PNLTM_idx] = get_PNLT(SPL_TOB_spectra, fc_TOB, PNL);
 
 % Calculate duration correction factor
 [D, idx_t1, idx_t2] = get_Duration_Correction( PNLT, PNLTM, PNLTM_idx, dt, threshold );
 
 % Calculate Effective Perceived Noise Level, unit is EPNdB
-OUT.EPNL = PNLTM + D; 
+OUT.EPNL = PNLTM + D;
 
-% Print calculated EPNL value  
-fprintf( '\nThe calculated EPNL is %.4g (EPNdB)\n',OUT.EPNL );  
-    
+% Print calculated EPNL value
+fprintf( '\nThe calculated EPNL is %.4g (EPNdB)\n',OUT.EPNL );
+
 % OUTPUTS
 OUT.PN = PN; % PERCEIVED NOISINESS, unit is Noys
 OUT.PNL = PNL;  % PERCEIVED NOISE LEVEL, unit is PNdB
@@ -233,19 +237,19 @@ OUT.PNLM = PNLM; % MAXIMUM PERCEIVED NOISE LEVEL, unit is PNdB
 OUT.PNLT = PNLT; % TONE-CORRECTED PERCEIVED NOISE LEVEL, unit is TPNdB
 OUT.PNLTM = PNLTM; % MAXIMUM TONE-CORRECTED PERCEIVED NOISE LEVEL (PNLTM)
 
-%%  Show plots 
+%%  Show plots
 
 if show == true
     
-    xmax = time(end); % used to define the x-axis on the plots 
-                
+    xmax = time(end); % used to define the x-axis on the plots
+    
     switch method
         
         case 0
             
             figure('name','EPNL calculation based on an input SPL matrix',...
                 'units','normalized','outerposition',[0 0 1 1]); % plot fig in full screen
-                        
+            
             % plot instantaneous sound pressure level (dBSPL) from original signal and time-averaged over a given dt value
             subplot( 2, 6, [1,2] )
             plot( time, InstantaneousSPL,'Linewidth',2 );
@@ -320,7 +324,7 @@ if show == true
             
             figure('name','EPNL calculation based on an input sound file',...
                 'units','normalized','outerposition',[0 0 1 1]); % plot fig in full screen
-                       
+            
             % plot input signal
             subplot( 2, 6, [1,2] )
             plot( time_insig, insig );
@@ -404,7 +408,7 @@ if show == true
             
     end
     
-else % if show == 0, dont plot anything    
+else % if show == 0, dont plot anything
 end
 
 end
