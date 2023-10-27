@@ -67,6 +67,10 @@ PA_Zwicker_example = [bp 'examples'               filesep 'PsychoacousticAnnoyan
 
 SLM_example        = [bp 'examples'               filesep 'sound_level_meter' filesep];
 
+EPNL_main        = [bp 'psychoacoustic_metrics' filesep 'EPNL_FAR_Part36'            filesep];
+EPNL_validation  = [bp 'validation'             filesep 'EPNL_FAR_Part36'            filesep];
+EPNL_example     = [bp 'examples'               filesep 'EPNL_FAR_Part36'            filesep];
+
 bAdd = ~exist('Loudness_ISO532_1.m','file');
 if bAdd
     addpath(L_main);
@@ -123,6 +127,13 @@ end
 bAdd = ~exist('ex_sound_level_meter.m','file');
 if bAdd
     addpath(SLM_example);
+end
+
+bAdd = ~exist('EPNL_FAR_Part36.m','file');
+if bAdd
+    addpath(EPNL_main);
+    addpath(EPNL_validation);
+    addpath(EPNL_example);
 end
 
 %%% Adding the publications' directory (alphabetical order):
