@@ -89,9 +89,9 @@ xmax = compute_PN.time(end); % used to define the x-axis on the plots
 subplot( 2, 6, [1,2] )
 plot( compute_PN.time_insig, RefSignal_PN );
 a=yline(rms(RefSignal_PN),'k--');
-legend(a,sprintf('$p_{\\mathrm{rms}}=$%g (Pa)',rms(RefSignal_PN)),'Location','NorthEast','Interpreter','Latex'); %legend boxoff     
+legend(a,sprintf('$p_{\\mathrm{rms}}=$%g Pa',rms(RefSignal_PN)),'Location','NorthEast','Interpreter','Latex'); %legend boxoff     
 xlabel('Time, $t$ (s)','Interpreter','Latex');
-ylabel('Sound pressure, $p$ Pa','Interpreter','Latex'); %grid on;
+ylabel('Sound pressure, $p$ (Pa)','Interpreter','Latex'); %grid on;
 ax = axis; axis([0 xmax max(RefSignal_PN)*-2 max(RefSignal_PN)*2]);
 title('Input signal','Interpreter','Latex');
 

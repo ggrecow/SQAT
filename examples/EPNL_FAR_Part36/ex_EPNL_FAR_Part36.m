@@ -9,8 +9,9 @@
 % test signal: an exemplary pseudorecording of an A320-like aircraft during take-off is
 % provided. The pseudorecording was auralized by the author of this script
 % using inputs provided by research partners, which employs a simulation procedure
-% based on semi-empirical models to predict the overall aircraft noise at the ground.  
-% The receiver is located at 4.5 km from the runway threshold. This file is used as, 
+% based on semi-empirical models to predict the overall aircraft noise on the ground.  
+% The receiver is located at 4.5 km from the runway threshold. This file is provided here merely
+% as an example as the flight procedure does not comply with a certification flight. Moreover, 
 % to the best of the Author's knowledge, a reference sound file for the EPNL metric calculation
 % does not exists. As reference, the EPNL calculated for this very same aircraft
 % flight over by another tool is 98.97 EPNdB
