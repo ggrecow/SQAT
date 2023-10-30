@@ -2,10 +2,10 @@
 The `validation_stationary_loudness_synthetic_signals.m` code is used to verify the loudness implementation according to ISO 532-1 [1] (see `Loudness_ISO532_1`code [here](../../../psychoacoustic_metrics/Loudness_ISO532_1/Loudness_ISO532_1.m)). The verification of the stationary loudness method is performed considering the synthetic test sounds provided in the Annex B.2 and B.3 of the ISO standard. The test signals used here are the following:
 
 - Test signal 1 (stationary loudness based on one-third-octave levels)
-- Test signal 2 (pure tone,  $f_{\mathrm{c}}=250~\mathrm{Hz}$ and $L_{\mathrm{p}}=80~\mathrm{dB~SPL}$).
-- Test signal 3 (pure tone, $f_{\mathrm{c}}=1~\mathrm{kHz}$ and $L_{\mathrm{p}}=60~\mathrm{dB~SPL}$).
-- Test signal 4 (pure tone, $f_{\mathrm{c}}=4~\mathrm{kHz}$ and $L_{\mathrm{p}}=40~\mathrm{dB~SPL}$).
-- Test signal 5 (pink noise, $L_{\mathrm{p}}=60~\mathrm{dB~SPL}$).
+- Test signal 2 (pure tone,  $f_{\mathrm{c}}=250~\mathrm{Hz}$ and $L_{\mathrm{p}}=80~\mathrm{dB~SPL}$)
+- Test signal 3 (pure tone, $f_{\mathrm{c}}=1~\mathrm{kHz}$ and $L_{\mathrm{p}}=60~\mathrm{dB~SPL}$)
+- Test signal 4 (pure tone, $f_{\mathrm{c}}=4~\mathrm{kHz}$ and $L_{\mathrm{p}}=40~\mathrm{dB~SPL}$)
+- Test signal 5 (pink noise, $L_{\mathrm{p}}=60~\mathrm{dB~SPL}$)
 
  Here, the center frequency $f_{\mathrm{c}}$ and sound pressure level $L_{\mathrm{p}}$ are used to describe the signals.
 
