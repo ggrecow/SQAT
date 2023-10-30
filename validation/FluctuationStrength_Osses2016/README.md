@@ -4,7 +4,7 @@ In SQAT, an implementation of the fluctuation strength model from Osses *et al.*
 - [Fluctuation strength dependence of AM tones on the modulation frequency](1_AM_tones_fmod)
 - [Fluctuation strength dependence of AM broadband noises on the modulation frequency](2_AM_BBN_fmod)
 - [Fluctuation strength dependence of FM tones on the modulation frequency](3_FM_tones_fmod)
-- [Fluctuation strength dependence of FM tones on the frequncy deviation](4_FM_tones_freq_dev)
+- [Fluctuation strength dependence of FM tones on the frequency deviation](4_FM_tones_freq_dev)
 
 # References
 [1] Osses Vechi, A., García León, R., & Kohlrausch, A. (2016). Modelling the sensation of fluctuation strength. [Proceedings of Meetings on Acoustics](https://doi.org/10.1121/2.0000410), 28(1), 050005.  
