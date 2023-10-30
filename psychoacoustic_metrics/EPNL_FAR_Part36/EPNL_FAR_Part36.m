@@ -6,14 +6,17 @@ function OUT = EPNL_FAR_Part36( insig, fs, method, dt, threshold, show )
 %
 %   [1] Federal Aviation Regulations, 14 CFR Parts 36 and 91,
 %       Docket No. FAA-2003-16526; Amendment No. 36-26, 91-288, (2005).
-%   Website: https://www.ecfr.gov/current/title-14/appendix-Appendix%20A%20to%20Part%2036
-%   (Last viewed 19 Oct 2023)
+%       Website: https://www.ecfr.gov/current/title-14/appendix-Appendix%20A%20to%20Part%2036
+%       (Last viewed 19 Oct 2023)
 %
-%   Another relevant source describing the EPNL calculation procedure is:
+%   Another relevant source describing the EPNL calculation procedure are:
 %
 %   [2] Annex 16 to the Convention on International Civil Aviation,
-%   Environmental Protection, Volume I - Aircraft Noise, Eighth Edition,
-%   July 2017, Internation Civil Aviation Organization
+%        Environmental Protection, Volume I - Aircraft Noise, Eighth Edition,
+%        July 2017, Internation Civil Aviation Organization
+%
+%   [3] International Civil Aviation Organization (2015) Doc 9501, Environmental Technical Manual
+%        Volume I, Procedures for the Noise Certification of Aircraft, Second Edition - ISBN 978-92-9249-721-7
 %
 %   PLEASE NOTE - Requirements from the FAA regulations are:
 %       1) The third octave frequency analysis is limited from 50 Hz to 10 kHz
@@ -219,7 +222,7 @@ end
 [PN, PNL, PNLM, PNLM_idx] = get_PNL(SPL_TOB_spectra);
 
 % Calculate tone-correction and Tone-Corrected Perceived Noise Level (PNLT)
-[PNLT, PNLTM, PNLTM_idx] = get_PNLT(SPL_TOB_spectra, fc_TOB, PNL);
+[PNLT, PNLTM, PNLTM_idx, ~] = get_PNLT(SPL_TOB_spectra, fc_TOB, PNL);
 
 % Calculate duration correction factor
 [D, idx_t1, idx_t2] = get_Duration_Correction( PNLT, PNLTM, PNLTM_idx, dt, threshold );

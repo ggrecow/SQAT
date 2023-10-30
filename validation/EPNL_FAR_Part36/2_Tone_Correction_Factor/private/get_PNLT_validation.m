@@ -1,5 +1,5 @@
-function [PNLT, PNLTM, PNLTM_idx, OUT] = get_PNLT( input, freq_bands, PNL )
-% function [PNLT, PNLTM, PNLTM_idx, OUT] = get_PNLT( input, freq_bands, PNL )
+function [PNLT, PNLTM, PNLTM_idx, OUT] = get_PNLT_validation( input, freq_bands, PNL )
+% function [PNLT, PNLTM, PNLTM_idx, OUT] = get_PNLT_validation( input, freq_bands, PNL )
 %
 % This function calculates the Tone-corrected Perceived Noise Level, PNLT(k), by:
 %

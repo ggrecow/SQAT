@@ -1,30 +1,33 @@
 % Script run_validation_PN
 %
 % Verification of the Perceived Noisiness calculation used
-% in the EPNL code 
-%   
+% in the EPNL code
+%
 %   - The Effective Perceived Noise Level (EPNL) is a metric used mainly in
 %   the context of environmental aircraft noise, mainly for aircraft noise
 %   certification. To the best of knowledge of the Author of this code, a
 %   reference signal to validate/verify the implementation of the EPNL
 %   calculation does not exists. However, it is possible to verify
-%   particular parts of the EPNL calculation, namely the calculation of  
-%   1) the Perceived Noisiness and 2) the tone-correction factor:
+%   particular parts of the EPNL calculation.
 %
-%   1) Reference of the Perceived Noisiness, PN (Noys): the numerical value of 1
-%       Noy was assigned to the PN of an third octave of random noise centered
-%       at 1 kHz, and with a rms SPL of 40 dB SPL. 
+%   In this code, we use a test signal in order to verify 1) the whole
+%   pre-processing stage of the input signal, and 2) the conversion of SPLs
+%   to Perceived Noisiness.
+%
+%   - Reference of the Perceived Noisiness, PN (Noys): the numerical value of 1
+%     Noy was assigned to the PN of an third octave of random noise centered
+%     at 1 kHz, and with a rms level of 40 dB SPL.
 %
 %       * in this code, we verify if the PN is being correctly calculated by generating
-%         this reference signal as a band-pass white-noise,
-%         with a bandwidth of BW= 891.3 - 1122 = 220.7 Hz, which corresponds to the 
-%         third octave band of fc=1 kHz, and a rms SPL of 40 dB SPL.   
-%         PLEASE NOTE: computing the EPNL from this signal dont make any sense as this is not
-%         an aircraft fly over nor (more generally) a signal with time-varying amplitude. 
-%         It is only used here for the purpose of verifying the PN implementation. 
+%          this reference signal as a white-noise, which is band-passed between
+%          a lower freq 891.3 Hz and a upper freq. 1122 Hz, which corresponding to the
+%          third octave band centered around fc=1 kHz, and a rms SPL of 40 dB SPL.
+%          PLEASE NOTE: computing the EPNL from this signal doesnt make any sense as this is not
+%          an aircraft fly over nor (more generally) a signal with time-varying amplitude.
+%          It is only used here for the purpose of verifying the PN implementation.
 %
-%       Source: Smith, M. (1989). Human reaction to aircraft noise. 
-%       In Aircraft Noise (Cambridge Aerospace Series, pp. 1-19). Cambridge University Press. 
+%       Source: Smith, M. (1989). Human reaction to aircraft noise.
+%       In Aircraft Noise (Cambridge Aerospace Series, pp. 1-19). Cambridge University Press.
 %       doi:10.1017/CBO9780511584527.002 (relevant info can be found in page 7)
 %
 %       Source: Bennett, R.L. & Persons, K.S. (1981) Handbook of aircraft noise metrics.
@@ -32,31 +35,20 @@
 %       https://ntrs.nasa.gov/citations/19810013341 - Last viewed 27 Oct.
 %       2023) (relevant info can be found in page 53)
 %
-%   2)  The tone-correction factor: a table providing reference SPL spectra
-%        values and the respective values that shall be computed in each step of the 
-%        tone-correction factor calculation are provided in the following reference:  
-%
-%        Source: Annex 16 to the Convention on International Civil Aviation,
-%        Environmental Protection, Volume I - Aircraft Noise, Eighth Edition,
-%        July 2017, Internation Civil Aviation Organization 
-%        (relevant info can be found in Table A1-3 of the Appendix 1)
-%
 % EPNL (and/or associated quantities) computed using the following function:
 %   OUT = EPNL_FAR_Part36( insig, fs, method, dt, threshold, show )
 %   type <help EPNL_FAR_Part36> for more info
 %
-%
-% Author: Gil Felix Greco, Braunschweig, 27.10.2023
+% Author: Gil Felix Greco, Braunschweig, 30.10.2023
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 clc; clear all; close all;
 
 save_figs = 0; %% save figs flag
 
-%% path settings 
+%% path settings
 
-dir_analysis_name = 'run_validation_PN';
 dir_out = [fileparts(mfilename('fullpath')) filesep];
- 
+
 % Figure where the figures (and the results) will be stored:
 figures_dir = [dir_out 'figs' filesep];
 if ~exist(figures_dir,'dir')
@@ -74,9 +66,9 @@ fhigh = fc.*2^(1/6); % upper freq of the toct band centered at fc
 
 RefSignal_PN = il_make_bandpass_white_noise(L, fs, levelOut, flow,fhigh);
 
-%% compute EPNL of  RefSignal_PN to get the Perceived Noise, in Noys 
+%% compute EPNL of  RefSignal_PN to get the Perceived Noise, in Noys
 
-compute_PN = EPNL_FAR_Part36(RefSignal_PN, fs);      
+compute_PN = EPNL_FAR_Part36(RefSignal_PN, fs);
 
 %% plot results of EPNL calculation from RefSignal_PN
 
@@ -84,12 +76,12 @@ figure('name','EPNL calculation - verification of PN implementation',...
     'units','normalized','outerposition',[0 0 1 1]); % plot fig in full screen
 
 xmax = compute_PN.time(end); % used to define the x-axis on the plots
-    
+
 % plot input signal
 subplot( 2, 6, [1,2] )
 plot( compute_PN.time_insig, RefSignal_PN );
 a=yline(rms(RefSignal_PN),'k--');
-legend(a,sprintf('$p_{\\mathrm{rms}}=$%g Pa',rms(RefSignal_PN)),'Location','NorthEast','Interpreter','Latex'); %legend boxoff     
+legend(a,sprintf('$p_{\\mathrm{rms}}=$%g Pa',rms(RefSignal_PN)),'Location','NorthEast','Interpreter','Latex'); %legend boxoff
 xlabel('Time, $t$ (s)','Interpreter','Latex');
 ylabel('Sound pressure, $p$ (Pa)','Interpreter','Latex'); %grid on;
 ax = axis; axis([0 xmax max(RefSignal_PN)*-2 max(RefSignal_PN)*2]);
@@ -141,7 +133,7 @@ ax = axis; axis([0 xmax ax(3) ax(4)*1.1]);
 title('Perceived noisiness','Interpreter','Latex');
 
 set(gcf,'color','w');
-       
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 if save_figs==1
     

@@ -39,7 +39,7 @@ function [PN, PNL, PNLM, PNLM_idx] = get_PNL(input)
 num_times = size(input,1); % number of time steps
 num_freqs = size(input,2); % number of freq bands
 
-%% Read Table A36-3 from Ref. [1] or Table A2-3 from Ref. [2], which provides the constants for mathematically formulated NOY values
+%% Read Table A36-3 from Ref. [1], which provides the constants for mathematically formulated NOY values
 
 noy_tab = load('NOY_FORMULATING_TABLE.m');
 % Band = noy_tab(:,1);
