@@ -3,6 +3,7 @@
 *.asv
 *no-commit*
 *.fig
+*.wav
 *.pdf
 *.zip
 Interim_results/*.mat
