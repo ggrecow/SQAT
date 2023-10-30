@@ -26,7 +26,7 @@ After downloading this repository, you just need to add the toolbox into the pat
 - `PsychoacousticAnnoyance_More2010`: psychoacoustic annoyance model from More (see [example](examples/PsychoacousticAnnoyance_More2010/ex_PsychoacousticAnnoyance_More2010.m)).
 - `PsychoacousticAnnoyance_Di2016`: psychoacoustic annoyance model from Di *et al.* (see [example](examples/PsychoacousticAnnoyance_Di2016/ex_PsychoacousticAnnoyance_Di2016.m)). --->
 
-The implemented metrics available in the `psychoacoustic_metrics` folder are listed in the table below:
+The implemented metrics available in the `psychoacoustic_metrics` folder are listed in the table below, including the release on which each metric was first introduced:
 
 | Metric  | Model | Implementation | Validation | Example | Release |
 | :---: | :---: |:---: |:---: |:---: |:---: |
