@@ -1,5 +1,7 @@
 # Tonality model from Aures: verification of the implementation in SQAT
-The `validation_signal_to_noise_ratio.m` code is used to verify the implementation of the tonality model from Aures [1] (see `Tonality_Aures1985` code [here](../../psychoacoustic_metrics/Tonality_Aures1985/Tonality_Aures1985.m)). The verification is performed considering a pure tone (center frequency $f_{\mathrm{c}}=1~\mathrm{kHz}$ and sound pressure level $L_{\mathrm{p}}=85~\mathrm{dB}~\mathrm{SPL}$) with different signal-to-noise ratios (SNRs) from narrowband noises (one-critical-band wide, bandwidth $\mathrm{BW}=1081-918.8 ~\mathrm{Hz}$).
+The `validation_signal_to_noise_ratio.m` code is used to verify the implementation of the tonality model from Aures [1] (see `Tonality_Aures1985` code [here](../../psychoacoustic_metrics/Tonality_Aures1985/Tonality_Aures1985.m)). The verification is performed considering the foloowing test signals:
+
+- Pure tone (center frequency $f_{\mathrm{c}}=1~\mathrm{kHz}$ and sound pressure level $L_{\mathrm{p}}=85~\mathrm{dB}~\mathrm{SPL}$) with different signal-to-noise ratios (SNRs) from narrowband noises (one-critical-band wide, bandwidth $\mathrm{BW}=1081-918.8 ~\mathrm{Hz}$).
 
 # How to use this code
 In order to run this code and reproduce the figures available in the `figs` folder, the user needs to download the dataset of sound files from zenodo <a href="https://doi.org/10.5281/zenodo.7933206" target="_blank">here</a>. The obtained folder called `validation_SQAT_v1_0` has to be included in the `sound_files` folder of the toolbox. 
@@ -7,8 +9,6 @@ In order to run this code and reproduce the figures available in the `figs` fold
 # Results
 The figures below compare the results obtained using the `Tonality_Aures1985` implementation in SQAT with reference data from [2]. 
  
-Pure tone ($f_{\mathrm{c}}=1~\mathrm{kHz}$ and $L_{\mathrm{p}}=85~\mathrm{dB}~\mathrm{SPL}$) with different SNRs from narrowband noises (one-critical-band wide, $\mathrm{BW}=1081-918.8 ~\mathrm{Hz}$). |  
-:-------------------------:| 
 ![](figs/tonality_validation_SNR_tone_85dBSPL_1khz.png)       
 
 # References
