@@ -23,7 +23,7 @@ function [PNLT, PNLTM, PNLTM_idx, OUT] = get_PNLT( input, freq_bands, PNL )
 %
 %       input : matrix
 %       SPL[nTime,nFreq] matrix with nFreq=24 columns containing unweighted
-%       SPL values for each third octave band from 50 Hz to 10 kHz, and
+%       SPL values for each third-octave band from 50 Hz to 10 kHz, and
 %       nTime rows corresponding to time-steps
 %
 %       freq_bands : vector
@@ -44,7 +44,7 @@ function [PNLT, PNLTM, PNLTM_idx, OUT] = get_PNLT( input, freq_bands, PNL )
 %       index in the PNLT(t) vector where max(PNLT) occurs
 %
 %       OUT : struct
-%       Struct containing the S, diff, delS, SPLP, SP, SB, SPLPP, F, C variables (only used for verifying the tone-correction factor implementation)
+%       Struct containing the S, diff, delS, SPLP, SP, SB, SPLPP, F, and C variables (only used for verifying the tone-correction factor implementation)
 %
 % Function author: Gil Felix Greco, Braunschweig 27.10.2023
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -204,7 +204,7 @@ end
 
 [PNLTM,PNLTM_idx] = max(PNLT); % MAXIMUM TONE-CORRECTED PERCEIVED NOISE LEVEL (PNLTM)
 
-%% Output variables for verification of the tone correction inplementation
+%% Output variables for verification of the tone correction implementation
 
 OUT.S = S;
 OUT.delS = delS;
