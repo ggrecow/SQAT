@@ -17,7 +17,7 @@ function [PN, PNL, PNLM, PNLM_idx] = get_PNL(input)
 %
 %       input :
 %       SPL[nTime,nFreq] matrix with nFreq=24 columns containing unweighted
-%       SPL values for each third octave band from 50 Hz to 10 kHz, and
+%       SPL values for each third-octave band from 50 Hz to 10 kHz, and
 %       nTime rows corresponding to time-steps
 %
 % OUTPUTS:
