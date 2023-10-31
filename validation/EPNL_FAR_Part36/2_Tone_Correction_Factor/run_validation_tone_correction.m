@@ -7,7 +7,7 @@
 %   the context of environmental aircraft noise, mainly for aircraft noise
 %   certification. To the best of knowledge of the Author of this code, a
 %   reference signal to validate/verify the implementation of the EPNL
-%   calculation does not exists. However, it is possible to verify
+%   calculation does not exist. However, it is possible to verify
 %   particular parts of the EPNL calculation.
 %
 %   In this code, we use a table providing reference SPL spectra
