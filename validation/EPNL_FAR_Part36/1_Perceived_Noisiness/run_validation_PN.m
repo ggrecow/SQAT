@@ -7,7 +7,7 @@
 %   the context of environmental aircraft noise, mainly for aircraft noise
 %   certification. To the best of knowledge of the Author of this code, a
 %   reference signal to validate/verify the implementation of the EPNL
-%   calculation does not exists. However, it is possible to verify
+%   calculation does not exist. However, it is possible to verify
 %   particular parts of the EPNL calculation.
 %
 %   In this code, we use a test signal in order to verify 1) the whole
@@ -15,15 +15,15 @@
 %   to Perceived Noisiness.
 %
 %   - Reference of the Perceived Noisiness, PN (Noys): the numerical value of 1
-%     Noy was assigned to the PN of an third octave of random noise centered
+%     Noy was assigned to the PN of a third octave of random noise-centered
 %     at 1 kHz, and with a rms level of 40 dB SPL.
 %
 %       * in this code, we verify if the PN is being correctly calculated by generating
-%          this reference signal as a white-noise, which is band-passed between
-%          a lower freq 891.3 Hz and a upper freq. 1122 Hz, which corresponding to the
-%          third octave band centered around fc=1 kHz, and a rms SPL of 40 dB SPL.
-%          PLEASE NOTE: computing the EPNL from this signal doesnt make any sense as this is not
-%          an aircraft fly over nor (more generally) a signal with time-varying amplitude.
+%          this reference signal as a white noise, which is band-passed between
+%          a lower freq 891.3 Hz and a upper freq. 1122 Hz, which corresponds to the
+%          third-octave band centered around fc=1 kHz, and a rms SPL of 40 dB SPL.
+%          PLEASE NOTE: computing the EPNL from this signal does not make any sense as this is not
+%          an aircraft flyover nor (more generally) a signal with time-varying amplitude.
 %          It is only used here for the purpose of verifying the PN implementation.
 %
 %       Source: Smith, M. (1989). Human reaction to aircraft noise.
