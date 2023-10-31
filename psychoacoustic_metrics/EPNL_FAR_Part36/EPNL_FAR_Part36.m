@@ -9,7 +9,7 @@ function OUT = EPNL_FAR_Part36( insig, fs, method, dt, threshold, show )
 %       Website: https://www.ecfr.gov/current/title-14/appendix-Appendix%20A%20to%20Part%2036
 %       (Last viewed 19 Oct 2023)
 %
-%   Another relevant source describing the EPNL calculation procedure are:
+%   Other relevant sources describing the EPNL calculation procedure are:
 %
 %   [2] Annex 16 to the Convention on International Civil Aviation,
 %        Environmental Protection, Volume I - Aircraft Noise, Eighth Edition,
@@ -32,16 +32,16 @@ function OUT = EPNL_FAR_Part36( insig, fs, method, dt, threshold, show )
 %
 %   insig :
 %   for method = 0, insig is a SPL[nTime,nFreq] matrix with nFreq=24 columns containing unweighted SPL values
-%   for each third octave band from 50 Hz to 10 kHz, and nTime rows corresponding to the time-intervals on which the SPL are provided
+%   for each third-octave band from 50 Hz to 10 kHz, and nTime rows corresponding to the time intervals on which the SPL are provided
 %        - in this case, insig is used as is (i.e. without any pre-processing before the EPNL calculation).
-%          This means that it will be assumed that each nFreq column of the input matrix corresponds to third octave bands
-%          from 50 Hz to 10 kHz, and that each nTime row are given in dt = 0.5 s intervals.
+%          This means that it will be assumed that each nFreq column of the input matrix corresponds to third-octave bands
+%          from 50 Hz to 10 kHz and that each nTime row are given in dt = 0.5 s intervals.
 %          BE CAREFUL: These assumptions will be used for the EPNL calculation. If your SPL data has a different dt,
 %          it will need to be pre-processed before used here.
 %
 %   for method = 1, insig is a [nTime,1] array corresponding to a calibrated audio signal (Pa)
 %        - in this case, insig will be filtered to get the third octave
-%          level from 50 Hz to 10 kHz. The third octave filters conform with
+%          level from 50 Hz to 10 kHz. The third-octave filters conform with
 %          the ones prescribed by ISO 532-1:2017, which comply with IEC
 %          61260-1:2014. PLEASE NOTE:  the function <DO_OB13> used to
 %          filter the insig in 1/3 octave bands is hard-coded to work considering a sampling frequency fs=48 kHz.
@@ -54,13 +54,13 @@ function OUT = EPNL_FAR_Part36( insig, fs, method, dt, threshold, show )
 %
 %   method : integer
 %   for method = 0 - calculates EPNL from an input [nTime,nFreq] matrix with nFreq=24 columns containing unweighted SPL values
-%         for each third octave band from 50 Hz to 10 kHz, and nTime rows corresponding to the time-intervals on which the SPL are provided
+%         for each third-octave band from 50 Hz to 10 kHz, and nTime rows corresponding to the time intervals on which the SPL are provided
 %
 %   for method = 1 - calculates EPNL from an input calibrated audio file, in Pascal unit
 %
 %   dt : integer
-%   time-step, in seconds, in which the third octave SPLs are averaged to (when method = 1).
-%   When method = 0, this paramater only affects the calculation of the duration correction
+%   time-step, in seconds, in which the third-octave SPLs are averaged to (when method = 1).
+%   When method = 0, this parameter only affects the calculation of the duration correction
 %   applied to compute the EPNL from the PNLT curve.
 %   The default value is dt = 0.5.
 %
@@ -80,14 +80,14 @@ function OUT = EPNL_FAR_Part36( insig, fs, method, dt, threshold, show )
 %            when method = 1, quantities with (*) and (**) are provided
 %
 %   - SPL quantities considering the original insig
-%       ** InstantaneousSPL_insig - overall sound pressure level over time from the original insig (sound file), in dB SPL (from third octave bands)
+%       ** InstantaneousSPL_insig - overall sound pressure level over time from the original insig (sound file), in dB SPL (from third-octave bands)
 %       ** time_insig - time vector of the original input insig (sound file), in seconds
 %
 %   - SPL quantities averaged in dt time-steps
-%       * InstantaneousSPL - overall sound pressure level over time, in dB SPL (from third octave bands)
+%       * InstantaneousSPL - overall sound pressure level over time, in dB SPL (from third-octave bands)
 %       * time - time vector (sec). this vector is provided considering dt time-steps
 %       ** SPL_TOB_spectra - [nTime,nFreq] matrix containing SPL over nTime rows for each nFreq third octave band
-%       * TOB_freq - nominal third octave central frequencies
+%       * TOB_freq - nominal third-octave central frequencies
 %
 %   - EPNL-related quantities
 %       * PN - Perceived Noisiness vs. time, in Noys
