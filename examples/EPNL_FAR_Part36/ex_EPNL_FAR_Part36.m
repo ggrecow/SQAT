@@ -14,7 +14,7 @@
 % as an example as the flight procedure does not comply with a certification flight. Moreover, 
 % to the best of the Author's knowledge, a reference sound file for the EPNL metric calculation
 % does not exists. As reference, the EPNL calculated for this very same aircraft
-% flight over by another tool is 98.97 EPNdB
+% flyover by another tool is 98.97 EPNdB
 % 
 % Author: Gil Felix Greco, Braunschweig 27.10.2023
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
