@@ -7,5 +7,5 @@ In SQAT, an implementation of the fluctuation strength model from Osses *et al.*
 - [Fluctuation strength dependence of FM tones on the frequency deviation](4_FM_tones_freq_dev)
 
 # References
-[1] Osses Vechi, A., García León, R., & Kohlrausch, A. (2016). Modelling the sensation of fluctuation strength. [Proceedings of Meetings on Acoustics](https://doi.org/10.1121/2.0000410), 28(1), 050005.  
+[1] Osses, A., García, R., & Kohlrausch, A. (2016). Modelling the sensation of fluctuation strength. [Proceedings of Meetings on Acoustics](https://doi.org/10.1121/2.0000410), 28(1), 050005.  
 
