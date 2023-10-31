@@ -13,7 +13,7 @@
 % The receiver is located at 4.5 km from the runway threshold. This file is provided here merely
 % as an example as the flight procedure does not comply with a certification flight. Moreover, 
 % to the best of the Author's knowledge, a reference sound file for the EPNL metric calculation
-% does not exists. As reference, the EPNL calculated for this very same aircraft
+% does not exist. As a reference, the EPNL calculated for this very same aircraft
 % flyover by another tool is 98.97 EPNdB
 % 
 % Author: Gil Felix Greco, Braunschweig 27.10.2023
@@ -29,7 +29,7 @@ dir_ref_sounds = [basepath_SQAT 'sound_files' filesep 'reference_signals' filese
 dBFS = 104; % a priori knowledge
 ExSignal = ExSignal.*10^( (dBFS-94) /20); % calibrate sound file, which was auralized considering a dBFS = 104 to avoid clipping. This means that the +1/-1 range of the .wav file corresponds to 104 dBSPL (or ~3.17 Pa) 
 
-%% EPNL calculation - method == 1 ( an calibrated sound file is used as input)
+%% EPNL calculation - method == 1 ( a calibrated sound file is used as input)
 
 % input parameters
 method = 1;
@@ -39,7 +39,7 @@ show = 1;
 
 EPNL_method_1 = EPNL_FAR_Part36(ExSignal, fs,... % input signal and sampling freq.
                                                         method,... % method = 0, insig is a SPL[nTime,nFreq] matrix; method = 1, insig is a sound file
-                                                               dt,... % time-step in which the third octave SPLs are averaged, in seconds.
+                                                               dt,... % time-step in which the third-octave SPLs are averaged, in seconds.
                                                      threshold,... % threshold value used to calculate the PNLT decay from PNLTM during the calculation of the duration correction
                                                         show);     % show results, 'false' (disable, default value) or 'true' (enable)
 
@@ -52,7 +52,7 @@ method = 0;
 
 EPNL_method_0 = EPNL_FAR_Part36(ExSignal_method0, [],... % input signal and sampling freq.
                                                                      method,... % method = 0, insig is a SPL[nTime,nFreq] matrix; method = 1, insig is a sound file
-                                                                            dt,...  % time-step in which the third octave SPLs are averaged, in seconds.
+                                                                            dt,...  % time-step in which the third-octave SPLs are averaged, in seconds.
                                                                   threshold,...  % threshold value used to calculate the PNLT decay from PNLTM during the calculation of the duration correction
                                                                       show);     % show results, 'false' (disable, default value) or 'true' (enable)
                                                 
