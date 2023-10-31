@@ -5,11 +5,11 @@ function [D, idx_t1, idx_t2] = get_Duration_Correction( PNLT, PNLTM, PNLTM_idx, 
 % integration under the curve of the tone corrected perceived noise level
 % versus time, during a time period of T=t(2)-t(1), where
 %
-%  - t(1) is the first point of time after which PNLT becomes greater than PNLTM–<threshold>
-%  - t(2) is the point of time after which PNLT remains constantly less than PNLTM–<threshold>
+%  - t(1) is the first point of time after which PNLT becomes greater than PNLTMâ€“<threshold>
+%  - t(2) is the point of time after which PNLT remains constantly less than PNLTMâ€“<threshold>
 %
 % For aircraft certification process, the duration correction is calculated by integrating
-% the PNLT based on a PNLTM-10(TPNdB) drop down, here a different down point
+% the PNLT based on a PNLTM-10(TPNdB) drop-down, here a different down point
 % value can be considered by using the <threshold> input value.
 %
 % Moreover, for the aircraft certification process, dt should be 0.5 seconds and
@@ -54,10 +54,10 @@ function [D, idx_t1, idx_t2] = get_Duration_Correction( PNLT, PNLTM, PNLTM_idx, 
 Decay = PNLTM - threshold;
 K=1; % find only first idx
 
-% t(1) is the first point of time after which PNLT becomes greater than PNLTM–threshold
+% t(1) is the first point of time after which PNLT becomes greater than PNLTMâ€“threshold
 idx_t1 = find( PNLT(1:PNLTM_idx)>Decay, K ); % idx_t1 is the first point where PNLT becomes >(PNLTM - threshold)
 
-% t(2) is the point of time after which PNLT remains constantly less than PNLTM–threshold.
+% t(2) is the point of time after which PNLT remains constantly less than PNLTMâ€“threshold.
 idx_t2 = find( PNLT(PNLTM_idx:end)<Decay, K); % idx_t2 is the first point where PNLT becomes <(PNLTM - threshold)
 idx_t2 = idx_t2 + (PNLTM_idx-1); % correct for PNLTM_idx number because full vector is trimmed in the previous line
 
