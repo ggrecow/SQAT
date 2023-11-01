@@ -10,8 +10,8 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % 1/3-oct band(i), freq(Hz), SPL dB, S dB (Step 1), delS dB (Step 2), SPLP dB (Step 4), SP dB (Step 5), SB dB (Step 6), SPLPP dB (Step 7), F dB (Step 8), C dB (Step 9) 
-1 50 0 inf inf 0 0 0 0 0 0
-2 63 0 inf inf 0 0 0 0 0 0
+1 50 0 inf inf inf inf inf inf 0 0
+2 63 0 inf inf inf inf inf inf 0 0
 3 80 70 inf inf 70 -8 -2.333333 70 0 0
 4 100 62 -8 inf 62 -8 3.333333 67.6667 0 0
 5 125 70 8 16 71 9 6.6667 71 0 0
