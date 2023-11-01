@@ -54,7 +54,7 @@ C_ref = tone_correction_tab(:,11);
 
 PNL = 0; % dummy value for the PNL
 
-[~, ~, ~, OUT] = get_PNLT_validation( SPL_ref', freq_bands', PNL );
+[~, ~, ~, OUT] = get_PNLT( SPL_ref', freq_bands', PNL );
 
 %% plot results 
 
