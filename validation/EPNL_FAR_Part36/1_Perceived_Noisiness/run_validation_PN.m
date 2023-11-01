@@ -22,6 +22,7 @@
 %          this reference signal as a white noise, which is band-passed between
 %          a lower freq 891.3 Hz and a upper freq. 1122 Hz, which corresponds to the
 %          third-octave band centered around fc=1 kHz, and a rms SPL of 40 dB SPL.
+%
 %          PLEASE NOTE: computing the EPNL from this signal does not make any sense as this is not
 %          an aircraft flyover nor (more generally) a signal with time-varying amplitude.
 %          It is only used here for the purpose of verifying the PN implementation.
@@ -38,6 +39,9 @@
 % EPNL (and/or associated quantities) computed using the following function:
 %   OUT = EPNL_FAR_Part36( insig, fs, method, dt, threshold, show )
 %   type <help EPNL_FAR_Part36> for more info
+%
+%  HOW TO RUN THIS CODE: this is a standalone code. Therefore, no additional steps are
+%  necessary to run this code.
 %
 % Author: Gil Felix Greco, Braunschweig, 30.10.2023
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

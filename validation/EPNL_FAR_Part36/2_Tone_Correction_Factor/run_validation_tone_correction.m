@@ -17,7 +17,10 @@
 %
 %   International Civil Aviation Organization (2015) Doc 9501, Environmental Technical Manual
 %   Volume I, Procedures for the Noise Certification of Aircraft, Second
-%   Edition - ISBN 978-92-9249-721-7 ( see Table 3.7)
+%   Edition - ISBN 978-92-9249-721-7 (see Table 3.7)
+%
+%  HOW TO RUN THIS CODE: this is a standalone code. Therefore, no additional steps are
+%  necessary to run this code.
 %
 % Author: Gil Felix Greco, Braunschweig, 30.10.2023
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

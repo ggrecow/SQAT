@@ -41,18 +41,18 @@ EPNL_method_1 = EPNL_FAR_Part36(ExSignal, fs,... % input signal and sampling fre
                                                         method,... % method = 0, insig is a SPL[nTime,nFreq] matrix; method = 1, insig is a sound file
                                                                dt,... % time-step in which the third-octave SPLs are averaged, in seconds.
                                                      threshold,... % threshold value used to calculate the PNLT decay from PNLTM during the calculation of the duration correction
-                                                        show);     % show results, 'false' (disable, default value) or 'true' (enable)
+                                                        show); 
 
 %% EPNL calculation - method == 0 ( an SPL[nTime,nFreq] matrix is used as input )
 
-ExSignal_method0 = EPNL_method_1.SPL_TOB_spectra; % input signal
+ExSignal_method_0 = EPNL_method_1.SPL_TOB_spectra; % input signal
 
 % input parameters
 method = 0;
 
-EPNL_method_0 = EPNL_FAR_Part36(ExSignal_method0, [],... % input signal and sampling freq.
-                                                                     method,... % method = 0, insig is a SPL[nTime,nFreq] matrix; method = 1, insig is a sound file
-                                                                            dt,...  % time-step in which the third-octave SPLs are averaged, in seconds.
-                                                                  threshold,...  % threshold value used to calculate the PNLT decay from PNLTM during the calculation of the duration correction
-                                                                      show);     % show results, 'false' (disable, default value) or 'true' (enable)
+EPNL_method_0 = EPNL_FAR_Part36(ExSignal_method_0, [],... % input signal and sampling freq.
+                                                                       method,... % method = 0, insig is a SPL[nTime,nFreq] matrix; method = 1, insig is a sound file
+                                                                              dt,... % time-step in which the third-octave SPLs are averaged, in seconds.
+                                                                    threshold,... % threshold value used to calculate the PNLT decay from PNLTM during the calculation of the duration correction
+                                                                        show);    % show results, 'false' (disable, default value) or 'true' (enable)
                                                 
