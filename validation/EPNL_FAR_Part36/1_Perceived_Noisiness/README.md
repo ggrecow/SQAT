@@ -3,7 +3,7 @@ The `run_validation_PN.m` code is used to verify if the Perceived Noisiness, PN 
 
 - Band-passed white-noise between the lower frequency $f_{\mathrm{lower}} = 891.3~\mathrm{Hz}$ and the upper frequency  $f_{\mathrm{upper}} = 1122~\mathrm{Hz}$, thus having a bandwidth of $\mathrm{BW} = 230.7~\mathrm{Hz}$. This corresponds to the third octave band around the center frequency $f_{\mathrm{c}}=1~\mathrm{kHz}$. Moreover, the test signal has a rms level of $40~\mathrm{dB~SPL}$.
 
-PLEASE NOTE: computing the EPNL from this test signal makes no sense as this is not an aircraft fly over nor (more generally) a signal with time-varying amplitude. It is used here only for the purpose of verifying the PN implementation. 
+<!--- PLEASE NOTE: computing the EPNL from this test signal makes no sense as this is not an aircraft fly over nor (more generally) a signal with time-varying amplitude. It is used here only for the purpose of verifying the PN implementation. --->
 
 # How to use this code
 The test signal is generated in the code. Therefore, no extra steps are required to run this code.
