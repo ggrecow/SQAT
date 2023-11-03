@@ -113,33 +113,31 @@ SR_LOUDNESS = 500;
 TINY_VALUE = 1e-12;
 % ref value for stationary signals
 I_REF = 4e-10;
+pref = sqrt(I_REF); % 2e-5 Pa
 % bark vector
 barkAxis=(1:240)/10;
 
 switch method
-    case 0 % if method == 0, no need to calculate one-third OB levels.
-         
+    case 0 
+        % if method == 0, no need to calculate one-third OB levels. 
         SampleRateLevel = 1;
         DecFactorLoudness = 1;
         NumSamplesLevel = 1;
 
         ThirdOctaveLevel = insig; % get 1/3 octave levels from insig if method = 0
 
-    otherwise  % if different from stationary (from input 1/3 octave unweighted SPL)      
-
-        audio=insig; % input signal
+    otherwise  
+        % if different from stationary (from input 1/3 octave unweighted SPL)      
 
         % **************************************************
         % STEP 1 - resample to 48 kHz if necessary
         % **************************************************
         if fs ~= 48000
             gcd_fs = gcd(48000,fs); % greatest common denominator
-            audio = resample(audio,48000/gcd_fs,fs/gcd_fs);
+            insig = resample(insig,48000/gcd_fs,fs/gcd_fs);
             fs = 48000;
-            len = size(audio,1);
-        else
-            len = size(audio,1);
         end
+        len = size(insig,1);
         
         % Assign values to global variables according to the selected method
         switch method
@@ -160,7 +158,7 @@ switch method
         % **************************************************
         % STEP 2 - Create filter bank and filter the signal
         % **************************************************
-        [filteredaudio,fc] = Do_OB13(insig,fs);
+        [filteredaudio,fc] = Do_OB13_ISO532_1(insig,fs);
         
         % ***************************************************************
         % STEP 3 - Squaring and smoothing by 3 1st order lowpass filters
@@ -724,7 +722,7 @@ if method == 2 % time-varying from audio signal
 
     OUT.barkAxis=barkAxis; % bark vector
     OUT.time=(0:length(Total_Loudness)-1)' * 2e-3; % time vector of the final loudness calculation, in seconds
-    OUT.time_insig=(0 : length(audio)-1) ./ fs;  % time vector of the audio input, in seconds
+    OUT.time_insig=(0 : length(insig)-1) ./ fs;  % time vector of the audio input, in seconds
     OUT.InstantaneousLoudness=Total_Loudness; % Time-varying Loudness, in sone
     OUT.SpecificLoudness=Spec_N; % time-averaged specific loudness (sone/Bark)
     OUT.InstantaneousSpecificLoudness=ns_dec; % specific loudness (sone/Bark) vs time
@@ -770,10 +768,11 @@ if method == 2 % time-varying from audio signal
 
         % plot input signal
         subplot( 2, 6, [1,2])
-        plot( OUT.time_insig, audio); hold on;
+        plot( OUT.time_insig, insig); hold on;
         %         a=yline(rms(audio),'k--'); % plot( OUT.time_insig,rms(audio).*ones(length(OUT.time_insig)),'k--');
         %         legend(a,sprintf('$p_{\\mathrm{rms}}=$%g (Pa)',rms(audio)),'Location','NorthEast','Interpreter','Latex'); %legend boxoff
-        ax = axis; axis([0 xmax max(audio)*-2 max(audio)*2]);
+        YL = 2*max(insig)*[-1 1]; % min-max limit for Y axis
+        ax = axis; axis([0 xmax YL]);
         title('Input signal','Interpreter','Latex');
         xlabel('Time, $t$ (s)','Interpreter','Latex');
         ylabel('Sound pressure, $p$ (Pa)','Interpreter','Latex'); %grid on;
@@ -835,8 +834,7 @@ elseif method==0 || method==1
     % ***********************************************************************
 
     if method==1 % stationary from audio signal
-        OUT.time_insig=(0 : length(audio)-1) ./ fs;  % time vector of the audio input, in seconds
-    else
+        OUT.time_insig=(0 : length(insig)-1) ./ fs;  % time vector of the audio input, in seconds
     end
 
     OUT.barkAxis=(1:240)/10; % bark vector
@@ -850,29 +848,38 @@ elseif method==0 || method==1
     % ***********************************************************************
 
     if show == true
-
         figure('name','Loudness analysis (stationary)',...
             'units','normalized','outerposition',[0 0 1 1]); % plot fig in full screen
 
         xmax = OUT.time_insig(end);
 
         % plot input signal
-        subplot( 2, 1, 1)
-        plot( OUT.time_insig, audio); hold on;
-        a=yline(rms(audio),'k--'); % plot( OUT.time_insig,rms(audio).*ones(length(OUT.time_insig)),'k--');
-        legend(a,sprintf('$p_{\\mathrm{rms}}=$%g (Pa) \n SPL=%g (dB SPL)',rms(audio),20.*log10(rms(audio)/2e-5)),'Location','NorthEast','Interpreter','Latex'); %legend boxoff
-        ax = axis; axis([0 xmax max(audio)*-2 max(audio)*2]);
+        insig_rms = rms(insig);
+        insig_rms_dB = 20.*log10(insig_rms/pref);
+
+        subplot(2, 1, 1)
+        plot( OUT.time_insig, insig); hold on;
+        hLine = yline(insig_rms,'k--'); 
+
+        text4legend = sprintf('$p_{\\mathrm{rms}}=$%g (Pa) \n $L_{\\mathrm{p}}$=%g (dB SPL)',insig_rms,insig_rms_dB);
+        legend(hLine,text4legend,'Location','NorthEast','Interpreter','Latex'); %legend boxoff
+        ax = axis; % getting the handle of the axis
+        YL = 2*max(insig)*[-1 1]; % min-max limit for Y axis
+        axis([0 xmax YL]);
         title({sprintf('Input signal')},'Interpreter','Latex');
         xlabel('Time, $t$ (s)','Interpreter','Latex');
         ylabel('Sound pressure, $p$ (Pa)','Interpreter','Latex'); %grid on;
 
         % plot specific loudnes (sone/bark)
-        subplot( 2, 1, 2)
+        subplot(2, 1, 2)
         plot( OUT.barkAxis, OUT.SpecificLoudness );
 
+        % text4annotation defined as a cell variable to define different 
+        %   lines of text:
+        text4annotation = {sprintf('Loudness, $N$=%.3f (sone) \nLoudness level, $L_{\\mathrm{N}}$=%.1f (phon)',N,LN)};
         annotation('textbox',...
             [0.774500000000006 0.382222222222222 0.113999999999998 0.0477777777777778],...
-            'String',{sprintf('Loudness, $N$=%g (sone) \nLoudness level, $L_{\\mathrm{N}}$=%g (phon)',N,LN)},...
+            'String',text4annotation,...
             'Interpreter','latex',...
             'BackgroundColor',[1 1 1]);
 
@@ -882,12 +889,11 @@ elseif method==0 || method==1
         ylabel('Specific loudness, $N^{\prime}$ ($\mathrm{sone}/\mathrm{Bark}$)','Interpreter','Latex'); grid on;
 
         set(gcf,'color','w');
-
     end
 
 end
 
-end
+end % End of function
 
 %**************************************************************************
 % Copyright (c) <2015>, <Ella Manor>

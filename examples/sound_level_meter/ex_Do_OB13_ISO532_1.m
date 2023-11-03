@@ -1,11 +1,7 @@
-% Script ex_Do_OB13
+% Script ex_Do_OB13_ISO532_1
 %
-% It produces the impulse response of the one-third octave band module 
-% included in the sound level meter of the SQAT toolbox.
-%
-% FUNCTION:
-%   [outsig, fc] = Do_OB13(insig, fs, fmin, fmax)
-%   type <help Do_OB13> for more info
+% This script produces the impulse response of the one-third octave band 
+% module included in the sound level meter of the SQAT toolbox.
 %
 % IMPORTANT INFO: the 1/3 octave band filter bank implemented complies with
 %   ISO 532-1:2017 (and IEC 61260-1:2014). However, the possible freq range computed
@@ -18,7 +14,8 @@
 % and fs using audioread, loading any wavfilename available on your disk, i.e.,
 % use [insig,fs] = audioread(wavfilename).
 %
-% Author: Alejandro Osses
+% Author: Alejandro Osses (October 2023)
+% See also: Do_OB13_ISO532_1.m
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 clc; clear all ;close all;
 

@@ -1,5 +1,5 @@
-function [outsig, fc] = Do_OB13(insig, fs, fmin, fmax)
-% [outsig, fc] = Do_OB13(insig, fs, fmin, fmax)
+function [outsig, fc] = Do_OB13_ISO532_1(insig, fs, fmin, fmax)
+% [outsig, fc] = Do_OB13_ISO532_1(insig, fs, fmin, fmax)
 %
 % This code employs a hard-coded implementation of a one-third octave band
 %   filterbank for a sampling frequency fs=48000 Hz. For this reason, if
@@ -13,22 +13,30 @@ function [outsig, fc] = Do_OB13(insig, fs, fmin, fmax)
 %
 % INPUTS:
 %
-%   insig : array
-%   [Nx1] array, corresponding to a monophonic audio signal 
+%   insig : double
+%   [Nx1] array, corresponding to a monophonic audio signal with N time samples 
 %
 %   fs : integer
-%   sampling frequency (Hz) of insig
+%     sampling frequency (Hz) of insig
 %
-%   fmin : integer
-%   minimun center frequency to be computed between 25 Hz - 12.5 kHz (1/3 octave bands)
+%   fmin (optional, default=25 Hz): integer
+%     minimun centre frequency in the range between 25 Hz and 12.5 kHz in 
+%     one-third octave-band steps
 %
-%   fmax : integer
-%   maximum center frequency to be computed between 25 Hz - 12.5 kHz (1/3 octave bands)
+%   fmax (optional, default=12500 Hz): integer
+%     maximum centre frequency in the range between 25 Hz and 12.5 kHz
 %
 % OUTPUT
 %
-%   outsig :  
-%   [nTime,nFreq] matrix containing nFreq = number of 1/3 OB bands and ntime rows = as many elements the input signal insig has.
+%   outsig : double  
+%   [N x nFreq] array containing nFreq (default, nFreq=28) time signals of 
+%     length N. Each nFreq column contains the filtered waveform of the 
+%     corresponding one-third octave-band signal centred at fc(nFreq).
+%
+%   fc: double
+%   [nFreq x 1] array containing the corresponding centre frequencies of 
+%     each one-third octave band with a maximum of nFreq = 28 elements for
+%     the default fmin and fmax values.
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
@@ -36,7 +44,7 @@ function [outsig, fc] = Do_OB13(insig, fs, fmin, fmax)
 %   fname = [basepath_SQAT 'sound_files' filesep 'reference_signals' filesep 'RefSignal_Loudness_ISO532_1.wav'];
 %   [insig,fs] = audioread(fname);
 %   dBFS = 94; % A priori knowledge
-%   [OB_filt,fc] = Do_OB13(insig,fs);
+%   [OB_filt,fc] = Do_OB13_ISO532_1(insig,fs);
 %   % Sub example: obtaining the calibrated RMS level of each band:
 %   OB_lvls = 20*log10(rms(OB_filt))+dBFS;
 %
@@ -62,14 +70,22 @@ function [outsig, fc] = Do_OB13(insig, fs, fmin, fmax)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 if nargin < 3
-    
-    fmin = 25; % min freq is 25 Hz by default
-    fmax = 12500; % max freq is 12.5 kHz by default.
-
-elseif nargin < 4
-    
-    fmax = 12500; % max freq is 12.5 kHz by default.
-    
+    bLimit_range = 0; 
+else
+    % Then nargin is 3 or 4
+    if nargin < 4
+        % Then only fmin has been specified as input
+        fmax = 12500; % Hz
+    end
+    bLimit_range = 1;
+    if fmax > 12500
+        warning('The input parameter fmax cannot be greater than 12500 Hz, setting fmax to this value');
+        fmax = 12500; % Hz, maximum possible frequency of the filterbank
+    end
+    if fmin < 25
+        warning('The input parameter fmin cannot be lower than 25 Hz, setting fmin to this value');
+        fmin = 25; % Hz, minimum possible frequency of the filterbank
+    end
 end
 
 %%  resample to 48 kHz if necessary
@@ -213,13 +229,14 @@ for i = 1:N_bands
     CenterFrequency(i) = 10^(((i-1)-16)/10.) * 1000; % calculate centre frequencies
 end
 
-%% find idx of fmin and fmax and fix freq range before filtering
-
-idx_fmin = find (CenterFrequency>=fmin,1);
-idx_fmax = find (CenterFrequency>=fmax,1);
-
-filtgain = filtgain(idx_fmin:idx_fmax); % adjust filtgain to fmin and fmax 
-ad = ad(:,:,idx_fmin:idx_fmax); % adjust ad to fmin and fmax 
+if bLimit_range
+    %% find idx of fmin and fmax and fix freq range before filtering
+    % fmin and fmax are only used if they are specified as inputs:
+    idx_fmin = find(CenterFrequency>=fmin,1);
+    idx_fmax = find(CenterFrequency>=fmax,1);
+    filtgain = filtgain(idx_fmin:idx_fmax); % adjust filtgain to fmin and fmax 
+    ad = ad(:,:,idx_fmin:idx_fmax); % adjust ad to fmin and fmax 	
+end
 
 N_bands = size(filtgain,1);
 outsig = zeros(len,N_bands);
@@ -227,10 +244,14 @@ outsig = zeros(len,N_bands);
 %% Filter signal
 
 for n = 1:N_bands
+    % Three cascaded filters:
     outsig(:,n) = filtgain(n) * filter(br(3,:),ar(3,:)-ad(3,:,n),...
         filter(br(2,:),ar(2,:)-ad(2,:,n),...
         filter(br(1,:),ar(1,:)-ad(1,:,n),insig)));
 end
 
-fc = CenterFrequency(idx_fmin:idx_fmax);
+fc = CenterFrequency;
 
+if bLimit_range
+    fc = CenterFrequency(idx_fmin:idx_fmax);
+end
