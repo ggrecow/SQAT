@@ -240,8 +240,7 @@ if do_table3 || do_fig_raw
 
                             f = out.barkAxis;
                             f_Tick = .5:1:23.5;
-                            % f_Hz = bark2hz(f);
-                            f_Tick_Hz = round( bark2hz(f_Tick) );
+                            f_Tick_Hz = round( il_bark2hz(f_Tick) );
 
                             f_Tick_Hz_txt = [];
                             for i_f = 1:length(f_Tick_Hz)
@@ -350,8 +349,7 @@ if do_table3 || do_fig_raw
 
                         f = out.barkAxis;
                         f_Tick = .5:1:23.5;
-                        % f_Hz = bark2hz(f);
-                        f_Tick_Hz = round( bark2hz(f_Tick) );
+                        f_Tick_Hz = round( il_bark2hz(f_Tick) );
 
                         f_Tick_Hz_txt = [];
                         for i_f = 1:length(f_Tick_Hz)
@@ -422,8 +420,7 @@ if do_table3 || do_fig_raw
 
                         f = out.barkAxis;
                         f_Tick = .5:1:23.5;
-                        % f_Hz = bark2hz(f);
-                        f_Tick_Hz = round( bark2hz(f_Tick) );
+                        f_Tick_Hz = round( il_bark2hz(f_Tick) );
 
                         f_Tick_Hz_txt = [];
                         for i_f = 1:length(f_Tick_Hz)
@@ -759,8 +756,7 @@ if do_fig1a || do_fig1b || do_fig1c
                     f = out.barkAxis;
                     F_freq{i_files} = f;
                     f_Tick = .5:1:23.5;
-                    % f_Hz = bark2hz(f);
-                    f_Tick_Hz = round( bark2hz(f_Tick) );
+                    f_Tick_Hz = round( il_bark2hz(f_Tick) );
 
                     f_Tick_Hz_txt = [];
                     for i_f = 1:length(f_Tick_Hz)
@@ -999,8 +995,7 @@ if do_fig2
 
     bark_step = 2; % default = 1
     f_Tick = .5:bark_step:23.5;
-    % f_Hz = bark2hz(f);
-    f_Tick_Hz = round( bark2hz(f_Tick) );
+    f_Tick_Hz = round( il_bark2hz(f_Tick) );
 
     f_Tick_Hz_txt = [];
     for i_f = 1:length(f_Tick_Hz)
@@ -1243,7 +1238,7 @@ if do_fig3b
     
     cd(curdir)
     freq_z = .5:.5:23.5;
-    freq = bark2hz(freq_z); % bark
+    freq = il_bark2hz(freq_z); % bark
     
     Pos =  [138    38   450   300]; % before=500
     figure('Position',Pos);
@@ -1258,7 +1253,7 @@ if do_fig3b
     xlim([5.5 13.5])
     
     XT = 5:13;
-    XTL = round(bark2hz(XT));
+    XTL = round(il_bark2hz(XT));
     
     ylim([-53 3]);
     set(gca,'YTick',-50:5:0);
@@ -1463,3 +1458,13 @@ f = [0 f fs/2];
 a0 = [a0(1) a0 a0(end)];
 
 B = fir2(N,f/(fs/2),a0);
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function f_Hz = il_bark2hz(f_Bark)
+
+try
+    % If the Audio Toolbox is available:
+    f_Hz = bark2hz(f_Bark);
+catch
+    f_Hz = bark2hz_local(f_Bark);
+end
