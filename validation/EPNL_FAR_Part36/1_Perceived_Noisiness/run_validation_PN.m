@@ -23,10 +23,6 @@
 %          a lower freq 891.3 Hz and a upper freq. 1122 Hz, which corresponds to the
 %          third-octave band centered around fc=1 kHz, and a rms SPL of 40 dB SPL.
 %
-%          PLEASE NOTE: computing the EPNL from this signal does not make any sense as this is not
-%          an aircraft flyover nor (more generally) a signal with time-varying amplitude.
-%          It is only used here for the purpose of verifying the PN implementation.
-%
 %       Source: Smith, M. (1989). Human reaction to aircraft noise.
 %       In Aircraft Noise (Cambridge Aerospace Series, pp. 1-19). Cambridge University Press.
 %       doi:10.1017/CBO9780511584527.002 (relevant info can be found in page 7)

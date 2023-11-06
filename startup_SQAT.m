@@ -68,7 +68,7 @@ PA_Zwicker_example = [bp 'examples'               filesep 'PsychoacousticAnnoyan
 SLM_example        = [bp 'examples'               filesep 'sound_level_meter' filesep];
 
 EPNL_main        = [bp 'psychoacoustic_metrics' filesep 'EPNL_FAR_Part36' filesep];
-EPNL_helper        = [bp 'psychoacoustic_metrics' filesep 'EPNL_FAR_Part36' filesep 'HelperFunctions' filesep];
+EPNL_helper        = [bp 'psychoacoustic_metrics' filesep 'EPNL_FAR_Part36' filesep 'helper' filesep];
 EPNL_validation  = [bp 'validation'             filesep 'EPNL_FAR_Part36' filesep];
 EPNL_example     = [bp 'examples'               filesep 'EPNL_FAR_Part36' filesep];
 
@@ -139,7 +139,7 @@ end
 
 bAdd = ~exist('get_PNL.m','file');
 if bAdd
-    addpath(helper);
+    addpath(EPNL_helper);
 end
 
 %%% Adding the publications' directory (alphabetical order):

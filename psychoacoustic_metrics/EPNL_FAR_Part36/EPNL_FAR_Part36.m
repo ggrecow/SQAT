@@ -43,7 +43,7 @@ function OUT = EPNL_FAR_Part36( insig, fs, method, dt, threshold, show )
 %        - in this case, insig will be filtered to get the third octave
 %          level from 50 Hz to 10 kHz. The third-octave filters conform with
 %          the ones prescribed by ISO 532-1:2017, which comply with IEC
-%          61260-1:2014. PLEASE NOTE:  the function <DO_OB13> used to
+%          61260-1:2014. PLEASE NOTE:  the function <Do_OB13_ISO532_1> used to
 %          filter the insig in 1/3 octave bands is hard-coded to work considering a sampling frequency fs=48 kHz.
 %          Thus, insig will be resampled to this fs if necessary. After filtering, the prms per freq band is averaged
 %          in dt time intervals. dt can be provided as input (see below), but
@@ -163,7 +163,7 @@ switch method
         end
         
         % resample to 48 kHz if necessary (this is necessary because the function
-        % <DO_OB13> generates a 1/3 octave fitler bank which is hard-coded
+        % <Do_OB13_ISO532_1> generates a 1/3 octave fitler bank which is hard-coded
         % to work on fs=48 kHz)
         if fs ~= 48000
             insig = resample(insig,48000,fs);

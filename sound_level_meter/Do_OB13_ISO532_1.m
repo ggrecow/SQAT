@@ -220,7 +220,7 @@ filtgain = [4.30764e-011;... % 25 Hz
         2.27488e-003;... % 10000 Hz
         3.91006e-003];   % 12500 Hz
 
-%%  calculate centre frequencies (25 Hz - 12.5 kHz)
+%%  Calculate centre frequencies (25 Hz - 12.5 kHz)
 
 N_bands = 28; % number of bands
 CenterFrequency = zeros(N_bands,1);
@@ -229,8 +229,9 @@ for i = 1:N_bands
     CenterFrequency(i) = 10^(((i-1)-16)/10.) * 1000; % calculate centre frequencies
 end
 
+% limit freq range if required
 if bLimit_range
-    %% find idx of fmin and fmax and fix freq range before filtering
+    % find idx of fmin and fmax and fix freq range before filtering
     % fmin and fmax are only used if they are specified as inputs:
     idx_fmin = find(CenterFrequency>=fmin,1);
     idx_fmax = find(CenterFrequency>=fmax,1);
@@ -238,10 +239,10 @@ if bLimit_range
     ad = ad(:,:,idx_fmin:idx_fmax); % adjust ad to fmin and fmax 	
 end
 
+%% Filter signal
+
 N_bands = size(filtgain,1);
 outsig = zeros(len,N_bands);
-
-%% Filter signal
 
 for n = 1:N_bands
     % Three cascaded filters:
