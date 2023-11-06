@@ -3,11 +3,10 @@
 *.asv
 *no-commit*
 *.fig
-*.pdf
 *.wav
+*.pdf
 *.zip
 Interim_results/*.mat
-sound_files/validation/*
 examples/*/figs/*
 *.DS_Store
 sound_files/validation_SQAT_v1_0/*

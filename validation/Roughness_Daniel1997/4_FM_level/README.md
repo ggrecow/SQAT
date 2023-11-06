@@ -1,5 +1,9 @@
 # About this code 
-The `run_validation_roughness_FM_level.m` code is used to verify the implementation of the roughness model from Daniel & Weber [1] (see `Roughness_Daniel1997` code [here](../../../psychoacoustic_metrics/Roughness_Daniel1997/Roughness_Daniel1997.m)). The verification is performed considering frequency-modulated (FM) tones with carrier frequency $f_{\mathrm{c}}=1.6~\mathrm{kHz}$, frequency deviation $f_{\mathrm{dev}}=\pm800~\mathrm{Hz}$ and $f_{\mathrm{mod}}=70~\mathrm{Hz}$ as a function of the sound pressure level $L_{\mathrm{p}}$. The reference is the roughness $R_o$ of a FM tone with the same parameters but a sound pressure level $L_{\mathrm{p}}=60~\mathrm{dB}~ \mathrm{SPL}$.
+The `run_validation_roughness_FM_level.m` code is used to verify the implementation of the roughness model from Daniel & Weber [1] (see `Roughness_Daniel1997` code [here](../../../psychoacoustic_metrics/Roughness_Daniel1997/Roughness_Daniel1997.m)). The verification is performed considering the following test signals:
+
+- Frequency-modulated (FM) tones with carrier frequency $f_{\mathrm{c}}=1.6~\mathrm{kHz}$, frequency deviation $f_{\mathrm{dev}}=\pm800~\mathrm{Hz}$ and $f_{\mathrm{mod}}=70~\mathrm{Hz}$ as a function of the sound pressure level $L_{\mathrm{p}}$.
+
+The reference is the roughness $R_o$ of a FM tone with the same parameters but a sound pressure level $L_{\mathrm{p}}=60~\mathrm{dB}~ \mathrm{SPL}$.
 
 # How to use this code
 In order to run this code and reproduce the figures available in the `figs` folder, the user needs to download the dataset of sound files from zenodo <a href="https://doi.org/10.5281/zenodo.7933206" target="_blank">here</a>. The obtained folder called `validation_SQAT_v1_0` has to be included in the `sound_files` folder of the toolbox. 
@@ -7,8 +11,6 @@ In order to run this code and reproduce the figures available in the `figs` fold
 # Results
 The figure below compares the results obtained using the `Roughness_Daniel1997` implementation in SQAT  with reference data obtained from listening tests [1]. The error bars express the roughness JND [2]. Results computed using SQAT correspond to time-averaged roughness values $R$.   
 
-FM tones ($f_{\mathrm{c}}=1.6~\mathrm{kHz}$, $f_{\mathrm{dev}}=\pm800~\mathrm{Hz}$ and $f_{\mathrm{mod}}=70~\mathrm{Hz}$).        |  
-:-------------------------:|
 ![](figs/validation_FS_fmod_FM_tones_level.png)   
 
 # References
