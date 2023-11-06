@@ -139,7 +139,7 @@ end
 
 bAdd = ~exist('get_PNL.m','file');
 if bAdd
-    addpath(EPNL_helper);
+    addpath(helper);
 end
 
 %%% Adding the publications' directory (alphabetical order):

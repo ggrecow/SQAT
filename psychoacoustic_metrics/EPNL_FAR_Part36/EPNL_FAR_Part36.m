@@ -179,7 +179,7 @@ switch method
         fmin = 50; % min freq of 1/3-OB is 50 Hz
         fmax = 10000; % max freq of 1/3-OB is 10 kHz
         
-        [insig_P_TOB, ~] = Do_OB13(insig, fs, fmin, fmax); % get 1/3-OB spectra from insig - output is p [nTime,nFreq]
+        [insig_P_TOB, ~] = Do_OB13_ISO532_1(insig, fs, fmin, fmax); % get 1/3-OB spectra from insig - output is p [nTime,nFreq]
         
         insig_Psquared_TOB = insig_P_TOB.^2;  % squaring the filtered signal - output is p^2 [nTime,nFreq]
         
