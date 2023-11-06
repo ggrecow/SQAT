@@ -28,7 +28,7 @@ YL = [-12 2]; % expected maximum = 0 dB
 %%% Checking the average level based on the calibration:
 rms_val = 20*log10(rms(insig))+dBFS;
  
-[OB_filt,fc] = Do_OB13(insig,fs);
+[OB_filt,fc] = Do_OB13_ISO532_1(insig,fs);
 
 hfreq = [];
 K = 8192; % K = N/2 - arbitrary number of points for the FFT
