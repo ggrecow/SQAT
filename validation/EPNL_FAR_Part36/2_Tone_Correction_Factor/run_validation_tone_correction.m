@@ -19,8 +19,9 @@
 %   Volume I, Procedures for the Noise Certification of Aircraft, Second
 %   Edition - ISBN 978-92-9249-721-7 (see Table 3.7)
 %
-%  HOW TO RUN THIS CODE: this is a standalone code. Therefore, no additional steps are
-%  necessary to run this code.
+%  HOW TO RUN THIS CODE: this code requires the <get_PNLT> function hosted in the <helper folder> 
+%  of the main <EPNL_FAR_Part36> calculation code available in SQAT. Thus, make sure this function is added to your MATLAB path.
+%  Apart from that, no additional steps are necessary to run this code.
 %
 % Author: Gil Felix Greco, Braunschweig, 30.10.2023
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
