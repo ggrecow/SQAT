@@ -9,7 +9,7 @@ The `run_validation_PN.m` code is used to verify if the Perceived Noisiness, PN 
 The test signal is generated in the code. Therefore, no extra steps are required to run this code.
 
 # Results
-According to Refs. [1,2], the numerical value of 1 noy was assigned to the Perceived Noisiness of an third octave of random noise centered at $1~\mathrm{kHz}$, and with a rms level of $40~\mathrm{dB}$. The figure below shows the results obtained using the test signal and the `EPNL_FAR_Part36` implementation in SQAT. It is possible to observe that the test signal is correctly generated in terms of SPL and spectral content. Moreover, the time-averaged Perceived Noisiness value computed is $1.086~\mathrm{noys}$.
+According to Refs. [1,2], the numerical value of 1 noy was assigned to the Perceived Noisiness of a third octave of random noise centered at $1~\mathrm{kHz}$, and with a rms level of **40 dB SPL**. The figure below shows the results obtained using the test signal and the `EPNL_FAR_Part36` implementation in SQAT. It is possible to observe that the test signal is correctly generated in terms of SPL and spectral content. Moreover, the time-averaged Perceived Noisiness value computed is $1.086~\mathrm{noys}$.
 
 ![](figs/validation_Perceived_Noisiness.png)   
 
