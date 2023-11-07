@@ -2,12 +2,12 @@
 The `validation_tone_correction.m` code is used to verify if the calculation of the tone correction factor is being correctly performed in the Effective Perceived Noise Level (EPNL) code (see `EPNL_FAR_Part36` code [here](../../../psychoacoustic_metrics/EPNL_FAR_Part36/EPNL_FAR_Part36.m)). The verification is performed considering the reference values provided in Table 3.7 of Ref. [1].
 
 # How to use this code
-This is a standalone code. Therefore, no extra steps are required to run this code.
+This code requires the `get_PNLT` [function](../../../psychoacoustic_metrics/EPNL_FAR_Part36/helper/get_PNLT.m) implemented in SQAT to calculate the tone correction factor. Apart from that, no additional steps are required to run this code.
 
 # Results
-The figures below show the results obtained using the reference sound spectrum provided by Ref. [1] as input for the `get_PNLT` function implemented in SQAT (see function [here](../../../psychoacoustic_metrics/EPNL_FAR_Part36/helperFunctions/get_PNLT.m)), which computes the tone correction factor used for the final EPNL calculation. 
+The figures below show the results obtained using the reference sound spectrum provided by Ref. [1] as input for the `get_PNLT` function implemented in SQAT (see function [here](../../../psychoacoustic_metrics/EPNL_FAR_Part36/helper/get_PNLT.m)), which computes the tone correction factor used for the final EPNL calculation. 
 
-The results obtained using the code implemented in SQAT are compared with the reference values provided by Ref. [1] for each relevant step of the tone correction factor calculation. For more information about each particular step, please consult Refs. [1,2].
+The results obtained using the code implemented in SQAT are compared with the reference values provided in Table 3.7 by Ref. [1] for each relevant step of the tone correction factor calculation. For more information about each particular step, please consult Refs. [1,2].
 
 ![](figs/validation_Tone_Correction_1.png)   
 
