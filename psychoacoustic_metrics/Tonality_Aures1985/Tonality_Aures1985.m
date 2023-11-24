@@ -178,14 +178,15 @@ for iFrame = 1:nFrames
         idxrng1 = find(SPL(1:idx)<hafmax, 1, 'last');
         
         if isempty(idxrng1) || idxrng1<4 % if idxrng1 is empty, it means hafmax is below the 1st bin of the signal (probably due to a low freq tone with large bandwidth)
-            idxrng1=4; % in this case, truncate idxrng1 to 4
+            idxrng1 = 4; % in this case, truncate idxrng1 to 4
         end
-        
-        idxrng2 = find(SPL(idx:numel(Freq))<hafmax,1,'first')+idx;
-        flow(i) = interp1(SPL(idxrng1+(-3:3)), Freq(idxrng1+(-3:3)), hafmax);  % low freq of the band
-        fhigh(i) = interp1(SPL(idxrng2+(-3:3)), Freq(idxrng2+(-3:3)), hafmax); % high freq of the band
-        
-        BW(i,1)=fhigh(i)-flow(i); % tone's bandwidth
+
+        idxrng2 = find(SPL(idx+1:numel(Freq))<hafmax,1,'first')+idx;
+               
+        flow(i) = interp1(SPL(idxrng1:idxrng1+1), Freq(idxrng1:idxrng1+1), hafmax);  % low freq of the band
+        fhigh(i) = interp1(SPL(idxrng2-1:idxrng2), Freq(idxrng2-1:idxrng2), hafmax); % high freq of the band
+               
+        BW(i,1) = fhigh(i) - flow(i); % tone's bandwidth
         
         if BW(i,1)==0 % if BW is zero, truncate BW to 1
            BW(i,1)=1;
@@ -331,7 +332,7 @@ for iFrame = 1:nFrames
             
             %% TONALITY
             
-            C=1.11;  % is a constant such that 1 kHz pure tone with a level of 60 dB would have a tonalness of 1, which for an ideal implementaiton should be =1.09
+            C=1.125;  % is a constant such that 1 kHz pure tone with a level of 60 dB would have a tonalness of 1, which for an ideal implementaiton should be =1.09
             
             tonality(iFrame,1) = abs( C.*w_tonal(iFrame,1).^(0.29).*w_gr(iFrame,1).^(0.79) );
             
