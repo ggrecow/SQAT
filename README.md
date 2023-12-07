@@ -69,16 +69,16 @@ The following SPL-based metrics using different frequency weightings (A, B, C, D
 [9] Federal Aviation Regulations, 14 CFR Parts 36 and 91, Docket No. FAA-2003-16526; Amendment No. 36-26, 91-288, (2005). [https://www.ecfr.gov/current/title-14/appendix-Appendix%20A%20to%20Part%2036](https://www.ecfr.gov/current/title-14/appendix-Appendix%20A%20to%20Part%2036) (Last viewed 30 Oct 2023)
 
 # How to cite this repository
-If you use this toolbox in your research, we would be grateful if you help us to gain visibility by citing SQAT. The following paper is the main work describing SQAT and the metrics available in the first release:
-
-> Felix Greco, G., Merino-Martínez, R., Osses, A., & Langer, S. C. (2023). SQAT: a MATLAB-based toolbox for quantitative sound quality analysis. INTER-NOISE and NOISE-CON Congress and Conference Proceedings, InterNoise23, Chiba, Japan. doi: [10.3397/IN_2023_1075](https://doi.org/10.3397/IN_2023_1075)
-
-This is the main citation if you need to cite the toolbox repository itself:
+If you use this toolbox in your research, we would be grateful if you help us to gain visibility by citing SQAT. This is the main citation if you need to cite the toolbox repository itself:
 
 > Felix Greco, G., Merino-Martínez, R., &  Osses, A. (2023). SQAT: a sound quality analysis toolbox for MATLAB. Zenodo. doi: [10.5281/zenodo.7934709](https://doi.org/10.5281/zenodo.7934709)
 
 > [!TIP]
 > **Apart from the toolbox repository itself (see above), each version released has its own doi in Zenodo. As differences between releases may occur, it is a good practice to cite the specific SQAT version being used. If you need to cite the current release of SQAT, please refer to the "Cite this repository" feature in the "About" section of this GitHub repository.**
+
+The following paper is the main work describing SQAT and the metrics available in the first release:
+
+> Felix Greco, G., Merino-Martínez, R., Osses, A., & Langer, S. C. (2023). SQAT: a MATLAB-based toolbox for quantitative sound quality analysis. INTER-NOISE and NOISE-CON Congress and Conference Proceedings, InterNoise23, Chiba, Japan. doi: [10.3397/IN_2023_1075](https://doi.org/10.3397/IN_2023_1075)
 
 Additionaly, here's a paper by the members of the SQAT team showing three case studies where the SQAT toolbox was used to perform all analyses:
 
