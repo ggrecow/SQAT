@@ -71,7 +71,7 @@ The following SPL-based metrics using different frequency weightings (A, B, C, D
 # How to cite this repository
 If you use this toolbox in your research, we would be grateful if you help us to gain visibility by citing SQAT. The following paper is the main work describing SQAT and the metrics available in the first release:
 
-> Felix Greco, G., Merino-Martínez, R., Osses, A., & Langer, S. C. (2023). SQAT: a MATLAB-based toolbox for quantitative sound quality analysis. In Proceedings of the INTER–NOISE and NOISE–CON Congress, the 52nd International Congress and Exhibition on Noise Control Engineering, Chiba, Greater Tokyo, Japan, 20–23 August 2023. Institute of Noise Control Engineering: Reston, VA, USA, 2023. [[Link]](https://www.researchgate.net/publication/373334884_SQAT_a_MATLAB-based_toolbox_for_quantitative_sound_quality_analysis). 
+> Felix Greco, G., Merino-Martínez, R., Osses, A., & Langer, S. C. (2023). SQAT: a MATLAB-based toolbox for quantitative sound quality analysis. INTER-NOISE and NOISE-CON Congress and Conference Proceedings, InterNoise23, Chiba, Japan. doi: [10.3397/IN_2023_1075](https://doi.org/10.3397/IN_2023_1075)
 
 This is the main citation if you need to cite the toolbox repository itself:
 
@@ -89,7 +89,7 @@ Raw data and extra scripts to reproduce all the paper figures can be found [here
 
 We would be very happy to know that you find SQAT useful and have used it in your own work. In this case, please reach out so that we can feature your work here. 
 
-> Brandetti, L., Mulders, S. P., Merino-Martinez, R., Watson, S., & van Wingerden, J.-W. (2023). Multi-objective calibration of vertical-axis wind turbine controllers: balancing aero-servo-elastic performance and noise, [Wind Energ. Sci. Discuss.](https://doi.org/10.5194/wes-2023-154) [preprint].
+> Brandetti, L., Mulders, S. P., Merino-Martinez, R., Watson, S., & van Wingerden, J.-W. (2023). Multi-objective calibration of vertical-axis wind turbine controllers: balancing aero-servo-elastic performance and noise, [Wind Energy Science Discussions](https://doi.org/10.5194/wes-2023-154) [preprint].
 
 > Pockelé, J. (2023). Auralisation of modelled wind turbine noise for psychoacoustic listening experiments: development and validation of the wind turbine auralisation tool WinTAur. Master's thesis, [Delft University of Technology](http://resolver.tudelft.nl/uuid:cc9e67b4-6bde-4114-97c0-43b11b4a48ef).
 
