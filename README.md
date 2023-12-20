@@ -87,7 +87,7 @@ Raw data and extra scripts to reproduce all the paper figures can be found [here
 
 # Works using SQAT
 
-We would be very happy to know that you find SQAT useful and have used it in your own work. In this case, please reach out so that we can feature your work here. 
+We would be very happy to know that you find SQAT useful and have used it in your own work. In this case, please reach out so we can feature your work here. 
 
 > Brandetti, L., Mulders, S. P., Merino-Martinez, R., Watson, S., & van Wingerden, J.-W. (2023). Multi-objective calibration of vertical-axis wind turbine controllers: balancing aero-servo-elastic performance and noise, [Wind Energy Science Discussions](https://doi.org/10.5194/wes-2023-154) [preprint].
 
