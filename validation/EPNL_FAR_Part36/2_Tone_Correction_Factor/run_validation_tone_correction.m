@@ -1,8 +1,8 @@
 % Script run_validation_tone_correction
 %
 % Verification of the tone correction factor calculation used
-% in the EPNL code 
-%   
+% in the EPNL code
+%
 %   - The Effective Perceived Noise Level (EPNL) is a metric used mainly in
 %   the context of environmental aircraft noise, mainly for aircraft noise
 %   certification. To the best of knowledge of the Author of this code, a
@@ -11,15 +11,15 @@
 %   particular parts of the EPNL calculation.
 %
 %   In this code, we use a table providing reference SPL spectra
-%        values and the respective values that shall be computed in each step of the 
+%        values and the respective values that shall be computed in each step of the
 %        tone-correction factor calculation to verify the <get_PNLT> function implemented in the
-%        <EPNL_FAR_Part36> code provided in SQAT. The table with the reference values is provided by:  
+%        <EPNL_FAR_Part36> code provided in SQAT. The table with the reference values is provided by:
 %
 %   International Civil Aviation Organization (2015) Doc 9501, Environmental Technical Manual
 %   Volume I, Procedures for the Noise Certification of Aircraft, Second
 %   Edition - ISBN 978-92-9249-721-7 (see Table 3.7)
 %
-%  HOW TO RUN THIS CODE: this code requires the <get_PNLT> function hosted in the <helper folder> 
+%  HOW TO RUN THIS CODE: this code requires the <get_PNLT> function hosted in the <helper folder>
 %  of the main <EPNL_FAR_Part36> calculation code available in SQAT. Thus, make sure this function is added to your MATLAB path.
 %  Apart from that, no additional steps are necessary to run this code.
 %
@@ -29,10 +29,10 @@ clc; clear all; close all;
 
 save_figs = 0; %% save figs flag
 
-%% path settings 
+%% path settings
 
 dir_out = [fileparts(mfilename('fullpath')) filesep];
- 
+
 % Figure where the figures (and the results) will be stored:
 figures_dir = [dir_out 'figs' filesep];
 if ~exist(figures_dir,'dir')
@@ -53,18 +53,18 @@ SB_ref = tone_correction_tab(:,8);
 SPLPP_ref = tone_correction_tab(:,9);
 F_ref = tone_correction_tab(:,10);
 C_ref = tone_correction_tab(:,11);
- 
+
 %% compute tone-correction using SQAT
 
 PNL = 0; % dummy value for the PNL
 
 [~, ~, ~, OUT] = get_PNLT( SPL_ref', freq_bands', PNL );
 
-%% plot results 
+%% plot results
 
 figure('name','EPNL calculation - verification of tone-correction implementation part 1',...
     'units','normalized','outerposition',[0 0 1 1]); % plot fig in full screen
-   
+
 Line_ref = 1;
 Line_sqat= 1;
 
@@ -132,7 +132,7 @@ ylim([min(SP_ref) max(SP_ref)]);
 title('Step 6','Interpreter','Latex');
 
 set(gcf,'color','w');
-       
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 if save_figs==1
     
@@ -153,11 +153,11 @@ if save_figs==1
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-%% plot results 
+%% plot results
 
 figure('name','EPNL calculation - verification of tone-correction implementation part 2',...
     'units','normalized','outerposition',[0 0 1 1]); % plot fig in full screen
-   
+
 % Step 7
 subplot( 2, 6, [1,2] )
 semilogx( freq_bands, SPLPP_ref,'b' ); hold on;
@@ -192,7 +192,7 @@ ylim([min(C_ref) max(C_ref)]);
 title('Step 9','Interpreter','Latex');
 
 set(gcf,'color','w');
-       
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 if save_figs==1
     
