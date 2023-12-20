@@ -36,7 +36,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 clc; clear all; close all;
 
-save_figs = 1; %% save figs flag
+save_figs = 0; %% save figs flag
 
 %% reference values from Table 4 of Ref. [1]
 
