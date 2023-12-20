@@ -14,7 +14,7 @@ The figures below compare the EPNL results obtained using the `EPNL_FAR_Part36` 
 | -------------- | -------------- | -------------- |
 | ![](figs/EPNL_cross_validation_NAF.png)   | ![](figs/EPNL_cross_validation_AURAFONE.png)  | ![](figs/EPNL_cross_validation_FLAURA.png)   | 
 
-The table below summarizes the results by presenting the absolute values from Ref. [1] along with the respective relative differences relative to the reference values **(i.e. SQAT minus Ref.)**, which are presented within [.] markers. **It is possible to verify that the highest absolute difference of results among the 25 cases considered is of about $0.6~(\mathrm{EPNdB})$.**
+The table below summarizes the results by presenting the absolute values from Ref. [1] along with the respective relative differences relative to the reference values **(i.e. SQAT minus Ref.)**, which are presented within [.] markers. **It is possible to verify that the maximum absolute difference among the 25 cases considered is of about $0.6~(\mathrm{EPNdB})$.**
 
 | Case # | NAF | AURAFONE | FLAURA |
 |     :---:    |     :---:      |     :---:     | :---:     |
