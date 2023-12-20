@@ -6,7 +6,7 @@ Despite its use for legal purposes, to the best knowledge of the Author of this 
 
 - [Implementation of the Perceived Noisiness](1_Perceived_Noisiness)
 - [Implementation of the tone correction factor](2_Tone_Correction_Factor)
-- [Cross-verification with values from the literature](3_EPNL_cross_verification)
+- [Cross-verification of EPNL with values from the literature](3_EPNL_cross_verification)
 
 # References
 
