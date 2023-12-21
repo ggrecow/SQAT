@@ -74,7 +74,7 @@ If you use this toolbox in your research, we would be grateful if you help us to
 > Felix Greco, G., Merino-Martínez, R., &  Osses, A. (2023). SQAT: a sound quality analysis toolbox for MATLAB. Zenodo. doi: [10.5281/zenodo.7934709](https://doi.org/10.5281/zenodo.7934709)
 
 > [!TIP]
-> **Apart from the toolbox repository itself (see above), each version released has its own doi in Zenodo. As differences between releases may occur, it is a good practice to cite the specific SQAT version being used. If you need to cite the current release of SQAT, please refer to the "Cite this repository" feature in the "About" section of this GitHub repository.**
+> **Apart from the toolbox repository itself (see above), each version released has its own doi in Zenodo. As differences between releases may occur, it is a good practice to cite the specific SQAT version being used. If you need to cite the current SQAT release, please refer to the "Cite this repository" feature in the "About" section of this GitHub repository.**
 
 The following paper is the main work describing SQAT and the metrics available in the first release:
 
