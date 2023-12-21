@@ -85,7 +85,7 @@ Additionaly, here's a paper by the members of the SQAT team showing three case s
 > Osses, A., Felix Greco, G., & Merino-Martínez, R. (2023). Considerations for the perceptual evaluation of steady-state and time-varying sounds using psychoacoustic metrics. Forum Acusticum, Turin, Italy, 11-15 September 2023. [[Link]](https://hal.science/hal-04186316). 
 Raw data and extra scripts to reproduce all the paper figures can be found [here](https://doi.org/10.5281/zenodo.7933489).
 
-# Works using SQAT
+# Studies using SQAT
 
 We would be very happy to know that you find SQAT useful and have used it in your own work. In this case, please reach out so we can feature your work here. 
 
