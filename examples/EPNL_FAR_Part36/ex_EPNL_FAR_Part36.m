@@ -27,7 +27,9 @@ dir_ref_sounds = [basepath_SQAT 'sound_files' filesep 'reference_signals' filese
 [ExSignal,fs]=audioread([dir_ref_sounds 'ExSignal_A320_auralized_departure_104dBFS.wav']); % input .wav signal - for reference, the path where the sound file is located is:  'sound_files\reference_signals\' - 
 
 dBFS = 104; % a priori knowledge
-ExSignal = ExSignal.*10^( (dBFS-94) /20); % calibrate sound file, which was auralized considering a dBFS = 104 to avoid clipping. This means that the +1/-1 range of the .wav file corresponds to 104 dBSPL (or ~3.17 Pa) 
+cal =  20E-6*10^(dBFS/20); % calibration factor
+
+cal_ExSignal = ExSignal*cal; % calibrate sound file, which was auralized considering a dBFS = 104 to avoid clipping. This means that the +1/-1 range of the .wav file corresponds to 104 dBSPL (or ~3.17 Pa) 
 
 %% EPNL calculation - method == 1 ( a calibrated sound file is used as input)
 
@@ -37,7 +39,7 @@ dt = 0.5;
 threshold = 10;
 show = 1;
 
-EPNL_method_1 = EPNL_FAR_Part36(ExSignal, fs,... % input signal and sampling freq.
+EPNL_method_1 = EPNL_FAR_Part36(cal_ExSignal, fs,... % input signal and sampling freq.
                                                         method,... % method = 0, insig is a SPL[nTime,nFreq] matrix; method = 1, insig is a sound file
                                                                dt,... % time-step in which the third-octave SPLs are averaged, in seconds.
                                                      threshold,... % threshold value used to calculate the PNLT decay from PNLTM during the calculation of the duration correction
