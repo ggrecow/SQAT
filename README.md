@@ -82,8 +82,10 @@ The following paper is the main work describing SQAT and the metrics available i
 
 Additionaly, here's a paper by the members of the SQAT team showing three case studies where the SQAT toolbox was used to perform all analyses:
 
-> Osses, A., Felix Greco, G., & Merino-Martínez, R. (2023). Considerations for the perceptual evaluation of steady-state and time-varying sounds using psychoacoustic metrics. Forum Acusticum, Turin, Italy, 11-15 September 2023. [[Link]](https://hal.science/hal-04186316). 
+> Osses, A., Felix Greco, G., & Merino-Martínez, R. (2023). Considerations for the perceptual evaluation of steady-state and time-varying sounds using psychoacoustic metrics. Forum Acusticum, Turin, Italy, 11-15 September 2023. doi: [10.61782/fa.2023.0600](https://www.doi.org/10.61782/fa.2023.0600). 
 Raw data and extra scripts to reproduce all the paper figures can be found [here](https://doi.org/10.5281/zenodo.7933489).
+
+ 
 
 # Studies using SQAT
 
