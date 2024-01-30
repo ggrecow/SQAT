@@ -11,7 +11,8 @@ authors:
   given-names: "Alejandro"
   orcid: "https://orcid.org/0000-0001-8028-4936"
 title: "SQAT: a sound quality analysis toolbox for MATLAB"
-version: 1.0
-doi: 10.5281/zenodo.7934710 
-date-released: 2023-05-14
+version: 1.1
+doi: 10.5281/zenodo.10580337
+
+date-released: 2024-01-29
 url: "https://github.com/ggrecow/SQAT"
