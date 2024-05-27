@@ -57,10 +57,10 @@ function OUT = PsychoacousticAnnoyance_Zwicker1999(insig,fs,LoudnessField,time_s
 %             ** ws : sharpness and loudness weighting function (not squared)
 %
 %             ** Statistics
-%               *** PAmean : mean value of instantaneous fluctuation strength (unit)
-%               *** PAstd : standard deviation of instantaneous fluctuation strength (unit)
-%               *** PAmax : maximum of instantaneous fluctuation strength (unit)
-%               *** PAmin : minimum of instantaneous fluctuation strength (unit)
+%               *** PAmean : mean value of psychoacoustic annoyance (unit)
+%               *** PAstd : standard deviation of instantaneous psychoacoustic annoyance (unit)
+%               *** PAmax : maximum of instantaneous psychoacoustic annoyance (unit)
+%               *** PAmin : minimum of instantaneous psychoacoustic annoyance (unit)
 %               *** PAx : x percentile of the PA metric exceeded during x percent of the time
 %
 %      * include structs with the results from the other metrics computed
