@@ -93,6 +93,16 @@ Raw data and extra scripts to reproduce all the paper figures can be found [here
 
 We would be very happy to know that you find SQAT useful and have used it in your own work. In this case, please reach out so we can feature your work here. 
 
+> Yupa Villanueva, R.M., Merino-Martinez, R., Altena, A., & Snellen, M. (2024). Psychoacoustic Characterization of Multirotor Drones in Realistic Flyover Maneuvers. [Proceedings of the 30th AIAA/CEAS Aeroacoustics Conference](https://arc.aiaa.org/doi/10.2514/6.2024-3015).
+
+> Thoma, E.M., Merino-Martinez, R., Grönstedt, T., & Zhao, X. (2024). Noise From Flight Procedure Designed With Statistical Wind: Auralization and Psychoacoustic Evaluation. [Proceedings of the 30th AIAA/CEAS Aeroacoustics Conference](https://arc.aiaa.org/doi/10.2514/6.2024-3017).
+
+> Schade, S., Merino-Martinez, R., Ratei, P., Bartels, S., Jaron, R., & Moreau, A. (2024). Initial Study on the Impact of Speed Fluctuations on the Psychoacoustic Characteristics of a Distributed Propulsion System with Ducted Fans. [Proceedings of the 30th AIAA/CEAS Aeroacoustics Conference](https://arc.aiaa.org/doi/10.2514/6.2024-3273).
+
+> Monteiro, F.d., Merino-Martinez, R., & Lima Pereira, L.T. (2024). Psychoacoustic Evaluation of an Array of Distributed Propellers Under Synchrophasing Operation. [Proceedings of the 30th AIAA/CEAS Aeroacoustics Conference](https://arc.aiaa.org/doi/10.2514/6.2024-3321).
+
+> Merino-Martinez, R., Besnea, I., von den Hoff, B., & Snellen, M. (2024). Psychoacoustic Analysis of the Noise Emissions from the Airbus A320 Aircraft Family and its Nose Landing Gear System. [Proceedings of the 30th AIAA/CEAS Aeroacoustics Conference](https://arc.aiaa.org/doi/10.2514/6.2024-3398).
+
 > Knuth, D., Ring, T. P., & Langer, S. C. (2024). Comparing auralizations and measurements of vibrating plates with physical and psychoacoustic metrics. [Proceedings of 50. Jahrestagung für Akustik (DAGA)](https://pub.dega-akustik.de/DAGA_2024/files/upload/paper/176.pdf).
 
 > Brandetti, L., Mulders, S. P., Merino-Martinez, R., Watson, S., & van Wingerden, J.-W. (2024). Multi-objective calibration of vertical-axis wind turbine controllers: balancing aero-servo-elastic performance and noise, [Wind Energy Science](https://doi.org/10.5194/wes-9-471-2024), 9, 471-493.
