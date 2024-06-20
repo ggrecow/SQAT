@@ -204,20 +204,6 @@ end
 
 [PNLTM,PNLTM_idx] = max(PNLT); % MAXIMUM TONE-CORRECTED PERCEIVED NOISE LEVEL (PNLTM)
 
-%% Bandsharing adjustment to PNLTM
-
-Cavg = sum([Cmax(PNLTM_idx - 2), Cmax(PNLTM_idx - 1), Cmax(PNLTM_idx),...
-            Cmax(PNLTM_idx + 1), Cmax(PNLTM_idx + 2)])/5;
-
-if Cavg > Cmax(PNLTM_idx)
-    DeltaB = Cavg*Cmax(PNLTM_idx);
-else
-    DeltaB = 0;
-end
-
-% apply adjustment
-PNLTM = PNLTM + DeltaB;
-
 %% Output variables for verification of the tone correction implementation
 
 OUT.S = S;
