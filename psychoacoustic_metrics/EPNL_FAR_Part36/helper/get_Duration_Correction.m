@@ -61,6 +61,12 @@ idx_t1 = find( PNLT(1:PNLTM_idx)>Decay, K ); % idx_t1 is the first point where P
 idx_t2 = find( PNLT(PNLTM_idx:end)<Decay, K); % idx_t2 is the first point where PNLT becomes <(PNLTM - threshold)
 idx_t2 = idx_t2 + (PNLTM_idx-1); % correct for PNLTM_idx number because full vector is trimmed in the previous line
 
+% if case for idx_t2 not found (PNLT never becomes lower than Decay)
+if isempty(idx_t2)
+    idx_t2 = size(PNLT, 1);  % take idx_t2 as last index in PNLT
+	warning("The signal does not decay by more than the threshold within the available duration. An indicative EPNL value is calculated from the available duration, but should not be used for aircraft noise certification.");
+end
+
 % Calculate duration correction factor
 D = 10*log10(sum(10.^(PNLT(idx_t1:idx_t2)/10))) - PNLTM + 10*log10(dt/10);
 
