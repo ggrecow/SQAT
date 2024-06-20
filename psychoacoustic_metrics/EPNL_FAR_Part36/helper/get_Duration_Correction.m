@@ -64,6 +64,7 @@ idx_t2 = idx_t2 + (PNLTM_idx-1); % correct for PNLTM_idx number because full vec
 % if case for idx_t2 not found (PNLT never becomes lower than Decay)
 if isempty(idx_t2)
     idx_t2 = size(PNLT, 1);  % take idx_t2 as last index in PNLT
+	warning("The signal does not decay by more than the threshold within the available duration. An indicative EPNL value is calculated from the available duration, but should not be used for aircraft noise certification.");
 end
 
 % Calculate duration correction factor
