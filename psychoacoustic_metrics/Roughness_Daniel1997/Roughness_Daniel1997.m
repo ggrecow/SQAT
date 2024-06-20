@@ -1,5 +1,5 @@
-function OUT = Roughness_Daniel1997(insig,fs,time_skip,show)
-% function OUT = Roughness_Daniel1997(insig,fs,time_skip,show)
+function OUT = Roughness_Daniel1997(insig, fs, start_skip, end_skip, show)
+% function OUT = Roughness_Daniel1997(insig, fs, start_skip, end_skip, show)
 %
 %   This function calculates time-varying roughness and time-averaged specific
 %     roughness using the roughness model by Daniel & Weber:
@@ -17,8 +17,9 @@ function OUT = Roughness_Daniel1997(insig,fs,time_skip,show)
 %   fs : integer
 %   sampling frequency (Hz)
 %
-%   time_skip : integer
-%   skip start of the signal in <time_skip> seconds for statistics calculations
+%   start_skip : number
+%   end_skip : number
+%   skip start/end of the signal in seconds for statistics calculations
 %
 %   show : logical(boolean)
 %   optional parameter for figures (results) display
@@ -56,7 +57,7 @@ if nargin == 0
     return;
 end
 
-if nargin < 4
+if nargin < 5
     if nargout == 0
         show = 1;
     else
@@ -584,27 +585,28 @@ OUT.dz = dz;
 % Roughness statistics based on InstantaneousRoughness
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-[~,idx] = min( abs(OUT.time-time_skip) ); % find idx of time_skip on time vector
+[~,idx] = min( abs(OUT.time - start_skip) ); % find idx of start_skip on time vector
+[~,idxEnd] = min( abs(OUT.time - (max(OUT.time) - end_skip)) ); % find idx of end_skip on time vector
 
-OUT.Rmax = max(R_mat(idx:end));
-OUT.Rmin = min(R_mat(idx:end));
-OUT.Rmean = mean(R_mat(idx:end));
-OUT.Rstd = std(R_mat(idx:end));
-OUT.R1 = get_percentile(R_mat(idx:end),1);
-OUT.R2 = get_percentile(R_mat(idx:end),2);
-OUT.R3 = get_percentile(R_mat(idx:end),3);
-OUT.R4 = get_percentile(R_mat(idx:end),4);
-OUT.R5 = get_percentile(R_mat(idx:end),5);
-OUT.R10 = get_percentile(R_mat(idx:end),10);
-OUT.R20 = get_percentile(R_mat(idx:end),20);
-OUT.R30 = get_percentile(R_mat(idx:end),30);
-OUT.R40 = get_percentile(R_mat(idx:end),40);
-OUT.R50 = median(R_mat(idx:end));
-OUT.R60 = get_percentile(R_mat(idx:end),60);
-OUT.R70 = get_percentile(R_mat(idx:end),70);
-OUT.R80 = get_percentile(R_mat(idx:end),80);
-OUT.R90 = get_percentile(R_mat(idx:end),90);
-OUT.R95 = get_percentile(R_mat(idx:end),95);
+OUT.Rmax = max(R_mat(idx:idxEnd));
+OUT.Rmin = min(R_mat(idx:idxEnd));
+OUT.Rmean = mean(R_mat(idx:idxEnd));
+OUT.Rstd = std(R_mat(idx:idxEnd));
+OUT.R1 = get_percentile(R_mat(idx:idxEnd),1);
+OUT.R2 = get_percentile(R_mat(idx:idxEnd),2);
+OUT.R3 = get_percentile(R_mat(idx:idxEnd),3);
+OUT.R4 = get_percentile(R_mat(idx:idxEnd),4);
+OUT.R5 = get_percentile(R_mat(idx:idxEnd),5);
+OUT.R10 = get_percentile(R_mat(idx:idxEnd),10);
+OUT.R20 = get_percentile(R_mat(idx:idxEnd),20);
+OUT.R30 = get_percentile(R_mat(idx:idxEnd),30);
+OUT.R40 = get_percentile(R_mat(idx:idxEnd),40);
+OUT.R50 = median(R_mat(idx:idxEnd));
+OUT.R60 = get_percentile(R_mat(idx:idxEnd),60);
+OUT.R70 = get_percentile(R_mat(idx:idxEnd),70);
+OUT.R80 = get_percentile(R_mat(idx:idxEnd),80);
+OUT.R90 = get_percentile(R_mat(idx:idxEnd),90);
+OUT.R95 = get_percentile(R_mat(idx:idxEnd),95);
 
 %% plots
 

@@ -1,5 +1,5 @@
-function OUT = Tonality_Aures1985(insig,fs,LoudnessField,time_skip,show)
-% function OUT = Tonality_Aures1985(insig,fs,LoudnessField,time_skip,show)
+function OUT = Tonality_Aures1985(insig, fs, LoudnessField, start_skip, end_skip, show)
+% function OUT = Tonality_Aures1985(insig, fs, LoudnessField, start_skip, end_skip, show)
 %
 %   This function calculates tonality metric by:
 %
@@ -29,8 +29,9 @@ function OUT = Tonality_Aures1985(insig,fs,LoudnessField,time_skip,show)
 %   chose field for loudness calculation; free field = 0; diffuse field = 1;
 %   type <help Loudness_ISO532_1> for more info
 
-%   time_skip : integer
-%   skip start of the signal in <time_skip> seconds for statistic calculations
+%   start_skip : number
+%   end_skip : number
+%   skip start/end of the signal in seconds for statistic calculations
 %
 %   show : logical(boolean)
 %   optional parameter for figures (results) display
@@ -53,7 +54,7 @@ function OUT = Tonality_Aures1985(insig,fs,LoudnessField,time_skip,show)
 % Author: Gil Felix Greco, Braunschweig 13/07/2020 (updated 14.04.2023)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-if nargin < 5
+if nargin < 6
     if nargout == 0
         show = 1;
     else
@@ -352,27 +353,28 @@ OUT.time = t;                          % time vector
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % tonality statistics
 
-[~,idx] = min( abs(OUT.time-time_skip) ); % find idx of time_skip on time vector
+[~, idx] = min( abs(OUT.time - start_skip) ); % find idx of start_skip on time vector
+[~, idxEnd] = min( abs(OUT.time - (max(OUT.time) - end_skip)) ); % find idx of end_skip on time vector
 
-OUT.Kmean = mean(tonality(idx:end));
-OUT.Kstd = std(tonality(idx:end));
-OUT.Kmax = max(tonality(idx:end));
-OUT.Kmin = min(tonality(idx:end));
-OUT.K1 = get_percentile(tonality(idx:end),1);
-OUT.K2 = get_percentile(tonality(idx:end),2);
-OUT.K3 = get_percentile(tonality(idx:end),3);
-OUT.K4 = get_percentile(tonality(idx:end),4);
-OUT.K5 = get_percentile(tonality(idx:end),5);
-OUT.K10 = get_percentile(tonality(idx:end),10);
-OUT.K20 = get_percentile(tonality(idx:end),20);
-OUT.K30 = get_percentile(tonality(idx:end),30);
-OUT.K40 = get_percentile(tonality(idx:end),40);
-OUT.K50 = median(tonality(idx:end));
-OUT.K60 = get_percentile(tonality(idx:end),60);
-OUT.K70 = get_percentile(tonality(idx:end),70);
-OUT.K80 = get_percentile(tonality(idx:end),80);
-OUT.K90 = get_percentile(tonality(idx:end),90);
-OUT.K95 = get_percentile(tonality(idx:end),95);
+OUT.Kmean = mean(tonality(idx:idxEnd));
+OUT.Kstd = std(tonality(idx:idxEnd));
+OUT.Kmax = max(tonality(idx:idxEnd));
+OUT.Kmin = min(tonality(idx:idxEnd));
+OUT.K1 = get_percentile(tonality(idx:idxEnd),1);
+OUT.K2 = get_percentile(tonality(idx:idxEnd),2);
+OUT.K3 = get_percentile(tonality(idx:idxEnd),3);
+OUT.K4 = get_percentile(tonality(idx:idxEnd),4);
+OUT.K5 = get_percentile(tonality(idx:idxEnd),5);
+OUT.K10 = get_percentile(tonality(idx:idxEnd),10);
+OUT.K20 = get_percentile(tonality(idx:idxEnd),20);
+OUT.K30 = get_percentile(tonality(idx:idxEnd),30);
+OUT.K40 = get_percentile(tonality(idx:idxEnd),40);
+OUT.K50 = median(tonality(idx:idxEnd));
+OUT.K60 = get_percentile(tonality(idx:idxEnd),60);
+OUT.K70 = get_percentile(tonality(idx:idxEnd),70);
+OUT.K80 = get_percentile(tonality(idx:idxEnd),80);
+OUT.K90 = get_percentile(tonality(idx:idxEnd),90);
+OUT.K95 = get_percentile(tonality(idx:idxEnd),95);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% plots

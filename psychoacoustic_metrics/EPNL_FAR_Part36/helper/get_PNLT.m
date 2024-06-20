@@ -160,9 +160,9 @@ for k = 1:num_times
     end
 end
 
-%% Step 9: for each TOB from 80 Hz till 10 kHz (i.e. band 3 through 24),
+%% Steps 9 & 10: for each TOB from 80 Hz till 10 kHz (i.e. band 3 through 24),
 % determine the tone correction factor C(i,k) from the SPL differences F(i,k), and Table A36-2
-% Step 10 is included here also
+% (Step 10 is included here also)
 
 C = zeros(num_freqs,num_times);
 Cmax = zeros(num_times,1);
@@ -203,6 +203,20 @@ for k = 1:num_times
 end
 
 [PNLTM,PNLTM_idx] = max(PNLT); % MAXIMUM TONE-CORRECTED PERCEIVED NOISE LEVEL (PNLTM)
+
+%% Bandsharing adjustment to PNLTM
+
+Cavg = sum([Cmax(PNLTM_idx - 2), Cmax(PNLTM_idx - 1), Cmax(PNLTM_idx),...
+            Cmax(PNLTM_idx + 1), Cmax(PNLTM_idx + 2)])/5;
+
+if Cavg > Cmax(PNLTM_idx)
+    DeltaB = Cavg*Cmax(PNLTM_idx);
+else
+    DeltaB = 0;
+end
+
+% apply adjustment
+PNLTM = PNLTM + DeltaB;
 
 %% Output variables for verification of the tone correction implementation
 

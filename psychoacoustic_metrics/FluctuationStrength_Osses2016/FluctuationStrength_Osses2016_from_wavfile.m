@@ -1,5 +1,5 @@
-function OUT = FluctuationStrength_Osses2016_from_wavfile(wavfilename,dBFS,method,time_skip,show)
-% function OUT = FluctuationStrength_Osses2016_from_wavfile(wavfilename,dBFS,method,time_skip,show)
+function OUT = FluctuationStrength_Osses2016_from_wavfile(wavfilename, dBFS, method, start_skip, end_skip, show)
+% function OUT = FluctuationStrength_Osses2016_from_wavfile(wavfilename, dBFS, method, start_skip, end_skip, show)
 %
 %  This function calculates the fluctuation strength using the model 
 %    developed by: [1] Osses, A., Garcia A., and Kohlrausch, A.. 
@@ -32,8 +32,9 @@ function OUT = FluctuationStrength_Osses2016_from_wavfile(wavfilename,dBFS,metho
 %             NOTE: if the signal's length is smaller than 2s, the analysis
 %             is automatically changed to method=0
 %
-%   time_skip : integer
-%   skip start of the signal in <time_skip> seconds for statistics calculations
+%   start_skip : number
+%   end_skip : number
+%   skip start/end of the signal in seconds for statistics calculations
 %
 %   show : logical(boolean)
 %   optional parameter for figures (results) display
@@ -73,7 +74,7 @@ if nargin == 0
     return;
 end
 
-if nargin < 5
+if nargin < 6
     % Default for show
     if nargout == 0
         show = 1;
@@ -82,12 +83,21 @@ if nargin < 5
     end
 end
 
-if nargin <4
+if nargin < 5
     pars = psychoacoustic_metrics_get_defaults('FluctuationStrength_Osses2016');
-    time_skip = pars.time_skip;
-    fprintf('\n%s.m: Default time_skip value = %.0f is being used\n',mfilename,pars.time_skip);
+    end_skip = pars.end_skip;
+    fprintf('\n%s.m: Default end_skip value = %.0f is being used\n',...
+        mfilename, pars.end_skip);
 end
-if nargin <3
+
+if nargin < 4
+    pars = psychoacoustic_metrics_get_defaults('FluctuationStrength_Osses2016');
+    start_skip = pars.start_skip;
+    fprintf('\n%s.m: Default start_skip value = %.0f is being used\n',...
+        mfilename, pars.start_skip);
+end
+
+if nargin < 3
     pars = psychoacoustic_metrics_get_defaults('FluctuationStrength_Osses2016');
     method = pars.method;
     fprintf('\n%s.m: Default method = %.0f is being used\n',mfilename,pars.method);
@@ -101,7 +111,7 @@ end
 gain_factor = 10^((dBFS-94)/20); %
 insig = gain_factor*insig;
 
-OUT = FluctuationStrength_Osses2016(insig, fs, method, time_skip, show);
+OUT = FluctuationStrength_Osses2016(insig, fs, method, start_skip, end_skip, show);
 
 %**************************************************************************
 %

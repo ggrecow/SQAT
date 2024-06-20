@@ -1,5 +1,5 @@
-function OUT = Roughness_Daniel1997_from_wavfile(wavfilename,dBFS,time_skip,show)
-% function OUT = Roughness_Daniel1997_from_wavfile(wavfilename,dBFS,time_skip,show)
+function OUT = Roughness_Daniel1997_from_wavfile(wavfilename, dBFS, start_skip, end_skip, show)
+% function OUT = Roughness_Daniel1997_from_wavfile(wavfilename, dBFS, start_skip, end_skip, show)
 %
 %   This function calculates time-varying roughness and time-averaged 
 %     specific roughness using the roughness model by Daniel & Weber:
@@ -25,8 +25,9 @@ function OUT = Roughness_Daniel1997_from_wavfile(wavfilename,dBFS,time_skip,show
 %          if the specified dBFS is different from 94 dB SPL, then a gain 
 %          factor will be applied
 %
-%   time_skip : integer
-%   skip start of the signal in <time_skip> seconds for statistics calculations
+%   start_skip : number
+%   end_skip : number
+%   skip start/end of the signal in seconds for statistics calculations
 %
 %   show : logical(boolean)
 %   optional parameter for figures (results) display
@@ -64,17 +65,26 @@ if nargin == 0
     return;
 end
 
-if nargin < 4
+if nargin < 5
     if nargout == 0
         show = 1;
     else
         show = 0;
     end
 end
-if nargin <3
+
+if nargin < 4
     pars = psychoacoustic_metrics_get_defaults('Roughness_Daniel1997');
-    time_skip = pars.time_skip;
-    fprintf('\n%s.m: Default time_skip value = %.0f is being used\n',mfilename,pars.time_skip);
+    end_skip = pars.end_skip;
+    fprintf('\n%s.m: Default end_skip value = %.0f is being used\n',...
+        mfilename, pars.end_skip);
+end
+
+if nargin < 3
+    pars = psychoacoustic_metrics_get_defaults('Roughness_Daniel1997');
+    start_skip = pars.start_skip;
+    fprintf('\n%s.m: Default start_skip value = %.0f is being used\n',...
+        mfilename, pars.start_skip);
 end
 
 [insig,fs] = audioread(wavfilename);
@@ -85,7 +95,7 @@ end
 gain_factor = 10^((dBFS-94)/20);
 insig = gain_factor*insig;
 
-OUT = Roughness_Daniel1997(insig,fs,time_skip,show);
+OUT = Roughness_Daniel1997(insig, fs, start_skip, end_skip, show);
 
 end % end of file
 %**************************************************************************

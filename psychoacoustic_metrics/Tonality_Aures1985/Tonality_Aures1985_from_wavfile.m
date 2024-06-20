@@ -1,5 +1,5 @@
-function OUT = Tonality_Aures1985_from_wavfile(wavfilename,dBFS,LoudnessField,time_skip,show)
-% function OUT = Tonality_Aures1985_from_wavfile(wavfilename,dBFS,LoudnessField,time_skip,show)
+function OUT = Tonality_Aures1985_from_wavfile(wavfilename, dBFS, LoudnessField, start_skip, end_skip, show)
+% function OUT = Tonality_Aures1985_from_wavfile(wavfilename, dBFS, LoudnessField, start_skip, end_skip, show)
 %
 %   This function calculates tonality metric by:
 %
@@ -37,8 +37,9 @@ function OUT = Tonality_Aures1985_from_wavfile(wavfilename,dBFS,LoudnessField,ti
 %   chose field for loudness calculation; free field = 0; diffuse field = 1;
 %   type <help Loudness_ISO532_1> for more info
 %
-%   time_skip : integer
-%   skip start of the signal in <time_skip> seconds for statistic calculations
+%   start_skip : number
+%   end_skip : number
+%   skip start/end of the signal in seconds for statistic calculations
 %
 %   show : logical(boolean)
 %   optional parameter for figures (results) display
@@ -71,19 +72,29 @@ if nargin == 0
     return;
 end
 
-if nargin < 5
+if nargin < 6
     if nargout == 0
         show = 1;
     else
         show = 0;
     end
 end
-if nargin <4
+
+if nargin < 5
     pars = psychoacoustic_metrics_get_defaults('Tonality_Aures1985');
-    time_skip = pars.time_skip;
-    fprintf('\n%s.m: Default time_skip value = %.0f is being used\n',mfilename,pars.time_skip);
+    end_skip = pars.end_skip;
+    fprintf('\n%s.m: Default end_skip value = %.0f is being used\n', ...
+            mfilename, pars.end_skip);
 end
-if nargin <3
+
+if nargin < 4
+    pars = psychoacoustic_metrics_get_defaults('Tonality_Aures1985');
+    start_skip = pars.start_skip;
+    fprintf('\n%s.m: Default start_skip value = %.0f is being used\n', ...
+            mfilename, pars.start_skip);
+end
+
+if nargin < 3
     pars = psychoacoustic_metrics_get_defaults('Tonality_Aures1985');
     LoudnessField = pars.Loudness_field;
     fprintf('\n%s.m: Default Loudness_field value = %.0f is being used\n',mfilename,pars.Loudness_field);
@@ -97,7 +108,7 @@ end
 gain_factor = 10^((dBFS-94)/20);
 insig = gain_factor*insig;
 
-OUT = Tonality_Aures1985(insig,fs,LoudnessField,time_skip,show);
+OUT = Tonality_Aures1985(insig, fs, LoudnessField, start_skip, end_skip, show);
 
 end % End of file
 

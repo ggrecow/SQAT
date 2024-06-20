@@ -1,5 +1,5 @@
-function OUT = FluctuationStrength_Osses2016(insig,fs,method,time_skip,show)
-% function OUT = FluctuationStrength_Osses2016(insig,fs,method,time_skip,show)
+function OUT = FluctuationStrength_Osses2016(insig, fs, method, start_skip, end_skip, show)
+% function OUT = FluctuationStrength_Osses2016(insig, fs, method, start_skip, end_skip show)
 %
 %  This function calculates the fluctuation strength using the model 
 %    developed by: [1] Osses, A., Garcia A., and Kohlrausch, A.. 
@@ -23,8 +23,9 @@ function OUT = FluctuationStrength_Osses2016(insig,fs,method,time_skip,show)
 %             NOTE: if the signal's length is smaller than 2s, the analysis
 %             is automatically changed to method=0
 %
-%   time_skip : integer
-%   skip start of the signal in <time_skip> seconds for statistics calculations
+%   start_skip : number
+%   end_skip : number
+%   skip start/end of the signal in seconds for statistics calculations
 %
 %   show : logical(boolean)
 %   optional parameter for figures (results) display
@@ -72,7 +73,7 @@ if nargin == 0
     return;
 end
 
-if nargin < 5
+if nargin < 6
     % Default for show
     if nargout == 0
         show = 1;
@@ -132,28 +133,30 @@ attackrelease = 50;
 
 window = il_Do_cos_ramp(window,fs,attackrelease,attackrelease);
 
-for iFrame = 1:nFrames
-    
-    signal = insig(:,iFrame);
-    t(iFrame,1) = t_b(1,iFrame);
-    
-    % Apply window to frame
-    signal = transpose(window .* signal);
+% Apply window to frame
+insigwinT = transpose(repmat(window, 1, size(insig, 2)) .* insig);
 
-    %% 2. Peripheral stages
-    % 2.1 Peripheral hearing system (transmission factor a0)
-    %     (see 'model_par.a0_in_time' == 1, in _debug version):
-    %
-    % 4096th order FIR filter:
-    signal = il_PeripheralHearingSystem_t(signal,fs); % since 14/05
+%% 2. Peripheral stages
+% 2.1 Peripheral hearing system (transmission factor a0)
+%     (see 'model_par.a0_in_time' == 1, in _debug version):
+%
+% 4096th order FIR filter:
+insigwinT = il_PeripheralHearingSystem_t(insigwinT,fs); % since 14/05
+
+% 2.2 Excitation patterns
+%     (see model_par.filterbank == 'terhardt', in _debug version):
+
+
+for iFrame = nFrames:-1:1
     
-    % 2.2 Excitation patterns
-    %     (see model_par.filterbank == 'terhardt', in _debug version):
-    
+    signal = insigwinT(iFrame, :);
+    t(iFrame,1) = t_b(1,iFrame);
+
+
     dBFS = 94; % corresponds to 1 Pa (new default in SQAT)
     % dBFS = 100; % unit amplitude corresponds to 100 dB (AMT Toolbox 
                   % convention, default by the original authors)
-    ei   = TerhardtExcitationPatterns_v3(signal,fs,dBFS);
+    ei   = TerhardtExcitationPatterns_v3_ML(signal,fs,dBFS);
     dz   = 0.5; % Barks, frequency step
     z    = 0.5:dz:23.5; % Bark
     fc   = bark2hz(z);
@@ -195,27 +198,28 @@ OUT.dz = dz;
 
 %% Fluctuation Strength statistics based on InstantaneousFS:
 
-[~,idx] = min( abs(OUT.time-time_skip) ); % find idx of time_skip on time vector
+[~,idx] = min( abs(OUT.time-start_skip) ); % find idx of start_skip on time vector
+[~,idxEnd] = min( abs(OUT.time - (max(OUT.time) - end_skip)) ); % find idx of end_skip on time vector
 
-OUT.FSmax = max(fluct(idx:end));
-OUT.FSmin = min(fluct(idx:end));
-OUT.FSmean = mean(fluct(idx:end));
-OUT.FSstd = std(fluct(idx:end));
-OUT.FS1 = get_percentile(fluct(idx:end),1);
-OUT.FS2 = get_percentile(fluct(idx:end),2);
-OUT.FS3 = get_percentile(fluct(idx:end),3);
-OUT.FS4 = get_percentile(fluct(idx:end),4);
-OUT.FS5 = get_percentile(fluct(idx:end),5);
-OUT.FS10 = get_percentile(fluct(idx:end),10);
-OUT.FS20 = get_percentile(fluct(idx:end),20);
-OUT.FS30 = get_percentile(fluct(idx:end),30);
-OUT.FS40 = get_percentile(fluct(idx:end),40);
-OUT.FS50 = median(fluct(idx:end));
-OUT.FS60 = get_percentile(fluct(idx:end),60);
-OUT.FS70 = get_percentile(fluct(idx:end),70);
-OUT.FS80 = get_percentile(fluct(idx:end),80);
-OUT.FS90 = get_percentile(fluct(idx:end),90);
-OUT.FS95 = get_percentile(fluct(idx:end),95);
+OUT.FSmax = max(fluct(idx:idxEnd));
+OUT.FSmin = min(fluct(idx:idxEnd));
+OUT.FSmean = mean(fluct(idx:idxEnd));
+OUT.FSstd = std(fluct(idx:idxEnd));
+OUT.FS1 = get_percentile(fluct(idx:idxEnd),1);
+OUT.FS2 = get_percentile(fluct(idx:idxEnd),2);
+OUT.FS3 = get_percentile(fluct(idx:idxEnd),3);
+OUT.FS4 = get_percentile(fluct(idx:idxEnd),4);
+OUT.FS5 = get_percentile(fluct(idx:idxEnd),5);
+OUT.FS10 = get_percentile(fluct(idx:idxEnd),10);
+OUT.FS20 = get_percentile(fluct(idx:idxEnd),20);
+OUT.FS30 = get_percentile(fluct(idx:idxEnd),30);
+OUT.FS40 = get_percentile(fluct(idx:idxEnd),40);
+OUT.FS50 = median(fluct(idx:idxEnd));
+OUT.FS60 = get_percentile(fluct(idx:idxEnd),60);
+OUT.FS70 = get_percentile(fluct(idx:idxEnd),70);
+OUT.FS80 = get_percentile(fluct(idx:idxEnd),80);
+OUT.FS90 = get_percentile(fluct(idx:idxEnd),90);
+OUT.FS95 = get_percentile(fluct(idx:idxEnd),95);
 
 %% plots
 
@@ -433,7 +437,7 @@ function outsig = il_PeripheralHearingSystem_t(insig,fs)
 % given signal. Time domain version.
 % 
 % Inputs:
-% insig: The signal to process. insig has to be a row vector.
+% insig: The signal to process. insig has to be a matrix of row vectors.
 % fs: Sampling frequency,
 % 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -443,8 +447,8 @@ K = 2^12; % FIR filter order
 % B = il_calculate_a0(fs,K);
 B = il_calculate_a0_idle(fs,K);
 
-outsig = filter(B,1,[insig zeros(1,K/2)]);
-outsig = outsig(K/2+1:end);
+outsig = filter(B,1,[insig zeros(size(insig, 1), K/2)], [], 2);
+outsig = outsig(:, K/2+1:end);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function B = il_calculate_a0(fs,N)
