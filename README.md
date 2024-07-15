@@ -93,6 +93,14 @@ Raw data and extra scripts to reproduce all the paper figures can be found [here
 
 We would be very happy to know that you find SQAT useful and have used it in your own work. In this case, please reach out so we can feature your work here. 
 
+> Yupa Villanueva, R. M., Merino-Martinez, R., Andino Cappagli, C. I., Altena, A., & Snellen, M. (2024). Effect of Unmanned Aerial Vehicle Configurations on the Acoustic and Psychoacoustic Signatures. Proceedings of the 30th International Congress on Sound and Vibration (ICSV).
+
+> von den Hoff, B., Merino-Martinez, R., Yupa Villanueva, R. M., & Snellen, M. (2024). Noise Emissions and Noise Annoyance of a Single-Propeller Electric Aircraft During Flyover. Proceedings of the 30th International Congress on Sound and Vibration (ICSV).
+
+> Pockelé, J. S. & Merino-Martinez, R. (2024). Psychoacoustic Evaluation of Modelled Wind Turbine Noise. Proceedings of the 30th International Congress on Sound and Vibration (ICSV).
+
+> Merino-Martinez, R., Ben-Gida, H., & Snellen, M. (2024). Psychoacoustic Evaluation of an Optimized Low-Noise Drone Propeller Design. Proceedings of the 30th International Congress on Sound and Vibration (ICSV).
+ 
 > Yupa Villanueva, R.M., Merino-Martinez, R., Altena, A., & Snellen, M. (2024). Psychoacoustic Characterization of Multirotor Drones in Realistic Flyover Maneuvers. [Proceedings of the 30th AIAA/CEAS Aeroacoustics Conference](https://arc.aiaa.org/doi/10.2514/6.2024-3015).
 
 > Thoma, E.M., Merino-Martinez, R., Grönstedt, T., & Zhao, X. (2024). Noise From Flight Procedure Designed With Statistical Wind: Auralization and Psychoacoustic Evaluation. [Proceedings of the 30th AIAA/CEAS Aeroacoustics Conference](https://arc.aiaa.org/doi/10.2514/6.2024-3017).
@@ -107,7 +115,7 @@ We would be very happy to know that you find SQAT useful and have used it in you
 
 > Brandetti, L., Mulders, S. P., Merino-Martinez, R., Watson, S., & van Wingerden, J.-W. (2024). Multi-objective calibration of vertical-axis wind turbine controllers: balancing aero-servo-elastic performance and noise, [Wind Energy Science](https://doi.org/10.5194/wes-9-471-2024), 9, 471-493.
 
-> Pockelé, J. (2023). Auralisation of modelled wind turbine noise for psychoacoustic listening experiments: development and validation of the wind turbine auralisation tool WinTAur. Master's thesis, [Delft University of Technology](http://resolver.tudelft.nl/uuid:cc9e67b4-6bde-4114-97c0-43b11b4a48ef).
+> Pockelé, J. S. (2023). Auralisation of modelled wind turbine noise for psychoacoustic listening experiments: development and validation of the wind turbine auralisation tool WinTAur. Master's thesis, [Delft University of Technology](http://resolver.tudelft.nl/uuid:cc9e67b4-6bde-4114-97c0-43b11b4a48ef).
 
 > Knuth, D., Ring, T. P., & Langer, S. C. (2023). Utilizing auralization to investigate psychoacoustic perception of vibrating structures. [Proceedings of 49. Jahrestagung für Akustik (DAGA)](https://pub.dega-akustik.de/DAGA_2023/data/articles/000414.pdf).
 
