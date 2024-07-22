@@ -17,10 +17,10 @@ clc; clear all; close all;
 %% load .wav RefSignal 
 
 dir_sounds = [basepath_SQAT 'sound_files' filesep 'reference_signals' filesep];
-insig_fname = [dir_sounds 'RefSignal_Loudness_ISO532_1.wav'];
+insig_fname = [dir_sounds 'C:\Users\user\Documents\Math\TXT&MUSIC\OD1.wav'];
 
-[insig,fs]=audioread(insig_fname); %'sound_files\reference_signals\' - path of the sound file for reference
-lvl_cal_signal = 40;
+[insig,fs]=audioread(insig_fname); %'C:\Users\user\Documents\Math\TXT&MUSIC\Pink Noise80-8dBA.wav' - path of the sound file for reference
+lvl_cal_signal = 80;
 
 [insig_cal, cal_factor, dBFS_out] = calibrate(insig,insig,lvl_cal_signal); % calibrate signal
 
