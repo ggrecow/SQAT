@@ -93,7 +93,7 @@ Raw data and extra scripts to reproduce all the paper figures can be found [here
 
 We would be very happy to know that you find SQAT useful and have used it in your own work. In this case, please reach out so we can feature your work here. 
 
-> Kawai, C., Jäggi, J., Georgiou, F., Meister, J, Pieren, R. & Schäffer, B. (2024). Short-term noise annoyance towards drones and other transportation noise sources: A laboratory study. [The Journal of the Acoustical Society of America](https://doi.org/10.1121/10.0032386), 156 (4), 2578–2595.
+> Kawai, C., Jäggi, J., Georgiou, F., Meister, J., Pieren, R. & Schäffer, B. (2024). Short-term noise annoyance towards drones and other transportation noise sources: A laboratory study. [The Journal of the Acoustical Society of America](https://doi.org/10.1121/10.0032386), 156 (4), 2578–2595.
 
 > Louwers, G., Pont, S., Gommers, D., van der Heide, E., & Özcan, E. (2024). Sonic ambiances through fundamental needs: An approach on soundscape interventions for intensive care patients, [The Journal of the Acoustical Society of America](https://doi.org/10.1121/10.0030470), 156 (4), 2376–2394.
 
