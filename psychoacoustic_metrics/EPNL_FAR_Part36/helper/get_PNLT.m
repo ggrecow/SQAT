@@ -9,6 +9,8 @@ function [PNLT, PNLTM, PNLTM_idx, OUT] = get_PNLT( input, freq_bands, PNL )
 %       2) The largest of the tone correction factors, Cmax(k), is added to
 %       corresponding PNL(k) values in order to determine the Tone-corrected perceived noise levels, PNLT(k) 
 %
+%       3) Bandsharing adjustment to PNLTM added in 20.06.2024
+%
 % A detailed definition and discussion about the tone-correction factor is
 % provided in:
 %
@@ -203,6 +205,25 @@ for k = 1:num_times
 end
 
 [PNLTM,PNLTM_idx] = max(PNLT); % MAXIMUM TONE-CORRECTED PERCEIVED NOISE LEVEL (PNLTM)
+
+%% Bandsharing adjustment to PNLTM
+
+if size(Cmax,1)~=1 % workaround to run the <run_validation_tone_correction.m> code, where only one time-step is considered
+
+    Cavg = sum( [Cmax(PNLTM_idx - 2), Cmax(PNLTM_idx - 1), Cmax(PNLTM_idx),...
+                           Cmax(PNLTM_idx + 1), Cmax(PNLTM_idx + 2)] )/5;
+
+    if Cavg > Cmax(PNLTM_idx)
+        DeltaB = Cavg*Cmax(PNLTM_idx);
+    else
+        DeltaB = 0;
+    end
+
+    % apply adjustment
+    PNLTM = PNLTM + DeltaB;
+
+else
+end
 
 %% Output variables for verification of the tone correction implementation
 

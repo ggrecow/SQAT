@@ -93,6 +93,24 @@ Raw data and extra scripts to reproduce all the paper figures can be found [here
 
 We would be very happy to know that you find SQAT useful and have used it in your own work. In this case, please reach out so we can feature your work here. 
 
+> Kawai, C., Jäggi, J., Georgiou, F., Meister, J., Pieren, R. & Schäffer, B. (2024). Short-term noise annoyance towards drones and other transportation noise sources: A laboratory study. [The Journal of the Acoustical Society of America](https://doi.org/10.1121/10.0032386), 156 (4), 2578–2595.
+
+> Louwers, G., Pont, S., Gommers, D., van der Heide, E., & Özcan, E. (2024). Sonic ambiances through fundamental needs: An approach on soundscape interventions for intensive care patients, [The Journal of the Acoustical Society of America](https://doi.org/10.1121/10.0030470), 156 (4), 2376–2394.
+
+> Lotinga, M. J. B., Green, M. C., & Toríja, A. J. (2024). How do flight operations and ambient acoustic environments influence noticeability and noise annoyance associated with unmanned aircraft systems ? [Quiet Drones 2024 conference](https://www.researchgate.net/publication/383915149_How_do_flight_operations_and_ambient_acoustic_environments_influence_noticeability_and_noise_annoyance_associated_with_unmanned_aircraft_systems)  
+
+> Merino-Martinez, R., Yupa Villanueva, R. M., von den Hoff, B., & Pockelé, J. S. (2024). Human response to the flyover noise of different typesof drones recorded in field measurements. [Quiet Drones 2024 conference](https://www.researchgate.net/publication/384065422_Human_response_to_the_flyover_noise_of_different_types_of_drones_recorded_in_field_measurements)
+
+> Georgiou, F., Schäffer, B., Heusser, A., & Pieren, R. (2024). Prediction of Noise Annoyance of Air Vehicle Flyovers Using Psychoacoustic Models. Proceedings of the 30th International Congress on Sound and Vibration (ICSV).
+
+> Yupa Villanueva, R. M., Merino-Martinez, R., Andino Cappagli, C. I., Altena, A., & Snellen, M. (2024). Effect of Unmanned Aerial Vehicle Configurations on the Acoustic and Psychoacoustic Signatures. Proceedings of the 30th International Congress on Sound and Vibration (ICSV).
+
+> von den Hoff, B., Merino-Martinez, R., Yupa Villanueva, R. M., & Snellen, M. (2024). Noise Emissions and Noise Annoyance of a Single-Propeller Electric Aircraft During Flyover. Proceedings of the 30th International Congress on Sound and Vibration (ICSV).
+
+> Pockelé, J. S. & Merino-Martinez, R. (2024). Psychoacoustic Evaluation of Modelled Wind Turbine Noise. Proceedings of the 30th International Congress on Sound and Vibration (ICSV).
+
+> Merino-Martinez, R., Ben-Gida, H., & Snellen, M. (2024). Psychoacoustic Evaluation of an Optimized Low-Noise Drone Propeller Design. Proceedings of the 30th International Congress on Sound and Vibration (ICSV).
+ 
 > Yupa Villanueva, R.M., Merino-Martinez, R., Altena, A., & Snellen, M. (2024). Psychoacoustic Characterization of Multirotor Drones in Realistic Flyover Maneuvers. [Proceedings of the 30th AIAA/CEAS Aeroacoustics Conference](https://arc.aiaa.org/doi/10.2514/6.2024-3015).
 
 > Thoma, E.M., Merino-Martinez, R., Grönstedt, T., & Zhao, X. (2024). Noise From Flight Procedure Designed With Statistical Wind: Auralization and Psychoacoustic Evaluation. [Proceedings of the 30th AIAA/CEAS Aeroacoustics Conference](https://arc.aiaa.org/doi/10.2514/6.2024-3017).
@@ -105,9 +123,9 @@ We would be very happy to know that you find SQAT useful and have used it in you
 
 > Knuth, D., Ring, T. P., & Langer, S. C. (2024). Comparing auralizations and measurements of vibrating plates with physical and psychoacoustic metrics. [Proceedings of 50. Jahrestagung für Akustik (DAGA)](https://pub.dega-akustik.de/DAGA_2024/files/upload/paper/176.pdf).
 
-> Brandetti, L., Mulders, S. P., Merino-Martinez, R., Watson, S., & van Wingerden, J.-W. (2024). Multi-objective calibration of vertical-axis wind turbine controllers: balancing aero-servo-elastic performance and noise, [Wind Energy Science](https://doi.org/10.5194/wes-9-471-2024), 9, 471-493.
+> Brandetti, L., Mulders, S. P., Merino-Martinez, R., Watson, S., & van Wingerden, J.-W. (2024). Multi-objective calibration of vertical-axis wind turbine controllers: balancing aero-servo-elastic performance and noise. [Wind Energy Science](https://doi.org/10.5194/wes-9-471-2024), 9, 471-493.
 
-> Pockelé, J. (2023). Auralisation of modelled wind turbine noise for psychoacoustic listening experiments: development and validation of the wind turbine auralisation tool WinTAur. Master's thesis, [Delft University of Technology](http://resolver.tudelft.nl/uuid:cc9e67b4-6bde-4114-97c0-43b11b4a48ef).
+> Pockelé, J. S. (2023). Auralisation of modelled wind turbine noise for psychoacoustic listening experiments: development and validation of the wind turbine auralisation tool WinTAur. Master's thesis, [Delft University of Technology](http://resolver.tudelft.nl/uuid:cc9e67b4-6bde-4114-97c0-43b11b4a48ef).
 
 > Knuth, D., Ring, T. P., & Langer, S. C. (2023). Utilizing auralization to investigate psychoacoustic perception of vibrating structures. [Proceedings of 49. Jahrestagung für Akustik (DAGA)](https://pub.dega-akustik.de/DAGA_2023/data/articles/000414.pdf).
 
