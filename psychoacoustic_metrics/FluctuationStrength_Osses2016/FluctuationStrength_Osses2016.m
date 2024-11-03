@@ -156,7 +156,7 @@ for iFrame = nFrames:-1:1
     dBFS = 94; % corresponds to 1 Pa (new default in SQAT)
     % dBFS = 100; % unit amplitude corresponds to 100 dB (AMT Toolbox 
                   % convention, default by the original authors)
-    ei   = TerhardtExcitationPatterns_v3_ML(signal,fs,dBFS);
+    ei   = TerhardtExcitationPatterns_v3(signal,fs,dBFS);
     dz   = 0.5; % Barks, frequency step
     z    = 0.5:dz:23.5; % Bark
     fc   = bark2hz(z);
