@@ -1,8 +1,8 @@
 function [B, freqs, a0] = calculate_a0(fs,N)
 % function [B, freqs, a0] = calculate_a0(fs,N)
 %
-% Compensation of the traqsdqsdnsmission factor from Free-field, taken from
-% Fastl2007, Fig. 8.18, page 226
+% Transmission factor for free-field, according to Fig 8.18 (page 226) in 
+% Fastl & Zwicker Book, Psychoacoustics: facts and models 3rd edition
 %
 % % Stand-alone example:
 % N = 4096; % defines the frequency resolution: delta_f = fs/N;
