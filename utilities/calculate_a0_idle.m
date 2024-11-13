@@ -1,7 +1,17 @@
-function B = calculate_a0_idle(fs,N)
-% function B = calculate_a0_idle(fs,N)
+function [B, freqs, a0] = calculate_a0_idle(fs,N)
+% function [B, freqs, a0] = calculate_a0_idle(fs,N)
 %
-% No resonance of the ear canal accounted for.
+% The B coefficients contain an approximate transfer function of the outer 
+% and middle ear. The 'idle' suffix indicates that the resonance of the
+% ear canal was removed from the approximation. Actually, for mid and low
+% frequencies, the B coefficient introduce no weighting at all (unit weigthing
+% or 0 dB).
+%
+% % Stand-alone example:
+% N = 4096; % defines the frequency resolution: delta_f = fs/N;
+% fs = 44100; % Hz, sampling frequency in Hz
+% calculate_a0_idle(fs,N);
+% ylim([-103 3]);
 %
 % Author: Alejandro Osses
 % Date: 13.11.2024. Created as a separate function (calculate_a0_idle.m)
@@ -33,7 +43,7 @@ a0tab = [
 ];
 
 a0            = zeros(1,N);
-a0(qb)        = il_From_dB(interp1(a0tab(:,1),a0tab(:,2),Bark(qb)));
+a0(qb)        = from_dB(interp1(a0tab(:,1),a0tab(:,2),Bark(qb)));
 a0(isnan(a0)) = 0;
 
 B = create_a0_FIR(freqs,a0(qb),N,fs);
@@ -42,16 +52,4 @@ if nargout == 0
     create_a0_FIR(freqs,a0(qb),N,fs);
 end
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function gain = il_From_dB(gain_dB,div)
-% function gain = il_From_dB(gain_dB,div)
-%
-% 1. Description:
-%       From_dB: Convert decibels to voltage gain (if div = 20, default).
-%       gain = From_dB(gain_dB)
-
-if nargin < 2
-    div = 20;
-end
-
-gain = 10 .^ (gain_dB / div);
+a0 = a0(qb); % to have the same dimensions as freqs

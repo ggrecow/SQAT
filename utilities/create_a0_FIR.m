@@ -17,9 +17,9 @@ if nargout == 0
     [H1,Fn]=freqz(B,1,N/2);
     
     figure;
-    plot(fs/2*Fn/pi, 20*log10(abs([H1])));
+    plot(fs/2*Fn/pi, 20*log10(abs(H1)));
     xlabel('Frequency [Hz]')
     legend([num2str(N) ' taps']);
-    title('FIR filter to be used as approximation to isolation curve')
+    title('FIR filter resulting from the input (curve) parameter a0')
     xlim([0 fs/2])
 end
