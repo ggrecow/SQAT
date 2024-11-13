@@ -1,5 +1,5 @@
-function OUT = FluctuationStrength_Osses2016(insig,fs,method,time_skip,show)
-% function OUT = FluctuationStrength_Osses2016(insig,fs,method,time_skip,show)
+function OUT = FluctuationStrength_Osses2016(insig,fs,method,time_skip,show,struct_opt)
+% function OUT = FluctuationStrength_Osses2016(insig,fs,method,time_skip,show,struct_opt)
 %
 %  This function calculates the fluctuation strength using the model 
 %    developed by: [1] Osses, A., Garcia A., and Kohlrausch, A.. 
@@ -29,6 +29,10 @@ function OUT = FluctuationStrength_Osses2016(insig,fs,method,time_skip,show)
 %   show : logical(boolean)
 %   optional parameter for figures (results) display
 %   'false' (disable, default value) or 'true' (enable).
+%
+%   struct_opt: struct variable where some specific model parameters can
+%   be set to a different value. If not specified all defaults of the model
+%   are used.
 %
 % OUTPUT:
 %   OUT : struct containing the following fields
@@ -81,6 +85,10 @@ if nargin < 5
     end
 end
 
+if nargin < 6
+    struct_opt = [];
+end
+
 if size(insig,2)~=1 % if the insig is not a [Nx1] array
     insig=insig';   % correct the dimension of the insig
 end
@@ -90,6 +98,10 @@ if ~(fs == 44100 || fs == 48000)
     gcd_fs = gcd(44100,fs); % greatest common denominator
     insig = resample(insig,44100/gcd_fs,fs/gcd_fs);
     fs = 44100;
+end
+
+if ~isfield(struct_opt,'calculate_a0')
+    struct_opt.calculate_a0 = 'calculate_a0_idle'; % this is the default of this model
 end
 
 %% Checking which method
@@ -145,7 +157,7 @@ for iFrame = 1:nFrames
     %     (see 'model_par.a0_in_time' == 1, in _debug version):
     %
     % 4096th order FIR filter:
-    signal = il_PeripheralHearingSystem_t(signal,fs); % since 14/05
+    signal = il_PeripheralHearingSystem_t(signal,fs,struct_opt); 
     
     % 2.2 Excitation patterns
     %     (see model_par.filterbank == 'terhardt', in _debug version):
@@ -426,8 +438,8 @@ catch
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function outsig = il_PeripheralHearingSystem_t(insig,fs)
-% function outsig = il_PeripheralHearingSystem_t(insig,fs)
+function outsig = il_PeripheralHearingSystem_t(insig,fs,struct_opt)
+% function outsig = il_PeripheralHearingSystem_t(insig,fs,struct_opt)
 % 
 % Applies the effect of transmission from free field to the cochlea to a
 % given signal. Time domain version.
@@ -440,8 +452,15 @@ function outsig = il_PeripheralHearingSystem_t(insig,fs)
 
 K = 2^12; % FIR filter order 
 
-% B = il_calculate_a0(fs,K);
-B = il_calculate_a0_idle(fs,K);
+switch struct_opt.calculate_a0
+    case 'calculate_a0_idle'
+        B = calculate_a0_idle(fs,K);
+    case 'calculate_a0'
+        B = il_calculate_a0(fs,K);
+    otherwise
+        % Choosing the default:
+        B = il_calculate_a0_idle(fs,K);
+end
 
 outsig = filter(B,1,[insig zeros(1,K/2)]);
 outsig = outsig(K/2+1:end);
@@ -505,67 +524,10 @@ a0            = zeros(1,N);
 a0(qb)        = il_From_dB(interp1(a0tab(:,1),a0tab(:,2),Bark(qb)));
 a0(isnan(a0)) = 0;
 
-B = il_create_a0_FIR(freqs,a0(qb),N,fs);
+B = create_a0_FIR(freqs,a0(qb),N,fs);
 
 if nargout == 0
-    il_create_a0_FIR(freqs,a0(qb),N,fs);
-end
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function B = il_calculate_a0_idle(fs,N)
-% No resonance of the ear canal accounted for.
-
-df    = fs/N;
-N0    = round(20/df)+1;
-Ntop  = round(20e3/df)+1;
-qb    = N0:Ntop;
-freqs = (qb-1)*df;
-
-Bark = Get_Bark(N,qb,freqs);
-
-a0tab = [
-    0       0
-    10      0
-    19      0
-    20      -1.43
-    21		-2.59
-    21.5	-3.57
-    22		-5.19
-    22.5	-7.41
-    23		-11.3
-    23.5	-20
-    24		-40
-    25		-130
-    26		-999
-];
-
-a0            = zeros(1,N);
-a0(qb)        = il_From_dB(interp1(a0tab(:,1),a0tab(:,2),Bark(qb)));
-a0(isnan(a0)) = 0;
-
-B = il_create_a0_FIR(freqs,a0(qb),N,fs);
-
-if nargout == 0
-    il_create_a0_FIR(freqs,a0(qb),N,fs);
-end
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function B = il_create_a0_FIR(f,a0,N,fs)
-
-f = [0 f fs/2];
-a0 = [a0(1) a0 a0(end)];
-
-B = fir2(N,f/(fs/2),a0);
-
-if nargout == 0
-    [H1,Fn]=freqz(B,1,N/2);
-    
-    figure;
-    plot(fs/2*Fn/pi, 20*log10(abs([H1])));
-    xlabel('Frequency [Hz]')
-    legend([num2str(N) ' taps']);
-    title('FIR filter to be used as approximation to isolation curve')
-    xlim([0 fs/2])
+    create_a0_FIR(freqs,a0(qb),N,fs);
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
