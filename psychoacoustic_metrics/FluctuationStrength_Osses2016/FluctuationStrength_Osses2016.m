@@ -30,9 +30,9 @@ function OUT = FluctuationStrength_Osses2016(insig,fs,method,time_skip,show,stru
 %   optional parameter for figures (results) display
 %   'false' (disable, default value) or 'true' (enable).
 %
-%   struct_opt: struct variable where some specific model parameters can
-%   be set to a different value. If not specified, all defaults of the model
-%   are used. Currently, the only parameters that can be changed is the a0
+%   struct_opt: struct where some specific model parameters can
+%   be set to a different value. If not specified, the default values are used. 
+%   Currently, the only parameter that can be changed is the a0
 %   (sound transmission factor). For that, the struct <struct_opt> needs to contain the parameter
 %   <calculate_a0>, meaning <struct_opt.calculate_a0 = 'string_input'> should be defined with
 %   one of the following strings:
