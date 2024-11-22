@@ -97,19 +97,19 @@ We would be very happy to know that you find SQAT useful and have used it in you
 
 > Louwers, G., Pont, S., Gommers, D., van der Heide, E., & Özcan, E. (2024). Sonic ambiances through fundamental needs: An approach on soundscape interventions for intensive care patients, [The Journal of the Acoustical Society of America](https://doi.org/10.1121/10.0030470), 156 (4), 2376–2394.
 
-> Lotinga, M. J. B., Green, M. C., & Toríja, A. J. (2024). How do flight operations and ambient acoustic environments influence noticeability and noise annoyance associated with unmanned aircraft systems ? [Quiet Drones 2024 conference](https://www.researchgate.net/publication/383915149_How_do_flight_operations_and_ambient_acoustic_environments_influence_noticeability_and_noise_annoyance_associated_with_unmanned_aircraft_systems)  
+> Lotinga, M. J. B., Green, M. C., & Toríja, A. J. (2024). How do flight operations and ambient acoustic environments influence noticeability and noise annoyance associated with unmanned aircraft systems? [Quiet Drones 2024 conference](https://www.researchgate.net/publication/383915149_How_do_flight_operations_and_ambient_acoustic_environments_influence_noticeability_and_noise_annoyance_associated_with_unmanned_aircraft_systems)  
 
-> Merino-Martinez, R., Yupa Villanueva, R. M., von den Hoff, B., & Pockelé, J. S. (2024). Human response to the flyover noise of different typesof drones recorded in field measurements. [Quiet Drones 2024 conference](https://www.researchgate.net/publication/384065422_Human_response_to_the_flyover_noise_of_different_types_of_drones_recorded_in_field_measurements)
+> Merino-Martinez, R., Yupa Villanueva, R. M., von den Hoff, B., & Pockelé, J. S. (2024). Human response to the flyover noise of different types of drones recorded in field measurements. [Quiet Drones 2024 conference](https://www.researchgate.net/publication/384065422_Human_response_to_the_flyover_noise_of_different_types_of_drones_recorded_in_field_measurements)
 
-> Georgiou, F., Schäffer, B., Heusser, A., & Pieren, R. (2024). Prediction of Noise Annoyance of Air Vehicle Flyovers Using Psychoacoustic Models. Proceedings of the 30th International Congress on Sound and Vibration (ICSV).
+> Georgiou, F., Schäffer, B., Heusser, A., & Pieren, R. (2024). Prediction of Noise Annoyance of Air Vehicle Flyovers Using Psychoacoustic Models. [Proceedings of the 30th International Congress on Sound and Vibration (ICSV)](https://www.researchgate.net/publication/384355002_PREDICTION_OF_NOISE_ANNOYANCE_OF_AIR_VEHICLE_FLY-_OVERS_USING_PSYCHOACOUSTIC_MODELS).
 
-> Yupa Villanueva, R. M., Merino-Martinez, R., Andino Cappagli, C. I., Altena, A., & Snellen, M. (2024). Effect of Unmanned Aerial Vehicle Configurations on the Acoustic and Psychoacoustic Signatures. Proceedings of the 30th International Congress on Sound and Vibration (ICSV).
+> Yupa Villanueva, R. M., Merino-Martinez, R., Andino Cappagli, C. I., Altena, A., & Snellen, M. (2024). Effect of Unmanned Aerial Vehicle Configurations on the Acoustic and Psychoacoustic Signatures. [Proceedings of the 30th International Congress on Sound and Vibration (ICSV)](https://www.researchgate.net/publication/385660330_EFFECT_OF_UNMANNED_AERIAL_VEHICLE_CONFIGURATIONS_ON_THE_ACOUSTIC_AND_PSYCHOACOUSTIC_SIGNATURES)
 
-> von den Hoff, B., Merino-Martinez, R., Yupa Villanueva, R. M., & Snellen, M. (2024). Noise Emissions and Noise Annoyance of a Single-Propeller Electric Aircraft During Flyover. Proceedings of the 30th International Congress on Sound and Vibration (ICSV).
+> von den Hoff, B., Merino-Martinez, R., Yupa Villanueva, R. M., & Snellen, M. (2024). Noise Emissions and Noise Annoyance of a Single-Propeller Electric Aircraft During Flyover. [Proceedings of the 30th International Congress on Sound and Vibration (ICSV)](https://www.researchgate.net/publication/382695675_NOISE_EMISSIONS_AND_NOISE_ANNOYANCE_OF_A_SINGLE-PROPELLER_ELECTRIC_AIRCRAFT_DURING_FLYOVER)
 
-> Pockelé, J. S. & Merino-Martinez, R. (2024). Psychoacoustic Evaluation of Modelled Wind Turbine Noise. Proceedings of the 30th International Congress on Sound and Vibration (ICSV).
+> Pockelé, J. S. & Merino-Martinez, R. (2024). Psychoacoustic Evaluation of Modelled Wind Turbine Noise. [Proceedings of the 30th International Congress on Sound and Vibration (ICSV)](https://www.researchgate.net/publication/382256126_PSYCHOACOUSTIC_EVALUATION_OF_MODELLED_WIND_TURBINE_NOISE)
 
-> Merino-Martinez, R., Ben-Gida, H., & Snellen, M. (2024). Psychoacoustic Evaluation of an Optimized Low-Noise Drone Propeller Design. Proceedings of the 30th International Congress on Sound and Vibration (ICSV).
+> Merino-Martinez, R., Ben-Gida, H., & Snellen, M. (2024). Psychoacoustic Evaluation of an Optimized Low-Noise Drone Propeller Design. [Proceedings of the 30th International Congress on Sound and Vibration (ICSV)](https://www.researchgate.net/publication/382255303_PSYCHOACOUSTIC_EVALUATION_OF_AN_OPTIMIZED_LOW-NOISE_DRONE_PROPELLER_DESIGN)
  
 > Yupa Villanueva, R.M., Merino-Martinez, R., Altena, A., & Snellen, M. (2024). Psychoacoustic Characterization of Multirotor Drones in Realistic Flyover Maneuvers. [Proceedings of the 30th AIAA/CEAS Aeroacoustics Conference](https://arc.aiaa.org/doi/10.2514/6.2024-3015).
 
