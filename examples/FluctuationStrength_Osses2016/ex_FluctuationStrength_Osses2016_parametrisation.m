@@ -1,8 +1,8 @@
 % Script ex_FluctuationStrength_Osses2016_parametrisation
 %
-% Example for FluctuationStrength_Osses2016. It computes the fluctuation 
-%   strength of the reference signal, using (1) default values, (2) activating
-%   the a0 transfer function as defined in the book by Fastl and Zwicker 2007.
+%   Example for FluctuationStrength_Osses2016. It computes the fluctuation 
+%   strength of the reference signal, using (1) default values (flat tranmission factor), 
+%   (2) activating the a0 transfer function (free-field) as defined in the book by Fastl and Zwicker 2007.
 %   The signal to be processed is the same as in ex_FluctuationStrength_Osses2016.m:
 %   Reference signal: 60 dB SPL, 1 kHz tone that is 100% modulated at 4 Hz.
 %   This signal should yield 1 vacil.
@@ -50,5 +50,34 @@ ylabel('Fluctuation strength, FS (vacil)','Interpreter','Latex');
 xlabel('Time, $t$ (s)','Interpreter','Latex'); 
 
 ylim([0 1.2]);
+set(gcf,'color','w')
 
 legend('Default','Alternative configuration','Location','SouthEast');
+
+%% Plot  the frequency response of the FIR filters generated to represent the a0 transmission factor
+
+K = 2^12; % FIR filter order 
+
+% approximate transfer function of the outer and middle ear. 
+% The 'idle' suffix indicates that the resonance of the
+% ear canal was removed from the approximation. Actually, for mid and low
+% frequencies, this filter introduce no weighting at all (unit weigthing
+% or 0 dB). This is the default value.
+[~, freqs_idle, a0_idle] = calculate_a0_idle(fs,K);
+
+% Transmission factor for free-field, according to Fig 8.18 (page 226) in 
+% Fastl & Zwicker Book, Psychoacoustics: facts and models 3rd edition
+[~, freqs, a0] = calculate_a0(fs,K);
+
+figure
+plot( hz2bark_local( freqs_idle ), mag2db( a0_idle ), 'b-'); hold on;
+plot( hz2bark_local( freqs ), mag2db( a0 ), 'r--'); 
+
+ylim([-30 10]);
+
+legend('Default','Alternative configuration','Location','SouthEast');
+
+xlabel('Critical band rate, $z$ (Bark)','Interpreter','Latex');
+ylabel('Magnitude (dB)','Interpreter','Latex'); 
+
+set(gcf,'color','w')

@@ -30,9 +30,20 @@ function OUT = FluctuationStrength_Osses2016(insig,fs,method,time_skip,show,stru
 %   optional parameter for figures (results) display
 %   'false' (disable, default value) or 'true' (enable).
 %
-%   struct_opt: struct variable where some specific model parameters can
-%   be set to a different value. If not specified all defaults of the model
-%   are used.
+%   struct_opt: struct where some specific model parameters can
+%   be set to a different value. If not specified, the default values are used. 
+%   Currently, the only parameter that can be changed is the a0
+%   (sound transmission factor). For that, the struct <struct_opt> needs to contain the parameter
+%   <calculate_a0>, meaning <struct_opt.calculate_a0 = 'string_input'> should be defined with
+%   one of the following strings:
+%
+%  string_input = 'calculate_a0_idle' : freq response is almost entirely flat (this is the
+%  default which is used if no input is given at all), as defined by the
+%  model's author
+%  
+%  string_input = 'calculate_a0' : uses the transmission factor for free-field,
+%  according to Fig 8.18 (page 226) in Fastl & Zwicker Book, Psychoacoustics: facts and
+%  models 3rd edition
 %
 % OUTPUT:
 %   OUT : struct containing the following fields
@@ -70,6 +81,10 @@ function OUT = FluctuationStrength_Osses2016(insig,fs,method,time_skip,show,stru
 %            fluctuation strength.
 % Author: Alejandro Osses, 11/05/2023. Moving TerhardtExcitationPatterns_v3, 
 %            Get_Bark to the private folder (old il_* functions)
+% Author: Alejandro Osses, 13/11/2024. Included <struct_opt> input to allow
+%            for changing the a0 transmission factor. the a0 transmission
+%            factor were moved to the <utilities> folder of the toolbox as
+%            standalone functions
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 if nargin == 0
     help FluctuationStrength_Osses2016;

@@ -3,7 +3,7 @@ function [B, freqs, a0] = calculate_a0(fs,N,a0_type)
 %
 % Compensation of the transmission factor from Free-field. The default 
 % method is a0_type = 'Fastl2007' is to use the compensation as defined 
-% in Fastl2007, Fig. 8.18, page 226. 
+% in Fastl2007, Fig. 8.18, page 226 (Refer to the SQAT list of references). 
 %
 % A simplified a0 compensation can be adopted if a0_type is set to
 % 'FluctuationStrength_Osses2016', where the ear canal resonance and
