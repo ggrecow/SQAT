@@ -1,29 +1,47 @@
-function [B, freqs, a0] = calculate_a0(fs,N)
-% function [B, freqs, a0] = calculate_a0(fs,N)
+function [B, freqs, a0] = calculate_a0(fs,N,a0_type)
+% function [B, freqs, a0] = calculate_a0(fs,N,a0_type)
 %
-% Compensation of the traqsdqsdnsmission factor from Free-field, taken from
-% Fastl2007, Fig. 8.18, page 226
+% Compensation of the transmission factor from Free-field. The default 
+% method is a0_type = 'Fastl2007' is to use the compensation as defined 
+% in Fastl2007, Fig. 8.18, page 226. 
+%
+% A simplified a0 compensation can be adopted if a0_type is set to
+% 'FluctuationStrength_Osses2016', where the ear canal resonance and
+% the high-pass filter behaviour of Fastl's a0 curve was removed. In
+% other words, the a0 curve was roughly approximated as a low-pass filter.
+% Although not explicitly stated by Osses et al. 2016, the simplified
+% a0 transmission curve lead to very similar results during the validation
+% of their fluctuation strength algorithm.
+%
+% Run the stand-alone example, below, to compare both types of curves.
 %
 % % Stand-alone example:
 % N = 4096; % defines the frequency resolution: delta_f = fs/N;
 % fs = 44100; % Hz, sampling frequency in Hz
 % [B_more_accurate, freqs, a0_more_accurate] = calculate_a0(fs,N);
-% [B_to_compare, freqs, a0_to_compare] = calculate_a0_idle(fs,N); % as used in the FluctuationStrength code
+% a0_type = 'FluctuationStrength_Osses2016';
+% [B_to_compare, freqs, a0_to_compare] = calculate_a0(fs,N,a0_type); % as used in the FluctuationStrength code
 %
 % figure; 
 % plot(freqs,20*log10(abs(a0_more_accurate)),'b-'); hold on; grid on
 % plot(freqs,20*log10(abs(a0_to_compare))   ,'r--'); 
-% ylim([-103 3]);
+% ylim([-93 13]);
 % xlabel('Linear frequency (Hz)');
 % ylabel('Gain factor due to the a0 transmission curve (dB)');
 %
 % Author: Alejandro Osses
-% Date: 2014-2017
+% Date: 22 November 2024 (extension to contain the default Fastl2007 curve
+%       and its simplified version as used by Osses et al. 2016).
+% Date: 2014-2017 (Implementation)
 
 if nargin == 0
     clc
     help calculate_a0;
     return;
+end
+
+if nargin < 3
+    a0_type = 'Fastl2007';
 end
 
 df    = fs/N;
@@ -34,6 +52,8 @@ freqs = (qb-1)*df;
 
 Bark = Get_Bark(N,qb,freqs);
 
+switch lower(a0_type)
+    case 'fastl2007'
 a0tab = [ % lower slope from middle ear (fig_a0.c, see Figure_Psychoacoustics_tex)
     0       -999
     0.5     -34.7
@@ -73,8 +93,24 @@ a0tab = [ % lower slope from middle ear (fig_a0.c, see Figure_Psychoacoustics_te
     23.5	-20
     24		-40
     25		-130
-    26		-999
-];
+    26		-999];
+
+    case 'fluctuationstrength_osses2016'
+a0tab = [
+    0       0
+    10      0
+    19      0
+    20      -1.43
+    21		-2.59
+    21.5	-3.57
+    22		-5.19
+    22.5	-7.41
+    23		-11.3
+    23.5	-20
+    24		-40
+    25		-130
+    26		-999]; % minus infinity
+end
 
 a0            = zeros(1,N);
 a0(qb)        = from_dB(interp1(a0tab(:,1),a0tab(:,2),Bark(qb)));

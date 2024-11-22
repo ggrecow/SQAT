@@ -4,8 +4,8 @@
 %   strength of the reference signal, using (1) default values, (2) activating
 %   the a0 transfer function as defined in the book by Fastl and Zwicker 2007.
 %   The signal to be processed is the same as in ex_FluctuationStrength_Osses2016.m:
-%   Reference signal: 60 dBSPL 1 kHz tone 100% modulated at 4 Hz. This 
-%   signal should yield 1 vacil.
+%   Reference signal: 60 dB SPL, 1 kHz tone that is 100% modulated at 4 Hz.
+%   This signal should yield 1 vacil.
 %
 % Author: Alejandro Osses, 13.11.2024
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -31,7 +31,7 @@ OUT = FluctuationStrength_Osses2016(RefSignal,fs,method,time_skip,bPlot);
 fprintf('\tUsing default values, the time-averaged fluctuation strength is %g (vacil).\n',OUT.FSmean);
 
 structIn = []; % empty input struct = load all defaults (equivalent to not specifying the struct)
-structIn.calculate_a0 = 'calculate_a0';
+structIn.a0_type = 'Fastl2007'; % a0 curve as defined by Fastl2007, see calculate_a0.m
 OUT_a0 = FluctuationStrength_Osses2016(RefSignal,fs,method,time_skip,bPlot,structIn);
 fprintf('\tUsing optional parameters, the time-averaged fluctuation strength value of %g (vacil).\n',OUT_a0.FSmean);
                

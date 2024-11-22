@@ -100,8 +100,8 @@ if ~(fs == 44100 || fs == 48000)
     fs = 44100;
 end
 
-if ~isfield(struct_opt,'calculate_a0')
-    struct_opt.calculate_a0 = 'calculate_a0_idle'; % this is the default of this model
+if ~isfield(struct_opt,'a0_type')
+    struct_opt.a0_type = 'FluctuationStrength_Osses2016'; % this is the default of this model
 end
 
 %% Checking which method
@@ -452,14 +452,14 @@ function outsig = il_PeripheralHearingSystem_t(insig,fs,struct_opt)
 
 K = 2^12; % FIR filter order 
 
-switch struct_opt.calculate_a0
-    case 'calculate_a0_idle'
-        B = calculate_a0_idle(fs,K);
-    case 'calculate_a0'
-        B = calculate_a0(fs,K);
+switch struct_opt.a0_type
+    case 'FluctuationStrength_Osses2016'
+        B = calculate_a0(fs,K,'FluctuationStrength_Osses2016');
+    case 'Fastl2007'
+        B = calculate_a0(fs,K,'Fastl2007');
     otherwise
         % Choosing the default:
-        B = calculate_a0_idle(fs,K);
+        B = calculate_a0(fs,K,'FluctuationStrength_Osses2016');
 end
 
 outsig = filter(B,1,[insig zeros(1,K/2)]);

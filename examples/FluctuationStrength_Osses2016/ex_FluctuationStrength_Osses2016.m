@@ -2,8 +2,8 @@
 %
 % Example for FluctuationStrength_Osses2016. It computes the fluctuation 
 %   strength of the reference signal.
-%   Reference signal: 60 dBSPL 1 kHz tone 100% modulated at 4 Hz. This 
-%   signal should yield 1 vacil.
+%   Reference signal: 60 dBSPL, 1 kHz tone that is 100% modulated at 4 Hz. 
+%   This signal should yield 1 vacil.
 %
 % FUNCTION:
 %   OUT = FluctuationStrength_Osses2016(insig,fs,time_skip,show)
