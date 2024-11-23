@@ -52,7 +52,7 @@ xlabel('Time, $t$ (s)','Interpreter','Latex');
 ylim([0 1.2]);
 set(gcf,'color','w')
 
-legend('Default','Alternative configuration','Location','SouthEast');
+legend('fluctuationstrength\_osses2016', 'Fastl2007','Location','SouthEast');
 
 %% Plot  the frequency response of the FIR filters generated to represent the a0 transmission factor
 
