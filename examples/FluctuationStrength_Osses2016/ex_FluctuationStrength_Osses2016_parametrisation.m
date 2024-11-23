@@ -58,16 +58,24 @@ legend('Default','Alternative configuration','Location','SouthEast');
 
 K = 2^12; % FIR filter order 
 
-% approximate transfer function of the outer and middle ear. 
-% The 'idle' suffix indicates that the resonance of the
-% ear canal was removed from the approximation. Actually, for mid and low
-% frequencies, this filter introduce no weighting at all (unit weigthing
-% or 0 dB). This is the default value.
-[~, freqs_idle, a0_idle] = calculate_a0_idle(fs,K);
+%  Approximate the transfer function of the outer and middle ear by a
+%  low-pass filter, where the ear canal resonance is removed from the Fastl's a0 curve. 
+%  This filter has a flat response (unit weigthing or 0 dB) for mid and low frequencies.
+%  Although not explicitly stated by Osses et al. 2016 (doi: 10.1121/2.0000410), 
+%  the simplified a0 transmission curve leads to very similar results during the validation of 
+%  their fluctuation strength algorithm. This is the default of the 
+% <FluctuationStrength_Osses2016> model,  which is used if no input is given at 
+%  all, as defined by the model's author. 
+
+a0_type = 'fluctuationstrength_osses2016'; % Default a0 filter of the <FluctuationStrength_Osses2016> model
+[~, freqs_idle, a0_idle] = calculate_a0(fs,K, a0_type);
 
 % Transmission factor for free-field, according to Fig 8.18 (page 226) in 
 % Fastl & Zwicker Book, Psychoacoustics: facts and models 3rd edition
-[~, freqs, a0] = calculate_a0(fs,K);
+% (doi: 10.1007/978-3-540-68888-4)
+
+% a0_type = 'Fastl2007';  % This is the default value of the function <calculate_a0>.
+[~, freqs, a0] = calculate_a0(fs,K);  
 
 figure
 plot( hz2bark_local( freqs_idle ), mag2db( a0_idle ), 'b-'); hold on;
@@ -75,7 +83,7 @@ plot( hz2bark_local( freqs ), mag2db( a0 ), 'r--');
 
 ylim([-30 10]);
 
-legend('Default','Alternative configuration','Location','SouthEast');
+legend('fluctuationstrength\_osses2016', 'Fastl2007','Location','SouthEast');
 
 xlabel('Critical band rate, $z$ (Bark)','Interpreter','Latex');
 ylabel('Magnitude (dB)','Interpreter','Latex'); 
