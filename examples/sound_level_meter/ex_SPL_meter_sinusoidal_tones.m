@@ -20,7 +20,7 @@
 %   Gil Felix Greco, 17.11.2024
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 clc; clear all; close all;
-
+ 
 %% Create tones
 
 fc = [100; 1000];      % Center frequency (Hz)
@@ -61,12 +61,13 @@ pos = get(h,'Position');
 set(h,'PaperPositionMode','Auto','PaperUnits','Inches','PaperSize',[pos(3), pos(4)])
 
 xmax = t_total(end); % used to define the x-axis on the plots
+sBins = fs*L_before:(fs*L_before+fs*L_signal); % range of  bins (tone burst only) to calculated rms value
 
 % plot input signal - 100-Hz tone
 subplot(2,1,1)
 plot( t_total, insig(1,:) );  
 a=yline(rms(insig(1,:)),'k--');
-legend(a,sprintf('$p_{\\mathrm{rms}}=$%g Pa',rms(insig(1,:))),'Location','NorthEast','Interpreter','Latex'); %legend boxoff
+legend(a,sprintf('$p_{\\mathrm{rms}}=$%g Pa',rms(insig(1,sBins))),'Location','NorthEast','Interpreter','Latex'); %legend boxoff
 xlabel('Time, $t$ (s)','Interpreter','Latex');
 ylabel('$p$ (Pa)','Interpreter','Latex'); %grid on;
 ax = axis; axis([0 xmax max(insig(1,:))*-2 max(insig(1,:))*2]);
@@ -76,7 +77,7 @@ title('Input signal - 100-Hz tone','Interpreter','Latex');
 subplot(2,1,2)
 plot( t_total, insig(2,:) );  
 a=yline(rms(insig(2,:)),'k--');
-legend(a,sprintf('$p_{\\mathrm{rms}}=$%g Pa',rms(insig(2,:))),'Location','NorthEast','Interpreter','Latex'); %legend boxoff
+legend(a,sprintf('$p_{\\mathrm{rms}}=$%g Pa',rms(insig(2,sBins))),'Location','NorthEast','Interpreter','Latex'); %legend boxoff
 xlabel('Time, $t$ (s)','Interpreter','Latex');
 ylabel('$p$ (Pa)','Interpreter','Latex'); %grid on;
 ax = axis; axis([0 xmax max(insig(2,:))*-2 max(insig(2,:))*2]);
