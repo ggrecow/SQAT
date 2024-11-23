@@ -33,17 +33,20 @@ function OUT = FluctuationStrength_Osses2016(insig,fs,method,time_skip,show,stru
 %   struct_opt: struct where some specific model parameters can
 %   be set to a different value. If not specified, the default values are used. 
 %   Currently, the only parameter that can be changed is the a0
-%   (sound transmission factor). For that, the struct <struct_opt> needs to contain the parameter
-%   <calculate_a0>, meaning <struct_opt.calculate_a0 = 'string_input'> should be defined with
-%   one of the following strings:
+%   (outer and middle ear transmission factor). For that, the struct <struct_opt> needs to 
+%   contain the parameter <a0_type>, meaning <struct_opt.a0_type = 'string_input'> 
+%   should be defined with one of the following <string_input>:
 %
-%  string_input = 'calculate_a0_idle' : freq response is almost entirely flat (this is the
-%  default which is used if no input is given at all), as defined by the
-%  model's author
+%  string_input = 'fluctuationstrength_osses2016' :  A simplified a0 factor can be adopted if 
+%  <a0_type> is set to this option, where the ear canal resonance of Fastl's a0 curve is removed. 
+%  In other words, the a0 curve is roughly approximated as a low-pass filter. Although not 
+%  explicitly stated by Osses et al. 2016 (doi: 10.1121/2.0000410), the simplified a0 transmission 
+%  curve leads to very similar results during the validation of their fluctuation strength algorithm.
+%  This is the default which is used if no input is given at all, as defined by the model's author
 %  
-%  string_input = 'calculate_a0' : uses the transmission factor for free-field,
+%  string_input = 'fastl2007' : uses the transmission factor for free-field,
 %  according to Fig 8.18 (page 226) in Fastl & Zwicker Book, Psychoacoustics: facts and
-%  models 3rd edition
+%  models 3rd edition (doi: 10.1007/978-3-540-68888-4)
 %
 % OUTPUT:
 %   OUT : struct containing the following fields
@@ -116,7 +119,7 @@ if ~(fs == 44100 || fs == 48000)
 end
 
 if ~isfield(struct_opt,'a0_type')
-    struct_opt.a0_type = 'FluctuationStrength_Osses2016'; % this is the default of this model
+    struct_opt.a0_type = 'fluctuationstrength_osses2016'; % this is the default of this model
 end
 
 %% Checking which method
@@ -468,13 +471,13 @@ function outsig = il_PeripheralHearingSystem_t(insig,fs,struct_opt)
 K = 2^12; % FIR filter order 
 
 switch struct_opt.a0_type
-    case 'FluctuationStrength_Osses2016'
-        B = calculate_a0(fs,K,'FluctuationStrength_Osses2016');
-    case 'Fastl2007'
-        B = calculate_a0(fs,K,'Fastl2007');
+    case 'fluctuationstrength_osses2016'
+        B = calculate_a0(fs,K,'fluctuationstrength_osses2016');
+    case 'fastl2007'
+        B = calculate_a0(fs,K,'fastl2007');
     otherwise
         % Choosing the default:
-        B = calculate_a0(fs,K,'FluctuationStrength_Osses2016');
+        B = calculate_a0(fs,K,'fluctuationstrength_osses2016');
 end
 
 outsig = filter(B,1,[insig zeros(1,K/2)]);
