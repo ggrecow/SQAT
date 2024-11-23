@@ -44,7 +44,7 @@ axis([0 .1 -0.1 0.1]);
 ylabel('Acoustic pressure, $p$ (Pa)','Interpreter','Latex');
 xlabel('Time, $t$ (s)','Interpreter','Latex'); 
 
-% roughness
+% tonality
 yyaxis right
 plot(OUT.time,OUT.InstantaneousTonality); hold on;
 ylabel('Aures tonality, $K$ (t.u.)','Interpreter','Latex');

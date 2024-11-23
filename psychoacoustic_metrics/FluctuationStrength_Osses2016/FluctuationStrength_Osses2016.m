@@ -1,5 +1,5 @@
-function OUT = FluctuationStrength_Osses2016(insig,fs,method,time_skip,show)
-% function OUT = FluctuationStrength_Osses2016(insig,fs,method,time_skip,show)
+function OUT = FluctuationStrength_Osses2016(insig,fs,method,time_skip,show,struct_opt)
+% function OUT = FluctuationStrength_Osses2016(insig,fs,method,time_skip,show,struct_opt)
 %
 %  This function calculates the fluctuation strength using the model 
 %    developed by: [1] Osses, A., Garcia A., and Kohlrausch, A.. 
@@ -29,6 +29,24 @@ function OUT = FluctuationStrength_Osses2016(insig,fs,method,time_skip,show)
 %   show : logical(boolean)
 %   optional parameter for figures (results) display
 %   'false' (disable, default value) or 'true' (enable).
+%
+%   struct_opt: struct where some specific model parameters can
+%   be set to a different value. If not specified, the default values are used. 
+%   Currently, the only parameter that can be changed is the a0
+%   (outer and middle ear transmission factor). For that, the struct <struct_opt> needs to 
+%   contain the parameter <a0_type>, meaning <struct_opt.a0_type = 'string_input'> 
+%   should be defined with one of the following <string_input>:
+%
+%  string_input = 'fluctuationstrength_osses2016' :  A simplified a0 factor can be adopted if 
+%  <a0_type> is set to this option, where the ear canal resonance of Fastl's a0 curve is removed. 
+%  In other words, the a0 curve is roughly approximated as a low-pass filter. Although not 
+%  explicitly stated by Osses et al. 2016 (doi: 10.1121/2.0000410), the simplified a0 transmission 
+%  curve leads to very similar results during the validation of their fluctuation strength algorithm.
+%  This is the default which is used if no input is given at all, as defined by the model's author
+%  
+%  string_input = 'fastl2007' : uses the transmission factor for free-field,
+%  according to Fig 8.18 (page 226) in Fastl & Zwicker Book, Psychoacoustics: facts and
+%  models 3rd edition (doi: 10.1007/978-3-540-68888-4)
 %
 % OUTPUT:
 %   OUT : struct containing the following fields
@@ -66,6 +84,10 @@ function OUT = FluctuationStrength_Osses2016(insig,fs,method,time_skip,show)
 %            fluctuation strength.
 % Author: Alejandro Osses, 11/05/2023. Moving TerhardtExcitationPatterns_v3, 
 %            Get_Bark to the private folder (old il_* functions)
+% Author: Alejandro Osses, 13/11/2024. Included <struct_opt> input to allow
+%            for changing the a0 transmission factor. the a0 transmission
+%            factor were moved to the <utilities> folder of the toolbox as
+%            standalone functions
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 if nargin == 0
     help FluctuationStrength_Osses2016;
@@ -81,6 +103,10 @@ if nargin < 5
     end
 end
 
+if nargin < 6
+    struct_opt = [];
+end
+
 if size(insig,2)~=1 % if the insig is not a [Nx1] array
     insig=insig';   % correct the dimension of the insig
 end
@@ -90,6 +116,10 @@ if ~(fs == 44100 || fs == 48000)
     gcd_fs = gcd(44100,fs); % greatest common denominator
     insig = resample(insig,44100/gcd_fs,fs/gcd_fs);
     fs = 44100;
+end
+
+if ~isfield(struct_opt,'a0_type')
+    struct_opt.a0_type = 'fluctuationstrength_osses2016'; % this is the default of this model
 end
 
 %% Checking which method
@@ -145,7 +175,7 @@ for iFrame = 1:nFrames
     %     (see 'model_par.a0_in_time' == 1, in _debug version):
     %
     % 4096th order FIR filter:
-    signal = il_PeripheralHearingSystem_t(signal,fs); % since 14/05
+    signal = il_PeripheralHearingSystem_t(signal,fs,struct_opt); 
     
     % 2.2 Excitation patterns
     %     (see model_par.filterbank == 'terhardt', in _debug version):
@@ -426,8 +456,8 @@ catch
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function outsig = il_PeripheralHearingSystem_t(insig,fs)
-% function outsig = il_PeripheralHearingSystem_t(insig,fs)
+function outsig = il_PeripheralHearingSystem_t(insig,fs,struct_opt)
+% function outsig = il_PeripheralHearingSystem_t(insig,fs,struct_opt)
 % 
 % Applies the effect of transmission from free field to the cochlea to a
 % given signal. Time domain version.
@@ -440,133 +470,18 @@ function outsig = il_PeripheralHearingSystem_t(insig,fs)
 
 K = 2^12; % FIR filter order 
 
-% B = il_calculate_a0(fs,K);
-B = il_calculate_a0_idle(fs,K);
+switch struct_opt.a0_type
+    case 'fluctuationstrength_osses2016'
+        B = calculate_a0(fs,K,'fluctuationstrength_osses2016');
+    case 'fastl2007'
+        B = calculate_a0(fs,K,'fastl2007');
+    otherwise
+        % Choosing the default:
+        B = calculate_a0(fs,K,'fluctuationstrength_osses2016');
+end
 
 outsig = filter(B,1,[insig zeros(1,K/2)]);
 outsig = outsig(K/2+1:end);
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function B = il_calculate_a0(fs,N)
-% Compensation of the transmission factor from Free-field, taken from
-% Fastl2007, Fig. 8.18, page 226
-
-df    = fs/N;
-N0    = round(20/df)+1;
-Ntop  = round(20e3/df)+1;
-qb    = N0:Ntop;
-freqs = (qb-1)*df;
-
-Bark = Get_Bark(N,qb,freqs);
-
-a0tab = [ % lower slope from middle ear (fig_a0.c, see Figure_Psychoacoustics_tex)
-    0       -999
-    0.5     -34.7
-    1       -23
-    1.5     -17
-    2       -12.8
-    2.5     -10.1
-    3       -8
-    3.5     -6.4
-    4       -5.1
-    4.5     -4.2
-    5       -3.5
-    5.5     -2.9
-    6       -2.4
-    6.5     -1.9
-    7       -1.5
-    7.5     -1.1 % 850 Hz
-    8       -0.8
-    8.5     0
-    10      0     % 1.2 kHz
-    12      1.15
-    13      2.31
-    14      3.85
-    15      5.62
-    16      6.92
-    16.5    7.38
-    17      6.92  % 3.5 kHz
-    18      4.23
-    18.5    2.31
-    19      0     % 5.4 kHz
-    20      -1.43
-    21		-2.59
-    21.5	-3.57
-    22		-5.19
-    22.5	-7.41
-    23		-11.3
-    23.5	-20
-    24		-40
-    25		-130
-    26		-999
-];
-
-a0            = zeros(1,N);
-a0(qb)        = il_From_dB(interp1(a0tab(:,1),a0tab(:,2),Bark(qb)));
-a0(isnan(a0)) = 0;
-
-B = il_create_a0_FIR(freqs,a0(qb),N,fs);
-
-if nargout == 0
-    il_create_a0_FIR(freqs,a0(qb),N,fs);
-end
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function B = il_calculate_a0_idle(fs,N)
-% No resonance of the ear canal accounted for.
-
-df    = fs/N;
-N0    = round(20/df)+1;
-Ntop  = round(20e3/df)+1;
-qb    = N0:Ntop;
-freqs = (qb-1)*df;
-
-Bark = Get_Bark(N,qb,freqs);
-
-a0tab = [
-    0       0
-    10      0
-    19      0
-    20      -1.43
-    21		-2.59
-    21.5	-3.57
-    22		-5.19
-    22.5	-7.41
-    23		-11.3
-    23.5	-20
-    24		-40
-    25		-130
-    26		-999
-];
-
-a0            = zeros(1,N);
-a0(qb)        = il_From_dB(interp1(a0tab(:,1),a0tab(:,2),Bark(qb)));
-a0(isnan(a0)) = 0;
-
-B = il_create_a0_FIR(freqs,a0(qb),N,fs);
-
-if nargout == 0
-    il_create_a0_FIR(freqs,a0(qb),N,fs);
-end
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function B = il_create_a0_FIR(f,a0,N,fs)
-
-f = [0 f fs/2];
-a0 = [a0(1) a0 a0(end)];
-
-B = fir2(N,f/(fs/2),a0);
-
-if nargout == 0
-    [H1,Fn]=freqz(B,1,N/2);
-    
-    figure;
-    plot(fs/2*Fn/pi, 20*log10(abs([H1])));
-    xlabel('Frequency [Hz]')
-    legend([num2str(N) ' taps']);
-    title('FIR filter to be used as approximation to isolation curve')
-    xlim([0 fs/2])
-end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function gzi = il_Get_gzi_fluctuation(Chno)
@@ -584,20 +499,6 @@ g0 = transpose(g0);
 gzi = interp1(g0(:,1),g0(:,2),(1:Chno)*Chstep);
 gzi(isnan(gzi)) = g0(end,2); % 0
    
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function gain = il_From_dB(gain_dB,div)
-% function gain = il_From_dB(gain_dB,div)
-%
-% 1. Description:
-%       From_dB: Convert decibels to voltage gain (if div = 20, default).
-%       gain = From_dB(gain_dB)
-
-if nargin < 2
-    div = 20;
-end
-
-gain = 10 .^ (gain_dB / div);
-
 %**************************************************************************
 %
 % Redistribution and use in source and binary forms, with or without 
