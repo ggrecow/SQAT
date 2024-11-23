@@ -1,16 +1,15 @@
 function [B, freqs, a0] = calculate_a0(fs,N,a0_type)
 % function [B, freqs, a0] = calculate_a0(fs,N,a0_type)
 %
-% Compensation of the transmission factor from Free-field. The default 
-% method is a0_type = 'Fastl2007' is to use the compensation as defined 
-% in Fastl2007, Fig. 8.18, page 226 (Refer to the SQAT list of references). 
+% Compensation of the outer and middle ear transmission effects (Free-field), called 
+% a0 compensation factor. The default method is a0_type = 'fastl2007' is to use the 
+% compensation as defined in Fastl2007, Fig. 8.18, page 226 (doi: 10.1007/978-3-540-68888-4). 
 %
 % A simplified a0 compensation can be adopted if a0_type is set to
-% 'FluctuationStrength_Osses2016', where the ear canal resonance and
-% the high-pass filter behaviour of Fastl's a0 curve was removed. In
-% other words, the a0 curve was roughly approximated as a low-pass filter.
-% Although not explicitly stated by Osses et al. 2016, the simplified
-% a0 transmission curve lead to very similar results during the validation
+% 'fluctuationstrength_osses2016', where the ear canal resonance of Fastl's a0 curve is 
+% removed. In other words, the a0 curve is roughly approximated as a low-pass filter.
+% Although not explicitly stated by Osses et al. 2016 (doi: 10.1121/2.0000410), the simplified
+% a0 transmission curve leads to very similar results during the validation
 % of their fluctuation strength algorithm.
 %
 % Run the stand-alone example, below, to compare both types of curves.
@@ -41,7 +40,7 @@ if nargin == 0
 end
 
 if nargin < 3
-    a0_type = 'Fastl2007';
+    a0_type = 'fastl2007';
 end
 
 df    = fs/N;
@@ -54,46 +53,74 @@ Bark = Get_Bark(N,qb,freqs);
 
 switch lower(a0_type)
     case 'fastl2007'
-a0tab = [ % lower slope from middle ear (fig_a0.c, see Figure_Psychoacoustics_tex)
-    0       -999
-    0.5     -34.7
-    1       -23
-    1.5     -17
-    2       -12.8
-    2.5     -10.1
-    3       -8
-    3.5     -6.4
-    4       -5.1
-    4.5     -4.2
-    5       -3.5
-    5.5     -2.9
-    6       -2.4
-    6.5     -1.9
-    7       -1.5
-    7.5     -1.1 % 850 Hz
-    8       -0.8
-    8.5     0
-    10      0     % 1.2 kHz
-    12      1.15
-    13      2.31
-    14      3.85
-    15      5.62
-    16      6.92
-    16.5    7.38
-    17      6.92  % 3.5 kHz
-    18      4.23
-    18.5    2.31
-    19      0     % 5.4 kHz
-    20      -1.43
-    21		-2.59
+
+% <il_calculate_a0> in the original <Fluctuation_strength_Osses2016> code
+% a0tab = [ 
+%     0       -999
+%     0.5     -34.7
+%     1       -23
+%     1.5     -17
+%     2       -12.8
+%     2.5     -10.1
+%     3       -8
+%     3.5     -6.4
+%     4       -5.1
+%     4.5     -4.2
+%     5       -3.5
+%     5.5     -2.9
+%     6       -2.4
+%     6.5     -1.9
+%     7       -1.5
+%     7.5     -1.1 % 850 Hz
+%     8       -0.8
+%     8.5     0
+%     10      0     % 1.2 kHz
+%     12      1.15
+%     13      2.31
+%     14      3.85
+%     15      5.62
+%     16      6.92
+%     16.5    7.38
+%     17      6.92  % 3.5 kHz
+%     18      4.23
+%     18.5    2.31
+%     19      0     % 5.4 kHz
+%     20      -1.43
+%     21		-2.59
+%     21.5	-3.57
+%     22		-5.19
+%     22.5	-7.41
+%     23		-11.3
+%     23.5	-20
+%     24		-40
+%     25		-130
+%     26		-999];
+
+% Compensation of the transmission factor from Free-field, as defined 
+% in Fastl2007, Fig. 8.18, page 226 (doi: 10.1007/978-3-540-68888-4). 
+% This is the same curve used in the <Roughness_Daniel1997> function
+a0tab =	[ 0	     0
+    10	 0
+    12	 1.15
+    13	 2.31
+    14	 3.85
+    15	 5.62
+    16	 6.92
+    16.5	 7.38
+    17	 6.92
+    18	 4.23
+    18.5	 2.31
+    19	 0
+    20	-1.43
+    21	-2.59
     21.5	-3.57
-    22		-5.19
+    22	-5.19
     22.5	-7.41
-    23		-11.3
+    23	-11.3
     23.5	-20
-    24		-40
-    25		-130
-    26		-999];
+    24	-40
+    25	-130
+    26	-999];
 
     case 'fluctuationstrength_osses2016'
 a0tab = [
