@@ -31,7 +31,7 @@ OUT = FluctuationStrength_Osses2016(RefSignal,fs,method,time_skip,bPlot);
 fprintf('\tUsing default values, the time-averaged fluctuation strength is %g (vacil).\n',OUT.FSmean);
 
 structIn = []; % empty input struct = load all defaults (equivalent to not specifying the struct)
-structIn.a0_type = 'Fastl2007'; % a0 curve as defined by Fastl2007, see calculate_a0.m
+structIn.a0_type = 'fastl2007'; % a0 curve as defined by Fastl2007, see calculate_a0.m
 OUT_a0 = FluctuationStrength_Osses2016(RefSignal,fs,method,time_skip,bPlot,structIn);
 fprintf('\tUsing optional parameters, the time-averaged fluctuation strength value of %g (vacil).\n',OUT_a0.FSmean);
                
@@ -52,7 +52,7 @@ xlabel('Time, $t$ (s)','Interpreter','Latex');
 ylim([0 1.2]);
 set(gcf,'color','w')
 
-legend('fluctuationstrength\_osses2016', 'Fastl2007','Location','SouthEast');
+legend('fluctuationstrength\_osses2016', 'fastl2007','Location','SouthEast');
 
 %% Plot  the frequency response of the FIR filters generated to represent the a0 transmission factor
 
@@ -83,7 +83,7 @@ plot( hz2bark_local( freqs ), mag2db( a0 ), 'r--');
 
 ylim([-30 10]);
 
-legend('fluctuationstrength\_osses2016', 'Fastl2007','Location','SouthEast');
+legend('fluctuationstrength\_osses2016', 'fastl2007','Location','SouthEast');
 
 xlabel('Critical band rate, $z$ (Bark)','Interpreter','Latex');
 ylabel('Magnitude (dB)','Interpreter','Latex'); 
