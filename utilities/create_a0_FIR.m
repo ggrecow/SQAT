@@ -3,7 +3,7 @@ function B = create_a0_FIR(f,a0,N,fs)
 %
 % It creates a FIR filter according to the frequency f and curve defined in a0.
 %
-% This function is used by calculate_a0_idle.m
+% This function is used by calculate_a0.m
 %
 % Author: Alejandro Osses
 % Date: 2014-2017
