@@ -14,6 +14,7 @@
 %  the `sound_files` folder of the toolbox. 
 %
 % Author: Gil Felix Greco, Braunschweig 27.02.2023
+% modifided in 07.12.2024 by Gil Felix Greco - included plot with summary of differences between reference and calculated loudness
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 clc; clear all; close all;
 
@@ -46,6 +47,76 @@ for i=14:25
                                                   );
 end 
 
+%% summary of differences between reference and calculated loudness
+
+% test signals
+X = categorical( {'14','15','16','17','18','19','20','21','22','23','24','25'} );
+X = reordercats( X, {'14','15','16','17','18','19','20','21','22','23','24','25'} );
+
+% create vector with loudness differences of all test signals  
+for i = 1:length(X)
+    diff_vector_Nmax(i) = OUT.RefScalar{i}(1,3); % max. loudness 
+    diff_vector_N5(i) = OUT.RefScalar{i}(2,3); % 5 percentile loudness
+end
+
+title_fig = sprintf('Loudness - summary of differences between ref. and calculated values');
+h = figure('Name',title_fig);
+set(h,'Units','Inches');
+pos = get(h,'Position');
+set(h,'PaperPositionMode','Auto','PaperUnits','Inches','PaperSize',[pos(3), pos(4)])
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Plot Nmax
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+yyaxis left
+handle_a = plot(X, diff_vector_Nmax, 'x', 'Markersize', 12);
+
+jnd = 0.07;
+handle_c = yline(  jnd, '--k'); % plot tolerance of N=1 sone stipulated by the ISO norm
+yline( -jnd, '--k');
+
+ymin = -1; ymax =1;
+ylim([ymin ymax]);
+
+ylabel('$\Delta N_{\mathrm{max}}$ (sone)','Interpreter','Latex');
+xlabel('Test signal','Interpreter','Latex');
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Plot N5
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+yyaxis right
+
+handle_b = plot(X, diff_vector_N5, 's', 'Markersize', 12);
+ylim([ymin ymax]);
+
+ylabel('$\Delta N_{\mathrm{5\%}}$ (sone)','Interpreter','Latex');
+
+legend([handle_a, handle_b ,handle_c], {'$\Delta N_{\mathrm{max}}$' , '$\Delta N_{\mathrm{5\%}}$', '$\pm$ 0.07 sone (JND)'}, 'Location','SE')
+legend box on
+
+grid off
+set(gcf,'color','w');
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+if save_figs==1
+
+    figures_dir = [pwd filesep 'figs' filesep];
+
+    if ~exist(figures_dir,'dir')
+        mkdir(figures_dir);
+    end
+
+    figname_short = 'validation_time_varying_technical_signals_loudness_difference';
+    figname_out = [figures_dir figname_short];
+    
+    % saveas(gcf,figname_out, 'fig');
+    % saveas(gcf,figname_out, 'pdf');
+    saveas(gcf,figname_out, 'png');
+    
+    fprintf('\n%s.m: figure %s was saved on disk\n\t(full name: %s)\n',mfilename,figname_short,figname_out);
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 
 %% function (compute loudness and plot comparison
 
@@ -73,13 +144,14 @@ function [OUT,table]=compute_and_plot(insig_num,fname_insig,save_figs,tag)
 %   OUT : struct
 %       contain all outputs from the computed loudness
 %
-%   table : matrix containing scalar values of Nmax and N5 
-%           1st col=reference
-%           2nd col=computed by SQAT
-%           3rd row=relative percentage difference (SQAT minus ref.)
+%   table : matrix containing scalar values of Nmax (1st row) and N5 (2nd row) 
+%           1st column=reference
+%           2nd column=computed by SQAT
+%           3rd column=difference (SQAT minus ref.)
+%           4th column=relative percentage difference (SQAT minus ref.)
 %
-% Gil Felix Greco, Braunschweig 27.02.2023
-%
+% Author: Gil Felix Greco, Braunschweig 27.02.2023
+% modifided in 07.12.2024 by Gil Felix Greco - included plot with summary of differences between reference and calculated loudness
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% signals from ISO 532-2:2017
 
@@ -129,12 +201,16 @@ reference_N5=[18.081 8.755 36.888 9.722 10.392 10.009 13.093 9.00 8.158 10.421 8
 reference_Nmax=reference_Nmax(insig_num-13);
 reference_N5=reference_N5(insig_num-13);
 
+% compute difference (SQAT minus ref.)
+difference_Nmax = OUT.Nmax - reference_Nmax; % max loudness over time
+difference_N5 = OUT.N5 - reference_N5; % 5% percentile loudness
+
 % compute relative percentage difference (SQAT minus ref.)
 percentage_difference_Nmax=( (OUT.Nmax-reference_Nmax)/reference_Nmax )*100; % max loudness over time
 percentage_difference_N5=( (OUT.N5-reference_N5)/reference_N5 )*100; % 5% percentile loudness
 
-table=[reference_Nmax,OUT.Nmax,percentage_difference_Nmax;
-       reference_N5,OUT.N5,percentage_difference_N5 ];
+table = [reference_Nmax, OUT.Nmax, difference_Nmax, percentage_difference_Nmax;
+             reference_N5, OUT.N5, difference_N5, percentage_difference_N5 ];
 
 %% plot results (total loudness over time)
 

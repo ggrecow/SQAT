@@ -16,6 +16,7 @@
 %  the `sound_files` folder of the toolbox. 
 %
 % Author: Gil Felix Greco, Braunschweig 27.02.2023
+% modifided in 07.12.2024 by Gil Felix Greco - included plot with summary of differences between reference and calculated loudness
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 clc; clear all; close all;
 
@@ -42,6 +43,60 @@ for i=1:num_signals
 end
 disp('')
 
+%% summary of differences between reference and calculated loudness
+
+% test signals
+X = categorical({'1','2','3','4','5'});
+
+% create vector with loudness differences of all test signals  
+for i = 1:length(X)
+    diff_vector(i) = OUT.RefScalar{i}(1,3);
+end
+
+title_fig = sprintf('Loudness - summary of differences between ref. and calculated values');
+h = figure('Name',title_fig);
+set(h,'Units','Inches');
+pos = get(h,'Position');
+set(h,'PaperPositionMode','Auto','PaperUnits','Inches','PaperSize',[pos(3), pos(4)])
+
+plot(X, diff_vector, 'x', 'Markersize', 12);
+
+tolerance = 0.1;
+handle_a = yline(  tolerance, '--r'); % plot tolerance of N=1 sone stipulated by the ISO norm
+yline( -tolerance, '--r');
+
+ymin = -0.2; ymax = 0.2;
+ylim([ymin ymax]);
+
+ylabel('$\Delta N$ (sone)','Interpreter','Latex');
+xlabel('Test signal','Interpreter','Latex');
+
+legend(handle_a, 'ISO 532-1:2017 tolerance');
+legend box off
+
+grid off
+set(gcf,'color','w');
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+if save_figs==1
+
+    figures_dir = [pwd filesep 'figs' filesep];
+
+    if ~exist(figures_dir,'dir')
+        mkdir(figures_dir);
+    end
+    
+    figname_short = 'validation_stationary_signals_loudness_difference';
+    figname_out = [figures_dir figname_short];
+    
+    % saveas(gcf,figname_out, 'fig');
+    % saveas(gcf,figname_out, 'pdf');
+    saveas(gcf,figname_out, 'png');
+    
+    fprintf('\n%s.m: figure %s was saved on disk\n\t(full name: %s)\n',mfilename,figname_short,figname_out);
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 %% function (compute loudness and plot comparison
 
 function [OUT,table] = il_compute_and_plot(insig_num,fname_insig,save_figs)
@@ -67,12 +122,15 @@ function [OUT,table] = il_compute_and_plot(insig_num,fname_insig,save_figs)
 %   OUT : struct
 %       contain all outputs from the computed loudness
 %
-%   table : matrix containing scalar values of N and LN
-%           1st col=reference
-%           2nd col=computed by SQAT
-%           3rd row=relative percentage difference (SQAT minus ref.)
+%   table : matrix containing scalar values of total loudness, N (1st row)
+%   and loudness levels, LN (2nd row)
+%           1st column=reference
+%           2nd column=computed by SQAT
+%           3rd column=difference (SQAT minus ref.)
+%           4th column=relative percentage difference (SQAT minus ref.)
 %
 % Author: Gil Felix Greco, Braunschweig 27.02.2023
+% modifided in 07.12.2024 by Gil Felix Greco - included difference as an output of <table> 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% signals from ISO 532-2:2017
 
@@ -140,13 +198,18 @@ reference_loudness_level = [103.802 78.733 60.069 46.317 73.920];
 reference_loudness=reference_loudness(insig_num); % take ref values from the current signal number
 reference_loudness_level=reference_loudness_level(insig_num);
 
+% compute difference (SQAT minus ref.)
+difference_loudness = OUT.Loudness - reference_loudness;
+difference_loudness_level = OUT.LoudnessLevel - reference_loudness_level;
+
 % compute relative percentage difference (SQAT minus ref.)
 percentage_difference_loudness=( (OUT.Loudness-reference_loudness)/reference_loudness )*100;
 percentage_difference_loudness_level=( (OUT.LoudnessLevel-reference_loudness_level)/reference_loudness_level )*100;
 
-% write results in a table format (1st col=reference; 2nd col=computed by SQAT; 3rd row=relative percentage difference (SQAT minus ref.))
-table=[reference_loudness,OUT.Loudness,percentage_difference_loudness;
-       reference_loudness_level,OUT.LoudnessLevel,percentage_difference_loudness_level ];
+% write results in a table format (1st col=reference; 2nd col=computed by SQAT; 3rd col=difference (SQAT minus ref.;) 4th col=relative percentage difference (SQAT minus ref.))
+% 1st row = total loudness, 2nd row = loudness levels
+table=[ reference_loudness, OUT.Loudness, difference_loudness, percentage_difference_loudness;
+            reference_loudness_level, OUT.LoudnessLevel, difference_loudness_level, percentage_difference_loudness_level ];
 
 %% plot results (specific loudness)
 
