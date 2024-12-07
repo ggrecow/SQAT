@@ -42,7 +42,9 @@ Narrowband signals |  Broadband signals
 
 [5] Aures, W. (1985). Berechnungsverfahren für den sensorischen Wohlklang beliebiger Schallsignale (A model for calculating the sensory euphony of various sounds). [Acta Acustica united with Acustica](https://www.ingentaconnect.com/content/dav/aaua/1985/00000059/00000002/art00008), 59(2), 130-141.
 
-[6] Head acoustics. (2018). Psychoacoustic analyses I, Application note. [https://cdn.head-acoustics.com/fileadmin/data/global/Application-Notes/SVP/Psychoacoustic-Analyses-I-02.2018.pdf](https://cdn.head-acoustics.com/fileadmin/data/global/Application-Notes/SVP/Psychoacoustic-Analyses-I-02.2018.pdf) (Last viewed: May 25, 2023)
+[6] Head acoustics. (2018). Psychoacoustic analyses I, Application note. [https://cdn.head-acoustics.com/fileadmin/data/global/Application-Notes/SVP/Psychoacoustic-Analyses-I_e.pdf](https://cdn.head-acoustics.com/fileadmin/data/global/Application-Notes/SVP/Psychoacoustic-Analyses-I_e.pdf) (Last viewed: December 05, 2024)
+
+ 
 
 # Log
 This code was released in SQAT v1.0, 14.05.2023
