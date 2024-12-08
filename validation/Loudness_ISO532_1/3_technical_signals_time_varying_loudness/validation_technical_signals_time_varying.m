@@ -53,6 +53,9 @@ end
 X = categorical( {'14','15','16','17','18','19','20','21','22','23','24','25'} );
 X = reordercats( X, {'14','15','16','17','18','19','20','21','22','23','24','25'} );
 
+diff_vector_Nmax = zeros(1 , length(X)); % declare for memory allocation
+diff_vector_N5 = zeros(1 , length(X)); 
+
 % create vector with loudness differences of all test signals  
 for i = 1:length(X)
     diff_vector_Nmax(i) = OUT.RefScalar{i}(1,3); % max. loudness 
@@ -71,14 +74,11 @@ set(h,'PaperPositionMode','Auto','PaperUnits','Inches','PaperSize',[pos(3), pos(
 yyaxis left
 handle_a = plot(X, diff_vector_Nmax, 'x', 'Markersize', 12);
 
-jnd = 0.07;
-handle_c = yline(  jnd, '--k'); % plot tolerance of N=1 sone stipulated by the ISO norm
-yline( -jnd, '--k');
-
 ymin = -1; ymax =1;
 ylim([ymin ymax]);
 
-ylabel('$\Delta N_{\mathrm{max}}$ (sone)','Interpreter','Latex');
+variable_Nmax = '$N_{\mathrm{max,SQAT}} - N_{\mathrm{max,Ref.}}$';
+ylabel( [variable_Nmax  ' (sone)'], 'Interpreter','Latex');
 xlabel('Test signal','Interpreter','Latex');
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -89,9 +89,10 @@ yyaxis right
 handle_b = plot(X, diff_vector_N5, 's', 'Markersize', 12);
 ylim([ymin ymax]);
 
-ylabel('$\Delta N_{\mathrm{5\%}}$ (sone)','Interpreter','Latex');
+variable_N5 = '$N_{\mathrm{5\%,SQAT}} - N_{\mathrm{5\%,Ref.}}$';
+ylabel([variable_N5 ' (sone)'], 'Interpreter', 'Latex');
 
-legend([handle_a, handle_b ,handle_c], {'$\Delta N_{\mathrm{max}}$' , '$\Delta N_{\mathrm{5\%}}$', '$\pm$ 0.07 sone (JND)'}, 'Location','SE')
+legend([handle_a, handle_b], {variable_Nmax, variable_N5}, 'Location', 'SE')
 legend box on
 
 grid off

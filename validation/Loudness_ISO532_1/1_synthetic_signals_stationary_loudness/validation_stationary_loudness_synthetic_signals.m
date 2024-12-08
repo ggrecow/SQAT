@@ -48,6 +48,8 @@ disp('')
 % test signals
 X = categorical({'1','2','3','4','5'});
 
+diff_vector = zeros(1 , length(X)); % declare for memory allocation
+
 % create vector with loudness differences of all test signals  
 for i = 1:length(X)
     diff_vector(i) = OUT.RefScalar{i}(1,3);
@@ -68,11 +70,11 @@ yline( -tolerance, '--r');
 ymin = -0.2; ymax = 0.2;
 ylim([ymin ymax]);
 
-ylabel('$\Delta N$ (sone)','Interpreter','Latex');
+ylabel('$N_{\mathrm{SQAT}} - N_{\mathrm{Ref.}}$ (sone)','Interpreter','Latex');
 xlabel('Test signal','Interpreter','Latex');
 
-legend(handle_a, 'ISO 532-1:2017 tolerance');
-legend box off
+legend(handle_a, 'ISO 532-1:2017 tolerance', 'Location', 'SE');
+legend box on;
 
 grid off
 set(gcf,'color','w');

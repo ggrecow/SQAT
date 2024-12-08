@@ -29,10 +29,17 @@ Test signal 1 (stationary loudness based on one-third-octave levels)  |
 | -------------- | -------------- |
 | ![](figs/validation_stationary_loudness_signal_4.png)   | ![](figs/validation_stationary_loudness_signal_5.png)  |
 
+A summary presenting the loudness difference between calculated (SQAT) and reference values provided by ISO 532-1 is presented below for signals 1-5. For synthetic stationary signals, the ISO standard stipulates a tolerance value of $N=0.1$~sone, which is not surpassed for any signal. 
+
+Summary of loudness differences for signals 1-5  |  
+:-------------------------:| 
+![](figs/validation_stationary_signals_loudness_difference.png) 
+
 
 # References
 [1] International Organization for Standardization. (2017). Acoustics - Methods for calculating loudness - Part 1: Zwicker method (ISO Standard No. 532-1).
 
 # Log
 This code was released in SQAT v1.0, 14.05.2023
+Summary of loudness differences included by Gil Felix Greco, 08.12.2024
 
