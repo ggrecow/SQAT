@@ -51,7 +51,7 @@ The figures below compare the results obtained using the `Loudness_ISO532_1` imp
 | ![](figs/validation_time_varying_loudness_signal_13.png)   | ![](figs/validation_time_varying_loudness_signal_13_specific_loudness.png)  |
 
 
-A summary presenting the differences (max. total loudness and 5\% percentile loudness) between calculated (SQAT) and reference values provided by ISO 532-1 is presented below for signals 6-13. The differences are not bigger than 0.1 sone for any signal of metric. Despite providing reference values, the ISO standard do not stipulates any tolerance values for synthetic time-varying signals in terms of those single-value indicators.
+A summary presenting the differences (max. total loudness and 5\% percentile loudness) between calculated (SQAT) and reference values provided by ISO 532-1 is presented below for signals 6-13. The differences are not bigger than $\pm0.5$ sone for any signal of metric. Despite providing reference values, the ISO standard do not stipulates any tolerance values for synthetic time-varying signals in terms of those single-value indicators.
 
 
 Summary of loudness differences for signals 6-13  |  
@@ -63,5 +63,6 @@ Summary of loudness differences for signals 6-13  |
 
 # Log
 This code was released in SQAT v1.0, 14.05.2023
+
 Summary of loudness differences included by Gil Felix Greco, 08.12.2024
 
