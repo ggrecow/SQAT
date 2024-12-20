@@ -1,7 +1,7 @@
 # About this code 
 The `run_validation_FS_AM_BBN_fmod.m` code is used to verify the implementation of the fluctuation strength model from Osses *et al.* [1] (see `FluctuationStrength_Osses2016` code [here](../../../psychoacoustic_metrics/FluctuationStrength_Osses2016/FluctuationStrength_Osses2016.m)). The verification is performed considering the following test signals:
 
-- Amplitude-modulated (AM) broadband noises with carrier frequency $f_{\mathrm{c}}=1~\mathrm{kHz}$, bandwidth $\mathrm{BW}=16~\mathrm{kHz}$, modulation depth $m_{\mathrm{d}}=1$, and sound pressure level $L_{\mathrm{p}}=70~\mathrm{dB}~\mathrm{SPL}$ as a function of the modulation frequency $f_{\mathrm{mod}}$.  
+- Amplitude-modulated (AM) broadband noises with bandwidth $\mathrm{BW}=16~\mathrm{kHz}$, modulation depth $m_{\mathrm{d}}=1$, and sound pressure level $L_{\mathrm{p}}=60~\mathrm{dB}~\mathrm{SPL}$ as a function of the modulation frequency $f_{\mathrm{mod}}$.  
 
 # How to use this code
 In order to run this code and reproduce the figures available in the `figs` folder, the user needs to download the dataset of sound files from zenodo <a href="https://doi.org/10.5281/zenodo.7933206" target="_blank">here</a>. The obtained folder called `validation_SQAT_v1_0` has to be included in the `sound_files` folder of the toolbox. 
