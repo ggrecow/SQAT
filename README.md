@@ -14,7 +14,10 @@ The toolbox has the following directories:
 - `publications`: contains scripts to reproduce figures and/or tables of publications from the toolbox authors (see [folder](publications)). 
 
 # How to use the toolbox
-After downloading this repository, you just need to add the toolbox to the path of your MATLAB. The `startup_SQAT` code provided can be used to automatically include all folders to the MATLAB path, until the MATLAB session ends. In order to avoid conflicts, the `startup_SQAT` needs to be used every time MATLAB is (re)started. If you just want to use the metrics, you can add manually only the relevant folders to the MATLAB path (e.g., `psychoacoustic_metrics`, `sound_level_meter`, and `utilities`). 
+
+1. Download or clone this repository to your local computer. One way to do that is to press the button 'Code' -> Choose 'Download ZIP' and unzip somewhere).
+
+2. After that, you need to add the relevant folders of the toolbox to the path of your MATLAB. Open and run the `startup_SQAT.m` script to automatically perform this task. In order to avoid conflicts, the `startup_SQAT.m` needs to be used every time MATLAB is (re)started. If you just want to use the metrics, you can add manually only the relevant folders to the MATLAB path (e.g., `psychoacoustic_metrics`, `sound_level_meter`, and `utilities`). 
 
 # Sound quality metrics available in SQAT 
 
