@@ -4,8 +4,8 @@ function OUT = get_percentile(input, PercentValue)
 % Calculate the value exceeded  during <PercentValue> of the time 
 %
 % INPUT:
+%   input: vector [nSamples x 1] - contain values to be evaluated (typically a time vector)
 %   PercentValue: desired % value exceeded during nSamples
-%   input: vector containing values to be evaluated (typically a time vector)
 %
 % OUTPUT:
 %   OUT: value exceeded  during <PercentValue> of the time
