@@ -57,8 +57,9 @@ function OUT = Loudness_ISO532_1(insig, fs, field, method, time_skip, show)
 %         ** Nstd : standard deviation of InstantaneousLoudness (sone)
 %         ** Nmax : maximum of InstantaneousLoudness (sone)
 %         ** Nmin : minimum of InstantaneousLoudness (sone)
-%         ** Nx : percentile loudness exceeded during x percent of the signal (sone)
+%         ** Nx : loudness value exceeded during x percent of the time (sone)
 %         ** N_ratio : ratio between N5/N95 ( 1.1 (stationary)> N_ratio > 1.1 (time varying) )
+%
 %           *** HINT: loudness calculation takes some time to have a steady-response
 %                     therefore, it is a good practice to consider a time_skip to compute the statistics
 %                     due to transient effects in the beginning of the loudness calculations

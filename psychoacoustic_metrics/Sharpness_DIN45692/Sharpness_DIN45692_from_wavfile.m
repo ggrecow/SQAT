@@ -66,7 +66,8 @@ function OUT = Sharpness_DIN45692_from_wavfile(wavfilename, dBFS, weight_type, L
 %         ** Sstd : standard deviation of InstantaneousSharpness (acum)
 %         ** Smax : maximum of InstantaneousSharpness (acum)
 %         ** Smin : minimum of InstantaneousSharpness (acum)
-%         ** Sx : percentile sharpness exceeded during x percent of the signal (acum)
+%         ** Sx : sharpness value exceeded during x percent of the time (acum)
+%
 %           *** HINT: time-varying loudness calculation takes some time to
 %                     have a steady-response (thus sharpness too!). 
 %                     Therefore, it is a good practice to consider a 

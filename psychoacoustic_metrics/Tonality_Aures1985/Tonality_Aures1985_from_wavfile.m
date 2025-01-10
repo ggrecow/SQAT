@@ -56,7 +56,7 @@ function OUT = Tonality_Aures1985_from_wavfile(wavfilename,dBFS,LoudnessField,ti
 %         ** Kstd : standard deviation of InstantaneousTonality (t.u.)
 %         ** Kmax : maximum of InstantaneousTonality (t.u.)
 %         ** Kmin : minimum of InstantaneousTonality (t.u.)
-%         ** Kx : percentile InstantaneousTonality exceeded during x percent of the signal (t.u.)
+%         ** Kx : Tonality value exceeded during x percent of the time (t.u.)
 %
 % Stand-alone example:
 %   fname = [basepath_SQAT 'sound_files' filesep 'reference_signals' filesep 'RefSignal_Tonality_Aures1985.wav'];

@@ -57,8 +57,7 @@ function OUT = FluctuationStrength_Osses2016_from_wavfile(wavfilename,dBFS,metho
 %              (vacil)
 %         ** FSmax : maximum of InstantaneousFluctuationStrength (vacil)
 %         ** FSmin : minimum of InstantaneousFluctuationStrength (vacil)
-%         ** FSx : percentile fluctuation strength exceeded during x percent
-%              of the signal (vacil)
+%         ** FSx : fluctuation strength exceeded during x percent of the time (vacil)
 %
 % Stand-alone example:
 %   fname = [basepath_SQAT 'sound_files' filesep 'reference_signals' filesep 'RefSignal_FluctuationStrength_Osses2016.wav'];

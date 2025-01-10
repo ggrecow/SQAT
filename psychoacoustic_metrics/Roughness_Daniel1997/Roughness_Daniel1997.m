@@ -41,7 +41,7 @@ function OUT = Roughness_Daniel1997(insig,fs,time_skip,show)
 %         ** Rstd : standard deviation of instantaneous roughness (asper)
 %         ** Rmax : maximum of instantaneous roughness (asper)
 %         ** Rmin : minimum of instantaneous roughness (asper)
-%         ** Rx : percentile roughness exceeded during x percent of the signal (asper)
+%         ** Rx : roughness value exceeded during x percent of the time (asper)
 %
 % Original file name: roughnessDW.m obtained from 
 %   https://github.com/densilcabrera/aarae/ (accessed 11/02/2020)

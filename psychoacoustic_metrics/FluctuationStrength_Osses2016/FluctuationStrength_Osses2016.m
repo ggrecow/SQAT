@@ -66,8 +66,7 @@ function OUT = FluctuationStrength_Osses2016(insig,fs,method,time_skip,show,stru
 %              (vacil)
 %         ** FSmax : maximum of InstantaneousFluctuationStrength (vacil)
 %         ** FSmin : minimum of InstantaneousFluctuationStrength (vacil)
-%         ** FSx : percentile fluctuation strength exceeded during x percent
-%              of the signal (vacil)
+%         ** FSx : fluctuation strength value exceeded during x percent of the time (vacil)
 %
 % Original file name: FluctuationStrength_TUe.m from 
 %   https://github.com/aosses-tue/mb/tree/master/FluctuationStrength_TUe (accessed 04/03/2020)

@@ -49,7 +49,7 @@ function OUT = Roughness_Daniel1997_from_wavfile(wavfilename,dBFS,time_skip,show
 %         ** Rstd : standard deviation of instantaneous roughness (asper)
 %         ** Rmax : maximum of instantaneous roughness (asper)
 %         ** Rmin : minimum of instantaneous roughness (asper)
-%         ** Rx : percentile roughness exceeded during x percent of the signal (asper)
+%         ** Rx : roughness value exceeded during x percent of the time (asper)
 %
 % Stand-alone example:
 %   fname = [basepath_SQAT 'sound_files' filesep 'reference_signals' filesep 'RefSignal_Roughness_Daniel1997.wav'];

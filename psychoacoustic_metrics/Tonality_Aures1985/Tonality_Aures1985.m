@@ -48,7 +48,7 @@ function OUT = Tonality_Aures1985(insig,fs,LoudnessField,time_skip,show)
 %         ** Kstd : standard deviation of InstantaneousTonality (t.u.)
 %         ** Kmax : maximum of InstantaneousTonality (t.u.)
 %         ** Kmin : minimum of InstantaneousTonality (t.u.)
-%         ** Kx : percentile InstantaneousTonality exceeded during x percent of the signal (t.u.)
+%         ** Kx : Tonality value exceeded during x percent of the time (t.u.)
 %
 % Author: Gil Felix Greco, Braunschweig 13/07/2020 (updated 14.04.2023)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

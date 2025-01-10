@@ -75,7 +75,7 @@ function OUT = PsychoacousticAnnoyance_More2010_from_wavfile(wavfilename,dBFS,Lo
 %               *** PAstd : standard deviation of instantaneous psychoacoustic annoyance (unit)
 %               *** PAmax : maximum of instantaneous psychoacoustic annoyance (unit)
 %               *** PAmin : minimum of instantaneous psychoacoustic annoyance (unit)
-%               *** PAx : x percentile of the PA metric exceeded during x percent of the time
+%               *** PAx : value exceeded x percent of the time
 %
 %      * include structs with the results from the other metrics computed
 %        **  L : struct with Loudness results, type <help Loudness_ISO532_1> for more info
