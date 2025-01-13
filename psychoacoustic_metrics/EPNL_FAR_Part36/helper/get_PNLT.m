@@ -210,13 +210,27 @@ end
 
 if size(Cmax,1)~=1 % workaround to run the <run_validation_tone_correction.m> code, where only one time-step is considered
 
-    Cavg = sum( [Cmax(PNLTM_idx - 2), Cmax(PNLTM_idx - 1), Cmax(PNLTM_idx),...
-                           Cmax(PNLTM_idx + 1), Cmax(PNLTM_idx + 2)] )/5;
+    %  in case <PNLTM_idx> is closer from the lower or higher boundaries of
+    %  the time vector, the bandsharing adjustment may not possible
 
-    if Cavg > Cmax(PNLTM_idx)
-        DeltaB = Cavg*Cmax(PNLTM_idx);
-    else
+    indicesToAccess = [ (PNLTM_idx - 2), (PNLTM_idx - 1), (PNLTM_idx + 1), (PNLTM_idx + 2)]; % get indices to access
+
+    isValid = indicesToAccess > 0 & indicesToAccess <= length(PNLT); % Logical condition to check for valid indices
+
+    if all(isValid~=0) % runs only if all indices are valid
+
+        Cavg = sum( [Cmax(PNLTM_idx - 2), Cmax(PNLTM_idx - 1), Cmax(PNLTM_idx),...
+            Cmax(PNLTM_idx + 1), Cmax(PNLTM_idx + 2)] )/5;
+
+        if Cavg > Cmax(PNLTM_idx)
+            DeltaB = Cavg*Cmax(PNLTM_idx);
+        else
+            DeltaB = 0;
+        end
+
+    else % there are empty indices: Bandsharing adjustment to PNLTM not possible
         DeltaB = 0;
+        warning( 'Bandsharing adjustment to PNLTM not possible. DeltaB truncated to zero.' );
     end
 
     % apply adjustment
