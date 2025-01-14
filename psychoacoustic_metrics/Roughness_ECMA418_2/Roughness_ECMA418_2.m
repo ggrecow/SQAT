@@ -1,5 +1,5 @@
-function OUT = Roughness_ECMA418_2(insig, fs, fieldtype, binaural, time_skip, show)
-% OUT = Roughness_ECMA418_2(insig, fs, fieldtype, binaural, time_skip, show)
+function OUT = Roughness_ECMA418_2(insig, fs, fieldtype, time_skip, show)
+% OUT = Roughness_ECMA418_2(insig, fs, fieldtype, time_skip, show)
 %
 % Returns roughness values **and frequencies** according to ECMA-418-2:2024
 % (using the Sottek Hearing Model) for an input calibrated single mono
@@ -9,7 +9,7 @@ function OUT = Roughness_ECMA418_2(insig, fs, fieldtype, binaural, time_skip, sh
 %
 % Inputs
 % ------
-% insig : vector or 2D matrix
+% insig : column vector [Nx1] mono or [Nx2] binaural
 %     the input signal as single mono or stereo audio (sound
 %     pressure) signals
 %
@@ -19,10 +19,6 @@ function OUT = Roughness_ECMA418_2(insig, fs, fieldtype, binaural, time_skip, sh
 % fieldtype : keyword string (default: 'free-frontal')
 %             determines whether the 'free-frontal' or 'diffuse' field stages
 %             are applied in the outer-middle ear filter
-%
-% binaural : Boolean true/false (default: true)
-%            flag indicating whether to output binaural roughness for stereo
-%            input signal.
 %
 % time_skip : integer (default: 0 seconds)
 %                   skip start of the signal in <time_skip> seconds for statistics calculations
@@ -49,10 +45,6 @@ function OUT = Roughness_ECMA418_2(insig, fs, fieldtype, binaural, time_skip, sh
 % roughnessTDep : vector or matrix
 %                 time-dependent overall roughness
 %                 arranged as [time(, channels)]
-% 
-% roughness90Pc : number or vector
-%                 time-aggregated (90th percentile) overall roughness
-%                 arranged as [roughness(, channels)]
 %
 % bandCentreFreqs : vector
 %                   centre frequencies corresponding with each (half)
@@ -68,8 +60,31 @@ function OUT = Roughness_ECMA418_2(insig, fs, fieldtype, binaural, time_skip, sh
 %              identifies the soundfield type applied (the input argument
 %              fieldtype)
 %
-% If binaural=true, a corresponding set of outputs for the binaural
-% roughness is also contained in roughnessSHM
+% Several statistics based on roughnessTDep
+%         ** Rmean : mean value of instantaneous roughness (asper)
+%         ** Rstd : standard deviation of instantaneous roughness (asper)
+%         ** Rmax : maximum of instantaneous roughness (asper)
+%         ** Rmin : minimum of instantaneous roughness (asper)
+%         ** Rx : roughness value exceeded during x percent of the time (asper)
+%             in case of binaural input, Rx(1,3), being 1st, 2nd and 3rd column 
+%             corresponding to [left ear, right ear, binaural] 
+%
+% In case of binaural inputs, the following additional field are provided
+% separetly for the "single binaural" case (combination of left and right ears)  
+%
+% specRoughnessBin : matrix
+%                 time-dependent specific roughness for each (half)
+%                 critical band
+%                 arranged as [time, bands]
+%
+% specRoughnessAvgBin : matrix
+%                    time-averaged specific roughness for each (half)
+%                    critical band
+%                    arranged as [bands]
+%
+% roughnessTDepBin : vector or matrix
+%                 time-dependent overall roughness
+%                 arranged as [time]
 %
 % If show=true, a set of plots is returned illustrating the energy
 % time-averaged A-weighted sound level, the time-dependent specific and
@@ -117,30 +132,25 @@ function OUT = Roughness_ECMA418_2(insig, fs, fieldtype, binaural, time_skip, sh
 % Date last checked: 14.01.2025
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Arguments validation
-    arguments (Input)
+    arguments (Input) % Matlab R2018b or newer
         insig (:, :) double {mustBeReal}
         fs (1, 1) double {mustBePositive, mustBeInteger}
-        % axisn (1, 1) {mustBeInteger, mustBeInRange(axisn, 1, 2)} = 1
         fieldtype (1, :) string {mustBeMember(fieldtype,...
                                                        {'free-frontal',...
                                                         'diffuse'})} = 'free-frontal'
-        % waitBar {mustBeNumericOrLogical} = true
-        binaural {mustBeNumericOrLogical} = true
         time_skip (1, 1) double {mustBeReal} = 0
         show {mustBeNumericOrLogical} = false
     end
 
-    % axisn : integer (1 or 2, default: 1)
-%         the time axis along which to calculate the tonality
-
-% %% Load path
-% addpath(genpath(fullfile("refmap-psychoacoustics", "src", "mlab")))
-
 %% Input checks
-% Orient input matrix
-% if axisn == 2
-%     insig = insig.';
-% end
+
+% check insig dimension (only [Nx1] or [Nx2] are valid)
+if  size(insig,1) > 2 & size(insig,2) > 2 % insig has more than 2 channels
+    error('Error: Input signal has more than 2 channels. ')
+elseif  size(insig, 2) > 2  % insig is [1xN] or [2xN]
+    insig = insig';
+    fprintf('\nWarning: Input signal is not [Nx1] or [Nx2] and was transposed.\n');
+end
 
 % Check the length of the input data (must be longer than 300 ms)
 if size(insig, 1) <=  300/1000*fs
@@ -153,10 +163,11 @@ if size(insig, 2) > 2
 else
     inchans = size(insig, 2);
     if inchans == 2
-        chans = ["Stereo left";
-                 "Stereo right"];
+        chans = ["Stereo left"; "Stereo right"];
+        binaural = true;
     else
         chans = "Mono";
+        binaural = false;
     end
 end
 
@@ -661,7 +672,7 @@ end
 
 % Section 7.1.10 ECMA-418-2:2024
 % Overall roughness [R]
-% roughness90Pc = prctile(roughnessTDep(17:end, :, :), 90, 1);
+roughness90Pc = prctile(roughnessTDep(17:end, :, :), 90, 1);
 
 % time (s) corresponding with results output [t]
 timeOut = (0:(size(specRoughness, 1) - 1))/sampleRate50;
@@ -669,38 +680,69 @@ timeOut = (0:(size(specRoughness, 1) - 1))/sampleRate50;
 %% Output assignment
 
 % Assign outputs to structure
-if outchans == 3
+if outchans == 3 % stereo case ["Stereo left"; "Stereo right"; "single binaural"];
 
+    % outputs only with ["Stereo left"; "Stereo right"] 
     OUT.specRoughness = specRoughness(:, :, 1:2);
     OUT.specRoughnessAvg = specRoughnessAvg(:, 1:2);
     OUT.roughnessTDep = roughnessTDep(:, 1:2);
-    % OUT.roughness90Pc = roughness90Pc(:, 1:2);
+    
+    % outputs only with  "single binaural"
     OUT.specRoughnessBin = specRoughness(:, :, 3);
     OUT.specRoughnessAvgBin = specRoughnessAvg(:, 3);
     OUT.roughnessTDepBin = roughnessTDep(:, 3);
-    % OUT.roughness90PcBin = roughness90Pc(:, 3);
+
+    % general outputs
     OUT.bandCentreFreqs = bandCentreFreqs;
     OUT.timeOut = timeOut;
+    OUT.timeInsig = (0 : length(insig(:,1))-1) ./ fs;
     OUT.soundField = fieldtype;
 
-else
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    % Roughness statistics based on InstantaneousRoughness ["Stereo left"; "Stereo right"; "single binaural"];
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    
+    [~,idx] = min( abs(timeOut-time_skip) ); % find idx of time_skip on time vector
+    [~,idxInsig] = min( abs(OUT.timeInsig - time_skip) ); % find idx of time_skip on time vector
 
-     OUT.specRoughness = specRoughness;
+    OUT.Rmax = max(roughnessTDep(idx:end,1:outchans));
+    OUT.Rmin = min(roughnessTDep(idx:end,1:outchans));
+    OUT.Rmean = mean(roughnessTDep(idx:end,1:outchans));
+    OUT.Rstd = std(roughnessTDep(idx:end,1:outchans));
+    OUT.R1 = get_percentile(roughnessTDep(idx:end,1:outchans),1);
+    OUT.R2 = get_percentile(roughnessTDep(idx:end,1:outchans),2);
+    OUT.R3 = get_percentile(roughnessTDep(idx:end,1:outchans),3);
+    OUT.R4 = get_percentile(roughnessTDep(idx:end,1:outchans),4);
+    OUT.R5 = get_percentile(roughnessTDep(idx:end,1:outchans),5);
+    OUT.R10 = get_percentile(roughnessTDep(idx:end,1:outchans),10);
+    OUT.R20 = get_percentile(roughnessTDep(idx:end,1:outchans),20);
+    OUT.R30 = get_percentile(roughnessTDep(idx:end,1:outchans),30);
+    OUT.R40 = get_percentile(roughnessTDep(idx:end,1:outchans),40);
+    OUT.R50 = median(roughnessTDep(idx:end,1:outchans));
+    OUT.R60 = get_percentile(roughnessTDep(idx:end,1:outchans),60);
+    OUT.R70 = get_percentile(roughnessTDep(idx:end,1:outchans),70);
+    OUT.R80 = get_percentile(roughnessTDep(idx:end,1:outchans),80);
+    OUT.R90 = get_percentile(roughnessTDep(idx:end,1:outchans),90);
+    OUT.R95 = get_percentile(roughnessTDep(idx:end,1:outchans),95);
+
+else % mono case
+
+    OUT.specRoughness = specRoughness;
     OUT.specRoughnessAvg = specRoughnessAvg;
     OUT.roughnessTDep = roughnessTDep;
+
     OUT.bandCentreFreqs = bandCentreFreqs;
     OUT.timeOut = timeOut;
     OUT.timeInsig = (0 : length(insig)-1) ./ fs;
     OUT.soundField = fieldtype;
 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    % Roughness statistics based on InstantaneousRoughness
+    % Roughness statistics based on InstantaneousRoughness (mono case)
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     
     [~,idx] = min( abs(timeOut-time_skip) ); % find idx of time_skip on time vector
-    [~,idxInsig] = min( abs(OUT.timeInsig-time_skip) ); % find idx of time_skip on time vector
+    [~,idxInsig] = min( abs(OUT.timeInsig - time_skip) ); % find idx of time_skip on time vector
 
-    % OUT.roughness90Pc = roughness90Pc;
     OUT.Rmax = max(roughnessTDep(idx:end));
     OUT.Rmin = min(roughnessTDep(idx:end));
     OUT.Rmean = mean(roughnessTDep(idx:end));
@@ -725,11 +767,12 @@ end
 %% Output plotting
 
 if show
+
     % Plot figures
     % ------------
     for chan = outchans:-1:1
         % Plot results
-        fig = figure;
+        fig = figure('name', sprintf( 'Roughness analysis - ECMA-418-2 (%s signal)', chans(chan) ) );
         tiledlayout(fig, 2, 1);
         movegui(fig, 'center');
         ax1 = nexttile(1);
@@ -758,43 +801,58 @@ if show
         weight_time = 'f'; % Time weighting
         dBFS = 94;  
 
-        % Filter signal to determine A-weighted time-averaged level
-        if chan == 3
+        if chan == 3 % the binaural channel
 
-            [pA, ~] = Do_SLM(insig(idxInsig:end), fs, weight_freq, weight_time, dBFS);
-            LAeq2 = Get_Leq(pA, fs); % Make sure you enter only mono signals
+            % Filter signal to determine A-weighted time-averaged level
+            for i=1:outchans-1
+                [pA(:,i), ~] = Do_SLM( insig(idxInsig:end, i) , fs, weight_freq, weight_time, dBFS);
+                LAeq2(i) = Get_Leq(pA(:,i), fs); % Make sure you enter only mono signals
+            end
 
-             % take the higher channel level as representative (PD ISO/TS
-            % 12913-3:2019 Annex D)
+             % take the higher channel level as representative (PD ISO/TS 12913-3:2019 Annex D)
             [LAeq, LR] = max(LAeq2);
 
             % if branch to identify which channel is higher
             if LR == 1
-                whichEar = ' left ear';
+                whichEar = 'left ear';
             else
-                whichEar = ' right ear';
+                whichEar = 'right ear';
             end  % end of if branch
+            % chan_lab = chan_lab + whichEar;
 
-            chan_lab = chan_lab + whichEar;
-
-        else
+        elseif chan == 2 % Stereo right
             [pA, ~] = Do_SLM(insig(idxInsig:end, chan), fs, weight_freq, weight_time, dBFS);
             LAeq = Get_Leq(pA, fs); % Make sure you enter only mono signals
-         end
-        
-        title(strcat(chan_lab,...
-                     'signal - {\itL}_{A,eq} = ', {' '},...
-                     num2str(round(LAeq,1)), " (dB SPL)"),...
-                     'FontWeight', 'normal', 'FontName', 'Arial');
+            whichEar = 'right ear';
+
+        elseif chan == 1 % Stereo left or mono
+            [pA, ~] = Do_SLM(insig(idxInsig:end, chan), fs, weight_freq, weight_time, dBFS);
+            LAeq = Get_Leq(pA, fs); % Make sure you enter only mono signals
+            if outchans~=1
+                whichEar = 'left ear';
+            else
+                whichEar = 'mono';
+            end
+        end
+         
+        titleString = sprintf('%s signal, $L_{\\textrm{A,eq,%s}} =$ %.3g (dB SPL)', chans(chan), whichEar, LAeq);
+
+        title(titleString, 'Interpreter','Latex' );
+
+        % title(strcat(chan_lab,...
+        %              ' signal {\itL}_{A,eq,mono} = ', {' '},...
+        %              num2str(round(LAeq,1)), " (dB SPL)"),...
+        %              'FontWeight', 'normal', 'FontName', 'Arial');
 
         ax2 = nexttile(2);
-        plot(ax2, timeOut, OUT.R5(1, chan)*ones(size(timeOut)), 'color',...
-             cmap_inferno(34, :), 'LineWidth', 1, 'DisplayName', "95th" + string(newline) + "percentile");
-        hold on
         plot(ax2, timeOut, roughnessTDep(:, chan), 'color', cmap_inferno(166, :),...
-             'LineWidth', 0.75, 'DisplayName', "Time-" + string(newline) + "dependent");
-        hold off
+            'LineWidth', 0.75, 'DisplayName', "Time-" + string(newline) + "dependent");
+        hold on;
+        plot(ax2, timeOut, OUT.R5(1, chan)*ones(size(timeOut)),'--', 'color',...
+            cmap_inferno(34, :), 'LineWidth', 1, 'DisplayName', "95th" + string(newline) + "percentile");
+        hold off;
         ax2.XLim = [timeOut(1), timeOut(end) + (timeOut(2) - timeOut(1))];
+
         if max(roughnessTDep(:, chan)) > 0
             ax2.YLim = [0, 1.1*ceil(max(roughnessTDep(:, chan))*10)/10];
         end
@@ -815,4 +873,4 @@ if show
     end  % end of for loop for plotting over channels
 end  % end of if branch for plotting if outplot true
 
-% end of function
+end %of function
