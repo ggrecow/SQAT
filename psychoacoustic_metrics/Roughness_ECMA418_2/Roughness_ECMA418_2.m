@@ -4,7 +4,11 @@ function OUT = Roughness_ECMA418_2(insig, fs, fieldtype, time_skip, show)
 % Returns roughness values **and frequencies** according to ECMA-418-2:2024
 % (using the Sottek Hearing Model) for an input calibrated single mono
 % or single stereo audio (sound pressure) time-series signal, insig. For stereo
-% signals, the binaural roughness can be calculated, and each channel is
+% signals, Roughness is calculated for each channel [left ear, right ear],
+% and also for the combination of both, denominated as 
+% "combined binaural" (see Section 7.1.11 ECMA-418-2:2024)
+% 
+% the "combined binaural" roughness is calculated, and each channel is
 % also analysed separately.
 %
 % Inputs
@@ -20,8 +24,10 @@ function OUT = Roughness_ECMA418_2(insig, fs, fieldtype, time_skip, show)
 %             determines whether the 'free-frontal' or 'diffuse' field stages
 %             are applied in the outer-middle ear filter
 %
-% time_skip : integer (default: 0 seconds)
+% time_skip : integer (default: 0.3 seconds - see Section 7.1.8 ECMA-418-2:2024)
 %                   skip start of the signal in <time_skip> seconds for statistics calculations
+%                   avoids transient responses of the digital filters.
+%                   Best-practice: time_skip should be equal or higher than default value
 %
 % show : Boolean true/false (default: false)
 %           flag indicating whether to generate a figure from the output
@@ -41,6 +47,8 @@ function OUT = Roughness_ECMA418_2(insig, fs, fieldtype, time_skip, show)
 %                    time-averaged specific roughness for each (half)
 %                    critical band
 %                    arranged as [bands(, channels)]
+%                    OBS: already discard initial 300 ms to avoid
+%                    transient responses of the digital filters.
 %
 % roughnessTDep : vector or matrix
 %                 time-dependent overall roughness
@@ -67,10 +75,10 @@ function OUT = Roughness_ECMA418_2(insig, fs, fieldtype, time_skip, show)
 %         ** Rmin : minimum of instantaneous roughness (asper)
 %         ** Rx : roughness value exceeded during x percent of the time (asper)
 %             in case of binaural input, Rx(1,3), being 1st, 2nd and 3rd column 
-%             corresponding to [left ear, right ear, binaural] 
+%             corresponding to [left ear, right ear, comb. binaural] 
 %
-% In case of binaural inputs, the following additional field are provided
-% separetly for the "single binaural" case (combination of left and right ears)  
+% In case of binaural (stereo) inputs, the following additional field are provided
+% separately for the "comb. binaural" case (combination of left and right ears)  
 %
 % specRoughnessBin : matrix
 %                 time-dependent specific roughness for each (half)
@@ -81,18 +89,20 @@ function OUT = Roughness_ECMA418_2(insig, fs, fieldtype, time_skip, show)
 %                    time-averaged specific roughness for each (half)
 %                    critical band
 %                    arranged as [bands]
+%                    OBS: already discard initial 300 ms to avoid
+%                    transient responses of the digital filters.
 %
 % roughnessTDepBin : vector or matrix
 %                 time-dependent overall roughness
 %                 arranged as [time]
 %
-% If show=true, a set of plots is returned illustrating the energy
+% If show==true, a set of plots is returned illustrating the energy
 % time-averaged A-weighted sound level, the time-dependent specific and
 % overall roughness, with the latter also indicating the time-aggregated
-% value. A set of plots is returned for each input channel, with another
-% set for the binaural roughness, if binaural=true. In that case, the
-% indicated sound level corresponds with the channel with the highest sound
-% level.
+% value. In case of stereo signals, a set of plots is returned for each input channel, 
+% with another set for the combined binaural roughness. For the latter, the
+% indicated time-averaged A-weighted sound level corresponds with the channel with 
+% the highest sound level.
 %
 % Assumptions
 % -----------
@@ -129,7 +139,7 @@ function OUT = Roughness_ECMA418_2(insig, fs, fieldtype, time_skip, show)
 % information.
 %
 % Checked by: Gil Felix Greco
-% Date last checked: 14.01.2025
+% Date last checked: 15.01.2025
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Arguments validation
     arguments (Input) % Matlab R2018b or newer
@@ -138,7 +148,7 @@ function OUT = Roughness_ECMA418_2(insig, fs, fieldtype, time_skip, show)
         fieldtype (1, :) string {mustBeMember(fieldtype,...
                                                        {'free-frontal',...
                                                         'diffuse'})} = 'free-frontal'
-        time_skip (1, 1) double {mustBeReal} = 0
+        time_skip (1, 1) double {mustBeReal} = 0.3
         show {mustBeNumericOrLogical} = false
     end
 
@@ -650,14 +660,14 @@ if inchans == 2 && binaural
     specRoughness(:, :, 3) = sqrt(sum(specRoughness.^2, 3)/2);  % Equation 112
     outchans = 3;  % set number of 'channels' to stereo plus single binaural
     chans = [chans;
-             "Binaural"];
+             "Combined binaural"];
 else
     outchans = inchans;  % assign number of output channels
 end
 
 % Section 7.1.8 ECMA-418-2:2024
 % Time-averaged specific roughness [R'(z)]
-specRoughnessAvg = mean(specRoughness(17:end, :, :), 1);
+specRoughnessAvg = mean(specRoughness(16:end, :, :), 1);
 
 % Section 7.1.9 ECMA-418-2:2024
 % Time-dependent roughness Equation 111 [R(l_50)]
@@ -672,7 +682,7 @@ end
 
 % Section 7.1.10 ECMA-418-2:2024
 % Overall roughness [R]
-roughness90Pc = prctile(roughnessTDep(17:end, :, :), 90, 1);
+% roughness90Pc = prctile(roughnessTDep(16:end, :, :), 90, 1);
 
 % time (s) corresponding with results output [t]
 timeOut = (0:(size(specRoughness, 1) - 1))/sampleRate50;
@@ -680,7 +690,7 @@ timeOut = (0:(size(specRoughness, 1) - 1))/sampleRate50;
 %% Output assignment
 
 % Assign outputs to structure
-if outchans == 3 % stereo case ["Stereo left"; "Stereo right"; "single binaural"];
+if outchans == 3 % stereo case ["Stereo left"; "Stereo right"; "Combined binaural"];
 
     % outputs only with ["Stereo left"; "Stereo right"] 
     OUT.specRoughness = specRoughness(:, :, 1:2);
@@ -699,11 +709,11 @@ if outchans == 3 % stereo case ["Stereo left"; "Stereo right"; "single binaural"
     OUT.soundField = fieldtype;
 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    % Roughness statistics based on InstantaneousRoughness ["Stereo left"; "Stereo right"; "single binaural"];
+    % Roughness statistics based on InstantaneousRoughness ["Stereo left"; "Stereo right"; "Combined binaural"];
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     
-    [~,idx] = min( abs(timeOut-time_skip) ); % find idx of time_skip on time vector
-    [~,idxInsig] = min( abs(OUT.timeInsig - time_skip) ); % find idx of time_skip on time vector
+    [~,idx] = min( abs(timeOut-time_skip) ); % find idx of time_skip on timeOut
+    [~,idxInsig] = min( abs(OUT.timeInsig - time_skip) ); % find idx of time_skip on timeInsig
 
     OUT.Rmax = max(roughnessTDep(idx:end,1:outchans));
     OUT.Rmin = min(roughnessTDep(idx:end,1:outchans));
@@ -740,8 +750,8 @@ else % mono case
     % Roughness statistics based on InstantaneousRoughness (mono case)
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     
-    [~,idx] = min( abs(timeOut-time_skip) ); % find idx of time_skip on time vector
-    [~,idxInsig] = min( abs(OUT.timeInsig - time_skip) ); % find idx of time_skip on time vector
+    [~,idx] = min( abs(timeOut-time_skip) ); % find idx of time_skip on timeOut
+    [~,idxInsig] = min( abs(OUT.timeInsig - time_skip) ); % find idx of time_skip on timeInsig
 
     OUT.Rmax = max(roughnessTDep(idx:end));
     OUT.Rmin = min(roughnessTDep(idx:end));

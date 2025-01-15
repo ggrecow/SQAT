@@ -27,9 +27,9 @@ time_insig=(0 : length(RefSignal)-1) ./ fs;  % time vector of the audio input, i
 %% Compute roughness (mono signal)
 
 fieldtype = 'free-frontal'; % string (default: 'free-frontal'; or 'diffuse')
-time_skip = 1;% time_skip, in seconds for statistical calculations (default: 0 seconds)
+time_skip = 0.3;% time_skip, in seconds for statistical calculations (default: 0.3 seconds - avoids transient responses of the digital filters)
 show = 1; % show results, 'false' (disable, default value) or 'true' (enable)
- 
+
 OUT = Roughness_ECMA418_2(RefSignal, fs, fieldtype, time_skip, show);
                               
 fprintf('\nRoughness (ECMA-418-2:2024 - Hearing Model of Sottek): \n');
