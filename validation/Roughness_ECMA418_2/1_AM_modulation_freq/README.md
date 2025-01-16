@@ -11,12 +11,14 @@ The figures below compare the results obtained using the `Roughness_ECMA418_2` i
 
 | ![](figs/validation_roughness_fmod_125hz.png)       | ![](figs/validation_roughness_fmod_250hz.png)       |
 | -------------- | -------------- |
+
 | ![](figs/validation_roughness_fmod_500hz.png)   | ![](figs/validation_roughness_fmod_1khz.png)  |
 | -------------- | -------------- |
+
 | ![](figs/validation_roughness_fmod_2khz.png)   | ![](figs/validation_roughness_fmod_4khz.png)  |
+| -------------- | -------------- |
 
 
-:-------------------------:| 
 ![](figs/validation_roughness_fmod_8khz.png)  
 
 # References

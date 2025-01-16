@@ -229,7 +229,7 @@ il_plot(xRef, yRef, xSQAT, ySQAT, title_tag, save_figs, save_tag, figures_dir);
 %% plot - fc=250 Hz
 
 title_tag = '$f_{\mathrm{c}}=250$~Hz';
-save_tag = 'validation_roughness_fmod_125hz';
+save_tag = 'validation_roughness_fmod_250hz';
 
 xRef = 20:10:130;  
 yRef = fmod_250hz; 
