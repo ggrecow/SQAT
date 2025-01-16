@@ -6,10 +6,9 @@ function OUT = Roughness_ECMA418_2(insig, fs, fieldtype, time_skip, show)
 % or single stereo audio (sound pressure) time-series signal, insig. For stereo
 % signals, Roughness is calculated for each channel [left ear, right ear],
 % and also for the combination of both, denominated as 
-% "combined binaural" (see Section 7.1.11 ECMA-418-2:2024)
-% 
-% the "combined binaural" roughness is calculated, and each channel is
-% also analysed separately.
+% "combined binaural" (see Section 7.1.11 ECMA-418-2:2024). According to 
+%  ECMA-418-2:2024 (Section 7.1.10), the 90th percentile of the time-dependent roughness 
+% shall be used as a representative single value.
 %
 % Inputs
 % ------
