@@ -7,6 +7,7 @@ This folder contains a series of codes used to verify the implementation of a pa
 - [Fluctuation strength model from Osses *et al.* [4]](FluctuationStrength_Osses2016)
 - [Tonality model from Aures [5]](Tonality_Aures1985) 
 - [Effective Perceived Noise Level (EPNL) [6]](EPNL_FAR_Part36) 
+- [Roughness model according to ECMA-418-2:2024 [7]](Roughness_ECMA418_2) 
 
 # References
 [1] International Organization for Standardization. (2017). Acoustics - Methods for calculating loudness - Part 1: Zwicker method (ISO Standard No. 532-1).
@@ -20,3 +21,5 @@ This folder contains a series of codes used to verify the implementation of a pa
 [5] Aures, W. (1985). Berechnungsverfahren für den sensorischen Wohlklang beliebiger Schallsignale (A model for calculating the sensory euphony of various sounds). [Acta Acustica united with Acustica](https://www.ingentaconnect.com/content/dav/aaua/1985/00000059/00000002/art00008), 59(2), 130-141.
 
 [6] Federal Aviation Regulations, 14 CFR Parts 36 and 91, Docket No. FAA-2003-16526; Amendment No. 36-26, 91-288, (2005). [https://www.ecfr.gov/current/title-14/appendix-Appendix%20A%20to%20Part%2036](https://www.ecfr.gov/current/title-14/appendix-Appendix%20A%20to%20Part%2036) (Last viewed 30 Oct 2023)
+
+[7] European Computer Manufacturers Association. (2024). Psychoacoustic metrics for ITT equipment — Part 2 (methods for describing human perception based on the Sottek Hearing Model) (ECMA international standard No. 418-2, 3rd Edition/December 2024). [https://ecma-international.org/wp-content/uploads/ECMA-418-2_3rd_edition_december_2024.pdf](https://ecma-international.org/wp-content/uploads/ECMA-418-2_3rd_edition_december_2024.pdf) (Last viewed 14 Jan 2025)
