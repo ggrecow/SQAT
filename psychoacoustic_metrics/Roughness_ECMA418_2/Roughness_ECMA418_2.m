@@ -7,28 +7,30 @@ function OUT = Roughness_ECMA418_2(insig, fs, fieldtype, time_skip, show)
 % signals, Roughness is calculated for each channel [left ear, right ear],
 % and also for the combination of both, denominated as 
 % "combined binaural" (see Section 7.1.11 ECMA-418-2:2024). According to 
-%  ECMA-418-2:2024 (Section 7.1.10), the 90th percentile of the time-dependent roughness 
-% shall be used as a representative single value.
+%  ECMA-418-2:2024 (Section 7.1.10), the 90th percentile 
+% (a.k.a. value exceeded 10% of the time) of the time-dependent roughness 
+% must be used as the representative single value (overall roughness).
 %
 % Reference signal: 60 dBSPL 1 kHz tone 100% modulated at 70 Hz yields 1 asper.
 %
 % Inputs
 % ------
 % insig : column vector [Nx1] mono or [Nx2] binaural
-%     the input signal as single mono or stereo audio (sound
-%     pressure) signals
+%            the input signal as single mono or stereo audio (sound
+%            pressure) signals
 %
 % fs : integer
 %                the sample rate (frequency) of the input signal(s)
 %
 % fieldtype : keyword string (default: 'free-frontal')
-%             determines whether the 'free-frontal' or 'diffuse' field stages
-%             are applied in the outer-middle ear filter
+%                  determines whether the 'free-frontal' or 'diffuse' field stages
+%                  are applied in the outer-middle ear filter
 %
-% time_skip : integer (default: 0.3 seconds - see Section 7.1.8 ECMA-418-2:2024)
-%                   skip start of the signal in <time_skip> seconds for statistics calculations
-%                   avoids transient responses of the digital filters.
-%                   Best-practice: time_skip should be equal or higher than default value
+% time_skip : integer (default: 0.32 seconds - see Section 7.1.8 ECMA-418-2:2024)
+%                   skip start of the signal in <time_skip> seconds so that
+%                   the transient response of the digital filters is avoided.
+%                   Best-practice: <time_skip> must be equal or higher than
+%                   default value
 %
 % show : Boolean true/false (default: false)
 %           flag indicating whether to generate a figure from the output
@@ -37,7 +39,7 @@ function OUT = Roughness_ECMA418_2(insig, fs, fieldtype, time_skip, show)
 % -------
 %
 % OUT : structure
-%             contains the following fields:
+%            contains the following fields:
 %
 % specRoughness : matrix
 %                 time-dependent specific roughness for each (half)
@@ -48,12 +50,18 @@ function OUT = Roughness_ECMA418_2(insig, fs, fieldtype, time_skip, show)
 %                    time-averaged specific roughness for each (half)
 %                    critical band
 %                    arranged as [bands(, channels)]
-%                    OBS: already discard initial 300 ms to avoid
-%                    transient responses of the digital filters.
+%                    OBS: takes <time_skip> into consideration
 %
 % roughnessTDep : vector or matrix
 %                 time-dependent overall roughness
 %                 arranged as [time(, channels)]
+%
+% roughness90Pc : number or vector
+%                             90th percentile (a.k.a. value exceeded 10% of the time) 
+%                             of the time-dependent roughness. According to 
+%                             ECMA-418-2:2024 (Section 7.1.10), this quantity must be used as 
+%                             as the representative single value (overall roughness).               
+%                             OBS: takes <time_skip> into consideration
 %
 % bandCentreFreqs : vector
 %                   centre frequencies corresponding with each (half)
@@ -63,7 +71,7 @@ function OUT = Roughness_ECMA418_2(insig, fs, fieldtype, time_skip, show)
 %           time (seconds) corresponding with time-dependent roughness outputs
 %
 % timeInsig : vector
-%           time (seconds) vector of insig
+%           time (seconds) of insig
 %
 % soundField : string
 %              identifies the soundfield type applied (the input argument
@@ -77,9 +85,10 @@ function OUT = Roughness_ECMA418_2(insig, fs, fieldtype, time_skip, show)
 %         ** Rx : roughness value exceeded during x percent of the time (asper)
 %             in case of binaural input, Rx(1,3), being 1st, 2nd and 3rd column 
 %             corresponding to [left ear, right ear, comb. binaural] 
+%             OBS: all quantities here take <time_skip> into consideration
 %
-% In case of binaural (stereo) inputs, the following additional field are provided
-% separately for the "comb. binaural" case (combination of left and right ears)  
+% In case of stereo inputs, the following additional fields are provided
+% separately for the "comb. binaural" case (i.e. combination of left and right ears)  
 %
 % specRoughnessBin : matrix
 %                 time-dependent specific roughness for each (half)
@@ -90,12 +99,18 @@ function OUT = Roughness_ECMA418_2(insig, fs, fieldtype, time_skip, show)
 %                    time-averaged specific roughness for each (half)
 %                    critical band
 %                    arranged as [bands]
-%                    OBS: already discard initial 300 ms to avoid
-%                    transient responses of the digital filters.
+%                    OBS: takes <time_skip> into consideration
 %
 % roughnessTDepBin : vector or matrix
 %                 time-dependent overall roughness
 %                 arranged as [time]
+%
+% roughness90PcBin : number
+%                             90th percentile (a.k.a. value exceeded 10% of the time) 
+%                             of the time-dependent roughness. According to 
+%                             ECMA-418-2:2024 (Section 7.1.10), this quantity must be used as 
+%                              the representative single value (overall roughness).  
+%                             OBS: takes <time_skip> into consideration.
 %
 % If show==true, a set of plots is returned illustrating the energy
 % time-averaged A-weighted sound level, the time-dependent specific and
@@ -140,7 +155,7 @@ function OUT = Roughness_ECMA418_2(insig, fs, fieldtype, time_skip, show)
 % information.
 %
 % Checked by: Gil Felix Greco
-% Date last checked: 15.01.2025
+% Date last checked: 17.01.2025
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Arguments validation
     arguments (Input) % Matlab R2018b or newer
@@ -149,7 +164,7 @@ function OUT = Roughness_ECMA418_2(insig, fs, fieldtype, time_skip, show)
         fieldtype (1, :) string {mustBeMember(fieldtype,...
                                                        {'free-frontal',...
                                                         'diffuse'})} = 'free-frontal'
-        time_skip (1, 1) double {mustBeReal} = 0.3
+        time_skip (1, 1) double {mustBeReal} = 0.32
         show {mustBeNumericOrLogical} = false
     end
 
@@ -180,6 +195,11 @@ else
         chans = "Mono";
         binaural = false;
     end
+end
+
+if time_skip<0.32
+        warning("Time_skip must be at least 320 ms to avoid transient responses of the digital filters (see ECMA-418-2:2024 (Section 7.1.8 )). Setting time_skip to 0.32 seconds!!!")
+        time_skip = 0.32;
 end
 
 % waitBar : keyword string (default: false)
@@ -268,6 +288,9 @@ if fs ~= sampleRate48k  % Resample signal
 else  % don't resample
     p_re = insig;
 end
+
+% get time vector of input signal
+timeInsig = (0 : length(p_re(:,1))-1) ./ fs;
 
 % Input signal samples
 n_samples = size(p_re, 1);
@@ -666,9 +689,15 @@ else
     outchans = inchans;  % assign number of output channels
 end
 
+% time (s) corresponding with results output [t]
+timeOut = (0:(size(specRoughness, 1) - 1))/sampleRate50;
+
+[~, time_skip_idx] = min( abs(timeOut-time_skip) ); % find idx of time_skip on timeOut
+[~, idx_insig] = min( abs(timeInsig - time_skip) ); % find idx of time_skip on timeInsig
+
 % Section 7.1.8 ECMA-418-2:2024
 % Time-averaged specific roughness [R'(z)]
-specRoughnessAvg = mean(specRoughness(16:end, :, :), 1);
+specRoughnessAvg = mean(specRoughness(time_skip_idx:end, :, :), 1); %<--- time index takes <time_skip> into consideration
 
 % Section 7.1.9 ECMA-418-2:2024
 % Time-dependent roughness Equation 111 [R(l_50)]
@@ -683,10 +712,7 @@ end
 
 % Section 7.1.10 ECMA-418-2:2024
 % Overall roughness [R]
-% roughness90Pc = prctile(roughnessTDep(16:end, :, :), 90, 1);
-
-% time (s) corresponding with results output [t]
-timeOut = (0:(size(specRoughness, 1) - 1))/sampleRate50;
+roughness90Pc = prctile(roughnessTDep(time_skip_idx:end, :, :), 90, 1); %<--- time index takes <time_skip> into consideration
 
 %% Output assignment
 
@@ -697,82 +723,79 @@ if outchans == 3 % stereo case ["Stereo left"; "Stereo right"; "Combined binaura
     OUT.specRoughness = specRoughness(:, :, 1:2);
     OUT.specRoughnessAvg = specRoughnessAvg(:, 1:2);
     OUT.roughnessTDep = roughnessTDep(:, 1:2);
-    
+    OUT.roughness90Pc = roughness90Pc(:, 1:2);
+
     % outputs only with  "single binaural"
     OUT.specRoughnessBin = specRoughness(:, :, 3);
     OUT.specRoughnessAvgBin = specRoughnessAvg(:, 3);
     OUT.roughnessTDepBin = roughnessTDep(:, 3);
+    OUT.roughness90PcBin = roughness90Pc(:, 3);
 
     % general outputs
     OUT.bandCentreFreqs = bandCentreFreqs;
     OUT.timeOut = timeOut;
-    OUT.timeInsig = (0 : length(insig(:,1))-1) ./ fs;
+    OUT.timeInsig = timeInsig;
     OUT.soundField = fieldtype;
 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % Roughness statistics based on InstantaneousRoughness ["Stereo left"; "Stereo right"; "Combined binaural"];
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     
-    [~,idx] = min( abs(timeOut-time_skip) ); % find idx of time_skip on timeOut
-    [~,idxInsig] = min( abs(OUT.timeInsig - time_skip) ); % find idx of time_skip on timeInsig
-
-    OUT.Rmax = max(roughnessTDep(idx:end,1:outchans));
-    OUT.Rmin = min(roughnessTDep(idx:end,1:outchans));
-    OUT.Rmean = mean(roughnessTDep(idx:end,1:outchans));
-    OUT.Rstd = std(roughnessTDep(idx:end,1:outchans));
-    OUT.R1 = get_percentile(roughnessTDep(idx:end,1:outchans),1);
-    OUT.R2 = get_percentile(roughnessTDep(idx:end,1:outchans),2);
-    OUT.R3 = get_percentile(roughnessTDep(idx:end,1:outchans),3);
-    OUT.R4 = get_percentile(roughnessTDep(idx:end,1:outchans),4);
-    OUT.R5 = get_percentile(roughnessTDep(idx:end,1:outchans),5);
-    OUT.R10 = get_percentile(roughnessTDep(idx:end,1:outchans),10);
-    OUT.R20 = get_percentile(roughnessTDep(idx:end,1:outchans),20);
-    OUT.R30 = get_percentile(roughnessTDep(idx:end,1:outchans),30);
-    OUT.R40 = get_percentile(roughnessTDep(idx:end,1:outchans),40);
-    OUT.R50 = median(roughnessTDep(idx:end,1:outchans));
-    OUT.R60 = get_percentile(roughnessTDep(idx:end,1:outchans),60);
-    OUT.R70 = get_percentile(roughnessTDep(idx:end,1:outchans),70);
-    OUT.R80 = get_percentile(roughnessTDep(idx:end,1:outchans),80);
-    OUT.R90 = get_percentile(roughnessTDep(idx:end,1:outchans),90);
-    OUT.R95 = get_percentile(roughnessTDep(idx:end,1:outchans),95);
+    OUT.Rmax = max(roughnessTDep(time_skip_idx:end,1:outchans));
+    OUT.Rmin = min(roughnessTDep(time_skip_idx:end,1:outchans));
+    OUT.Rmean = mean(roughnessTDep(time_skip_idx:end,1:outchans));
+    OUT.Rstd = std(roughnessTDep(time_skip_idx:end,1:outchans));
+    OUT.R1 = get_percentile(roughnessTDep(time_skip_idx:end,1:outchans),1);
+    OUT.R2 = get_percentile(roughnessTDep(time_skip_idx:end,1:outchans),2);
+    OUT.R3 = get_percentile(roughnessTDep(time_skip_idx:end,1:outchans),3);
+    OUT.R4 = get_percentile(roughnessTDep(time_skip_idx:end,1:outchans),4);
+    OUT.R5 = get_percentile(roughnessTDep(time_skip_idx:end,1:outchans),5);
+    OUT.R10 = get_percentile(roughnessTDep(time_skip_idx:end,1:outchans),10);
+    OUT.R20 = get_percentile(roughnessTDep(time_skip_idx:end,1:outchans),20);
+    OUT.R30 = get_percentile(roughnessTDep(time_skip_idx:end,1:outchans),30);
+    OUT.R40 = get_percentile(roughnessTDep(time_skip_idx:end,1:outchans),40);
+    OUT.R50 = median(roughnessTDep(time_skip_idx:end,1:outchans));
+    OUT.R60 = get_percentile(roughnessTDep(time_skip_idx:end,1:outchans),60);
+    OUT.R70 = get_percentile(roughnessTDep(time_skip_idx:end,1:outchans),70);
+    OUT.R80 = get_percentile(roughnessTDep(time_skip_idx:end,1:outchans),80);
+    OUT.R90 = get_percentile(roughnessTDep(time_skip_idx:end,1:outchans),90);
+    OUT.R95 = get_percentile(roughnessTDep(time_skip_idx:end,1:outchans),95);
 
 else % mono case
 
     OUT.specRoughness = specRoughness;
     OUT.specRoughnessAvg = specRoughnessAvg;
     OUT.roughnessTDep = roughnessTDep;
+    OUT.roughness90Pc = roughness90Pc;
 
     OUT.bandCentreFreqs = bandCentreFreqs;
     OUT.timeOut = timeOut;
-    OUT.timeInsig = (0 : length(insig)-1) ./ fs;
+    OUT.timeInsig = timeInsig; 
     OUT.soundField = fieldtype;
 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % Roughness statistics based on InstantaneousRoughness (mono case)
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     
-    [~,idx] = min( abs(timeOut-time_skip) ); % find idx of time_skip on timeOut
-    [~,idxInsig] = min( abs(OUT.timeInsig - time_skip) ); % find idx of time_skip on timeInsig
-
-    OUT.Rmax = max(roughnessTDep(idx:end));
-    OUT.Rmin = min(roughnessTDep(idx:end));
-    OUT.Rmean = mean(roughnessTDep(idx:end));
-    OUT.Rstd = std(roughnessTDep(idx:end));
-    OUT.R1 = get_percentile(roughnessTDep(idx:end),1);
-    OUT.R2 = get_percentile(roughnessTDep(idx:end),2);
-    OUT.R3 = get_percentile(roughnessTDep(idx:end),3);
-    OUT.R4 = get_percentile(roughnessTDep(idx:end),4);
-    OUT.R5 = get_percentile(roughnessTDep(idx:end),5);
-    OUT.R10 = get_percentile(roughnessTDep(idx:end),10);
-    OUT.R20 = get_percentile(roughnessTDep(idx:end),20);
-    OUT.R30 = get_percentile(roughnessTDep(idx:end),30);
-    OUT.R40 = get_percentile(roughnessTDep(idx:end),40);
-    OUT.R50 = median(roughnessTDep(idx:end));
-    OUT.R60 = get_percentile(roughnessTDep(idx:end),60);
-    OUT.R70 = get_percentile(roughnessTDep(idx:end),70);
-    OUT.R80 = get_percentile(roughnessTDep(idx:end),80);
-    OUT.R90 = get_percentile(roughnessTDep(idx:end),90);
-    OUT.R95 = get_percentile(roughnessTDep(idx:end),95);
+    OUT.Rmax = max(roughnessTDep(time_skip_idx:end));
+    OUT.Rmin = min(roughnessTDep(time_skip_idx:end));
+    OUT.Rmean = mean(roughnessTDep(time_skip_idx:end));
+    OUT.Rstd = std(roughnessTDep(time_skip_idx:end));
+    OUT.R1 = get_percentile(roughnessTDep(time_skip_idx:end),1);
+    OUT.R2 = get_percentile(roughnessTDep(time_skip_idx:end),2);
+    OUT.R3 = get_percentile(roughnessTDep(time_skip_idx:end),3);
+    OUT.R4 = get_percentile(roughnessTDep(time_skip_idx:end),4);
+    OUT.R5 = get_percentile(roughnessTDep(time_skip_idx:end),5);
+    OUT.R10 = get_percentile(roughnessTDep(time_skip_idx:end),10);
+    OUT.R20 = get_percentile(roughnessTDep(time_skip_idx:end),20);
+    OUT.R30 = get_percentile(roughnessTDep(time_skip_idx:end),30);
+    OUT.R40 = get_percentile(roughnessTDep(time_skip_idx:end),40);
+    OUT.R50 = median(roughnessTDep(time_skip_idx:end));
+    OUT.R60 = get_percentile(roughnessTDep(time_skip_idx:end),60);
+    OUT.R70 = get_percentile(roughnessTDep(time_skip_idx:end),70);
+    OUT.R80 = get_percentile(roughnessTDep(time_skip_idx:end),80);
+    OUT.R90 = get_percentile(roughnessTDep(time_skip_idx:end),90);
+    OUT.R95 = get_percentile(roughnessTDep(time_skip_idx:end),95);
 end
 
 %% Output plotting
@@ -816,7 +839,7 @@ if show
 
             % Filter signal to determine A-weighted time-averaged level
             for i=1:outchans-1
-                [pA(:,i), ~] = Do_SLM( insig(idxInsig:end, i) , fs, weight_freq, weight_time, dBFS);
+                [pA(:,i), ~] = Do_SLM( insig(idx_insig:end, i) , fs, weight_freq, weight_time, dBFS);
                 LAeq2(i) = Get_Leq(pA(:,i), fs); % Make sure you enter only mono signals
             end
 
@@ -832,12 +855,12 @@ if show
             % chan_lab = chan_lab + whichEar;
 
         elseif chan == 2 % Stereo right
-            [pA, ~] = Do_SLM(insig(idxInsig:end, chan), fs, weight_freq, weight_time, dBFS);
+            [pA, ~] = Do_SLM(insig(idx_insig:end, chan), fs, weight_freq, weight_time, dBFS);
             LAeq = Get_Leq(pA, fs); % Make sure you enter only mono signals
             whichEar = 'right ear';
 
         elseif chan == 1 % Stereo left or mono
-            [pA, ~] = Do_SLM(insig(idxInsig:end, chan), fs, weight_freq, weight_time, dBFS);
+            [pA, ~] = Do_SLM(insig(idx_insig:end, chan), fs, weight_freq, weight_time, dBFS);
             LAeq = Get_Leq(pA, fs); % Make sure you enter only mono signals
             if outchans~=1
                 whichEar = 'left ear';
