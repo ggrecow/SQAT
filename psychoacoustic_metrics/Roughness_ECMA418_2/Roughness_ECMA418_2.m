@@ -10,6 +10,8 @@ function OUT = Roughness_ECMA418_2(insig, fs, fieldtype, time_skip, show)
 %  ECMA-418-2:2024 (Section 7.1.10), the 90th percentile of the time-dependent roughness 
 % shall be used as a representative single value.
 %
+% Reference signal: 60 dBSPL 1 kHz tone 100% modulated at 70 Hz yields 1 asper.
+%
 % Inputs
 % ------
 % insig : column vector [Nx1] mono or [Nx2] binaural
@@ -123,9 +125,9 @@ function OUT = Roughness_ECMA418_2(insig, fs, fieldtype, time_skip, show)
 % MATLAB version: 2023b
 %
 % Copyright statement: This file and code is part of work undertaken within
-% the RefMap project (www.refmap.eu), and is subject to licence as detailed
-% in the code repository
-% (https://github.com/acoustics-code-salford/refmap-psychoacoustics)
+% the RefMap project (www.refmap.eu), and is subject to GPL-3.0 license,
+% as detailed in the original code repository
+% (https://github.com/acoustics-code-salford/refmap-psychoacoustics). 
 %
 % As per the licensing information, please be aware that this code is
 % WITHOUT ANY WARRANTY; without even the implied warranty of
