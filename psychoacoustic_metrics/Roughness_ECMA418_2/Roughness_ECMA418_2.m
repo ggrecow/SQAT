@@ -178,9 +178,9 @@ elseif  size(insig, 2) > 2  % insig is [1xN] or [2xN]
     fprintf('\nWarning: Input signal is not [Nx1] or [Nx2] and was transposed.\n');
 end
 
-% Check the length of the input data (must be longer than 300 ms)
-if size(insig, 1) <=  300/1000*fs
-    error("Error: Input signal is too short along the specified axis to calculate roughness (must be longer than 300 ms)")
+% Check the length of the input data (must be longer than 320 ms)
+if size(insig, 1) <=  (320/1000)*fs
+    error("Error: Input signal is too short along the specified axis to calculate roughness (must be longer than 320 ms)")
 end
 
 % Check the channel number of the input data
@@ -201,11 +201,6 @@ if time_skip<0.32
         warning("Time_skip must be at least 320 ms to avoid transient responses of the digital filters (see ECMA-418-2:2024 (Section 7.1.8 )). Setting time_skip to 0.32 seconds!!!")
         time_skip = 0.32;
 end
-
-% waitBar : keyword string (default: false)
-%           determines whether a progress bar displays during processing
-%           (set waitBar to false for doing multi-file parallel calculations)
-waitBar = false;
 
 %% Define constants
 
@@ -254,10 +249,6 @@ roughScale = reshape(roughScale, [1, 1, nBands]);  % Note: this is to ease paral
 % Equation 86 ECMA-418-2:2024 [f_max(z)]
 modfreqMaxWeight = 72.6937*(1 - 1.1739*exp(-5.4583*bandCentreFreqs/1000));
 
-% TODO for next update
-%bandCentreFreqsWeight = max(ones(size(bandCentreFreqs)).*bandCentreFreqs(3), bandCentreFreqs);
-%modfreqMaxWeight = 72.6937*(1 - 1.1739*exp(-5.4583*bandCentreFreqsWeight/1000));
-
 % Equation 87 ECMA-418-2:2024 [q_1; q_2(z)]
 roughHiWeightParams = [1.2822*ones(size(bandCentreFreqs));...
                        0.2471*ones(size(bandCentreFreqs))];
@@ -275,8 +266,6 @@ sampleRate50 = 50;
 
 % Calibration constant
 cal_R = 0.0180909;   % calibration factor in Section 7.1.7 Equation 104 ECMA-418-2:2024 [c_R]
-%cal_Rx = 1/1.00123972659601;  % calibration adjustment factor
-%cal_R*cal_Rx = 0.0180685; adjusted calibration value
 cal_Rx = 1/1.0011565;  % calibration adjustment factor
 
 %% Signal processing
@@ -305,8 +294,6 @@ pn = ShmPreProc(p_re, max(blockSize), max(hopSize), true, false);
 % Section 5.1.3.2 ECMA-418-2:2024 Outer and middle/inner ear signal filtering
 pn_om = ShmOutMidEarFilter(pn, fieldtype);
 
-n_steps = 270;  % approximate number of calculation steps
-
 % Loop through channels in file
 % -----------------------------
 for chan = size(pn_om, 2):-1:1
@@ -314,14 +301,6 @@ for chan = size(pn_om, 2):-1:1
     % Apply auditory filter bank
     % --------------------------
     
-    if waitBar
-        w = waitbar(0, "Initialising...");
-        i_step = 1;
-    
-        waitbar(i_step/n_steps, w, 'Applying auditory filters...');
-        i_step = i_step + 1;
-    end % end of if branch for waitBar
-
     % Filter equalised signal using 53 1/2Bark ERB filters according to 
     % Section 5.1.4.2 ECMA-418-2:2024
     pn_omz = ShmAuditoryFiltBank(pn_om(:, chan), false);
@@ -332,11 +311,6 @@ for chan = size(pn_om, 2):-1:1
     for zBand = nBands:-1:1
         % Segmentation into blocks
         % ------------------------
-        if waitBar
-            waitbar(i_step/n_steps, w, strcat("Calculating signal envelopes in 53 bands, ",...
-                           num2str(zBand), " to go..."));...
-            i_step = i_step + 1;
-        end % end of if branch for waitBar
 
         % Section 5.1.5 ECMA-418-2:2024
         i_start = 1;
@@ -345,18 +319,12 @@ for chan = size(pn_om, 2):-1:1
 
         % Transformation into Loudness
         % ----------------------------
-        if waitBar
-            i_step = i_step + 1;
-        end
         % Sections 5.1.6 to 5.1.9 ECMA-418-2:2024
         [~, bandBasisLoudness, ~] = ShmBasisLoudness(pn_lz, bandCentreFreqs(zBand));
         basisLoudness(:, :, zBand) = bandBasisLoudness;
     
         % Envelope power spectral analysis
         % --------------------------------
-        if waitBar
-            i_step = i_step + 1;
-        end
         % Sections 7.1.2 ECMA-418-2:2024
         % magnitude of Hilbert transform with downsample - Equation 65
         % [p(ntilde)_E,l,z]
@@ -417,11 +385,6 @@ for chan = size(pn_om, 2):-1:1
     modAmp = zeros(10, nBlocks, nBands);
     modRate = zeros(10, nBlocks, nBands);
     for zBand = nBands:-1:1
-        if waitBar
-            waitbar(i_step/n_steps, w, strcat("Calculating spectral weightings in 53 bands, ",...
-                           num2str(zBand), " to go..."));...
-            i_step = i_step + 1;
-        end % end of if branch for waitBar
 
         % Section 7.1.5.1 ECMA-418-2:2024
         for lBlock = nBlocks:-1:1
@@ -531,17 +494,10 @@ for chan = size(pn_om, 2):-1:1
 
 
     % Section 7.1.5.3 ECMA-418-2:2024 - Estimation of fundamental modulation rate
-    % TODO: replace the loop approach with a parallelised approach!
     % matrix initialisation to ensure zero rates do not cause missing bands in output
     modFundRate = zeros([nBlocks, nBands]);
     modMaxWeight = zeros([10, nBlocks, nBands]);
     for zBand = nBands:-1:1
-        if waitBar
-            waitbar(i_step/n_steps, w, strcat("Calculating modulation rates in 53 bands, ",...
-                    num2str(zBand), " to go..."));...
-            i_step = i_step + 1;
-        end % end of if branch for waitBar
-
         for lBlock = nBlocks:-1:1
             % Proceed with rate detection if non-zero modulation rates
             if max(modRate(:, lBlock, zBand)) > 0
@@ -671,10 +627,6 @@ for chan = size(pn_om, 2):-1:1
     fallTime = 0.5;
     specRoughness(:, :, chan) = ShmRoughLowPass(specRoughEstTform, sampleRate50, ...
                                                 riseTime, fallTime);
-
-    if waitBar
-        close(w)  % close waitbar
-    end
 
 end  % end of for loop over channels
 
@@ -828,7 +780,6 @@ if show
         colormap(cmap_inferno);
         h = colorbar;
         set(get(h,'label'),'string', {'Specific roughness,'; '(asper_{HMS}/Bark_{HMS})'});        
-        chan_lab = chans(chan);
 
         %%% Running the sound level meter using A-weighting curve
         weight_freq = 'A'; % A-frequency weighting
@@ -852,7 +803,6 @@ if show
             else
                 whichEar = 'right ear';
             end  % end of if branch
-            % chan_lab = chan_lab + whichEar;
 
         elseif chan == 2 % Stereo right
             [pA, ~] = Do_SLM(insig(idx_insig:end, chan), fs, weight_freq, weight_time, dBFS);
@@ -873,17 +823,12 @@ if show
 
         title(titleString, 'Interpreter','Latex' );
 
-        % title(strcat(chan_lab,...
-        %              ' signal {\itL}_{A,eq,mono} = ', {' '},...
-        %              num2str(round(LAeq,1)), " (dB SPL)"),...
-        %              'FontWeight', 'normal', 'FontName', 'Arial');
-
         ax2 = nexttile(2);
         plot(ax2, timeOut, roughnessTDep(:, chan), 'color', cmap_inferno(166, :),...
             'LineWidth', 0.75, 'DisplayName', "Time-" + string(newline) + "dependent");
         hold on;
-        plot(ax2, timeOut, OUT.R5(1, chan)*ones(size(timeOut)),'--', 'color',...
-            cmap_inferno(34, :), 'LineWidth', 1, 'DisplayName', "95th" + string(newline) + "percentile");
+        plot(ax2, timeOut, roughness90Pc(1, chan)*ones(size(timeOut)),'--', 'color',...
+            cmap_inferno(34, :), 'LineWidth', 1, 'DisplayName', "90th" + string(newline) + "percentile");
         hold off;
         ax2.XLim = [timeOut(1), timeOut(end) + (timeOut(2) - timeOut(1))];
 
