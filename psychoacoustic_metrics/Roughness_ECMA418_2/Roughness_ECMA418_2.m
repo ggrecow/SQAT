@@ -677,7 +677,7 @@ if outchans == 3 % stereo case ["Stereo left"; "Stereo right"; "Combined binaura
     OUT.roughnessTDep = roughnessTDep(:, 1:2);
     OUT.roughness90Pc = roughness90Pc(:, 1:2);
 
-    % outputs only with  "single binaural"
+    % outputs only with  "combined binaural"
     OUT.specRoughnessBin = specRoughness(:, :, 3);
     OUT.specRoughnessAvgBin = specRoughnessAvg(:, 3);
     OUT.roughnessTDepBin = roughnessTDep(:, 3);
@@ -689,10 +689,7 @@ if outchans == 3 % stereo case ["Stereo left"; "Stereo right"; "Combined binaura
     OUT.timeInsig = timeInsig;
     OUT.soundField = fieldtype;
 
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    % Roughness statistics based on InstantaneousRoughness ["Stereo left"; "Stereo right"; "Combined binaural"];
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    
+    % Roughness statistics based on roughnessTDep ["Stereo left"; "Stereo right"; "Combined binaural"];
     OUT.Rmax = max(roughnessTDep(time_skip_idx:end,1:outchans));
     OUT.Rmin = min(roughnessTDep(time_skip_idx:end,1:outchans));
     OUT.Rmean = mean(roughnessTDep(time_skip_idx:end,1:outchans));
@@ -725,10 +722,7 @@ else % mono case
     OUT.timeInsig = timeInsig; 
     OUT.soundField = fieldtype;
 
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    % Roughness statistics based on InstantaneousRoughness (mono case)
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    
+    % Roughness statistics based on roughnessTDep (mono case)   
     OUT.Rmax = max(roughnessTDep(time_skip_idx:end));
     OUT.Rmin = min(roughnessTDep(time_skip_idx:end));
     OUT.Rmean = mean(roughnessTDep(time_skip_idx:end));
@@ -756,6 +750,7 @@ if show
 
     % Plot figures
     % ------------
+    cmap_inferno = load('cmap_inferno.txt');
     for chan = outchans:-1:1
         % Plot results
         fig = figure('name', sprintf( 'Roughness analysis - ECMA-418-2 (%s signal)', chans(chan) ) );
@@ -776,7 +771,6 @@ if show
         ax1.XLabel.String = 'Time (s)';
         ax1.FontName =  'Arial';
         ax1.FontSize = 10;
-        cmap_inferno = load('cmap_inferno.txt');
         colormap(cmap_inferno);
         h = colorbar;
         set(get(h,'label'),'string', {'Specific roughness,'; '(asper_{HMS}/Bark_{HMS})'});        
