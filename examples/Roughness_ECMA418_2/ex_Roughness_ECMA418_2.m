@@ -27,7 +27,7 @@ time_insig=(0 : length(RefSignal)-1) ./ fs;  % time vector of the audio input, i
 %% Compute roughness (mono signal)
 
 fieldtype = 'free-frontal'; % string (default: 'free-frontal'; or 'diffuse')
-time_skip = 0.3;% time_skip, in seconds for statistical calculations (default: 0.3 seconds - avoids transient responses of the digital filters)
+time_skip = 0.32;% time_skip, in seconds for statistical calculations (default: 0.32 seconds - avoids transient responses of the digital filters)
 show = 1; % show results, 'false' (disable, default value) or 'true' (enable)
 
 OUT = Roughness_ECMA418_2(RefSignal, fs, fieldtype, time_skip, show);
@@ -57,22 +57,3 @@ axis([0 5 0 1.1]);
 ylabel('Roughness, $R$ (asper$_{\mathrm{HMS}}$)','Interpreter','Latex');
 
 set(gcf,'color','w');
-
-return
-%% Load .wav RefSignal (binaural .wav file)
- 
-dir_sound = [basepath_SQAT 'sound_files' filesep 'verification_SQAT_ECMA418_2' filesep];
-
-[inputSignal, fs] = audioread([dir_sound 'BusyStreet1_0530-0600.wav']); % 'sound_files\reference_signals\' -  path of the sound file for reference  
-
-time_insig1 = (0 : length(inputSignal)-1) ./ fs;  % time vector of the audio input, in seconds
-
-%% Compute roughness (binaural signal)
-
-fieldtype = 'free-frontal'; % string (default: 'free-frontal'; or 'diffuse')
-time_skip = 1;% time_skip, in seconds for statistical calculations (default: 0 seconds)
-show = 1; % show results, 'false' (disable, default value) or 'true' (enable)
-
-OUT = Roughness_ECMA418_2(inputSignal', fs, fieldtype, time_skip, show);
-
-
