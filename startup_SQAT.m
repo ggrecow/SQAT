@@ -72,6 +72,12 @@ EPNL_helper        = [bp 'psychoacoustic_metrics' filesep 'EPNL_FAR_Part36' file
 EPNL_validation  = [bp 'validation'             filesep 'EPNL_FAR_Part36' filesep];
 EPNL_example     = [bp 'examples'               filesep 'EPNL_FAR_Part36' filesep];
 
+ECMA418_2_helper       = [bp 'utilities' filesep 'ECMA418_2' filesep];
+
+Roughness_ECMA418_2_main        = [bp 'psychoacoustic_metrics' filesep 'Roughness_ECMA418_2'          filesep];
+% Roughness_ECMA418_2_validation  = [bp 'validation'             filesep 'Roughness_Daniel1997'          filesep];
+Roughness_ECMA418_2_example     = [bp 'examples'               filesep 'Roughness_ECMA418_2'          filesep];
+
 bAdd = ~exist('Loudness_ISO532_1.m','file');
 if bAdd
     addpath(L_main);
@@ -140,6 +146,18 @@ end
 bAdd = ~exist('get_PNL.m','file');
 if bAdd
     addpath(EPNL_helper);
+end
+
+bAdd = ~exist('ShmBasisLoudness.m','file');
+if bAdd
+    addpath(ECMA418_2_helper);
+end
+
+bAdd = ~exist('Roughness_ECMA418_2.m','file');
+if bAdd
+    addpath(Roughness_ECMA418_2_main);
+    % addpath(Roughness_ECMA418_2_validation);
+    addpath(Roughness_ECMA418_2_example);
 end
 
 %%% Adding the publications' directory (alphabetical order):
