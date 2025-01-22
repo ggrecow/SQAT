@@ -6,10 +6,19 @@ function OUT = Roughness_ECMA418_2(insig, fs, fieldtype, time_skip, show)
 % or single stereo audio (sound pressure) time-series signal, insig. For stereo
 % signals, Roughness is calculated for each channel [left ear, right ear],
 % and also for the combination of both, denominated as 
-% "combined binaural" (see Section 7.1.11 ECMA-418-2:2024). According to 
-%  ECMA-418-2:2024 (Section 7.1.10), the 90th percentile 
+% "combined binaural" (see ECMA-418-2:2024, Section 7.1.11). 
+% 
+% According to ECMA-418-2:2024 (Section 7.1.10), the 90th percentile 
 % (a.k.a. value exceeded 10% of the time) of the time-dependent roughness 
-% must be used as the representative single value (overall roughness).
+% must be used as the representative single value (overall roughness). This
+% value is provided here by the <roughness90Pc> output variable.
+%
+% NOTE: according to ECMA-418-2:2024 (Section 7.1.8), the roughness
+% values corresponding to the first 300 ms of the input signal must be discarded 
+% due to the transient responses of the digital filters. Considering the temporal resolution
+% of the roughness model, this means any values below 320ms must be discarded.
+% Therefore, <time_skip> must be greater or equal to 320ms to compute any
+% time-aggregated quantity. 
 %
 % Reference signal: 60 dBSPL 1 kHz tone 100% modulated at 70 Hz yields 1 asper.
 %
@@ -26,7 +35,7 @@ function OUT = Roughness_ECMA418_2(insig, fs, fieldtype, time_skip, show)
 %                  determines whether the 'free-frontal' or 'diffuse' field stages
 %                  are applied in the outer-middle ear filter
 %
-% time_skip : integer (default: 0.32 seconds - see Section 7.1.8 ECMA-418-2:2024)
+% time_skip : integer (default: 320ms - see Section 7.1.8 ECMA-418-2:2024)
 %                   skip start of the signal in <time_skip> seconds so that
 %                   the transient response of the digital filters is avoided.
 %                   Best-practice: <time_skip> must be equal or higher than
@@ -164,11 +173,14 @@ function OUT = Roughness_ECMA418_2(insig, fs, fieldtype, time_skip, show)
         fieldtype (1, :) string {mustBeMember(fieldtype,...
                                                        {'free-frontal',...
                                                         'diffuse'})} = 'free-frontal'
-        time_skip (1, 1) double {mustBeReal} = 0.32
+        time_skip (1, 1) double {mustBeReal} = 320e-3
         show {mustBeNumericOrLogical} = false
     end
 
 %% Input checks
+
+% define time threshold value from which all values before must be dropped.
+t_threshold =  320e-3;
 
 % check insig dimension (only [Nx1] or [Nx2] are valid)
 if  size(insig,1) > 2 & size(insig,2) > 2 % insig has more than 2 channels
@@ -179,7 +191,7 @@ elseif  size(insig, 2) > 2  % insig is [1xN] or [2xN]
 end
 
 % Check the length of the input data (must be longer than 320 ms)
-if size(insig, 1) <=  (320/1000)*fs
+if size(insig, 1) <=  t_threshold*fs
     error("Error: Input signal is too short along the specified axis to calculate roughness (must be longer than 320 ms)")
 end
 
@@ -197,9 +209,9 @@ else
     end
 end
 
-if time_skip<0.32
-        warning("Time_skip must be at least 320 ms to avoid transient responses of the digital filters (see ECMA-418-2:2024 (Section 7.1.8 )). Setting time_skip to 0.32 seconds!!!")
-        time_skip = 0.32;
+if time_skip<t_threshold
+        warning("Time_skip must be at least 320 ms to avoid transient responses of the digital filters (see ECMA-418-2:2024 (Section 7.1.8 )). Setting time_skip to 320 ms!!!")
+        time_skip = t_threshold;
 end
 
 %% Define constants
