@@ -23,11 +23,11 @@
 %  The obtained folder called `validation_SQAT_v1_0` has to be included in 
 %  the `sound_files` folder of the toolbox. 
 %
-% Author: Gil Felix Greco, Braunschweig, 16.01.2025
+% Author: Gil Felix Greco, Braunschweig, 22.01.2025
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 clc; clear all; close all;
 
-save_figs = 1; %% save figs flag
+save_figs = 0; %% save figs flag
 
 %% path settings 
 
@@ -336,8 +336,8 @@ set(h,'PaperPositionMode','Auto','PaperUnits','Inches','PaperSize',[pos(3), pos(
 
 % plot reference curves
 a = loglog(xRef, yRef, 'b--', 'Linewidth', .5); hold all; % reference results
-b = loglog(xRef, (yRef)+0.1, 'b:', 'Linewidth', 1.5); % reference results - +0.1 (asper) tolerance
-loglog(xRef, (yRef)-0.1, 'b:', 'Linewidth', 1.5); % reference results - - 0.1 (asper) tolerance
+b = loglog(xRef, (yRef)+0.1, 'b:', 'Linewidth', 1); % reference results - +0.1 (asper) tolerance
+loglog(xRef, (yRef)-0.1, 'b:', 'Linewidth', 1); % reference results - - 0.1 (asper) tolerance
 
 % plot results from SQAT
 c = loglog(xSQAT, ySQAT,'ko','MarkerSize',8); 
