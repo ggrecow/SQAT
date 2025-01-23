@@ -510,15 +510,6 @@ for chan = size(pn_om, 2):-1:1
             = sum(specTonalityFreqs(mask, zBand, chan), 1)./(nnz(mask) + 1e-12); %<--- time index takes <time_skip> into consideration
     end
 
-    % Discard singleton dimensions
-    if inchans > 1
-        specTonalityAvg = squeeze(specTonalityAvg);
-        specTonalityAvgFreqs = squeeze(specTonalityAvgFreqs);
-    else
-        specTonalityAvg = transpose(specTonalityAvg);
-        specTonalityAvgFreqs = transpose(specTonalityAvgFreqs);
-    end
-
     % Calculation of total (non-specific) tonality Section 6.2.10
     % -----------------------------------------------------------
     % Further update can add the user input frequency range to determine
@@ -540,46 +531,6 @@ for chan = size(pn_om, 2):-1:1
     % Section 6.2.11 Equation 63 ECMA-418-2:2024
     % Time-averaged total tonality [T]
     tonalityAvg(chan) = sum(tonalityTDep(mask, chan))/(nnz(mask) + eps); %<--- time index takes <time_skip> into consideration
-
-    %% Output assignment
-
-OUT.specTonality = specTonality;
-OUT.specTonalityAvg = specTonalityAvg;
-OUT.specTonalityFreqs = specTonalityFreqs;
-OUT.specTonalityAvgFreqs = specTonalityAvgFreqs;
-
-OUT.specTonalLoudness = specTonalLoudness;
-OUT.specNoiseLoudness = specNoiseLoudness;
-
-OUT.tonalityTDep = tonalityTDep;
-OUT.tonalityAvg = tonalityAvg;
-OUT.tonalityTDepFreqs = tonalityTDepFreqs;
-OUT.bandCentreFreqs = bandCentreFreqs;
-
-OUT.timeOut = timeOut;
-OUT.timeInsig = timeInsig;
-OUT.soundField = fieldtype;
-
-% Tonality statistics based on tonalityTDep ["Stereo left"; "Stereo right"]; for stereo case 
-OUT.Kmax = max(tonalityTDep(time_skip_idx:end,1:chan));
-OUT.Kmin = min(tonalityTDep(time_skip_idx:end,1:chan));
-OUT.Kmean = mean(tonalityTDep(time_skip_idx:end,1:chan));
-OUT.Kstd = std(tonalityTDep(time_skip_idx:end,1:chan));
-OUT.K1 = get_percentile(tonalityTDep(time_skip_idx:end,1:chan),1);
-OUT.K2 = get_percentile(tonalityTDep(time_skip_idx:end,1:chan),2);
-OUT.K3 = get_percentile(tonalityTDep(time_skip_idx:end,1:chan),3);
-OUT.K4 = get_percentile(tonalityTDep(time_skip_idx:end,1:chan),4);
-OUT.K5 = get_percentile(tonalityTDep(time_skip_idx:end,1:chan),5);
-OUT.K10 = get_percentile(tonalityTDep(time_skip_idx:end,1:chan),10);
-OUT.K20 = get_percentile(tonalityTDep(time_skip_idx:end,1:chan),20);
-OUT.K30 = get_percentile(tonalityTDep(time_skip_idx:end,1:chan),30);
-OUT.K40 = get_percentile(tonalityTDep(time_skip_idx:end,1:chan),40);
-OUT.K50 = median(tonalityTDep(time_skip_idx:end,1:chan));
-OUT.K60 = get_percentile(tonalityTDep(time_skip_idx:end,1:chan),60);
-OUT.K70 = get_percentile(tonalityTDep(time_skip_idx:end,1:chan),70);
-OUT.K80 = get_percentile(tonalityTDep(time_skip_idx:end,1:chan),80);
-OUT.K90 = get_percentile(tonalityTDep(time_skip_idx:end,1:chan),90);
-OUT.K95 = get_percentile(tonalityTDep(time_skip_idx:end,1:chan),95);
 
 %% Output plotting
 
@@ -651,5 +602,54 @@ OUT.K95 = get_percentile(tonalityTDep(time_skip_idx:end,1:chan),95);
     end
 
 end
+
+%% Output assignment
+
+% Discard singleton dimensions
+if inchans > 1
+    specTonalityAvg = squeeze(specTonalityAvg);
+    specTonalityAvgFreqs = squeeze(specTonalityAvgFreqs);
+else
+    specTonalityAvg = transpose(specTonalityAvg);
+    specTonalityAvgFreqs = transpose(specTonalityAvgFreqs);
+end
+
+OUT.specTonality = specTonality;
+OUT.specTonalityAvg = specTonalityAvg;
+OUT.specTonalityFreqs = specTonalityFreqs;
+OUT.specTonalityAvgFreqs = specTonalityAvgFreqs;
+
+OUT.specTonalLoudness = specTonalLoudness;
+OUT.specNoiseLoudness = specNoiseLoudness;
+
+OUT.tonalityTDep = tonalityTDep;
+OUT.tonalityAvg = tonalityAvg;
+OUT.tonalityTDepFreqs = tonalityTDepFreqs;
+OUT.bandCentreFreqs = bandCentreFreqs;
+
+OUT.timeOut = timeOut;
+OUT.timeInsig = timeInsig;
+OUT.soundField = fieldtype;
+
+% Tonality statistics based on tonalityTDep ["Stereo left"; "Stereo right"]; for stereo case
+OUT.Kmax = max(tonalityTDep(time_skip_idx:end,1:chan));
+OUT.Kmin = min(tonalityTDep(time_skip_idx:end,1:chan));
+OUT.Kmean = mean(tonalityTDep(time_skip_idx:end,1:chan));
+OUT.Kstd = std(tonalityTDep(time_skip_idx:end,1:chan));
+OUT.K1 = get_percentile(tonalityTDep(time_skip_idx:end,1:chan),1);
+OUT.K2 = get_percentile(tonalityTDep(time_skip_idx:end,1:chan),2);
+OUT.K3 = get_percentile(tonalityTDep(time_skip_idx:end,1:chan),3);
+OUT.K4 = get_percentile(tonalityTDep(time_skip_idx:end,1:chan),4);
+OUT.K5 = get_percentile(tonalityTDep(time_skip_idx:end,1:chan),5);
+OUT.K10 = get_percentile(tonalityTDep(time_skip_idx:end,1:chan),10);
+OUT.K20 = get_percentile(tonalityTDep(time_skip_idx:end,1:chan),20);
+OUT.K30 = get_percentile(tonalityTDep(time_skip_idx:end,1:chan),30);
+OUT.K40 = get_percentile(tonalityTDep(time_skip_idx:end,1:chan),40);
+OUT.K50 = median(tonalityTDep(time_skip_idx:end,1:chan));
+OUT.K60 = get_percentile(tonalityTDep(time_skip_idx:end,1:chan),60);
+OUT.K70 = get_percentile(tonalityTDep(time_skip_idx:end,1:chan),70);
+OUT.K80 = get_percentile(tonalityTDep(time_skip_idx:end,1:chan),80);
+OUT.K90 = get_percentile(tonalityTDep(time_skip_idx:end,1:chan),90);
+OUT.K95 = get_percentile(tonalityTDep(time_skip_idx:end,1:chan),95);
 
 end %of function
