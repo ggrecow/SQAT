@@ -376,9 +376,16 @@ end
 %% Output plotting
 
 if show
-    % Plot figures
-    % ------------
+
+    % colormap
     cmap_inferno = load('cmap_inferno.txt');
+
+    %%% sound level meter parameters
+    weightFreq = 'A'; % A-frequency weighting
+    weightTime = 'f'; % Time weighting
+    transientTime = 0.6; % fast weighting has a transient response of ~0.6 s. It needs to be removed from the beginning of the SPL curve  
+    dBFS = 94;
+
     for chan = outchans:-1:1
         % Plot results
         fig = figure('name', sprintf( 'Loudness analysis - ECMA-418-2 (%s signal)', chans(chan) ) );
@@ -404,17 +411,11 @@ if show
         h = colorbar;
         set(get(h,'label'),'string', {'Specific Loudness,'; '(sone_{HMS}/Bark_{HMS})'});        
 
-        %%% Running the sound level meter using A-weighting curve
-        weight_freq = 'A'; % A-frequency weighting
-        weight_time = 'f'; % Time weighting
-        dBFS = 94;  
-
         if chan == 3 % the binaural channel
 
-            % Filter signal to determine A-weighted time-averaged level
             for i=1:outchans-1
-                [pA(:,i), ~] = Do_SLM( insig(idx_insig:end, i) , fs, weight_freq, weight_time, dBFS);
-                LAeq2(i) = Get_Leq(pA(:,i), fs); % Make sure you enter only mono signals
+                [LA(:,i), ~] = Do_SLM( insig(idx_insig:end, i) , fs, weightFreq, weightTime, dBFS); % get A-weighted SPL
+                LAeq2(i) = Get_Leq(LA( (transientTime*fs):end ,i), fs); % computed without the transient response of the fast weight
             end
 
              % take the higher channel level as representative (PD ISO/TS 12913-3:2019 Annex D)
@@ -428,13 +429,13 @@ if show
             end  % end of if branch
 
         elseif chan == 2 % Stereo right
-            [pA, ~] = Do_SLM(insig(idx_insig:end, chan), fs, weight_freq, weight_time, dBFS);
-            LAeq = Get_Leq(pA, fs); % Make sure you enter only mono signals
+            [LA, ~] = Do_SLM(insig(idx_insig:end, chan), fs, weightFreq, weightTime, dBFS); % get A-weighted SPL
+            LAeq = Get_Leq(LA( (transientTime*fs):end ), fs); % computed without the transient response of the fast weight
             whichEar = 'right ear';
 
         elseif chan == 1 % Stereo left or mono
-            [pA, ~] = Do_SLM(insig(idx_insig:end, chan), fs, weight_freq, weight_time, dBFS);
-            LAeq = Get_Leq(pA, fs); % Make sure you enter only mono signals
+            [LA, ~] = Do_SLM(insig(idx_insig:end, chan), fs, weightFreq, weightTime, dBFS); % get A-weighted SPL
+            LAeq = Get_Leq(LA( (transientTime*fs):end ), fs); % computed without the transient response of the fast weight
             if outchans~=1
                 whichEar = 'left ear';
             else
@@ -471,6 +472,7 @@ if show
         lgd = legend('Location', 'eastoutside', 'FontSize', 8);
         lgd.Title.String = "Overall";
         set(gcf,'color','w');
+        clear LA; 
     end  % end of for loop for plotting over channels
 end  % end of if branch for plotting if outplot true
 

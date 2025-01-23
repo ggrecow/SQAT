@@ -583,10 +583,17 @@ OUT.K95 = get_percentile(tonalityTDep(time_skip_idx:end,1:chan),95);
 
 %% Output plotting
 
-    % Plot figures
-    % ------------
     if show
+
+        % colormap
         cmap_inferno = load('cmap_inferno.txt');
+
+        %%% sound level meter parameters
+        weightFreq = 'A'; % A-frequency weighting
+        weightTime = 'f'; % Time weighting
+        transientTime = 0.6; % fast weighting has a transient response of ~0.6 s. It needs to be removed from the beginning of the SPL curve
+        dBFS = 94;
+
         % Plot results
         fig = figure('name', sprintf( 'Tonality analysis - ECMA-418-2 (%s signal)', chans(chan) ) );
         tiledlayout(fig, 2, 1);
@@ -611,13 +618,8 @@ OUT.K95 = get_percentile(tonalityTDep(time_skip_idx:end,1:chan),95);
         h = colorbar;
         set(get(h,'label'),'string', {'Specific Tonality,'; '(tu_{HMS}/Bark_{HMS})'});
 
-        %%% Running the sound level meter using A-weighting curve
-        weight_freq = 'A'; % A-frequency weighting
-        weight_time = 'f'; % Time weighting
-        dBFS = 94;  
-
-        [pA, ~] = Do_SLM(p_re(idx_insig:end, chan), fs, weight_freq, weight_time, dBFS);
-        LAeq = Get_Leq(pA, fs); % Make sure you enter only mono signals
+        [LA, ~] = Do_SLM(p_re(idx_insig:end, chan), fs, weightFreq, weightTime, dBFS); % get A-weighted SPL
+        LAeq = Get_Leq(LA( (transientTime*fs):end ), fs); % computed without the transient response of the fast weight
 
         titleString = sprintf('%s signal, $L_{\\textrm{A,eq}} =$ %.3g (dB SPL)', chans(chan), LAeq);
 
