@@ -25,7 +25,7 @@ time_insig=(0 : length(RefSignal)-1) ./ fs;  % time vector of the audio input, i
 % make stereo signal [Nx2]
 % RefSignal = [RefSignal,RefSignal];
 
-%% Compute roughness (mono signal)
+%% Compute Loudness (mono signal)
 
 fieldtype = 'free-frontal'; % string (default: 'free-frontal'; or 'diffuse')
 time_skip = 304e-3;% time_skip, in seconds for statistical calculations (default: 304ms - avoids transient responses of the digital filters)
