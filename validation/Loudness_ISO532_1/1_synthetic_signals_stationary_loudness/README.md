@@ -17,8 +17,8 @@ The figures below compare the results obtained using the `Loudness_ISO532_1` imp
 
 Test signal 1 (stationary loudness based on one-third-octave levels)  |  
 :-------------------------:| 
-![](figs/validation_stationary_loudness_signal_1.png)  
-
+| <img src='figs/validation_stationary_loudness_signal_1.png' width=500>|  
+ 
 
 | Test signal 2        | Test signal 3         |
 | -------------- | -------------- |
@@ -33,8 +33,7 @@ A summary presenting the loudness difference between calculated (SQAT) and refer
 
 Summary of loudness differences for signals 1-5  |  
 :-------------------------:| 
-![](figs/validation_stationary_signals_loudness_difference.png) 
-
+| <img src='figs/validation_stationary_signals_loudness_difference.png' width=500>| 
 
 # References
 [1] International Organization for Standardization. (2017). Acoustics - Methods for calculating loudness - Part 1: Zwicker method (ISO Standard No. 532-1).

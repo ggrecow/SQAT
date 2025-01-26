@@ -9,7 +9,7 @@ In order to run this code and reproduce the figures available in the `figs` fold
 # Results
 The figure below compares the results obtained using the `Roughness_Daniel1997` implementation in SQAT with the power law suggested Fastl & Zwicker [2]. The error bars express the roughness JND also reported in [2]. Results computed using SQAT correspond to time-averaged roughness values $R$.   
 
-![](figs/verification_roughness_dependence_md.png)   
+<img src='figs/verification_roughness_dependence_md.png' width=500>
 
 # References
 [1] Daniel, P., & Weber, R. (1997). Psychoacoustical Roughness: Implementation of an Optimized Model. [Acta Acustica united with Acustica](https://www.ingentaconnect.com/content/dav/aaua/1997/00000083/00000001/art00020), 83(1), 113-123.
