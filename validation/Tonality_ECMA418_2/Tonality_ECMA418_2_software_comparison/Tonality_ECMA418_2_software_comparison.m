@@ -18,7 +18,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 clc; clear all; close all;
 
-save_figs = 1; % save figure flag
+save_figs = 0; % save figure flag
 
 %% Load  binaural .wav file
  
