@@ -7,7 +7,9 @@ This folder contains a series of codes used to verify the implementation of a pa
 - [Fluctuation strength model from Osses *et al.* [4]](FluctuationStrength_Osses2016)
 - [Tonality model from Aures [5]](Tonality_Aures1985) 
 - [Effective Perceived Noise Level (EPNL) [6]](EPNL_FAR_Part36) 
+- [Loudness model according to ECMA-418-2:2024 [7]](Loudness_ECMA418_2) 
 - [Roughness model according to ECMA-418-2:2024 [7]](Roughness_ECMA418_2) 
+- [Tonality model according to ECMA-418-2:2024 [7]](Tonality_ECMA418_2) 
 
 # References
 [1] International Organization for Standardization. (2017). Acoustics - Methods for calculating loudness - Part 1: Zwicker method (ISO Standard No. 532-1).

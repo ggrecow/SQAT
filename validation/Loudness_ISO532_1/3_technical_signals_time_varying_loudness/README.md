@@ -37,8 +37,7 @@ A summary presenting the differences (max. total loudness and 5\% percentile lou
 
 Summary of loudness differences for signals 14-25  |  
 :-------------------------:| 
-![](figs/validation_time_varying_technical_signals_loudness_difference.png) 
-
+| <img src='figs/validation_time_varying_technical_signals_loudness_difference.png' width=500>|
 
 # References
 [1] International Organization for Standardization. (2017). Acoustics - Methods for calculating loudness - Part 1: Zwicker method (ISO Standard No. 532-1).
