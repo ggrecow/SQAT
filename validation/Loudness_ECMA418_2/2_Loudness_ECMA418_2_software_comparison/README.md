@@ -12,7 +12,7 @@ This is a standalone code. Therefore, no extra steps are required to run it.
 
 ## Time-dependent loudness
 
-<img src='figs/TrainStation7-0100-0130 (Channel 1)_TDep_Loudness.png' width=500> <img src='figs/TrainStation7-0100-0130 (Channel 2)_TDep_Loudness.png' width=500> <img src='figs/TrainStation7-0100-0130 (combined binaural)_TDep_Loudness.png' width=500>
+<img src='figs/TrainStation7-0100-0130 (Channel 1)_TDep_Loudness.png' width=500> <img src='figs/TrainStation7-0100-0130 (Channel 2)_TDep_Loudness.png' width=500> <img src='figs/TrainStation7-0100-0130 (Combined binaural)_TDep_Loudness.png' width=500>
 
 ## Time-averaged specific loudness
 

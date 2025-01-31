@@ -80,7 +80,7 @@ xRef = ref_results.TDep(:,1);
 yRef = ref_results.TDep(:,2);
 xSQAT = OUT.timeOut;
 ySQAT = OUT.loudnessTDep(:,1);
-label_title = [wav_file ' (Channel 1)'];
+label_title = [wav_file '.wav (Channel 1)'];
 label_fig = [wav_file ' (Channel 1)' '_TDep_Loudness'];
 
 il_plt_tDep(xRef, yRef, xSQAT, ySQAT, label_title, save_figs, label_fig);
@@ -89,7 +89,7 @@ il_plt_tDep(xRef, yRef, xSQAT, ySQAT, label_title, save_figs, label_fig);
 
 yRef = ref_results.TDep(:,3);
 ySQAT = OUT.loudnessTDep(:,2);
-label_title = [wav_file ' (Channel 2)'];
+label_title = [wav_file '.wav (Channel 2)'];
 label_fig = [wav_file ' (Channel 2)' '_TDep_Loudness'];
 
 il_plt_tDep(xRef, yRef, xSQAT, ySQAT, label_title, save_figs, label_fig);
@@ -97,8 +97,8 @@ il_plt_tDep(xRef, yRef, xSQAT, ySQAT, label_title, save_figs, label_fig);
 % plot - combined binaural
 yRef = ref_results.TDepCombBinaural(:,2);
 ySQAT = OUT.loudnessTDepBin(:,1);
-label_title = [wav_file ' (combined binaural)'];
-label_fig = [wav_file ' (combined binaural)' '_TDep_Loudness'];
+label_title = [wav_file '.wav (Combined binaural)'];
+label_fig = [wav_file ' (Combined binaural)' '_TDep_Loudness'];
 
 il_plt_tDep(xRef, yRef, xSQAT, ySQAT, label_title, save_figs, label_fig);
 
@@ -107,7 +107,7 @@ il_plt_tDep(xRef, yRef, xSQAT, ySQAT, label_title, save_figs, label_fig);
 % plot -  Channel 1
 yRef = ref_results.AvgSpec(:,2);
 ySQAT = OUT.specLoudnessPowAvg(:,1);
-label_title = [wav_file ' (Channel 1)'];
+label_title = [wav_file '.wav (Channel 1)'];
 label_fig = [wav_file ' (Channel 1)' '_avgSpecific_tonality'];
 
 il_plt_avgSpecific( yRef, ySQAT, label_title, save_figs, label_fig)
@@ -115,7 +115,7 @@ il_plt_avgSpecific( yRef, ySQAT, label_title, save_figs, label_fig)
 % plot -  Channel 2
 yRef = ref_results.AvgSpec(:,3);
 ySQAT = OUT.specLoudnessPowAvg(:,2);
-label_title = [wav_file ' (Channel 2)'];
+label_title = [wav_file '.wav (Channel 2)'];
 label_fig = [wav_file ' (Channel 2)' '_avgSpecific_tonality'];
 
 il_plt_avgSpecific( yRef, ySQAT, label_title, save_figs, label_fig)
@@ -123,7 +123,7 @@ il_plt_avgSpecific( yRef, ySQAT, label_title, save_figs, label_fig)
 % plot -  combined binaural
 yRef = ref_results.AvgSpecCombBinaural(:,2);
 ySQAT = OUT.specLoudnessPowAvgBin(:,1);
-label_title = [wav_file ' (Combined binaural)'];
+label_title = [wav_file '.wav (Combined binaural)'];
 label_fig = [wav_file ' (Combined binaural)' '_avgSpecific_tonality'];
 
 il_plt_avgSpecific( yRef, ySQAT, label_title, save_figs, label_fig)
@@ -144,7 +144,7 @@ single_values =[ch1_reference ...
                           combBinaural_reference ...
                           combBinaural_SQAT ];
 
-label_title = wav_file;
+label_title = [wav_file '.wav'];
 label_fig = [wav_file '_singleValues_Loudness'];
 
 il_plt_singleValues(single_values, label_title, save_figs,  label_fig)
@@ -153,7 +153,6 @@ il_plt_singleValues(single_values, label_title, save_figs,  label_fig)
 
 function il_plt_tDep(xRef, yRef, xSQAT, ySQAT, label_title, save_figs,  label_fig)
 
-% h  =figure('Position', [200, 200, 450, 300]);
 h  =figure;
 set(h,'Units','Inches');
 pos = get(h,'Position');
@@ -174,7 +173,6 @@ xlabel('Time (s)');
 ylabel('Loudness (sone_{HMS})');
 
 legend('Reference', 'SQAT', 'Location', 'Best');
-legend boxoff
 set(gcf,'color','w');
 
 title(label_title);
@@ -243,6 +241,7 @@ bar(barkAxis,...
 xlabel( 'Critical band rate (Bark_{HMS})' );
 ylabel( 'Specific loudness (sone{HMS}/Bark_{HMS})' );
 
+xtickangle(90);
 xticks(barkAxis);
 
 legend('Reference', 'SQAT');
@@ -250,9 +249,9 @@ legend('Reference', 'SQAT');
 title(label_title);
 
 ax.FontName = 'Arial';
-ax.FontSize = 12;
+ax.FontSize = 14;
 ax.Title.FontWeight = 'normal';
-ax.Title.FontSize = 12;
+ax.Title.FontSize = 16;
 
 set(h,'color','w');
 
@@ -303,9 +302,11 @@ end
 ylim([0 round(max(single_values(1))+2)]);
 
 legend('Reference', 'SQAT', 'Location', 'NE');
-legend boxoff
 
-title(label_title);
+t=title(label_title);
+
+t.FontWeight = 'normal';
+t.FontSize = 16;
 
 set(gcf,'color','w');
 
