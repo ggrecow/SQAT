@@ -18,7 +18,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 clc; clear all; close all;
 
-save_figs = 1; % save figure flag
+save_figs = 0; % save figure flag
 
 %% Load  binaural .wav file
  
@@ -67,9 +67,9 @@ ref_results.Spec_TDep_combined_binaural = readmatrix( [ref_path Spec_TDep_fileNa
 
 % single values
 % Analysis Name    Channel Name    N/soneHMS    AnalysisRange
-% Loudness (Hearing Model) vs. Time    CombinedBinaural Ch1&Ch2    7,32    [0,304 - 29,9 s]
 % Loudness (Hearing Model) vs. Time    Ch1    8,10    [0,304 - 29,9 s]
 % Loudness (Hearing Model) vs. Time    Ch2    6,43    [0,304 - 29,9 s]
+% Loudness (Hearing Model) vs. Time    CombinedBinaural Ch1&Ch2    7,32    [0,304 - 29,9 s]
 
 ref_results.single_values = [8.10 6.43 7.32]; % [Ch1 Ch2 combBinaural]
 
@@ -239,7 +239,7 @@ bar(barkAxis,...
     'DisplayName', "SQAT");
 
 xlabel( 'Critical band rate (Bark_{HMS})' );
-ylabel( 'Specific loudness (sone{HMS}/Bark_{HMS})' );
+ylabel( 'Specific loudness (sone_{HMS}/Bark_{HMS})' );
 
 xtickangle(90);
 xticks(barkAxis);
