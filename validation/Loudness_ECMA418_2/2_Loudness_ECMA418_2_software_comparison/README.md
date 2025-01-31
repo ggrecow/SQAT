@@ -1,6 +1,6 @@
 # About this code 
 
-The `Loudness_ECMA418_2_software_comparison.m` code compares loudness results (ECMA-418-2 model [1]) obtained in a commercial software and using the implementation in SQAT (see `Loudness_ECMA418_2.m` code [here](../../../psychoacoustic_metrics/Loudness_ECMA418_2/Loudness_ECMA418_2.m)). To perform this study, a binaural recording performed on a 'train station' environment is used. The signal 'TrainStation.7.wav' was extracted from the EigenScape database [(link)](https://zenodo.org/doi/10.5281/zenodo.1012808), and trimmed between 01m00s and 01m30s. The EigenScape database, which is described by 
+The `Loudness_ECMA418_2_software_comparison.m` code compares loudness results (ECMA-418-2 model [1]) obtained in a commercial software and using the implementation in SQAT (see `Loudness_ECMA418_2.m` code [here](../../../psychoacoustic_metrics/Loudness_ECMA418_2/Loudness_ECMA418_2.m)). To perform this study, a binaural file recorded in a 'train station' environment is used. The signal 'TrainStation.7.wav' was extracted from the EigenScape database [(link)](https://zenodo.org/doi/10.5281/zenodo.1012808), and trimmed between 01m00s and 01m30s. The EigenScape database, which is described by 
 Green et al. [2], is licenced under Creative Commons Attribution 4.0.   
 
 <!-- Artemis Suite 15.7-->
