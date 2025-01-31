@@ -1,5 +1,5 @@
 # About this code 
-The `Loudness_ECMA418_2_equal_loudness_contours.m` code is used to reproduce Fig. A1 from [1], where the equal-loudness-level contours from ISO 226:2003 [2] are compared with isocontours obtained using the loudness model from ECMA-418-2 (see `Loudness_ECMA418_2` code [here](../../../psychoacoustic_metrics/Loudness_ECMA418_2/Loudness_ECMA418_2.m)). To perform this verification study, first the loudness of a 1-kHz tone is computed using the ECMA-loudness model. After that, an optimization procedure is performed to find the SPL of tones with the same loudness as the 1-kHz tone. 
+The `Loudness_ECMA418_2_equal_loudness_contours.m` code is used to reproduce Fig. A1 from [1], where the equal-loudness-level contours from ISO 226:2003 [2] are compared with isocontours obtained using the loudness model from ECMA-418-2 (see `Loudness_ECMA418_2.m` code [here](../../../psychoacoustic_metrics/Loudness_ECMA418_2/Loudness_ECMA418_2.m)). To perform this verification study, first the loudness of a 1-kHz tone is computed using the ECMA-loudness model. After that, the SPL of tones with different frequencies is adjusted so that they yield the same loudness of the 1-kHz tone. 
 
 # How to use this code
 The test signals are generated in the code. Therefore, no extra steps are required to run this code.
