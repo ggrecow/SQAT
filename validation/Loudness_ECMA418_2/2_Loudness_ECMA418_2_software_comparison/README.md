@@ -16,11 +16,11 @@ This is a standalone code. Therefore, no extra steps are required to run it.
 
 ## Time-averaged specific loudness
 
-<img src='figs/TrainStation7-0100-0130 (Channel 1)_avgSpecific_tonality.png' width=1000> 
+<img src='figs/TrainStation7-0100-0130 (Channel 1)_avgSpecific_Loudness.png' width=1000> 
 
-<img src='figs/TrainStation7-0100-0130 (Channel 2)_avgSpecific_tonality.png' width=1000> 
+<img src='figs/TrainStation7-0100-0130 (Channel 2)_avgSpecific_Loudness.png' width=1000> 
 
-<img src='figs/TrainStation7-0100-0130 (Combined binaural)_avgSpecific_tonality.png' width=1000>
+<img src='figs/TrainStation7-0100-0130 (Combined binaural)_avgSpecific_Loudness.png' width=1000>
 
 ## Overall loudness
 

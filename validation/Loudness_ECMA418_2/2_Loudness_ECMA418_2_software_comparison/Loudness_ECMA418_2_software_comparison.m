@@ -108,7 +108,7 @@ il_plt_tDep(xRef, yRef, xSQAT, ySQAT, label_title, save_figs, label_fig);
 yRef = ref_results.AvgSpec(:,2);
 ySQAT = OUT.specLoudnessPowAvg(:,1);
 label_title = [wav_file '.wav (Channel 1)'];
-label_fig = [wav_file ' (Channel 1)' '_avgSpecific_tonality'];
+label_fig = [wav_file ' (Channel 1)' '_avgSpecific_Loudness'];
 
 il_plt_avgSpecific( yRef, ySQAT, label_title, save_figs, label_fig)
 
@@ -116,7 +116,7 @@ il_plt_avgSpecific( yRef, ySQAT, label_title, save_figs, label_fig)
 yRef = ref_results.AvgSpec(:,3);
 ySQAT = OUT.specLoudnessPowAvg(:,2);
 label_title = [wav_file '.wav (Channel 2)'];
-label_fig = [wav_file ' (Channel 2)' '_avgSpecific_tonality'];
+label_fig = [wav_file ' (Channel 2)' '_avgSpecific_Loudness'];
 
 il_plt_avgSpecific( yRef, ySQAT, label_title, save_figs, label_fig)
 
@@ -124,7 +124,7 @@ il_plt_avgSpecific( yRef, ySQAT, label_title, save_figs, label_fig)
 yRef = ref_results.AvgSpecCombBinaural(:,2);
 ySQAT = OUT.specLoudnessPowAvgBin(:,1);
 label_title = [wav_file '.wav (Combined binaural)'];
-label_fig = [wav_file ' (Combined binaural)' '_avgSpecific_tonality'];
+label_fig = [wav_file ' (Combined binaural)' '_avgSpecific_Loudness'];
 
 il_plt_avgSpecific( yRef, ySQAT, label_title, save_figs, label_fig)
 
