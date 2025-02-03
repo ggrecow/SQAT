@@ -175,6 +175,8 @@ ylabel('Loudness (sone_{HMS})');
 legend('Reference', 'SQAT', 'Location', 'Best');
 set(gcf,'color','w');
 
+ylim([0 12]);
+
 title(label_title);
 
 ax.FontName = 'Arial';
@@ -216,9 +218,15 @@ set(h,'PaperPositionMode','Auto','PaperUnits','Inches','PaperSize',[pos(3), pos(
  
 barkAxis = linspace(0.5, 26.5, 53);
 
+left_color = [0 0 0];
+right_color = [0 0 0];
+set(h,'defaultAxesColorOrder',[left_color; right_color]);
+
 ax = nexttile;
 
-bar(barkAxis,...
+yyaxis left;
+
+a= bar(barkAxis,...
     yRef,...
     'EdgeColor',  cmap(cmap1, :),...
     'EdgeAlpha', 0.2, ...
@@ -230,7 +238,7 @@ bar(barkAxis,...
 
 hold on;
 
-bar(barkAxis,...
+b =bar(barkAxis,...
     ySQAT,...
     'EdgeColor',  cmap(cmap2, :),...
     'FaceColor',  'none',...
@@ -244,7 +252,7 @@ ylabel( 'Specific loudness (sone_{HMS}/Bark_{HMS})' );
 xtickangle(90);
 xticks(barkAxis);
 
-legend('Reference', 'SQAT');
+ylim([0 0.6]);
 
 title(label_title);
 
@@ -252,6 +260,15 @@ ax.FontName = 'Arial';
 ax.FontSize = 14;
 ax.Title.FontWeight = 'normal';
 ax.Title.FontSize = 16;
+
+yyaxis right;
+c = plot( barkAxis, ySQAT-yRef, 'k*-');
+
+ylabel( 'SQAT-Reference (sone_{HMS}/Bark_{HMS})' );
+
+ylim([-0.5 0.5]);
+
+legend([a b c], {'Reference', 'SQAT', 'SQAT - Reference'});
 
 set(h,'color','w');
 
