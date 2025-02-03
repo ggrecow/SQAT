@@ -291,7 +291,7 @@ else  % don't resample
 end
 
 % get time vector of input signal
-timeInsig = (0 : length(p_re(:,1))-1) ./ sampleRate48k;
+timeInsig = (0 : length(p_re(:,1))-1) ./ fs;
 
 % Input signal samples
 n_samples = size(p_re, 1);
