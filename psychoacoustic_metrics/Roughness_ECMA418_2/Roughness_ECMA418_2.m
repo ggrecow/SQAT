@@ -409,8 +409,8 @@ for chan = size(pn_om, 2):-1:1
             % for indexing into modulation spectra matrices
             kLocs = kLocs + mlabIndex;
 
-            % we cannot have a peak at k=1
-            mask = kLocs ~= 1 + mlabIndex;
+            % we cannot have a peak at k=1 or k=256
+            mask = and((kLocs ~= 1 + mlabIndex), (kLocs ~= 256 + mlabIndex));
             kLocs = kLocs(mask);
             PhiPks = PhiPks(mask);
 
