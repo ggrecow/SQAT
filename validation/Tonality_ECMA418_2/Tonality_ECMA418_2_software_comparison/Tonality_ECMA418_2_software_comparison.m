@@ -222,8 +222,6 @@ xticks(barkAxis);
 
 ylim([0 0.7]);
 
-legend('Reference', 'SQAT');
-
 title(label_title);
 
 ax.FontName = 'Arial';
@@ -236,7 +234,7 @@ c = plot( barkAxis, ySQAT-yRef, 'k*-');
 
 ylabel( 'SQAT-Reference (sone_{HMS}/Bark_{HMS})' );
 
-ylim([-0.5 0.5]);
+ylim([-0.002 0.002]);
 
 legend([a b c], {'Reference', 'SQAT', 'SQAT - Reference'});
 

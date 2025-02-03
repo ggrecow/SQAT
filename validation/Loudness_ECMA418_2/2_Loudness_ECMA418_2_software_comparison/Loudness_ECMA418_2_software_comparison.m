@@ -266,7 +266,7 @@ c = plot( barkAxis, ySQAT-yRef, 'k*-');
 
 ylabel( 'SQAT-Reference (sone_{HMS}/Bark_{HMS})' );
 
-ylim([-0.5 0.5]);
+ylim([-0.002 0.002]);
 
 legend([a b c], {'Reference', 'SQAT', 'SQAT - Reference'});
 
