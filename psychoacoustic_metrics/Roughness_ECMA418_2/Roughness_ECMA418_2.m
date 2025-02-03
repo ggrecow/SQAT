@@ -291,7 +291,7 @@ else  % don't resample
 end
 
 % get time vector of input signal
-timeInsig = (0 : length(p_re(:,1))-1) ./ fs;
+timeInsig = (0 : length(p_re(:,1))-1) ./ sampleRate48k;
 
 % Input signal samples
 n_samples = size(p_re, 1);
@@ -615,7 +615,7 @@ for chan = size(pn_om, 2):-1:1
     % interpolation to 50 Hz sampling rate
     % Section 7.1.7 Equation 103 [l_50,end]
     l_50Last = floor(n_samples/sampleRate48k*sampleRate50) + 1;
-    x = (iBlocks - 1)/fs;
+    x = (iBlocks - 1)/sampleRate48k;
     xq = linspace(0, signalT, l_50Last);
     for zBand = nBands:-1:1
         specRoughEst(:, zBand) = pchip(x, modAmpMax(:, zBand), xq);
