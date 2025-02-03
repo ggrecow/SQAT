@@ -615,7 +615,7 @@ for chan = size(pn_om, 2):-1:1
     % interpolation to 50 Hz sampling rate
     % Section 7.1.7 Equation 103 [l_50,end]
     l_50Last = floor(n_samples/sampleRate48k*sampleRate50) + 1;
-    x = (iBlocks - 1)/sampleRatein;
+    x = (iBlocks - 1)/fs;
     xq = linspace(0, signalT, l_50Last);
     for zBand = nBands:-1:1
         specRoughEst(:, zBand) = pchip(x, modAmpMax(:, zBand), xq);
