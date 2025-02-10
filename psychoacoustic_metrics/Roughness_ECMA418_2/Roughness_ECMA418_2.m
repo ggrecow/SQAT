@@ -164,7 +164,7 @@ function OUT = Roughness_ECMA418_2(insig, fs, fieldtype, time_skip, show)
 % information.
 %
 % Checked by: Gil Felix Greco
-% Date last checked: 04.02.2025
+% Date last checked: 10.02.2025
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Arguments validation
     arguments (Input) % Matlab R2018b or newer
@@ -857,8 +857,7 @@ if show
         ax2.GridLineWidth = 0.25;
         ax2.FontName = 'Arial';
         ax2.FontSize = 10;
-        lgd = legend('Location', 'eastoutside', 'FontSize', 8);
-        lgd.Title.String = "Overall";
+        legend('Location', 'eastoutside', 'FontSize', 8);
         set(gcf,'color','w');
 
     end  % end of for loop for plotting over channels

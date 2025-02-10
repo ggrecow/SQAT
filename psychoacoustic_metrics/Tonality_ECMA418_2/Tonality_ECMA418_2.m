@@ -158,7 +158,7 @@ function OUT = Tonality_ECMA418_2(insig, fs, fieldtype, time_skip, show)
 % WITHOUT ANY WARRANTY; without even the implied warranty of
 % MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 %
-% This code calls sub-component file 'cmap_inferno.txt'. The contents of
+% This code calls sub-component file 'cmap_plasma.txt'. The contents of
 % the file includes a copy of data obtained from the repository 
 % https://github.com/BIDS/colormap, and is CC0 1.0 licensed for modified
 % use, see https://creativecommons.org/publicdomain/zero/1.0 for
@@ -169,7 +169,7 @@ function OUT = Tonality_ECMA418_2(insig, fs, fieldtype, time_skip, show)
 % The original code has been reused and updated here with permission.
 %
 % Checked by: Gil Felix Greco
-% Date last checked: 22.01.2025
+% Date last checked: 10.02.2025
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %% Arguments validation
@@ -537,7 +537,7 @@ for chan = size(pn_om, 2):-1:1
     if show
 
         % colormap
-        cmap_inferno = load('cmap_inferno.txt');
+        cmap_plasma = load('cmap_plasma.txt');
 
         %%% sound level meter parameters
         weightFreq = 'A'; % A-frequency weighting
@@ -565,7 +565,7 @@ for chan = size(pn_om, 2):-1:1
         ax1.XLabel.String = "Time (s)";
         ax1.FontName =  'Arial';
         ax1.FontSize = 10;
-        colormap(cmap_inferno);
+        colormap(cmap_plasma);
         h = colorbar;
         set(get(h,'label'),'string', {'Specific Tonality,'; '(tu_{HMS}/Bark_{HMS})'});
 
@@ -578,10 +578,10 @@ for chan = size(pn_om, 2):-1:1
         
         ax2 = nexttile(2); 
 
-        plot(ax2, timeOut, tonalityTDep(:, chan), 'color',  cmap_inferno(166, :),...
+        plot(ax2, timeOut, tonalityTDep(:, chan), 'color',  cmap_plasma(166, :),...
             'LineWidth', 0.75, 'DisplayName', "Time-" + string(newline) + "dependent");
         hold on
-        plot(ax2, timeOut, tonalityAvg(1, chan)*ones(size(timeOut)), '--', 'color', cmap_inferno(34, :),...
+        plot(ax2, timeOut, tonalityAvg(1, chan)*ones(size(timeOut)), '--', 'color', cmap_plasma(34, :),...
             'LineWidth', 1, 'DisplayName', "Time-" + string(newline) + "average");
         hold off
 
@@ -596,8 +596,7 @@ for chan = size(pn_om, 2):-1:1
         ax2.GridLineWidth = 0.25;
         ax2.FontName = 'Arial';
         ax2.FontSize = 10;
-        lgd = legend('Location', 'eastoutside', 'FontSize', 8);
-        lgd.Title.String = "Overall";
+        legend('Location', 'eastoutside', 'FontSize', 8);
         set(gcf,'color','w');
     end
 
