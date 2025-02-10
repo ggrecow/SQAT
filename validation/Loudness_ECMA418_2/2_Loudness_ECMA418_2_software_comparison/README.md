@@ -6,7 +6,8 @@ Green et al. [2], is licenced under Creative Commons Attribution 4.0.
 <!-- Artemis Suite 15.7-->
 
 # How to use this code
-This is a standalone code. Therefore, no extra steps are required to run it.
+The following sound file is required: `ExStereo_TrainStation7-0100-0130.wav`, which is stored in the `sound_files\reference_signals` folder. 
+
 
 # Results
 
@@ -33,7 +34,7 @@ This is a standalone code. Therefore, no extra steps are required to run it.
 
 
 # Log
-Created by Gil Felix Greco (31.01.2025)
+Last checked by: Gil Felix Greco (10.02.2025)
 
 
 

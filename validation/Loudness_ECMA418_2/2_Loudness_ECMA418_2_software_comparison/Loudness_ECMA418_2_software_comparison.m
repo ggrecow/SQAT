@@ -14,23 +14,22 @@
 %   OUT = Loudness_ECMA418_2(insig, fs, fieldtype, time_skip, show)
 %   type <help Loudness_ECMA418_2> for more info
 %
-% Author: Gil Felix Greco, Braunschweig 31.01.2025
+% Author: Gil Felix Greco, Braunschweig 10.02.2025
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 clc; clear all; close all;
 
 save_figs = 0; % save figure flag
 
-%% Load  binaural .wav file
+%% Load  stereo .wav file
  
-dir_sound = [basepath_SQAT 'sound_files' filesep 'verification_SQAT_ECMA418_2' filesep];
+dir_sound = [basepath_SQAT 'sound_files' filesep 'reference_signals' filesep];
 
+fileTag = 'ExStereo_';
 wav_file = 'TrainStation7-0100-0130';
 
-[insig, fs] = audioread([dir_sound wav_file '.wav']); 
+[insig, fs] = audioread([dir_sound fileTag wav_file '.wav']); 
 
-time_insig = (0 : length(insig)-1) ./ fs;  % time vector of the audio input, in seconds
-
-%% Compute loudness (binaural signal)
+%% Compute loudness (stereo signal)
 
 fieldtype = 'free-frontal'; % string (default: 'free-frontal'; or 'diffuse')
 time_skip = 304e-3;% time_skip, in seconds for statistical calculations (default: 0 seconds)
@@ -158,7 +157,7 @@ set(h,'Units','Inches');
 pos = get(h,'Position');
 set(h,'PaperPositionMode','Auto','PaperUnits','Inches','PaperSize',[pos(3), pos(4)])
 
-cmap  = load('cmap_inferno.txt');
+cmap  = load('cmap_viridis.txt');
 cmap1 = 166;
 cmap2 = 34;
 
@@ -207,7 +206,7 @@ end
 
 function il_plt_avgSpecific( yRef, ySQAT, label_title, save_figs, label_fig)
 
-cmap  = load('cmap_inferno.txt');
+cmap  = load('cmap_viridis.txt');
 cmap1 = 166;
 cmap2 = 34;
 
@@ -307,7 +306,7 @@ str_xlabel = {'Ch1';'Ch2';'Combined binaural'};
 br=bar(str_xlabel, single_values);
 ylabel("Loudness (sone_{HMS})")
 
-cMap = load('cmap_inferno.txt');
+cMap  = load('cmap_viridis.txt');
 colororder([cMap(166, :); cMap(34, :)])
 
 for bb = 1:length(br)
