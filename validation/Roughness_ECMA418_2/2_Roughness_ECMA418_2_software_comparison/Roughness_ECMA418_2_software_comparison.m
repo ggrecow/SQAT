@@ -14,23 +14,22 @@
 %   OUT = Roughness_ECMA418_2(insig, fs, fieldtype, time_skip, show)
 %   type <help Roughness_ECMA418_2> for more info
 %
-% Author: Gil Felix Greco, Braunschweig 31.01.2025
+% Author: Gil Felix Greco, Braunschweig 10.02.2025
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 clc; clear all; close all;
 
 save_figs = 0; % save figure flag
 
-%% Load  binaural .wav file
+%% Load  stereo .wav file
  
-dir_sound = [basepath_SQAT 'sound_files' filesep 'verification_SQAT_ECMA418_2' filesep];
+dir_sound = [basepath_SQAT 'sound_files' filesep 'reference_signals' filesep];
 
+fileTag = 'ExStereo_';
 wav_file = 'TrainStation7-0100-0130';
 
-[insig, fs] = audioread([dir_sound wav_file '.wav']); 
+[insig, fs] = audioread([dir_sound fileTag wav_file '.wav']); 
 
-time_insig = (0 : length(insig)-1) ./ fs;  % time vector of the audio input, in seconds
-
-%% Compute roughness (binaural signal)
+%% Compute roughness (stereo signal)
 
 fieldtype = 'free-frontal'; % string (default: 'free-frontal'; or 'diffuse')
 time_skip = 320e-3;% time_skip, in seconds for statistical calculations (default: 0 seconds)
