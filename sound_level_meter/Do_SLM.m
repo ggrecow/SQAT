@@ -78,7 +78,7 @@ outsig_dB = 20*log10(abs(outsig)/2e-5);
 try
     idx = find(outsig_dB<0);
     if ~isempty(idx)
-        fprintf('\t%s There were %.0f samples (out of %.0f) with levels below 0 dB SPL. They were set to 0 dB SPL\n',mfilename,length(idx),length(outsig_dB));
+        % fprintf('\t%s There were %.0f samples (out of %.0f) with levels below 0 dB SPL. They were set to 0 dB SPL\n',mfilename,length(idx),length(outsig_dB));
         outsig_dB(idx) = 0;
     end
 end
