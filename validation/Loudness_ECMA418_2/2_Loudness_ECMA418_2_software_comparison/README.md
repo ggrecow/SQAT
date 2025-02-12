@@ -37,6 +37,7 @@ Combined binaural |
 :-------------------------:| 
 | <img src='figs/TrainStation7-0100-0130 (Combined binaural)_avgSpecific_Loudness.png' width=1000>| 
 
+
 ## Time-dependent specific loudness
 
 | Reference (channel 1)       | Implementation (channel 1)          |

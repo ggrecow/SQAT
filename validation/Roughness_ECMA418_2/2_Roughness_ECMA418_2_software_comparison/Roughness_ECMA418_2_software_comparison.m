@@ -147,6 +147,40 @@ label_fig = [wav_file '_singleValues_Roughness'];
 
 il_plt_singleValues(single_values, label_title, save_figs,  label_fig)
 
+%% plot - time-dependent specific loudness
+
+% plot -  commercial software (Channel 1)
+xAxis =  ref_results.Spec_TDep_channel_1(2:end,1) ; % time vector
+yAxis =  ref_results.Spec_TDep_channel_1(1, 2:end) ; % freq vector
+zAxis =  ref_results.Spec_TDep_channel_1(2:end, 2:end) ; % specific loudness
+label_fig = [wav_file ' (Channel 1)' '_tDep_Specific_Roughness_ref'];
+
+il_plt_spectrogram(xAxis, yAxis, zAxis', save_figs,  label_fig)
+
+% plot -  commercial software (Channel 2)
+xAxis =  ref_results.Spec_TDep_channel_2(2:end,1) ; % time vector
+yAxis =  ref_results.Spec_TDep_channel_2(1, 2:end) ; % freq vector
+zAxis =  ref_results.Spec_TDep_channel_2(2:end, 2:end) ; % specific loudness
+label_fig = [wav_file ' (Channel 2)' '_tDep_Specific_Roughness_ref'];
+
+il_plt_spectrogram(xAxis, yAxis, zAxis', save_figs,  label_fig)
+
+% plot -  implementation (Channel 1)
+xAxis =  OUT.timeOut; % time vector
+yAxis =  OUT.bandCentreFreqs; % freq vector
+zAxis =  OUT.specRoughness(:,:,1) ; % specific loudness
+label_fig = [wav_file ' (Channel 1)' '_tDep_Specific_Roughness_implementation'];
+
+il_plt_spectrogram(xAxis, yAxis, zAxis', save_figs,  label_fig)
+
+% plot -  implementation (Channel 2)
+% xAxis =  OUT.timeOut; % time vector
+% yAxis =  OUT.bandCentreFreqs; % freq vector
+zAxis =  OUT.specRoughness(:,:,2) ; % specific loudness
+label_fig = [wav_file ' (Channel 2)' '_tDep_Specific_Roughness_implementation'];
+
+il_plt_spectrogram(xAxis, yAxis, zAxis', save_figs,  label_fig)
+
 %% function / plot - time-varying quantity
 
 function il_plt_tDep(xRef, yRef, xSQAT, ySQAT, label_title, save_figs,  label_fig)
@@ -170,17 +204,17 @@ plot(xSQAT, ySQAT, ':', 'Color', cmap(cmap2, :), 'Linewidth', 1.5);
 xlabel('Time (s)');
 ylabel('Roughness (asper_{HMS})');
 
-legend('Reference', 'SQAT', 'Location', 'Best');
+legend('Reference', 'Implementation', 'Location', 'NE');
 set(gcf,'color','w');
 
 ylim([0 0.2]);
 
-title(label_title);
+% title(label_title);
 
-ax.FontName = 'Arial';
-ax.FontSize = 14;
-ax.Title.FontWeight = 'normal';
-ax.Title.FontSize = 16;
+ax.FontName = 'Times';
+ax.FontSize = 16;
+% ax.Title.FontWeight = 'normal';
+% ax.Title.FontSize = 16;
 
 if save_figs==1
     figures_dir = [fileparts(mfilename('fullpath')) filesep 'figs' filesep];
@@ -240,7 +274,7 @@ b = bar(barkAxis,...
     'FaceColor',  'none',...
     'LineWidth', 0.5, 'LineStyle', '-',...
     'BarWidth',0.5, ...
-    'DisplayName', "SQAT");
+    'DisplayName', "Implementation");
 
 xlabel( 'Critical band rate (Bark_{HMS})' );
 ylabel( 'Specific roughness (asper_{HMS}/Bark_{HMS})' );
@@ -250,21 +284,21 @@ xticks(barkAxis);
 
 ylim([0 0.015]);
 
-title(label_title);
+% title(label_title);
 
 ax.FontName = 'Arial';
 ax.FontSize = 14;
-ax.Title.FontWeight = 'normal';
-ax.Title.FontSize = 16;
+% ax.Title.FontWeight = 'normal';
+% ax.Title.FontSize = 16;
 
 yyaxis right;
 c = plot( barkAxis, ySQAT-yRef, 'k*-');
 
-ylabel( 'SQAT-Reference (sone_{HMS}/Bark_{HMS})' );
+ylabel( 'Implementation-Reference (asper_{HMS}/Bark_{HMS})' );
 
 ylim([-0.002 0.002]);
 
-legend([a b c], {'Reference', 'SQAT', 'SQAT - Reference'});
+legend([a b c], {'Reference', 'Implementation', 'Implementation - Reference'});
 
 set(h,'color','w');
 
@@ -292,7 +326,8 @@ end
 function il_plt_singleValues(single_values, label_title, save_figs,  label_fig)
 
 % Single values
-h  =figure('Position', [200, 200, 550, 550]);
+% h  =figure('Position', [200, 200, 550, 550]);
+h  =figure;
 set(h,'Units','Inches');
 pos = get(h,'Position');
 set(h,'PaperPositionMode','Auto','PaperUnits','Inches','PaperSize',[pos(3), pos(4)])
@@ -312,16 +347,68 @@ for bb = 1:length(br)
         'VerticalAlignment','bottom', 'FontSize', 12)
 end
 
-ylim([0 round(max(single_values(1))+2)]);
+ylim([0 round(max(single_values(1))+1)]);
 
-legend('Reference', 'SQAT', 'Location', 'NE');
+legend('Reference', 'Implementation', 'Location', 'NE');
 
-t=title(label_title);
+% t=title(label_title);
 
-t.FontWeight = 'normal';
-t.FontSize = 16;
+% t.FontWeight = 'normal';
+% t.FontSize = 16;
 
 set(gcf,'color','w');
+
+if save_figs==1
+    figures_dir = [fileparts(mfilename('fullpath')) filesep 'figs' filesep];
+    if ~exist(figures_dir,'dir')
+        mkdir(figures_dir);
+    end
+    figname_short = label_fig;
+    figname_out = [figures_dir figname_short];
+
+    resolution = '-r600'; % Default resolution of 600 DPI
+
+    % saveas(gcf,figname_out, 'fig');
+    % print( gcf, figname_out, '-dpdf', resolution );
+    print( gcf, figname_out,  '-dpng', resolution );
+
+    fprintf('\n%s.m: figure %s was saved on disk\n\t(full name: %s)\n',mfilename,figname_short,figname_out);
+end
+
+end
+
+%% function / plot spectrogram
+
+function il_plt_spectrogram(xAxis, yAxis, zAxis, save_figs,  label_fig)
+
+h  =figure;
+set(h,'Units','Inches');
+pos = get(h,'Position');
+set(h,'PaperPositionMode','Auto','PaperUnits','Inches','PaperSize',[pos(3), pos(4)])
+movegui(h, 'center');
+
+
+[xx,yy] = meshgrid(xAxis, yAxis);
+xx(1) = 0;  % truncating first idx of time to zero (just a visual thing because ref results may not start exactly on zero)
+pcolor(xx, yy, zAxis);
+shading interp; colorbar; axis tight;
+cMap  = load('cmap_inferno.txt'); colormap(cMap);
+
+ax = gca;
+ax.YTick = [63, 125, 250, 500, 1e3, 2e3, 4e3, 8e3, 16e3];
+ax.YTickLabel = ["63", "125", "250", "500", "1k", "2k", "4k","8k", "16k"];
+ax.YScale = 'log';
+ax.YLabel.String = 'Frequency (Hz)';
+ax.XLabel.String = 'Time (s)';
+
+ h = colorbar;
+ zString = 'Specific roughness (asper_{HMS}/Bark_{HMS})';
+ set(get(h,'label'),'string', zString);
+
+ box on
+ set(gca,'layer','top');
+
+ set(gcf,'color','w');
 
 if save_figs==1
     figures_dir = [fileparts(mfilename('fullpath')) filesep 'figs' filesep];

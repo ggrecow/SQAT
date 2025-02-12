@@ -1,6 +1,6 @@
 # About this code 
 
-The `Roughness_ECMA418_2_software_comparison.m` code compares roughness results (ECMA-418-2 model [1]) obtained in a commercial software and using the implementation in SQAT (see `Roughness_ECMA418_2.m` code [here](../../../psychoacoustic_metrics/Roughness_ECMA418_2/Roughness_ECMA418_2.m)). To perform this study, a binaural file recorded in a 'train station' environment is used. The signal 'TrainStation.7.wav' was extracted from the EigenScape database [(link)](https://zenodo.org/doi/10.5281/zenodo.1012808), and trimmed between 01m00s and 01m30s. The EigenScape database, which is described by 
+The `Roughness_ECMA418_2_software_comparison.m` code compares roughness results (ECMA-418-2 model [1]) obtained using a commercial software (ref. results) and using the implementation in SQAT (see `Roughness_ECMA418_2.m` code [here](../../../psychoacoustic_metrics/Roughness_ECMA418_2/Roughness_ECMA418_2.m)). To perform this study, a binaural file recorded in a 'train station' environment is used. The signal 'TrainStation.7.wav' was extracted from the EigenScape database [(link)](https://zenodo.org/doi/10.5281/zenodo.1012808), and trimmed between 01m00s and 01m30s. The EigenScape database, which is described by 
 Green et al. [2], is licenced under Creative Commons Attribution 4.0.   
 
 <!-- Artemis Suite 15.7-->
@@ -12,15 +12,38 @@ The following sound file is required: `ExStereo_TrainStation7-0100-0130.wav`, wh
 
 ## Time-dependent roughness
 
-<img src='figs/TrainStation7-0100-0130 (Channel 1)_TDep_Roughness.png' width=500> <img src='figs/TrainStation7-0100-0130 (Channel 2)_TDep_Roughness.png' width=500> <img src='figs/TrainStation7-0100-0130 (Combined binaural)_TDep_Roughness.png' width=500>
+| Channel 1       | Channel 2          |
+| -------------- | -------------- |
+| <img src='figs/TrainStation7-0100-0130 (Channel 1)_TDep_Roughness.png' width=500>  | <img src='figs/TrainStation7-0100-0130 (Channel 2)_TDep_Roughness.png' width=500>  |
+
+Combined binaural |  
+:-------------------------:| 
+| <img src='figs/TrainStation7-0100-0130 (Combined binaural)_TDep_Roughness.png' width=500>|  
+    
 
 ## Time-averaged specific roughness
 
-<img src='figs/TrainStation7-0100-0130 (Channel 1)_avgSpecific_Roughness.png' width=1000> 
+Channel 1  |  
+:-------------------------:| 
+| <img src='figs/TrainStation7-0100-0130 (Channel 1)_avgSpecific_Roughness.png' width=1000>  | 
 
-<img src='figs/TrainStation7-0100-0130 (Channel 2)_avgSpecific_Roughness.png' width=1000> 
+Channel 2 |  
+:-------------------------:| 
+| <img src='figs/TrainStation7-0100-0130 (Channel 2)_avgSpecific_Roughness.png' width=1000>  | 
 
-<img src='figs/TrainStation7-0100-0130 (Combined binaural)_avgSpecific_Roughness.png' width=1000>
+Combined binaural |  
+:-------------------------:| 
+| <img src='figs/TrainStation7-0100-0130 (Combined binaural)_avgSpecific_Roughness.png' width=1000> | 
+ 
+## Time-dependent specific roughness
+
+| Reference (channel 1)       | Implementation (channel 1)          |
+| -------------- | -------------- |
+| <img src='figs/TrainStation7-0100-0130 (Channel 1)_tDep_Specific_Tonality_ref.png' width=500>  | <img src='figs/TrainStation7-0100-0130 (Channel 1)_tDep_Specific_Tonality_implementation.png' width=500>   |
+
+|   Reference (channel 2)       | Implementation (channel 2)          |
+| -------------- | -------------- |
+| <img src='figs/TrainStation7-0100-0130 (Channel 2)_tDep_Specific_Tonality_ref.png' width=500>  | <img src='figs/TrainStation7-0100-0130 (Channel 2)_tDep_Specific_Tonality_implementation.png' width=500>  |
 
 ## Overall roughness
 
@@ -33,7 +56,7 @@ The following sound file is required: `ExStereo_TrainStation7-0100-0130.wav`, wh
 
 
 # Log
-Last checked by: Gil Felix Greco (10.02.2025)
+Last checked: Gil Felix Greco (12.02.2025)
 
 
 
