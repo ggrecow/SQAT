@@ -39,13 +39,13 @@ Combined binaural |
 
 ## Time-dependent specific loudness
 
-| Reference (channel 1)       | Reference (channel 2)          |
+| Reference (channel 1)       | Implementation (channel 1)          |
 | -------------- | -------------- |
-| <img src='figs/TrainStation7-0100-0130 (Channel 1)_tDep_Specific_Loudness_ref.png' width=500>  | <img src='figs/TrainStation7-0100-0130 (Channel 2)_tDep_Specific_Loudness_ref.png' width=500>  |
+| <img src='figs/TrainStation7-0100-0130 (Channel 1)_tDep_Specific_Loudness_ref.png' width=500>  | <img src='figs/TrainStation7-0100-0130 (Channel 1)_tDep_Specific_Loudness_implementation.png' width=500>   |
 
-| Implementation (channel 1)       | Implementation (channel 2)          |
+|   Reference (channel 2)       | Implementation (channel 2)          |
 | -------------- | -------------- |
-| <img src='figs/TrainStation7-0100-0130 (Channel 1)_tDep_Specific_Loudness_implementation.png' width=500>  | <img src='figs/TrainStation7-0100-0130 (Channel 2)_tDep_Specific_Loudness_implementation.png' width=500>  |
+| <img src='figs/TrainStation7-0100-0130 (Channel 2)_tDep_Specific_Loudness_ref.png' width=500>  | <img src='figs/TrainStation7-0100-0130 (Channel 2)_tDep_Specific_Loudness_implementation.png' width=500>  |
 
 
 ## Overall loudness

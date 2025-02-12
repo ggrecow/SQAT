@@ -14,7 +14,7 @@
 %   OUT = Loudness_ECMA418_2(insig, fs, fieldtype, time_skip, show)
 %   type <help Loudness_ECMA418_2> for more info
 %
-% Author: Gil Felix Greco, Braunschweig 10.02.2025
+% Author: Gil Felix Greco, Braunschweig 12.02.2025
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 clc; clear all; close all;
 
@@ -162,7 +162,7 @@ il_plt_spectrogram(xAxis, yAxis, zAxis', save_figs,  label_fig)
 xAxis =  ref_results.Spec_TDep_channel_2(2:end,1) ; % time vector
 yAxis =  ref_results.Spec_TDep_channel_2(1, 2:end) ; % freq vector
 zAxis =  ref_results.Spec_TDep_channel_2(2:end, 2:end) ; % specific loudness
-label_fig = [wav_file ' (Channel 1)' '_tDep_Specific_Loudness_ref'];
+label_fig = [wav_file ' (Channel 2)' '_tDep_Specific_Loudness_ref'];
 
 il_plt_spectrogram(xAxis, yAxis, zAxis', save_figs,  label_fig)
 
