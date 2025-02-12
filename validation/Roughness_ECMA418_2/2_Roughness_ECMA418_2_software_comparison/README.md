@@ -39,11 +39,11 @@ Combined binaural |
 
 | Reference (channel 1)       | Implementation (channel 1)          |
 | -------------- | -------------- |
-| <img src='figs/TrainStation7-0100-0130 (Channel 1)_tDep_Specific_Tonality_ref.png' width=500>  | <img src='figs/TrainStation7-0100-0130 (Channel 1)_tDep_Specific_Tonality_implementation.png' width=500>   |
+| <img src='figs/TrainStation7-0100-0130 (Channel 1)_tDep_Specific_Roughness_ref.png' width=500>  | <img src='figs/TrainStation7-0100-0130 (Channel 1)_tDep_Specific_Roughness_implementation.png' width=500>   |
 
 |   Reference (channel 2)       | Implementation (channel 2)          |
 | -------------- | -------------- |
-| <img src='figs/TrainStation7-0100-0130 (Channel 2)_tDep_Specific_Tonality_ref.png' width=500>  | <img src='figs/TrainStation7-0100-0130 (Channel 2)_tDep_Specific_Tonality_implementation.png' width=500>  |
+| <img src='figs/TrainStation7-0100-0130 (Channel 2)_tDep_Specific_Roughness_ref.png' width=500>  | <img src='figs/TrainStation7-0100-0130 (Channel 2)_tDep_Specific_Roughness_implementation.png' width=500>  |
 
 ## Overall roughness
 
