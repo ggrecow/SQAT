@@ -102,6 +102,8 @@ Raw data and extra scripts to reproduce all the paper figures can be found [here
 
 We would be very happy to know that you find SQAT useful and have used it in your own work. In this case, please reach out so we can feature your work here. 
 
+> Lotinga, M. J. B., Green, M. C., & Toríja, A. J. (2025). Human perception and response to sound from unmanned aircraft systems within ambient acoustic environments. [npj Acoustics](https://doi.org/10.1038/s44384-024-00001-6), 1:2.
+
 > Vourakis, M., Zea, E., Karlsson, M., Andersson, N., & Etemad, S. (2024). Installation Effects on Axial Fans: Combined Aeroacoustic and Psychoacoustic Perspective. [SSRN preprint](https://dx.doi.org/10.2139/ssrn.4986567)
 
 > Schmidt, H., Yupa-Villanueva, R. M., Ragni, D., Merino-Martinez, R., van Gool, P., & Schmehl, R. (2024). A listening experiment exploring the relationship between noise annoyance and sound quality metrics for airborne energy systems. [Wind Energy Science](https://doi.org/10.5194/wes-2024-125) [Preprint]
