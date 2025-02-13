@@ -32,7 +32,7 @@ wav_file = 'TrainStation7-0100-0130';
 %% Compute Tonality (stereo signal)
 
 fieldtype = 'free-frontal'; % string (default: 'free-frontal'; or 'diffuse')
-time_skip = 304e-3;% time_skip, in seconds for statistical calculations (default: 0 seconds)
+time_skip = 304e-3;% time_skip, in seconds for statistical calculations (default: 304ms - avoids transient responses of the digital filters)
 show = 0; % show results, 'false' (disable, default value) or 'true' (enable)
 
 OUT = Tonality_ECMA418_2(insig, fs, fieldtype, time_skip, show);
@@ -121,7 +121,7 @@ il_plt_singleValues(single_values, label_title, save_figs,  label_fig)
 % plot -  commercial software (Channel 1)
 xAxis =  ref_results.Spec_TDep_channel_1(2:end,1) ; % time vector
 yAxis =  ref_results.Spec_TDep_channel_1(1, 2:end) ; % freq vector
-zAxis =  ref_results.Spec_TDep_channel_1(2:end, 2:end) ; % specific loudness
+zAxis =  ref_results.Spec_TDep_channel_1(2:end, 2:end) ; % specific tonality
 label_fig = [wav_file ' (Channel 1)' '_tDep_Specific_Tonality_ref'];
 
 il_plt_spectrogram(xAxis, yAxis, zAxis', save_figs,  label_fig)
@@ -129,7 +129,7 @@ il_plt_spectrogram(xAxis, yAxis, zAxis', save_figs,  label_fig)
 % plot -  commercial software (Channel 2)
 xAxis =  ref_results.Spec_TDep_channel_2(2:end,1) ; % time vector
 yAxis =  ref_results.Spec_TDep_channel_2(1, 2:end) ; % freq vector
-zAxis =  ref_results.Spec_TDep_channel_2(2:end, 2:end) ; % specific loudness
+zAxis =  ref_results.Spec_TDep_channel_2(2:end, 2:end) ; % specific tonality
 label_fig = [wav_file ' (Channel 2)' '_tDep_Specific_Tonality_ref'];
 
 il_plt_spectrogram(xAxis, yAxis, zAxis', save_figs,  label_fig)
@@ -137,7 +137,7 @@ il_plt_spectrogram(xAxis, yAxis, zAxis', save_figs,  label_fig)
 % plot -  implementation (Channel 1)
 xAxis =  OUT.timeOut; % time vector
 yAxis =  OUT.bandCentreFreqs; % freq vector
-zAxis =  OUT.specTonality(:,:,1) ; % specific loudness
+zAxis =  OUT.specTonality(:,:,1) ; % specific tonality
 label_fig = [wav_file ' (Channel 1)' '_tDep_Specific_Tonality_implementation'];
 
 il_plt_spectrogram(xAxis, yAxis, zAxis', save_figs,  label_fig)
@@ -145,7 +145,7 @@ il_plt_spectrogram(xAxis, yAxis, zAxis', save_figs,  label_fig)
 % plot -  implementation (Channel 2)
 % xAxis =  OUT.timeOut; % time vector
 % yAxis =  OUT.bandCentreFreqs; % freq vector
-zAxis =  OUT.specTonality(:,:,2) ; % specific loudness
+zAxis =  OUT.specTonality(:,:,2) ; % specific tonality
 label_fig = [wav_file ' (Channel 2)' '_tDep_Specific_Tonality_implementation'];
 
 il_plt_spectrogram(xAxis, yAxis, zAxis', save_figs,  label_fig)

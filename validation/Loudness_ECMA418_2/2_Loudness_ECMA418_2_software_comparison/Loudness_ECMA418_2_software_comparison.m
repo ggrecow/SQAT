@@ -32,7 +32,7 @@ wav_file = 'TrainStation7-0100-0130';
 %% Compute loudness (stereo signal)
 
 fieldtype = 'free-frontal'; % string (default: 'free-frontal'; or 'diffuse')
-time_skip = 304e-3;% time_skip, in seconds for statistical calculations (default: 0 seconds)
+time_skip = 304e-3; % time_skip, in seconds for statistical calculations (default: 304ms - avoids transient responses of the digital filters)
 show = 1; % show results, 'false' (disable, default value) or 'true' (enable)
 
 OUT = Loudness_ECMA418_2(insig, fs, fieldtype, time_skip, show);

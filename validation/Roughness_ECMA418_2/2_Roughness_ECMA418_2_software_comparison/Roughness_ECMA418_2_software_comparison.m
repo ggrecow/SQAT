@@ -32,7 +32,7 @@ wav_file = 'TrainStation7-0100-0130';
 %% Compute roughness (stereo signal)
 
 fieldtype = 'free-frontal'; % string (default: 'free-frontal'; or 'diffuse')
-time_skip = 320e-3;% time_skip, in seconds for statistical calculations (default: 0 seconds)
+time_skip = 320e-3;% time_skip, in seconds for statistical calculations (default: 0.32 seconds - avoids transient responses of the digital filters)
 show = 1; % show results, 'false' (disable, default value) or 'true' (enable)
 
 OUT = Roughness_ECMA418_2(insig, fs, fieldtype, time_skip, show);
@@ -147,12 +147,12 @@ label_fig = [wav_file '_singleValues_Roughness'];
 
 il_plt_singleValues(single_values, label_title, save_figs,  label_fig)
 
-%% plot - time-dependent specific loudness
+%% plot - time-dependent specific roughness
 
 % plot -  commercial software (Channel 1)
 xAxis =  ref_results.Spec_TDep_channel_1(2:end,1) ; % time vector
 yAxis =  ref_results.Spec_TDep_channel_1(1, 2:end) ; % freq vector
-zAxis =  ref_results.Spec_TDep_channel_1(2:end, 2:end) ; % specific loudness
+zAxis =  ref_results.Spec_TDep_channel_1(2:end, 2:end) ; % specific roughness
 label_fig = [wav_file ' (Channel 1)' '_tDep_Specific_Roughness_ref'];
 
 il_plt_spectrogram(xAxis, yAxis, zAxis', save_figs,  label_fig)
@@ -160,7 +160,7 @@ il_plt_spectrogram(xAxis, yAxis, zAxis', save_figs,  label_fig)
 % plot -  commercial software (Channel 2)
 xAxis =  ref_results.Spec_TDep_channel_2(2:end,1) ; % time vector
 yAxis =  ref_results.Spec_TDep_channel_2(1, 2:end) ; % freq vector
-zAxis =  ref_results.Spec_TDep_channel_2(2:end, 2:end) ; % specific loudness
+zAxis =  ref_results.Spec_TDep_channel_2(2:end, 2:end) ; % specific roughness
 label_fig = [wav_file ' (Channel 2)' '_tDep_Specific_Roughness_ref'];
 
 il_plt_spectrogram(xAxis, yAxis, zAxis', save_figs,  label_fig)
@@ -168,7 +168,7 @@ il_plt_spectrogram(xAxis, yAxis, zAxis', save_figs,  label_fig)
 % plot -  implementation (Channel 1)
 xAxis =  OUT.timeOut; % time vector
 yAxis =  OUT.bandCentreFreqs; % freq vector
-zAxis =  OUT.specRoughness(:,:,1) ; % specific loudness
+zAxis =  OUT.specRoughness(:,:,1) ; % specific roughness
 label_fig = [wav_file ' (Channel 1)' '_tDep_Specific_Roughness_implementation'];
 
 il_plt_spectrogram(xAxis, yAxis, zAxis', save_figs,  label_fig)
@@ -176,7 +176,7 @@ il_plt_spectrogram(xAxis, yAxis, zAxis', save_figs,  label_fig)
 % plot -  implementation (Channel 2)
 % xAxis =  OUT.timeOut; % time vector
 % yAxis =  OUT.bandCentreFreqs; % freq vector
-zAxis =  OUT.specRoughness(:,:,2) ; % specific loudness
+zAxis =  OUT.specRoughness(:,:,2) ; % specific roughness
 label_fig = [wav_file ' (Channel 2)' '_tDep_Specific_Roughness_implementation'];
 
 il_plt_spectrogram(xAxis, yAxis, zAxis', save_figs,  label_fig)
