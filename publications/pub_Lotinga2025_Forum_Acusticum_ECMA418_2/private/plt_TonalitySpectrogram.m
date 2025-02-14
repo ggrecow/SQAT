@@ -17,12 +17,14 @@ function plt_TonalitySpectrogram(x1Axis, y1Axis, z1Axis, x2Axis, y2Axis, z2Axis,
 h  =figure;
 set(h,'Units','Inches');
 pos = get(h,'Position');
-set(h,'PaperPositionMode','Auto','PaperUnits','Inches','PaperSize',[pos(3), pos(4)])
+set(h,'Position', [pos(1), pos(2), pos(3), pos(4)*1.3]);
+set(h,'PaperPositionMode','Auto','PaperUnits','Inches','PaperSize',[pos(3), pos(4)*1.3])
 movegui(h, 'center');
 
 tiledlayout(2,1);
 cmap = load('cmap_plasma.txt');
 climMax = 1.5;
+fontSize = 20;
 
 %% reference results
 
@@ -34,17 +36,17 @@ pcolor(xx, yy, z1Axis);
 shading interp; axis tight;
 
 ax1.FontName = 'Times';
-ax1.FontSize = 18;
+ax1.FontSize = fontSize;
 ax1.YTick = [63, 250, 1e3, 4e3, 16e3];
 ax1.YTickLabel = ["63", "250",  "1k", "4k", "16k"];
 ax1.YScale = 'log';
-ax1.YLabel.String = 'Freq. (Hz)';
-ax1.YLabel.FontSize = 18;
-ax1.XLabel.String = 'Time (s)';
-ax1.XLabel.FontSize = 18;
+ax1.YLabel.String = 'Freq., Hz';
+ax1.YLabel.FontSize = fontSize;
+ax1.XLabel.String = 'Time, s';
+ax1.XLabel.FontSize = fontSize;
 ax1.Title.String = 'Reference';
 ax1.Title.FontWeight = 'normal';
-ax1.Title.FontSize = 18;
+ax1.Title.FontSize = fontSize;
 colormap(ax1,cmap);
 clim([0 climMax]);
 
@@ -58,17 +60,17 @@ pcolor(xx, yy, z2Axis);
 shading interp; axis tight;
 
 ax2.FontName = 'Times';
-ax2.FontSize = 18;
+ax2.FontSize = fontSize;
 ax2.YTick = [63, 250, 1e3, 4e3, 16e3];
 ax2.YTickLabel = ["63", "250",  "1k", "4k", "16k"];
 ax2.YScale = 'log';
-ax2.YLabel.String = 'Freq. (Hz)';
-ax2.YLabel.FontSize = 18;
-ax2.XLabel.String = 'Time (s)';
-ax2.XLabel.FontSize = 18;
+ax2.YLabel.String = 'Freq., Hz';
+ax2.YLabel.FontSize = fontSize;
+ax2.XLabel.String = 'Time, s';
+ax2.XLabel.FontSize = fontSize;
 ax2.Title.String = 'Implementation';
 ax2.Title.FontWeight = 'normal';
-ax2.Title.FontSize = 18;
+ax2.Title.FontSize = fontSize;
 colormap(ax2,cmap);
 clim([0 climMax]);
 
@@ -77,7 +79,7 @@ clim([0 climMax]);
 cb = colorbar;
 cb.Layout.Tile = 'east';
 
-zString = 'Specific tonality (tu_{HMS}/Bark_{HMS})';
+zString = 'Specific tonality, tu_{HMS}/Bark_{HMS}';
 set(get(cb,'label'),'string', zString);
 
 set(gcf,'color','w');

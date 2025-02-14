@@ -44,7 +44,7 @@ xticks([]);
 ax = gca;
 ax.FontName = 'Times';
 ax.FontSize = 18;
-ylabel( 'Tonality (tu_{HMS})', 'fontsize',18);
+ylabel( 'Tonality, tu_{HMS}', 'fontsize',18);
 
 %% second tile (loudness)
 
@@ -67,7 +67,7 @@ legend('Reference', 'Implementation', 'Location', 'northoutside', 'NumColumns', 
 ax = gca;
 ax.FontName = 'Times';
 ax.FontSize = 18;
-ylabel( 'Loudness (sones_{HMS})', 'fontsize',18);
+ylabel( 'Loudness, sone_{HMS}', 'fontsize',18);
 
 %% third tile (roughness)
 
@@ -88,7 +88,7 @@ xticks([]);
 ax = gca;
 ax.FontName = 'Times';
 ax.FontSize = 18;
-ylabel( 'Roughness (asper_{HMS})', 'fontsize',18);
+ylabel( 'Roughness, asper_{HMS}', 'fontsize',18);
 
 set(gcf,'color','w');
 

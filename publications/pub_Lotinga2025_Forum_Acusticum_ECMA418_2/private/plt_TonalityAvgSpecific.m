@@ -17,12 +17,14 @@ function plt_TonalityAvgSpecific( yRef, yImplementation, save_figs, label_fig)
 cmap  = load('cmap_plasma.txt');
 cmap1 = 166;
 cmap2 = 34;
+fontSize = 20;
 
 h  =figure;
 set(h,'Units','Inches');
 pos = get(h,'Position');
-set(h,'Position', [pos(1), pos(2), pos(3)*2, pos(4)]);
-set(h,'PaperPositionMode','Auto','PaperUnits','Inches','PaperSize',[pos(3)*2, pos(4)])
+set(h,'Position', [pos(1), pos(2), pos(3)*2, pos(4)*1.3]);
+set(h,'PaperPositionMode','Auto','PaperUnits','Inches','PaperSize',[pos(3)*2, pos(4)*1.3])
+movegui(h, 'center');
 
 barkAxis = linspace(0.5, 26.5, 53);
 
@@ -63,10 +65,10 @@ ylim([0 0.7]);
 
 ax.XTick = 0.5:26.5;
 ax.FontName = 'Times';
-ax.FontSize = 18;
+ax.FontSize = fontSize;
 
-xlabel( 'Critical band rate (Bark_{HMS})', 'fontsize',18);
-ylabel( 'Specific tonality (tu_{HMS}/Bark_{HMS})', 'fontsize',18);
+xlabel( 'Critical band rate, Bark_{HMS}', 'fontsize', fontSize);
+ylabel( 'Specific tonality, tu_{HMS}/Bark_{HMS}', 'fontsize', fontSize);
 
 %% right axis (error plot)
 
