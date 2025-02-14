@@ -80,7 +80,7 @@ cb = colorbar;
 cb.Layout.Tile = 'east';
 
 zString = 'Specific tonality, tu_{HMS}/Bark_{HMS}';
-set(get(cb,'label'),'string', zString);
+set(get(cb,'label'),'string', zString, 'fontsize', fontSize);
 
 set(gcf,'color','w');
 

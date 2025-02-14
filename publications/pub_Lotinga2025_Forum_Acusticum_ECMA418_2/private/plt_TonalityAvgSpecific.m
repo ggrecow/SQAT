@@ -66,6 +66,10 @@ ylim([0 0.7]);
 ax.XTick = 0.5:26.5;
 ax.FontName = 'Times';
 ax.FontSize = fontSize;
+ax.XGrid = 'on';
+ax.YGrid = 'on';
+ax.GridLineStyle = '--';
+ax.GridAlpha = 0.15;
 
 xlabel( 'Critical band rate, Bark_{HMS}', 'fontsize', fontSize);
 ylabel( 'Specific tonality, tu_{HMS}/Bark_{HMS}', 'fontsize', fontSize);
@@ -74,12 +78,14 @@ ylabel( 'Specific tonality, tu_{HMS}/Bark_{HMS}', 'fontsize', fontSize);
 
 yyaxis right;
 
-c = plot( barkAxis, (yImplementation-yRef), '*-', 'Color', right_color );
+% difference = ( (yImplementation-yRef)./yRef).*100; % percentage difference
+difference = (yImplementation-yRef); % relative difference
 
-% ylabel( 'Implementation-Reference (tu_{HMS}/Bark_{HMS})' );
+c = plot( barkAxis, difference, '*-', 'Color', right_color );
 
-tolerance = max(yRef)*0.05;  % 5 percent tolerance criteria, like in ISO 532-1
-ylim([-tolerance tolerance]); 
+ylabel( 'Relative difference, tu_{HMS}/Bark_{HMS}', 'fontsize', fontSize);
+
+ylim([-0.0015 0.0015]); 
 
 legend([a b c], {'Reference', 'Implementation', 'Implementation - Reference'});
 

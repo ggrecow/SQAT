@@ -116,21 +116,21 @@ plt_TonalityAvgSpecific( yRef, yImplementation, save_figs, label_fig)
 ch1_ref_tonality = ref_results.tonality.single_values(1);
 ch1_implementation_tonality = OUT.tonality.tonalityAvg(1);
 
-single_values1 =[ch1_ref_tonality, ...
-                            ch1_implementation_tonality];
+single_values1 = [ch1_ref_tonality, ...
+                             ch1_implementation_tonality];
 % loudness
 ch1_ref_loudness = ref_results.loudness.single_values(1);
 ch1_implementation_loudness = OUT.loudness.loudnessPowAvg(1);
 
-single_values2 =[ch1_ref_loudness, ...
-                            ch1_implementation_loudness];
+single_values2 = [ch1_ref_loudness, ...
+                             ch1_implementation_loudness];
 
 % roughness
 ch1_ref_roughness = ref_results.roughness.single_values(1);
 ch1_implementation_roughness = OUT.roughness.roughness90Pc(1);
 
-single_values3 =[ch1_ref_roughness, ...
-                            ch1_implementation_roughness];
+single_values3 = [ch1_ref_roughness, ...
+                             ch1_implementation_roughness];
 
 label_fig = [wav_file '_singleValues'];
 
