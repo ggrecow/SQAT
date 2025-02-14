@@ -27,7 +27,7 @@ switch metric
         xLabelTag = 'Time, s';
         yLabelTag = 'Loudness, sone_{HMS}';
         cMap = load('cmap_viridis.txt');
-        yLimits = [0 20];
+        yLimits = [0 15];
 
     case 'tonality'
 

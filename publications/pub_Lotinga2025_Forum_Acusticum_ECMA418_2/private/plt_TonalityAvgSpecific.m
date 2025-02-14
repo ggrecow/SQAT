@@ -78,7 +78,8 @@ c = plot( barkAxis, (yImplementation-yRef), '*-', 'Color', right_color );
 
 % ylabel( 'Implementation-Reference (tu_{HMS}/Bark_{HMS})' );
 
-ylim([-0.002 0.002]);
+tolerance = max(yRef)*0.05;  % 5 percent tolerance criteria, like in ISO 532-1
+ylim([-tolerance tolerance]); 
 
 legend([a b c], {'Reference', 'Implementation', 'Implementation - Reference'});
 
