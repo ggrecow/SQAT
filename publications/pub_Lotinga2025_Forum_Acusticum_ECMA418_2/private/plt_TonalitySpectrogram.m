@@ -14,11 +14,13 @@ function plt_TonalitySpectrogram(x1Axis, y1Axis, z1Axis, x2Axis, y2Axis, z2Axis,
 % Author: Gil Felix Greco, Braunschweig 13.02.2025
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+stretchY = 1.3; % stretch plot in the vertical direction
+
 h  =figure;
 set(h,'Units','Inches');
 pos = get(h,'Position');
-set(h,'Position', [pos(1), pos(2), pos(3), pos(4)*1.3]);
-set(h,'PaperPositionMode','Auto','PaperUnits','Inches','PaperSize',[pos(3), pos(4)*1.3])
+set(h,'Position', [pos(1), pos(2), pos(3), pos(4)*stretchY]);
+set(h,'PaperPositionMode','Auto','PaperUnits','Inches','PaperSize',[pos(3), pos(4)*stretchY])
 movegui(h, 'center');
 
 tiledlayout(2,1);

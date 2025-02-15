@@ -39,15 +39,14 @@ switch metric
 end
 
 fontSize = 20;
+stretchY = 1.3; % stretch plot in the vertical direction
 
 % plot
 h  =figure;
 set(h,'Units','Inches');
 pos = get(h,'Position');
-% set(h,'Position', [pos(1), pos(2), pos(3), pos(4)*(0.95)]);
-% set(h,'PaperPositionMode','Auto','PaperUnits','Inches','PaperSize',[pos(3), pos(4)*0.95])
-set(h,'Position', [pos(1), pos(2), pos(3), pos(4)*1.3]);
-set(h,'PaperPositionMode','Auto','PaperUnits','Inches','PaperSize',[pos(3), pos(4)*1.3])
+set(h,'Position', [pos(1), pos(2), pos(3), pos(4)*stretchY]);
+set(h,'PaperPositionMode','Auto','PaperUnits','Inches','PaperSize',[pos(3), pos(4)*stretchY])
 movegui(h, 'center');
 
 cMap1 = 166;

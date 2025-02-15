@@ -14,6 +14,8 @@ function plt_singleValues(single_values1, single_values2, single_values3, save_f
 % Author: Gil Felix Greco, Braunschweig 13.02.2025
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+fontSize = 18;
+
 h  =figure;
 set(h,'Units','Inches');
 pos = get(h,'Position');
@@ -43,8 +45,8 @@ xticks([]);
 
 ax = gca;
 ax.FontName = 'Times';
-ax.FontSize = 18;
-ylabel( 'Tonality, tu_{HMS}', 'fontsize',18);
+ax.FontSize = fontSize;
+ylabel( 'Tonality, tu_{HMS}', 'fontsize', fontSize);
 
 %% second tile (loudness)
 
@@ -66,8 +68,8 @@ legend('Reference', 'Implementation', 'Location', 'northoutside', 'NumColumns', 
 
 ax = gca;
 ax.FontName = 'Times';
-ax.FontSize = 18;
-ylabel( 'Loudness, sone_{HMS}', 'fontsize',18);
+ax.FontSize = fontSize;
+ylabel( 'Loudness, sone_{HMS}', 'fontsize', fontSize);
 
 %% third tile (roughness)
 
@@ -87,8 +89,8 @@ xticks([]);
 
 ax = gca;
 ax.FontName = 'Times';
-ax.FontSize = 18;
-ylabel( 'Roughness, asper_{HMS}', 'fontsize',18);
+ax.FontSize = fontSize;
+ylabel( 'Roughness, asper_{HMS}', 'fontsize', fontSize);
 
 set(gcf,'color','w');
 

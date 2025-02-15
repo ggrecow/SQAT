@@ -19,11 +19,14 @@ cmap1 = 166;
 cmap2 = 34;
 fontSize = 20;
 
+stretchX = 2;  % stretch plot in the horizontal direction
+stretchY= 1.3; % stretch plot in the vertical direction
+
 h  =figure;
 set(h,'Units','Inches');
 pos = get(h,'Position');
-set(h,'Position', [pos(1), pos(2), pos(3)*2, pos(4)*1.3]);
-set(h,'PaperPositionMode','Auto','PaperUnits','Inches','PaperSize',[pos(3)*2, pos(4)*1.3])
+set(h,'Position', [pos(1), pos(2), pos(3)*stretchX, pos(4)*stretchY]);
+set(h,'PaperPositionMode','Auto','PaperUnits','Inches','PaperSize',[pos(3)*stretchX, pos(4)*stretchY])
 movegui(h, 'center');
 
 barkAxis = linspace(0.5, 26.5, 53);
