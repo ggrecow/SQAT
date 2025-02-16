@@ -1,4 +1,4 @@
-unction OUT = get_percentile(input, PercentValue)
+function OUT = get_percentile(input, PercentValue)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
 % Calculate the value exceeded  during <PercentValue> of the time
