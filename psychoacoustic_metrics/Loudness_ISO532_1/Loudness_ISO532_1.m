@@ -71,6 +71,7 @@ function OUT = Loudness_ISO532_1(insig, fs, field, method, time_skip, show)
 % Author: Gil Felix Greco, Braunschweig 22.02.2023 - adapted and validated
 %                   for SQAT. The validation was based on the test signals
 %                   provided from ISO 532-1:2017
+% Author: Gil Felix Greco, Braunschweig 16.02.2025 - introduced get_statistics function
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 if nargin == 0
     help Loudness_ISO532_1;
@@ -730,30 +731,27 @@ if method == 2 % time-varying from audio signal
     OUT.InstantaneousLoudnessLevel=LN ; % Time-varying Loudness level, in phon
     OUT.InstantaneousSPL=10.*log10(sum(10.^(ThirdOctaveLevel(:,1:end)./10),2)); % total SPL (1/3 octave bands) for each time step, in dBSPL
 
-    % statistics from Time-varying Loudness (sone)
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    % get statistics from Time-varying Loudness (sone)
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
     [~,idx] = min( abs(OUT.time-time_skip) ); % find idx of time_skip on time vector
 
-    OUT.Nmax = max(Total_Loudness(idx:end));
-    OUT.Nmin = min(Total_Loudness(idx:end));
-    OUT.Nmean = mean(Total_Loudness(idx:end));
-    OUT.Nstd = std(Total_Loudness(idx:end));
-    OUT.N1 = get_percentile(Total_Loudness(idx:end),1);
-    OUT.N2 = get_percentile(Total_Loudness(idx:end),2);
-    OUT.N3 = get_percentile(Total_Loudness(idx:end),3);
-    OUT.N4 = get_percentile(Total_Loudness(idx:end),4);
-    OUT.N5 = get_percentile(Total_Loudness(idx:end),5);
-    OUT.N10 = get_percentile(Total_Loudness(idx:end),10);
-    OUT.N20 = get_percentile(Total_Loudness(idx:end),20);
-    OUT.N30 = get_percentile(Total_Loudness(idx:end),30);
-    OUT.N40 = get_percentile(Total_Loudness(idx:end),40);
-    OUT.N50 = median(Total_Loudness(idx:end));
-    OUT.N60 = get_percentile(Total_Loudness(idx:end),60);
-    OUT.N70 = get_percentile(Total_Loudness(idx:end),70);
-    OUT.N80 = get_percentile(Total_Loudness(idx:end),80);
-    OUT.N90 = get_percentile(Total_Loudness(idx:end),90);
-    OUT.N95 = get_percentile(Total_Loudness(idx:end),95);
+    metric_statistics = 'Loudness_ISO532_1';
+    OUT_statistics = get_statistics( Total_Loudness(idx:end), metric_statistics ); % get statistics
+
+    % copy fields of <OUT_statistics> struct into the <OUT> struct
+    fields_OUT_statistics = fieldnames(OUT_statistics);  % Get all field names in OUT_statistics
+
+    for i = 1:numel(fields_OUT_statistics)
+        fieldName = fields_OUT_statistics{i};
+        if ~isfield(OUT, fieldName) % Only copy if OUT does NOT already have this field
+            OUT.(fieldName) = OUT_statistics.(fieldName);
+        end
+    end
+
+    clear OUT_statistics metric_statistics fields_OUT_statistics fieldName;  
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
     OUT.N_ratio=OUT.N5/OUT.N95; % ratio between N5/N95 (1.1 (stationary)> N_ratio>1.1 (time varying)
 
     %% **********************************************************************

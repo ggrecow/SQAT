@@ -51,6 +51,7 @@ function OUT = Tonality_Aures1985(insig,fs,LoudnessField,time_skip,show)
 %         ** Kx : Tonality value exceeded during x percent of the time (t.u.)
 %
 % Author: Gil Felix Greco, Braunschweig 13/07/2020 (updated 14.04.2023)
+% Author: Gil Felix Greco, Braunschweig 16.02.2025 - introduced get_statistics function
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 if nargin < 5
@@ -349,30 +350,26 @@ OUT.TonalWeighting = w_tonal;          % instantaneous tonal weighting
 OUT.LoudnessWeighting = w_gr;          % instantaneous loudness weighting
 OUT.time = t;                          % time vector
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% tonality statistics
+% get statistics from Time-varying tonality
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 [~,idx] = min( abs(OUT.time-time_skip) ); % find idx of time_skip on time vector
 
-OUT.Kmean = mean(tonality(idx:end));
-OUT.Kstd = std(tonality(idx:end));
-OUT.Kmax = max(tonality(idx:end));
-OUT.Kmin = min(tonality(idx:end));
-OUT.K1 = get_percentile(tonality(idx:end),1);
-OUT.K2 = get_percentile(tonality(idx:end),2);
-OUT.K3 = get_percentile(tonality(idx:end),3);
-OUT.K4 = get_percentile(tonality(idx:end),4);
-OUT.K5 = get_percentile(tonality(idx:end),5);
-OUT.K10 = get_percentile(tonality(idx:end),10);
-OUT.K20 = get_percentile(tonality(idx:end),20);
-OUT.K30 = get_percentile(tonality(idx:end),30);
-OUT.K40 = get_percentile(tonality(idx:end),40);
-OUT.K50 = median(tonality(idx:end));
-OUT.K60 = get_percentile(tonality(idx:end),60);
-OUT.K70 = get_percentile(tonality(idx:end),70);
-OUT.K80 = get_percentile(tonality(idx:end),80);
-OUT.K90 = get_percentile(tonality(idx:end),90);
-OUT.K95 = get_percentile(tonality(idx:end),95);
+metric_statistics = 'Tonality_Aures1985';
+OUT_statistics = get_statistics( tonality(idx:end), metric_statistics ); % get statistics
+
+% copy fields of <OUT_statistics> struct into the <OUT> struct
+fields_OUT_statistics = fieldnames(OUT_statistics);  % Get all field names in OUT_statistics
+
+for i = 1:numel(fields_OUT_statistics)
+    fieldName = fields_OUT_statistics{i};
+    if ~isfield(OUT, fieldName) % Only copy if OUT does NOT already have this field
+        OUT.(fieldName) = OUT_statistics.(fieldName);
+    end
+end
+
+clear OUT_statistics metric_statistics fields_OUT_statistics fieldName;
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% plots

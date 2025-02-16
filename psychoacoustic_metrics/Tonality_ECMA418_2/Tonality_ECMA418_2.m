@@ -115,12 +115,12 @@ function OUT = Tonality_ECMA418_2(insig, fs, fieldtype, time_skip, show)
 %              fieldtype)
 %
 % Several statistics based on tonalityTDep
-%         ** Kmean : mean value of instantaneous tonality (tu_HMS)
-%         ** Kstd : standard deviation of instantaneous tonality (tu_HMS)
-%         ** Kmax : maximum of instantaneous tonality (tu_HMS)
-%         ** Kmin : minimum of instantaneous tonality (tu_HMS)
-%         ** Kx : tonality value exceeded during x percent of the time (tu_HMS)
-%             in case of binaural input, Kx(1,3), being 1st and 2nd column 
+%         ** Tmean : mean value of instantaneous tonality (tu_HMS)
+%         ** Tstd : standard deviation of instantaneous tonality (tu_HMS)
+%         ** Tmax : maximum of instantaneous tonality (tu_HMS)
+%         ** Tmin : minimum of instantaneous tonality (tu_HMS)
+%         ** Tx : tonality value exceeded during x percent of the time (tu_HMS)
+%             in case of binaural input, Tx(1,3), being 1st and 2nd column 
 %             corresponding to [left ear, right ear] 
 %             OBS: all quantities here take <time_skip> into consideration
 %
@@ -169,7 +169,7 @@ function OUT = Tonality_ECMA418_2(insig, fs, fieldtype, time_skip, show)
 % The original code has been reused and updated here with permission.
 %
 % Checked by: Gil Felix Greco
-% Date last checked: 10.02.2025
+% Date last checked: 16.02.2025
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %% Arguments validation
@@ -630,25 +630,24 @@ OUT.timeOut = timeOut;
 OUT.timeInsig = timeInsig;
 OUT.soundField = fieldtype;
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Tonality statistics based on tonalityTDep ["Stereo left"; "Stereo right"]; for stereo case
-OUT.Kmax = max(tonalityTDep(time_skip_idx:end,1:size(tonalityTDep, 2)));
-OUT.Kmin = min(tonalityTDep(time_skip_idx:end,1:size(tonalityTDep, 2)));
-OUT.Kmean = mean(tonalityTDep(time_skip_idx:end,1:size(tonalityTDep, 2)));
-OUT.Kstd = std(tonalityTDep(time_skip_idx:end,1:size(tonalityTDep, 2)));
-OUT.K1 = get_percentile(tonalityTDep(time_skip_idx:end,1:size(tonalityTDep, 2)),1);
-OUT.K2 = get_percentile(tonalityTDep(time_skip_idx:end,1:size(tonalityTDep, 2)),2);
-OUT.K3 = get_percentile(tonalityTDep(time_skip_idx:end,1:size(tonalityTDep, 2)),3);
-OUT.K4 = get_percentile(tonalityTDep(time_skip_idx:end,1:size(tonalityTDep, 2)),4);
-OUT.K5 = get_percentile(tonalityTDep(time_skip_idx:end,1:size(tonalityTDep, 2)),5);
-OUT.K10 = get_percentile(tonalityTDep(time_skip_idx:end,1:size(tonalityTDep, 2)),10);
-OUT.K20 = get_percentile(tonalityTDep(time_skip_idx:end,1:size(tonalityTDep, 2)),20);
-OUT.K30 = get_percentile(tonalityTDep(time_skip_idx:end,1:size(tonalityTDep, 2)),30);
-OUT.K40 = get_percentile(tonalityTDep(time_skip_idx:end,1:size(tonalityTDep, 2)),40);
-OUT.K50 = median(tonalityTDep(time_skip_idx:end,1:size(tonalityTDep, 2)));
-OUT.K60 = get_percentile(tonalityTDep(time_skip_idx:end,1:size(tonalityTDep, 2)),60);
-OUT.K70 = get_percentile(tonalityTDep(time_skip_idx:end,1:size(tonalityTDep, 2)),70);
-OUT.K80 = get_percentile(tonalityTDep(time_skip_idx:end,1:size(tonalityTDep, 2)),80);
-OUT.K90 = get_percentile(tonalityTDep(time_skip_idx:end,1:size(tonalityTDep, 2)),90);
-OUT.K95 = get_percentile(tonalityTDep(time_skip_idx:end,1:size(tonalityTDep, 2)),95);
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+metric_statistics = 'Tonality_ECMA418_2';
+OUT_statistics = get_statistics( tonalityTDep(time_skip_idx:end,1:size(tonalityTDep, 2)), metric_statistics ); % get statistics
+
+% copy fields of <OUT_statistics> struct into the <OUT> struct
+fields_OUT_statistics = fieldnames(OUT_statistics);  % Get all field names in OUT_statistics
+
+for i = 1:numel(fields_OUT_statistics)
+    fieldName = fields_OUT_statistics{i};
+    if ~isfield(OUT, fieldName) % Only copy if OUT does NOT already have this field
+        OUT.(fieldName) = OUT_statistics.(fieldName);
+    end
+end
+
+clear OUT_statistics metric_statistics fields_OUT_statistics fieldName;
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 end %of function

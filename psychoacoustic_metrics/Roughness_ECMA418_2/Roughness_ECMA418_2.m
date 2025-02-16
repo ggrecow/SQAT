@@ -164,7 +164,7 @@ function OUT = Roughness_ECMA418_2(insig, fs, fieldtype, time_skip, show)
 % information.
 %
 % Checked by: Gil Felix Greco
-% Date last checked: 10.02.2025
+% Date last checked: 16.02.2025
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Arguments validation
     arguments (Input) % Matlab R2018b or newer
@@ -706,26 +706,25 @@ if outchans == 3 % stereo case ["Stereo left"; "Stereo right"; "Combined binaura
     OUT.timeInsig = timeInsig;
     OUT.soundField = fieldtype;
 
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % Roughness statistics based on roughnessTDep ["Stereo left"; "Stereo right"; "Combined binaural"];
-    OUT.Rmax = max(roughnessTDep(time_skip_idx:end,1:outchans));
-    OUT.Rmin = min(roughnessTDep(time_skip_idx:end,1:outchans));
-    OUT.Rmean = mean(roughnessTDep(time_skip_idx:end,1:outchans));
-    OUT.Rstd = std(roughnessTDep(time_skip_idx:end,1:outchans));
-    OUT.R1 = get_percentile(roughnessTDep(time_skip_idx:end,1:outchans),1);
-    OUT.R2 = get_percentile(roughnessTDep(time_skip_idx:end,1:outchans),2);
-    OUT.R3 = get_percentile(roughnessTDep(time_skip_idx:end,1:outchans),3);
-    OUT.R4 = get_percentile(roughnessTDep(time_skip_idx:end,1:outchans),4);
-    OUT.R5 = get_percentile(roughnessTDep(time_skip_idx:end,1:outchans),5);
-    OUT.R10 = get_percentile(roughnessTDep(time_skip_idx:end,1:outchans),10);
-    OUT.R20 = get_percentile(roughnessTDep(time_skip_idx:end,1:outchans),20);
-    OUT.R30 = get_percentile(roughnessTDep(time_skip_idx:end,1:outchans),30);
-    OUT.R40 = get_percentile(roughnessTDep(time_skip_idx:end,1:outchans),40);
-    OUT.R50 = median(roughnessTDep(time_skip_idx:end,1:outchans));
-    OUT.R60 = get_percentile(roughnessTDep(time_skip_idx:end,1:outchans),60);
-    OUT.R70 = get_percentile(roughnessTDep(time_skip_idx:end,1:outchans),70);
-    OUT.R80 = get_percentile(roughnessTDep(time_skip_idx:end,1:outchans),80);
-    OUT.R90 = get_percentile(roughnessTDep(time_skip_idx:end,1:outchans),90);
-    OUT.R95 = get_percentile(roughnessTDep(time_skip_idx:end,1:outchans),95);
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+    metric_statistics = 'Roughness_ECMA418_2';
+    OUT_statistics = get_statistics( roughnessTDep(time_skip_idx:end,1:outchans), metric_statistics ); % get statistics
+
+    % copy fields of <OUT_statistics> struct into the <OUT> struct
+    fields_OUT_statistics = fieldnames(OUT_statistics);  % Get all field names in OUT_statistics
+
+    for i = 1:numel(fields_OUT_statistics)
+        fieldName = fields_OUT_statistics{i};
+        if ~isfield(OUT, fieldName) % Only copy if OUT does NOT already have this field
+            OUT.(fieldName) = OUT_statistics.(fieldName);
+        end
+    end
+
+    clear OUT_statistics metric_statistics fields_OUT_statistics fieldName;
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 else % mono case
 
@@ -739,26 +738,26 @@ else % mono case
     OUT.timeInsig = timeInsig; 
     OUT.soundField = fieldtype;
 
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % Roughness statistics based on roughnessTDep (mono case)   
-    OUT.Rmax = max(roughnessTDep(time_skip_idx:end));
-    OUT.Rmin = min(roughnessTDep(time_skip_idx:end));
-    OUT.Rmean = mean(roughnessTDep(time_skip_idx:end));
-    OUT.Rstd = std(roughnessTDep(time_skip_idx:end));
-    OUT.R1 = get_percentile(roughnessTDep(time_skip_idx:end),1);
-    OUT.R2 = get_percentile(roughnessTDep(time_skip_idx:end),2);
-    OUT.R3 = get_percentile(roughnessTDep(time_skip_idx:end),3);
-    OUT.R4 = get_percentile(roughnessTDep(time_skip_idx:end),4);
-    OUT.R5 = get_percentile(roughnessTDep(time_skip_idx:end),5);
-    OUT.R10 = get_percentile(roughnessTDep(time_skip_idx:end),10);
-    OUT.R20 = get_percentile(roughnessTDep(time_skip_idx:end),20);
-    OUT.R30 = get_percentile(roughnessTDep(time_skip_idx:end),30);
-    OUT.R40 = get_percentile(roughnessTDep(time_skip_idx:end),40);
-    OUT.R50 = median(roughnessTDep(time_skip_idx:end));
-    OUT.R60 = get_percentile(roughnessTDep(time_skip_idx:end),60);
-    OUT.R70 = get_percentile(roughnessTDep(time_skip_idx:end),70);
-    OUT.R80 = get_percentile(roughnessTDep(time_skip_idx:end),80);
-    OUT.R90 = get_percentile(roughnessTDep(time_skip_idx:end),90);
-    OUT.R95 = get_percentile(roughnessTDep(time_skip_idx:end),95);
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+    metric_statistics = 'Roughness_ECMA418_2';
+    OUT_statistics = get_statistics( roughnessTDep(time_skip_idx:end), metric_statistics ); % get statistics
+
+    % copy fields of <OUT_statistics> struct into the <OUT> struct
+    fields_OUT_statistics = fieldnames(OUT_statistics);  % Get all field names in OUT_statistics
+
+    for i = 1:numel(fields_OUT_statistics)
+        fieldName = fields_OUT_statistics{i};
+        if ~isfield(OUT, fieldName) % Only copy if OUT does NOT already have this field
+            OUT.(fieldName) = OUT_statistics.(fieldName);
+        end
+    end
+
+    clear OUT_statistics metric_statistics fields_OUT_statistics fieldName;
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 end
 
 %% Output plotting

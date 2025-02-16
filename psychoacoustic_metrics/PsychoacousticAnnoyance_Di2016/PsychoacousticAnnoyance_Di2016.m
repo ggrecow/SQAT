@@ -110,6 +110,7 @@ function OUT = PsychoacousticAnnoyance_Di2016(insig,fs,LoudnessField,time_skip,s
 %           end to the final time corresponding to the FS metric
 %
 % Author: Gil Felix Greco, Braunschweig 05.04.2023
+% Author: Gil Felix Greco, Braunschweig 16.02.2025 - introduced get_statistics function
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 if nargin == 0
     help PsychoacousticAnnoyance_Di2016
@@ -362,30 +363,26 @@ else % for signals longer than 2 seconds
     OUT.time = L.time;                      % time vector
     
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    % Statistics from Time-varying PA
-    
-    
+    % get statistics from Time-varying PA
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
     [~,idx] = min( abs(OUT.time-time_skip) ); % find idx of time_skip on time vector
-    
-    OUT.PAmean = mean(PA(idx:end));
-    OUT.PAstd = std(PA(idx:end));
-    OUT.PAmax = max(PA(idx:end));
-    OUT.PAmin = min(PA(idx:end));
-    OUT.PA1 = get_percentile(PA(idx:end),1);
-    OUT.PA2 = get_percentile(PA(idx:end),2);
-    OUT.PA3 = get_percentile(PA(idx:end),3);
-    OUT.PA4 = get_percentile(PA(idx:end),4);
-    OUT.PA5 = get_percentile(PA(idx:end),5);
-    OUT.PA10 = get_percentile(PA(idx:end),10);
-    OUT.PA20 = get_percentile(PA(idx:end),20);
-    OUT.PA30 = get_percentile(PA(idx:end),30);
-    OUT.PA40 = get_percentile(PA(idx:end),40);
-    OUT.PA50 = median(PA(idx:end));
-    OUT.PA60 = get_percentile(PA(idx:end),60);
-    OUT.PA70 = get_percentile(PA(idx:end),70);
-    OUT.PA80 = get_percentile(PA(idx:end),80);
-    OUT.PA90 = get_percentile(PA(idx:end),90);
-    OUT.PA95 = get_percentile(PA(idx:end),95);
+
+    metric_statistics = 'PsychoacousticAnnoyance_Di2016';
+    OUT_statistics = get_statistics( PA(idx:end), metric_statistics ); % get statistics
+
+    % copy fields of <OUT_statistics> struct into the <OUT> struct
+    fields_OUT_statistics = fieldnames(OUT_statistics);  % Get all field names in OUT_statistics
+
+    for i = 1:numel(fields_OUT_statistics)
+        fieldName = fields_OUT_statistics{i};
+        if ~isfield(OUT, fieldName) % Only copy if OUT does NOT already have this field
+            OUT.(fieldName) = OUT_statistics.(fieldName);
+        end
+    end
+
+    clear OUT_statistics metric_statistics fields_OUT_statistics fieldName;  
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     
     %% plot
     

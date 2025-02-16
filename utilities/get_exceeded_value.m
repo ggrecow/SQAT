@@ -1,4 +1,4 @@
-function OUT = get_percentile(input, PercentValue)
+function OUT = get_exceeded_value(input, PercentValue)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
 % Calculate the value exceeded  during <PercentValue> of the time

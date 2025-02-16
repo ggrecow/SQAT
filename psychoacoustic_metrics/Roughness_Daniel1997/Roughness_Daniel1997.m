@@ -49,6 +49,7 @@ function OUT = Roughness_Daniel1997(insig,fs,time_skip,show)
 % Author: Matt Flax (2006) and Farhan Rizwi (2007), adapted for the PsySound3 toolbox
 % Author: Gil Felix Greco (2023). Adapted (and verified) for SQAT. 
 % Author: Alejandro Osses, 10/05/2023. Appropriate scaling for the specific roughness.
+% Author: Gil Felix Greco, Braunschweig 16.02.2025 - introduced get_statistics function
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 if nargin == 0
@@ -586,25 +587,21 @@ OUT.dz = dz;
 
 [~,idx] = min( abs(OUT.time-time_skip) ); % find idx of time_skip on time vector
 
-OUT.Rmax = max(R_mat(idx:end));
-OUT.Rmin = min(R_mat(idx:end));
-OUT.Rmean = mean(R_mat(idx:end));
-OUT.Rstd = std(R_mat(idx:end));
-OUT.R1 = get_percentile(R_mat(idx:end),1);
-OUT.R2 = get_percentile(R_mat(idx:end),2);
-OUT.R3 = get_percentile(R_mat(idx:end),3);
-OUT.R4 = get_percentile(R_mat(idx:end),4);
-OUT.R5 = get_percentile(R_mat(idx:end),5);
-OUT.R10 = get_percentile(R_mat(idx:end),10);
-OUT.R20 = get_percentile(R_mat(idx:end),20);
-OUT.R30 = get_percentile(R_mat(idx:end),30);
-OUT.R40 = get_percentile(R_mat(idx:end),40);
-OUT.R50 = median(R_mat(idx:end));
-OUT.R60 = get_percentile(R_mat(idx:end),60);
-OUT.R70 = get_percentile(R_mat(idx:end),70);
-OUT.R80 = get_percentile(R_mat(idx:end),80);
-OUT.R90 = get_percentile(R_mat(idx:end),90);
-OUT.R95 = get_percentile(R_mat(idx:end),95);
+metric_statistics = 'Roughness_Daniel1997';
+OUT_statistics = get_statistics( R_mat(idx:end), metric_statistics ); % get statistics
+
+% copy fields of <OUT_statistics> struct into the <OUT> struct
+fields_OUT_statistics = fieldnames(OUT_statistics);  % Get all field names in OUT_statistics
+
+for i = 1:numel(fields_OUT_statistics)
+    fieldName = fields_OUT_statistics{i};
+    if ~isfield(OUT, fieldName) % Only copy if OUT does NOT already have this field
+        OUT.(fieldName) = OUT_statistics.(fieldName);
+    end
+end
+
+clear OUT_statistics metric_statistics fields_OUT_statistics fieldName;
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %% plots
 

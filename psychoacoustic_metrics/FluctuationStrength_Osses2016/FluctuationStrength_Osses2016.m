@@ -87,6 +87,7 @@ function OUT = FluctuationStrength_Osses2016(insig,fs,method,time_skip,show,stru
 %            for changing the a0 transmission factor. the a0 transmission
 %            factor were moved to the <utilities> folder of the toolbox as
 %            standalone functions
+% Author: Gil Felix Greco, Braunschweig 16.02.2025 - introduced get_statistics function
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 if nargin == 0
     help FluctuationStrength_Osses2016;
@@ -222,29 +223,25 @@ OUT.time = t;                                             % time
 OUT.barkAxis = transpose(z) ;                             % critical band rate (for specific fluctuation strength)
 OUT.dz = dz;
 
-%% Fluctuation Strength statistics based on InstantaneousFS:
+% get statistics from time-varying fluctuation Strength
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 [~,idx] = min( abs(OUT.time-time_skip) ); % find idx of time_skip on time vector
 
-OUT.FSmax = max(fluct(idx:end));
-OUT.FSmin = min(fluct(idx:end));
-OUT.FSmean = mean(fluct(idx:end));
-OUT.FSstd = std(fluct(idx:end));
-OUT.FS1 = get_percentile(fluct(idx:end),1);
-OUT.FS2 = get_percentile(fluct(idx:end),2);
-OUT.FS3 = get_percentile(fluct(idx:end),3);
-OUT.FS4 = get_percentile(fluct(idx:end),4);
-OUT.FS5 = get_percentile(fluct(idx:end),5);
-OUT.FS10 = get_percentile(fluct(idx:end),10);
-OUT.FS20 = get_percentile(fluct(idx:end),20);
-OUT.FS30 = get_percentile(fluct(idx:end),30);
-OUT.FS40 = get_percentile(fluct(idx:end),40);
-OUT.FS50 = median(fluct(idx:end));
-OUT.FS60 = get_percentile(fluct(idx:end),60);
-OUT.FS70 = get_percentile(fluct(idx:end),70);
-OUT.FS80 = get_percentile(fluct(idx:end),80);
-OUT.FS90 = get_percentile(fluct(idx:end),90);
-OUT.FS95 = get_percentile(fluct(idx:end),95);
+metric_statistics = 'FluctuationStrength_Osses2016';
+OUT_statistics = get_statistics( fluct(idx:end), metric_statistics ); % get statistics
+
+fields_OUT_statistics = fieldnames(OUT_statistics);  % Get all field names in OUT_statistics
+
+for i = 1:numel(fields_OUT_statistics)
+    fieldName = fields_OUT_statistics{i};
+    if ~isfield(OUT, fieldName) % Only copy if OUT does NOT already have this field
+        OUT.(fieldName) = OUT_statistics.(fieldName);
+    end
+end
+
+clear OUT_statistics metric_statistics fields_OUT_statistics fieldName;
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %% plots
 
