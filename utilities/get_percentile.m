@@ -29,14 +29,15 @@ if X_index==0
 else
 end
 
-OUT = zeros(1,size(input,2)); % declare output variable
-
-for nColumns = 1:size(input,2) % operate on the columns (time vector must be a column vector)
-
-    sort_input = sort( input(:,nColumns) );
-
-    OUT(1,nColumns) = sort_input( X_index );
-
+if min(size(input)) > 1 % Case with more than one audio channels
+    OUT = zeros(1,size(input,2)); % declare output variable
+    for nColumns = 1:min(size(input)) % operate on the columns (time vector must be a column vector)
+        sort_input = sort( input(:,nColumns) );
+        OUT(1,nColumns) = sort_input( X_index );
+    end
+else  % Case with only one audio channel
+    sort_input = sort(input);
+    OUT= sort_input( X_index );
 end
 
 end
