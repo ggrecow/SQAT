@@ -11,7 +11,7 @@ function plt_tDep(xRef, yRef, xImplementation, yImplementation, metric, save_fig
 % SOUND QUALITY METRICS (ECMA-418-2 LOUDNESS, TONALITY AND ROUGHNESS). 
 % Forum Acusticum.
 %
-% Author: Gil Felix Greco, Braunschweig 13.02.2025
+% Author: Gil Felix Greco, Braunschweig 27.02.2025
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 switch metric
@@ -38,8 +38,8 @@ switch metric
 
 end
 
-fontSize = 20;
-stretchY = 1.3; % stretch plot in the vertical direction
+fontSize = 22;
+stretchY = 1.5; % stretch plot in the vertical direction
 
 % plot
 h  =figure;
@@ -93,7 +93,7 @@ ax2.GridLineStyle = '--';
 ax2.GridAlpha = 0.15;
 
 xlabel(xLabelTag, 'fontsize', fontSize);
-ylabel('Abs. diff.', 'fontsize', fontSize);
+ylabel('Abs. difference', 'fontsize', fontSize);
 
 ylim([0  0.12]);
 

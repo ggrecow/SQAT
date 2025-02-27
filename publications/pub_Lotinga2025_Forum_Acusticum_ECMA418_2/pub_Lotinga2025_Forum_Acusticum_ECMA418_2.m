@@ -18,7 +18,7 @@
 % - Signal label: <ExStereo_TrainStation7-0100-0130.wav>
 % - The signal is stored in the following folder: <sound_files\reference_signals\>. 
 %
-% Author: Gil Felix Greco, Braunschweig 13.02.2025
+% Author: Gil Felix Greco, Braunschweig 27.02.2025
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 clc; clear all; close all;
 

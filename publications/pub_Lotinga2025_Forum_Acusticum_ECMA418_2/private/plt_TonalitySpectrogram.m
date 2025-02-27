@@ -11,10 +11,10 @@ function plt_TonalitySpectrogram(x1Axis, y1Axis, z1Axis, x2Axis, y2Axis, z2Axis,
 % SOUND QUALITY METRICS (ECMA-418-2 LOUDNESS, TONALITY AND ROUGHNESS).
 % Forum Acusticum.
 %
-% Author: Gil Felix Greco, Braunschweig 13.02.2025
+% Author: Gil Felix Greco, Braunschweig 27.02.2025
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-stretchY = 1.3; % stretch plot in the vertical direction
+stretchY = 1.5; % stretch plot in the vertical direction
 
 h  =figure;
 set(h,'Units','Inches');
@@ -26,7 +26,7 @@ movegui(h, 'center');
 tiledlayout(2,1);
 cmap = load('cmap_plasma.txt');
 climMax = 1.5;
-fontSize = 20;
+fontSize = 22;
 
 %% reference results
 

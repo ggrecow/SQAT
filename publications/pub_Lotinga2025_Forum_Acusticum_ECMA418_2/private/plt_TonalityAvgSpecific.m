@@ -11,16 +11,16 @@ function plt_TonalityAvgSpecific( yRef, yImplementation, save_figs, label_fig)
 % SOUND QUALITY METRICS (ECMA-418-2 LOUDNESS, TONALITY AND ROUGHNESS).
 % Forum Acusticum.
 %
-% Author: Gil Felix Greco, Braunschweig 13.02.2025
+% Author: Gil Felix Greco, Braunschweig 27.02.2025
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 cmap  = load('cmap_plasma.txt');
 cmap1 = 166;
 cmap2 = 34;
-fontSize = 20;
+fontSize = 22;
 
 stretchX = 2;  % stretch plot in the horizontal direction
-stretchY= 1.3; % stretch plot in the vertical direction
+stretchY= 1.5; % stretch plot in the vertical direction
 
 h  =figure;
 set(h,'Units','Inches');
@@ -61,7 +61,7 @@ b = bar(barkAxis,...
     'BarWidth',0.7, ...
     'DisplayName', "Implementation");
 
-xtickangle(45);
+xtickangle(90);
 xticks(barkAxis);
 
 ylim([0 0.7]);
