@@ -51,7 +51,7 @@ stereo_signal_label = 'ExStereo_TrainStation7-0100-0130.wav';
 % load stereo signal [Nx2]
 [stereo_signal.signal, stereo_signal.fs]=audioread([dir_ref_sounds stereo_signal_label]); 
 
-%% Compute tonality (stereo signal) 
+%% Compute loudness (stereo signal) 
 
 fieldtype = 'free-frontal'; % string (default: 'free-frontal'; or 'diffuse')
 time_skip = 304e-3;% time_skip, in seconds for statistical calculations (default: 304ms - avoids transient responses of the digital filters)
@@ -61,7 +61,7 @@ OUT_stereo = Loudness_ECMA418_2(stereo_signal.signal, stereo_signal.fs, fieldtyp
          
 fprintf('\nLoudness (ECMA-418-2:2024 - Hearing Model of Sottek): \n');
 fprintf('\t- Stereo signal: %s\n', stereo_signal_label );
-fprintf('\t- Overall tonality value (channel 1):  %g (sone).\n', OUT_stereo.loudnessPowAvg(1) );
-fprintf('\t- Overall tonality value (channel 2):  %g (sone).\n' ,OUT_stereo.loudnessPowAvg(2) );
-fprintf('\t- Overall tonality value (combined binaural):  %g (sone).\n' ,OUT_stereo.loudnessPowAvgBin );
+fprintf('\t- Overall loudness value (channel 1):  %g (sone).\n', OUT_stereo.loudnessPowAvg(1) );
+fprintf('\t- Overall loudness value (channel 2):  %g (sone).\n' ,OUT_stereo.loudnessPowAvg(2) );
+fprintf('\t- Overall loudness value (combined binaural):  %g (sone).\n' ,OUT_stereo.loudnessPowAvgBin );
                                            
