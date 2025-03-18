@@ -52,6 +52,7 @@ function OUT = Sharpness_DIN45692_from_loudness(SpecificLoudness, weight_type, t
 %                     time_skip to compute the statistics
 %
 % Author: Gil Felix Greco, Braunschweig 09.03.2023
+% Author: Gil Felix Greco, Braunschweig 16.02.2025 - introduced get_statistics function
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 if nargin < 5
     if nargout == 0
@@ -116,29 +117,26 @@ if method==1 % (time-varying sharpness)
     OUT.InstantaneousSharpness = s; % instantaneous sharpness
     OUT.time = time;                % time vector
     
-    % statistics from Time-varying sharpness (acum)
-    
+    % get statistics from Time-varying sharpness (acum)
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
     [~,idx] = min( abs(OUT.time-time_skip) ); % find idx of time_skip on time vector
 
-    OUT.Smax = max(s(idx:end));
-    OUT.Smin = min(s(idx:end));
-    OUT.Smean = mean(s(idx:end));
-    OUT.Sstd = std(s(idx:end));
-    OUT.S1 = get_percentile(s(idx:end),1);
-    OUT.S2 = get_percentile(s(idx:end),2);
-    OUT.S3 = get_percentile(s(idx:end),3);
-    OUT.S4 = get_percentile(s(idx:end),4);
-    OUT.S5 = get_percentile(s(idx:end),5);
-    OUT.S10 = get_percentile(s(idx:end),10);
-    OUT.S20 = get_percentile(s(idx:end),20);
-    OUT.S30 = get_percentile(s(idx:end),30);
-    OUT.S40 = get_percentile(s(idx:end),40);
-    OUT.S50 = median(s(idx:end));
-    OUT.S60 = get_percentile(s(idx:end),60);
-    OUT.S70 = get_percentile(s(idx:end),70);
-    OUT.S80 = get_percentile(s(idx:end),80);
-    OUT.S90 = get_percentile(s(idx:end),90);
-    OUT.S95 = get_percentile(s(idx:end),95);
+    metric_statistics = 'Sharpness_DIN45692';
+    OUT_statistics = get_statistics( s(idx:end), metric_statistics ); % get statistics
+
+    % copy fields of <OUT_statistics> struct into the <OUT> struct
+    fields_OUT_statistics = fieldnames(OUT_statistics);  % Get all field names in OUT_statistics
+
+    for i = 1:numel(fields_OUT_statistics)
+        fieldName = fields_OUT_statistics{i};
+        if ~isfield(OUT, fieldName) % Only copy if OUT does NOT already have this field
+            OUT.(fieldName) = OUT_statistics.(fieldName);
+        end
+    end
+    
+    clear OUT_statistics metric_statistics fields_OUT_statistics fieldName;  
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % Show plots (time-varying)

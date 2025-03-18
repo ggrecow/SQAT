@@ -115,12 +115,12 @@ function OUT = Tonality_ECMA418_2(insig, fs, fieldtype, time_skip, show)
 %              fieldtype)
 %
 % Several statistics based on tonalityTDep
-%         ** Kmean : mean value of instantaneous tonality (tu_HMS)
-%         ** Kstd : standard deviation of instantaneous tonality (tu_HMS)
-%         ** Kmax : maximum of instantaneous tonality (tu_HMS)
-%         ** Kmin : minimum of instantaneous tonality (tu_HMS)
-%         ** Kx : tonality value exceeded during x percent of the time (tu_HMS)
-%             in case of binaural input, Kx(1,3), being 1st and 2nd column 
+%         ** Tmean : mean value of instantaneous tonality (tu_HMS)
+%         ** Tstd : standard deviation of instantaneous tonality (tu_HMS)
+%         ** Tmax : maximum of instantaneous tonality (tu_HMS)
+%         ** Tmin : minimum of instantaneous tonality (tu_HMS)
+%         ** Tx : tonality value exceeded during x percent of the time (tu_HMS)
+%             in case of binaural input, Tx(1,3), being 1st and 2nd column 
 %             corresponding to [left ear, right ear] 
 %             OBS: all quantities here take <time_skip> into consideration
 %
@@ -158,7 +158,7 @@ function OUT = Tonality_ECMA418_2(insig, fs, fieldtype, time_skip, show)
 % WITHOUT ANY WARRANTY; without even the implied warranty of
 % MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 %
-% This code calls sub-component file 'cmap_inferno.txt'. The contents of
+% This code calls sub-component file 'cmap_plasma.txt'. The contents of
 % the file includes a copy of data obtained from the repository 
 % https://github.com/BIDS/colormap, and is CC0 1.0 licensed for modified
 % use, see https://creativecommons.org/publicdomain/zero/1.0 for
@@ -169,7 +169,7 @@ function OUT = Tonality_ECMA418_2(insig, fs, fieldtype, time_skip, show)
 % The original code has been reused and updated here with permission.
 %
 % Checked by: Gil Felix Greco
-% Date last checked: 22.01.2025
+% Date last checked: 16.02.2025
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %% Arguments validation
@@ -537,7 +537,7 @@ for chan = size(pn_om, 2):-1:1
     if show
 
         % colormap
-        cmap_inferno = load('cmap_inferno.txt');
+        cmap_plasma = load('cmap_plasma.txt');
 
         %%% sound level meter parameters
         weightFreq = 'A'; % A-frequency weighting
@@ -565,7 +565,7 @@ for chan = size(pn_om, 2):-1:1
         ax1.XLabel.String = "Time (s)";
         ax1.FontName =  'Arial';
         ax1.FontSize = 10;
-        colormap(cmap_inferno);
+        colormap(cmap_plasma);
         h = colorbar;
         set(get(h,'label'),'string', {'Specific Tonality,'; '(tu_{HMS}/Bark_{HMS})'});
 
@@ -578,10 +578,10 @@ for chan = size(pn_om, 2):-1:1
         
         ax2 = nexttile(2); 
 
-        plot(ax2, timeOut, tonalityTDep(:, chan), 'color',  cmap_inferno(166, :),...
+        plot(ax2, timeOut, tonalityTDep(:, chan), 'color',  cmap_plasma(166, :),...
             'LineWidth', 0.75, 'DisplayName', "Time-" + string(newline) + "dependent");
         hold on
-        plot(ax2, timeOut, tonalityAvg(1, chan)*ones(size(timeOut)), '--', 'color', cmap_inferno(34, :),...
+        plot(ax2, timeOut, tonalityAvg(1, chan)*ones(size(timeOut)), '--', 'color', cmap_plasma(34, :),...
             'LineWidth', 1, 'DisplayName', "Time-" + string(newline) + "average");
         hold off
 
@@ -596,8 +596,7 @@ for chan = size(pn_om, 2):-1:1
         ax2.GridLineWidth = 0.25;
         ax2.FontName = 'Arial';
         ax2.FontSize = 10;
-        lgd = legend('Location', 'eastoutside', 'FontSize', 8);
-        lgd.Title.String = "Overall";
+        legend('Location', 'eastoutside', 'FontSize', 8);
         set(gcf,'color','w');
     end
 
@@ -631,25 +630,24 @@ OUT.timeOut = timeOut;
 OUT.timeInsig = timeInsig;
 OUT.soundField = fieldtype;
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Tonality statistics based on tonalityTDep ["Stereo left"; "Stereo right"]; for stereo case
-OUT.Kmax = max(tonalityTDep(time_skip_idx:end,1:chan));
-OUT.Kmin = min(tonalityTDep(time_skip_idx:end,1:chan));
-OUT.Kmean = mean(tonalityTDep(time_skip_idx:end,1:chan));
-OUT.Kstd = std(tonalityTDep(time_skip_idx:end,1:chan));
-OUT.K1 = get_percentile(tonalityTDep(time_skip_idx:end,1:chan),1);
-OUT.K2 = get_percentile(tonalityTDep(time_skip_idx:end,1:chan),2);
-OUT.K3 = get_percentile(tonalityTDep(time_skip_idx:end,1:chan),3);
-OUT.K4 = get_percentile(tonalityTDep(time_skip_idx:end,1:chan),4);
-OUT.K5 = get_percentile(tonalityTDep(time_skip_idx:end,1:chan),5);
-OUT.K10 = get_percentile(tonalityTDep(time_skip_idx:end,1:chan),10);
-OUT.K20 = get_percentile(tonalityTDep(time_skip_idx:end,1:chan),20);
-OUT.K30 = get_percentile(tonalityTDep(time_skip_idx:end,1:chan),30);
-OUT.K40 = get_percentile(tonalityTDep(time_skip_idx:end,1:chan),40);
-OUT.K50 = median(tonalityTDep(time_skip_idx:end,1:chan));
-OUT.K60 = get_percentile(tonalityTDep(time_skip_idx:end,1:chan),60);
-OUT.K70 = get_percentile(tonalityTDep(time_skip_idx:end,1:chan),70);
-OUT.K80 = get_percentile(tonalityTDep(time_skip_idx:end,1:chan),80);
-OUT.K90 = get_percentile(tonalityTDep(time_skip_idx:end,1:chan),90);
-OUT.K95 = get_percentile(tonalityTDep(time_skip_idx:end,1:chan),95);
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+metric_statistics = 'Tonality_ECMA418_2';
+OUT_statistics = get_statistics( tonalityTDep(time_skip_idx:end,1:size(tonalityTDep, 2)), metric_statistics ); % get statistics
+
+% copy fields of <OUT_statistics> struct into the <OUT> struct
+fields_OUT_statistics = fieldnames(OUT_statistics);  % Get all field names in OUT_statistics
+
+for i = 1:numel(fields_OUT_statistics)
+    fieldName = fields_OUT_statistics{i};
+    if ~isfield(OUT, fieldName) % Only copy if OUT does NOT already have this field
+        OUT.(fieldName) = OUT_statistics.(fieldName);
+    end
+end
+
+clear OUT_statistics metric_statistics fields_OUT_statistics fieldName;
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 end %of function

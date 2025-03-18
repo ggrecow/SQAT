@@ -154,14 +154,14 @@ function OUT = Loudness_ECMA418_2(insig, fs, fieldtype, time_skip, show)
 % WITHOUT ANY WARRANTY; without even the implied warranty of
 % MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 %
-% This code calls sub-component file 'cmap_inferno.txt'. The contents of
+% This code calls sub-component file 'cmap_viridis.txt'. The contents of
 % the file includes a copy of data obtained from the repository 
 % https://github.com/BIDS/colormap, and is CC0 1.0 licensed for modified
 % use, see https://creativecommons.org/publicdomain/zero/1.0 for
 % information.
 %
 % Checked by: Gil Felix Greco
-% Date last checked: 22.01.2025
+% Date last checked: 16.02.2025
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Arguments validation
     arguments (Input) % Matlab R2018b or newer
@@ -317,26 +317,25 @@ if outchans == 3 % stereo case ["Stereo left"; "Stereo right"; "Combined binaura
     OUT.timeInsig = timeInsig;
     OUT.soundField = fieldtype;
 
-    % loudness statistics based on loudnessTDep ["Stereo left"; "Stereo right"; "Combined binaural"]; 
-    OUT.Nmax = max(loudnessTDep(time_skip_idx:end,1:outchans));
-    OUT.Nmin = min(loudnessTDep(time_skip_idx:end,1:outchans));
-    OUT.Nmean = mean(loudnessTDep(time_skip_idx:end,1:outchans));
-    OUT.Nstd = std(loudnessTDep(time_skip_idx:end,1:outchans));
-    OUT.N1 = get_percentile(loudnessTDep(time_skip_idx:end,1:outchans),1);
-    OUT.N2 = get_percentile(loudnessTDep(time_skip_idx:end,1:outchans),2);
-    OUT.N3 = get_percentile(loudnessTDep(time_skip_idx:end,1:outchans),3);
-    OUT.N4 = get_percentile(loudnessTDep(time_skip_idx:end,1:outchans),4);
-    OUT.N5 = get_percentile(loudnessTDep(time_skip_idx:end,1:outchans),5);
-    OUT.N10 = get_percentile(loudnessTDep(time_skip_idx:end,1:outchans),10);
-    OUT.N20 = get_percentile(loudnessTDep(time_skip_idx:end,1:outchans),20);
-    OUT.N30 = get_percentile(loudnessTDep(time_skip_idx:end,1:outchans),30);
-    OUT.N40 = get_percentile(loudnessTDep(time_skip_idx:end,1:outchans),40);
-    OUT.N50 = median(loudnessTDep(time_skip_idx:end,1:outchans));
-    OUT.N60 = get_percentile(loudnessTDep(time_skip_idx:end,1:outchans),60);
-    OUT.N70 = get_percentile(loudnessTDep(time_skip_idx:end,1:outchans),70);
-    OUT.N80 = get_percentile(loudnessTDep(time_skip_idx:end,1:outchans),80);
-    OUT.N90 = get_percentile(loudnessTDep(time_skip_idx:end,1:outchans),90);
-    OUT.N95 = get_percentile(loudnessTDep(time_skip_idx:end,1:outchans),95);
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    % loudness statistics based on loudnessTDep ["Stereo left"; "Stereo right"; "Combined binaural"];
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+    metric_statistics = 'Loudness_ISO532_1';
+    OUT_statistics = get_statistics( loudnessTDep(time_skip_idx:end,1:outchans), metric_statistics ); % get statistics
+
+    % copy fields of <OUT_statistics> struct into the <OUT> struct
+    fields_OUT_statistics = fieldnames(OUT_statistics);  % Get all field names in OUT_statistics
+
+    for i = 1:numel(fields_OUT_statistics)
+        fieldName = fields_OUT_statistics{i};
+        if ~isfield(OUT, fieldName) % Only copy if OUT does NOT already have this field
+            OUT.(fieldName) = OUT_statistics.(fieldName);
+        end
+    end
+
+    clear OUT_statistics metric_statistics fields_OUT_statistics fieldName;
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 else % mono case
 
@@ -350,35 +349,34 @@ else % mono case
     OUT.timeInsig = timeInsig;
     OUT.soundField = fieldtype;
 
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % Loudness statistics based on loudnessTDep (mono case)
-    OUT.Nmax = max(loudnessTDep(time_skip_idx:end));
-    OUT.Nmin = min(loudnessTDep(time_skip_idx:end));
-    OUT.Nmean = mean(loudnessTDep(time_skip_idx:end));
-    OUT.Nstd = std(loudnessTDep(time_skip_idx:end));
-    OUT.N1 = get_percentile(loudnessTDep(time_skip_idx:end),1);
-    OUT.N2 = get_percentile(loudnessTDep(time_skip_idx:end),2);
-    OUT.N3 = get_percentile(loudnessTDep(time_skip_idx:end),3);
-    OUT.N4 = get_percentile(loudnessTDep(time_skip_idx:end),4);
-    OUT.N5 = get_percentile(loudnessTDep(time_skip_idx:end),5);
-    OUT.N10 = get_percentile(loudnessTDep(time_skip_idx:end),10);
-    OUT.N20 = get_percentile(loudnessTDep(time_skip_idx:end),20);
-    OUT.N30 = get_percentile(loudnessTDep(time_skip_idx:end),30);
-    OUT.N40 = get_percentile(loudnessTDep(time_skip_idx:end),40);
-    OUT.N50 = median(loudnessTDep(time_skip_idx:end));
-    OUT.N60 = get_percentile(loudnessTDep(time_skip_idx:end),60);
-    OUT.N70 = get_percentile(loudnessTDep(time_skip_idx:end),70);
-    OUT.N80 = get_percentile(loudnessTDep(time_skip_idx:end),80);
-    OUT.N90 = get_percentile(loudnessTDep(time_skip_idx:end),90);
-    OUT.N95 = get_percentile(loudnessTDep(time_skip_idx:end),95);
-end
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+    metric_statistics = 'Loudness_ECMA418_2';
+    OUT_statistics = get_statistics( loudnessTDep(time_skip_idx:end), metric_statistics ); % get statistics
+
+    % copy fields of <OUT_statistics> struct into the <OUT> struct
+    fields_OUT_statistics = fieldnames(OUT_statistics);  % Get all field names in OUT_statistics
+
+    for i = 1:numel(fields_OUT_statistics)
+        fieldName = fields_OUT_statistics{i};
+        if ~isfield(OUT, fieldName) % Only copy if OUT does NOT already have this field
+            OUT.(fieldName) = OUT_statistics.(fieldName);
+        end
+    end
+
+    clear OUT_statistics metric_statistics fields_OUT_statistics fieldName;
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+end
 
 %% Output plotting
 
 if show
 
     % colormap
-    cmap_inferno = load('cmap_inferno.txt');
+    cmap_viridis = load('cmap_viridis.txt');
 
     %%% sound level meter parameters
     weightFreq = 'A'; % A-frequency weighting
@@ -407,7 +405,7 @@ if show
         ax1.XLabel.String = 'Time (s)';
         ax1.FontName =  'Arial';
         ax1.FontSize = 10;
-        colormap(cmap_inferno);
+        colormap(cmap_viridis);
         h = colorbar;
         set(get(h,'label'),'string', {'Specific Loudness,'; '(sone_{HMS}/Bark_{HMS})'});        
 
@@ -448,11 +446,11 @@ if show
         title(titleString, 'Interpreter','Latex' );
 
         ax2 = nexttile(2);
-        plot(ax2, timeOut, loudnessTDep(:, chan), 'color', cmap_inferno(166, :),...
+        plot(ax2, timeOut, loudnessTDep(:, chan), 'color', cmap_viridis(166, :),...
              'LineWidth', 0.75, 'DisplayName', "Time-" + string(newline) + "dependent");
         hold on;
         plot(ax2, timeOut, loudnessPowAvg(1, chan)*ones(size(timeOut)), '--', 'color',...
-             cmap_inferno(34, :), 'LineWidth', 1, 'DisplayName', "Power" + string(newline) + "time-avg");
+             cmap_viridis(34, :), 'LineWidth', 1, 'DisplayName', "Power" + string(newline) + "time-avg");
         hold off
         ax2.XLim = [timeOut(1), timeOut(end) + (timeOut(2) - timeOut(1))];
 
@@ -469,8 +467,7 @@ if show
         ax2.GridLineWidth = 0.25;
         ax2.FontName = 'Arial';
         ax2.FontSize = 12;
-        lgd = legend('Location', 'eastoutside', 'FontSize', 8);
-        lgd.Title.String = "Overall";
+        legend('Location', 'eastoutside', 'FontSize', 8);
         set(gcf,'color','w');
         clear LA; 
     end  % end of for loop for plotting over channels
