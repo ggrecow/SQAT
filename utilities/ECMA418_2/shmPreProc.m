@@ -1,5 +1,5 @@
-function signalOut = ShmPreProc(signal, blockSize, hopSize, padStart, padEnd)
-% signalFadePad = ShmPreProc(signal, blockSize, hopSize, padStart, padEnd)
+function signalOut = shmPreProc(signal, blockSize, hopSize, padStart, padEnd)
+% signalFadePad = shmPreProc(signal, blockSize, hopSize, padStart, padEnd)
 %
 % Returns signal with fade-in and zero-padding pre-processing according to
 % ECMA-418-2:2024 (the Sottek Hearing Model) for an input signal.
