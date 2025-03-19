@@ -1,5 +1,5 @@
-function signalFiltered  = ShmOutMidEarFilter(signal, fieldtype, outplot)
-% signalFiltered  = ShmOutMidEarFilter(signal, fieldtype, outplot)
+function signalFiltered  = shmOutMidEarFilter(signal, fieldtype, outplot)
+% signalFiltered  = shmOutMidEarFilter(signal, fieldtype, outplot)
 %
 % Returns signal filtered for outer and middle ear response according to
 % ECMA-418-2:2024 (the Hearing Model of Sottek) for an input calibrated
@@ -41,7 +41,7 @@ function signalFiltered  = ShmOutMidEarFilter(signal, fieldtype, outplot)
 % Institution: University of Salford / ANV Measurement Systems
 %
 % Date created: 26/09/2023
-% Date last modified: 22/10/2024
+% Date last modified: 19/03/2025
 % MATLAB version: 2023b
 %
 % Copyright statement: This file and code is part of work undertaken within
