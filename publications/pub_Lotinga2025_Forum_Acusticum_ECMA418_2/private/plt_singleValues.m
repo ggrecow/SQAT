@@ -1,5 +1,5 @@
-function plt_singleValues(single_values1, single_values2, single_values3, save_figs,  label_fig)
-% function plt_singleValues(single_values1, single_values2, single_values3, save_figs,  label_fig)
+function plt_singleValues(single_values1, single_values2, single_values3, save_figs, label_fig)
+% function plt_singleValues(single_values1, single_values2, single_values3, save_figs, label_fig)
 %
 % Generates the following plot:
 % Overall loudness, tonality, and roughness (channel 1)
@@ -12,11 +12,12 @@ function plt_singleValues(single_values1, single_values2, single_values3, save_f
 % Forum Acusticum.
 %
 % Author: Gil Felix Greco, Braunschweig 13.02.2025
+% Modified: 19.03.2025 Mike Lotinga
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 fontSize = 18;
 
-h  =figure;
+h = figure;
 set(h,'Units','Inches');
 pos = get(h,'Position');
 set(h,'PaperPositionMode','Auto','PaperUnits','Inches','PaperSize',[pos(3), pos(4)])
@@ -40,7 +41,7 @@ for bb = 1:length(br)
         'VerticalAlignment', 'middle', 'FontName', 'Times', 'FontSize', 14)
 end
 
-ylim([0 1]);
+ylim([0 ceil(max(single_values1)*1.5*5)/5]);
 xticks([]);
 
 ax = gca;
@@ -61,7 +62,7 @@ for bb = 1:length(br)
         'VerticalAlignment', 'middle', 'FontName', 'Times', 'FontSize', 14)
 end
 
-ylim([0 10]);
+ylim([0 ceil(max(single_values2)) + 1]);
 xticks([]);
 
 legend('Reference', 'Implementation', 'Location', 'northoutside', 'NumColumns', 2);
@@ -84,7 +85,7 @@ for bb = 1:length(br)
         'VerticalAlignment', 'middle', 'FontName', 'Times', 'FontSize', 14)
 end
 
-ylim([0 0.5]);
+ylim([0 ceil(max(single_values3)*10)/4]);
 xticks([]);
 
 ax = gca;
@@ -105,9 +106,9 @@ if save_figs==1
     figname_out = [figures_dir figname_short];
 
     resolution = '-r600';
-    saveas(gcf,figname_out, 'fig');
+    % saveas(gcf,figname_out, 'fig');
     print( gcf, figname_out, '-dpdf', resolution );
-    print( gcf, figname_out,  '-dpng', resolution );
+    % print( gcf, figname_out,  '-dpng', resolution );
 
     fprintf('\n%s.m: figure %s was saved on disk\n\t(full name: %s)\n',mfilename,figname_short,figname_out);
 end

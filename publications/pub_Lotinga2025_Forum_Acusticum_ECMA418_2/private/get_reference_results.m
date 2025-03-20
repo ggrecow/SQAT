@@ -1,4 +1,4 @@
-function OUT = get_reference_results
+function OUT = get_reference_results(wav_file)
 % function OUT = get_reference_results
 %
 % Get reference results obtained from a commercial software. The ref.
@@ -19,6 +19,7 @@ function OUT = get_reference_results
 %            single strcuture containing all reference results
 %
 % Author: Gil Felix Greco, Braunschweig 13.02.2025
+% Modified: Mike Lotinga 20/03/2025
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % define directories
@@ -26,7 +27,6 @@ R_dir = [basepath_SQAT filesep 'validation' filesep 'Roughness_ECMA418_2' filese
 L_dir = [basepath_SQAT filesep 'validation' filesep 'Loudness_ECMA418_2' filesep '2_Loudness_ECMA418_2_software_comparison' filesep 'reference_results' filesep];
 T_dir = [basepath_SQAT filesep 'validation' filesep 'Tonality_ECMA418_2' filesep 'Tonality_ECMA418_2_software_comparison' filesep 'reference_results' filesep];
 
-wav_file = 'TrainStation7-0100-0130';
 
 %% get reference roughness results
 
@@ -58,7 +58,17 @@ OUT.roughness.Spec_TDep_combined_binaural = readmatrix( [R_dir Spec_TDep_fileNam
 % Specific Roughness (Hearing Model) vs. Time    Ch2    0,103    [0,3 - 29,8 s]
 % Specific Roughness (Hearing Model) vs. Time    CombinedBinaural Ch1&Ch2    0,115    [0,3 - 29,8 s]
 
-OUT.roughness.single_values = [0.128 0.103 0.115]; % [Ch1 Ch2 combBinaural]
+% Analysis Name	Channel Name	Default	{Default}	[Default]	AnalysisRange
+% Roughness (Hearing Model) vs. Time	Ch1	R	0.141	asper	[0.3 - 24.9 s]
+% Roughness (Hearing Model) vs. Time	Ch2	R	0.107	asper	[0.3 - 24.9 s]
+% Roughness (Hearing Model) vs. Time	CombinedBinaural Ch1&Ch2	R	0.125	asper	[0.3 - 24.9 s]
+
+switch wav_file
+    case 'TrainStation7-0100-0130'
+        OUT.roughness.single_values = [0.128 0.103 0.115]; % [Ch1 Ch2 combBinaural]
+    case 'Park3-0002-0027_UAS'
+        OUT.roughness.single_values = [0.141 0.107 0.125]; % [Ch1 Ch2 combBinaural]
+end
 
 %% get reference tonality results
 
@@ -79,7 +89,17 @@ OUT.tonality.Spec_TDep_channel_2 = readmatrix( [T_dir Spec_TDep_fileName_channel
 % Ch1    0,660
 % Ch2    0,314
 
-OUT.tonality.single_values = [0.660 0.314]; % [Ch1 Ch2]
+% Analysis Name	Channel Name	Default	{Default}	[Default]	AnalysisRange
+% Tonality (Hearing Model) vs. Time	Ch1	T	0.271	tuHMS	
+% Tonality (Hearing Model) vs. Time	Ch2	T	0.208	tuHMS	
+
+switch wav_file
+    case 'TrainStation7-0100-0130'
+        OUT.tonality.single_values = [0.660 0.314]; % [Ch1 Ch2]
+    case 'Park3-0002-0027_UAS'
+        OUT.tonality.single_values = [0.271 0.208]; % [Ch1 Ch2]
+end
+
 
 %% get reference loudness results
 
@@ -111,6 +131,16 @@ OUT.loudness.Spec_TDep_combined_binaural = readmatrix( [L_dir Spec_TDep_fileName
 % Loudness (Hearing Model) vs. Time    Ch2    6,43    [0,304 - 29,9 s]
 % Loudness (Hearing Model) vs. Time    CombinedBinaural Ch1&Ch2    7,32    [0,304 - 29,9 s]
 
-OUT.loudness.single_values = [8.10 6.43 7.32]; % [Ch1 Ch2 combBinaural]
+% Analysis Name	Channel Name	Default	{Default}	[Default]	AnalysisRange
+% Loudness (Hearing Model) vs. Time	Ch1	N	3.879	soneHMS	[0.304 - 25 s]
+% Loudness (Hearing Model) vs. Time	Ch2	N	3.681	soneHMS	[0.304 - 25 s]
+% Loudness (Hearing Model) vs. Time	CombinedBinaural Ch1&Ch2	N	3.787	soneHMS	[0.304 - 25 s]
+
+switch wav_file
+    case 'TrainStation7-0100-0130'
+        OUT.loudness.single_values = [8.10 6.43 7.32]; % [Ch1 Ch2 combBinaural]
+    case 'Park3-0002-0027_UAS'
+        OUT.loudness.single_values = [3.879 3.681 3.787]; % [Ch1 Ch2 combBinaural]
+end
 
 end

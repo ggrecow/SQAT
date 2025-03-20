@@ -7,7 +7,7 @@ The `pub_Lotinga2025_Forum_Acusticum_ECMA418_2.m` code generates the figures of 
 In this publication, selected results from the verification studies of the sound quality metrics from ECMA-418-2 [1] are presented. The complete study is available in the verification folder of the toolbox [(link)](../../validation).
  
 The study presented in the paper compares results obtained using a commercial software (ref. results) and using the implementations in SQAT. To perform the study, a binaural file recorded in a 'train station' environment is used. The signal 'TrainStation.7.wav' was extracted from the EigenScape database [(link)](https://zenodo.org/doi/10.5281/zenodo.1012808), and trimmed between 01m00s and 01m30s. The EigenScape database, which is described by 
-Green et al. [2], is licenced under Creative Commons Attribution 4.0.  
+Green et al. [2], is licensed under Creative Commons Attribution 4.0.  
 
 # How to use this code
 To run the `pub_Lotinga2025_Forum_Acusticum_ECMA418_2.m` code, the following sound file is required: `ExStereo_TrainStation7-0100-0130.wav`, which is stored in the `sound_files\reference_signals` folder. 
@@ -19,5 +19,5 @@ To run the `pub_Lotinga2025_Forum_Acusticum_ECMA418_2.m` code, the following sou
 
 # Log
 
-Last checked: Gil Felix Greco (13.02.2025)
+Last checked: Gil Felix Greco (13.02.2025) Mike Lotinga (19.03.2025
 

@@ -1,13 +1,13 @@
 % Script Roughness_ECMA418_2_software_comparison
 %
 % Compute Roughness (ECMA 418-2:2024) and compare with results from
-% comercial software 
+% commercial software 
 % 
 % Signal: binaural audio recording of a 'train station' environment (30 seconds, 2-channel binaural)
 % The signal 'TrainStation.7.wav' was extracted from the EigenScape database 
 % (https://zenodo.org/doi/10.5281/zenodo.1012808), and trimmed between
 %  01m00s and 01m30s. The EigenScape database, which is described by 
-% Green et al (https://doi.org/10.3390/app7111204), is licenced 
+% Green et al (https://doi.org/10.3390/app7111204), is licensed 
 % under Creative Commons Attribution 4.0.
 %
 % FUNCTION:
@@ -15,6 +15,7 @@
 %   type <help Roughness_ECMA418_2> for more info
 %
 % Author: Gil Felix Greco, Braunschweig 10.02.2025
+% Modified: 19.03.2025 Mike Lotinga
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 clc; clear all; close all;
 
@@ -145,7 +146,7 @@ single_values =[ch1_reference ...
 label_title = [wav_file '.wav'];
 label_fig = [wav_file '_singleValues_Roughness'];
 
-il_plt_singleValues(single_values, label_title, save_figs,  label_fig)
+il_plt_singleValues(single_values, label_title, save_figs, label_fig)
 
 %% plot - time-dependent specific roughness
 
@@ -163,7 +164,7 @@ yAxis =  ref_results.Spec_TDep_channel_2(1, 2:end) ; % freq vector
 zAxis =  ref_results.Spec_TDep_channel_2(2:end, 2:end) ; % specific roughness
 label_fig = [wav_file ' (Channel 2)' '_tDep_Specific_Roughness_ref'];
 
-il_plt_spectrogram(xAxis, yAxis, zAxis', save_figs,  label_fig)
+il_plt_spectrogram(xAxis, yAxis, zAxis', save_figs, label_fig)
 
 % plot -  implementation (Channel 1)
 xAxis =  OUT.timeOut; % time vector
@@ -171,7 +172,7 @@ yAxis =  OUT.bandCentreFreqs; % freq vector
 zAxis =  OUT.specRoughness(:,:,1) ; % specific roughness
 label_fig = [wav_file ' (Channel 1)' '_tDep_Specific_Roughness_implementation'];
 
-il_plt_spectrogram(xAxis, yAxis, zAxis', save_figs,  label_fig)
+il_plt_spectrogram(xAxis, yAxis, zAxis', save_figs, label_fig)
 
 % plot -  implementation (Channel 2)
 % xAxis =  OUT.timeOut; % time vector
@@ -179,13 +180,13 @@ il_plt_spectrogram(xAxis, yAxis, zAxis', save_figs,  label_fig)
 zAxis =  OUT.specRoughness(:,:,2) ; % specific roughness
 label_fig = [wav_file ' (Channel 2)' '_tDep_Specific_Roughness_implementation'];
 
-il_plt_spectrogram(xAxis, yAxis, zAxis', save_figs,  label_fig)
+il_plt_spectrogram(xAxis, yAxis, zAxis', save_figs, label_fig)
 
 %% function / plot - time-varying quantity
 
-function il_plt_tDep(xRef, yRef, xSQAT, ySQAT, label_title, save_figs,  label_fig)
+function il_plt_tDep(xRef, yRef, xSQAT, ySQAT, label_title, save_figs, label_fig)
 
-h  =figure;
+h = figure;
 set(h,'Units','Inches');
 pos = get(h,'Position');
 set(h,'PaperPositionMode','Auto','PaperUnits','Inches','PaperSize',[pos(3), pos(4)])
@@ -243,7 +244,7 @@ cmap  = load('cmap_inferno.txt');
 cmap1 = 166;
 cmap2 = 34;
 
-h  =figure('Position', [200, 200, 1500, 550]);
+h = figure('Position', [200, 200, 1500, 550]);
 set(h,'Units','Inches');
 pos = get(h,'Position');
 set(h,'PaperPositionMode','Auto','PaperUnits','Inches','PaperSize',[pos(3), pos(4)])
@@ -258,7 +259,7 @@ ax = nexttile;
 
 a = bar(barkAxis,...
     yRef,...
-    'EdgeColor',  cmap(cmap1, :),...
+    'EdgeColor', cmap(cmap1, :),...
     'EdgeAlpha', 0.2, ...
     'FaceColor', cmap(cmap1, :),...
     'FaceAlpha', 0.2, ...
@@ -270,7 +271,7 @@ hold on;
 
 b = bar(barkAxis,...
     ySQAT,...
-    'EdgeColor',  cmap(cmap2, :),...
+    'EdgeColor', cmap(cmap2, :),...
     'FaceColor',  'none',...
     'LineWidth', 0.5, 'LineStyle', '-',...
     'BarWidth',0.5, ...
@@ -323,11 +324,11 @@ end
 
 %% function / single values 
 
-function il_plt_singleValues(single_values, label_title, save_figs,  label_fig)
+function il_plt_singleValues(single_values, label_title, save_figs, label_fig)
 
 % Single values
 % h  =figure('Position', [200, 200, 550, 550]);
-h  =figure;
+h = figure;
 set(h,'Units','Inches');
 pos = get(h,'Position');
 set(h,'PaperPositionMode','Auto','PaperUnits','Inches','PaperSize',[pos(3), pos(4)])
@@ -379,9 +380,9 @@ end
 
 %% function / plot spectrogram
 
-function il_plt_spectrogram(xAxis, yAxis, zAxis, save_figs,  label_fig)
+function il_plt_spectrogram(xAxis, yAxis, zAxis, save_figs, label_fig)
 
-h  =figure;
+h = figure;
 set(h,'Units','Inches');
 pos = get(h,'Position');
 set(h,'PaperPositionMode','Auto','PaperUnits','Inches','PaperSize',[pos(3), pos(4)])
@@ -395,6 +396,8 @@ shading interp; colorbar; axis tight;
 cMap  = load('cmap_inferno.txt'); colormap(cMap);
 
 ax = gca;
+ax.FontName = 'Times';
+ax.FontSize = 16;
 ax.YTick = [63, 125, 250, 500, 1e3, 2e3, 4e3, 8e3, 16e3];
 ax.YTickLabel = ["63", "125", "250", "500", "1k", "2k", "4k","8k", "16k"];
 ax.YScale = 'log';
