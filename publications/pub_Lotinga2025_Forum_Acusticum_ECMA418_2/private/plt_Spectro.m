@@ -12,7 +12,7 @@ function plt_Spectro(x, fs, df, olap, combine, save_figs, label_fig)
 % Forum Acusticum.
 %
 % Author: Mike Lotinga 20.03.2025
-% Modified: 
+% Modified: Mike Lotinga 21.03.2025
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %% Channel configuration
@@ -43,7 +43,7 @@ noverlap = olap*Nfft;
 %% Generate spectrogram
 AweightFilt = weightingFilter('A-weighting', fs);
 
-for ii = 1:chansIn
+for ii = chansIn:-1:1
 
         xA = AweightFilt(x(:, ii));
    
@@ -62,22 +62,24 @@ end
 figwidth = 24;
 figheight = 16;
 % octave band frequency ticks and labels
-f_ticks = [31.5, 63, 125, 250, 500, 1000, 2000, 4000, 8000, 16000];
-f_tick_labels = ["31.5", "63", "125", "250", "500", "1k", "2k", "4k", "8k", "16k"];
+f_ticks = [31.5, 63, 125, 250, 500, 1000, 2000, 4000, 8000];
+f_tick_labels = ["31.5", "63", "125", "250", "500", "1k", "2k", "4k", "8k"];
 
 
 %% Generate plot
 for ii = 1:chansOut
     ps_grmdB = pow2db(ps_grm(2:end, :, ii)./(2e-5)^2);
-    climMax = ceil(max(ps_grmdB, [], 'all')*10)/10;
+    climMax = 5*ceil(max(ps_grmdB, [], 'all')/5);
 
     fig = figure;
 
     set(fig, 'Visible', 'on', 'units', 'centimeters',...
         'Position', [0, 0, figwidth, figheight]);
+    pos = get(fig,'Position');
+    set(fig,'PaperPositionMode','Auto','PaperUnits','Centimeters','PaperSize',[pos(3), pos(4)])
     movegui(fig, 'center');
     sh = surf(t_grm, f_grm(2:end), ps_grmdB);
-    set(sh, 'LineStyle', 'none', 'FaceColor', 'interp')
+    set(sh, 'LineStyle', 'none')
     view(0, 90)
     cbar = colorbar(gca, 'eastoutside');
     cbar_title = ylabel(cbar, "A-weighted sound pressure level,\newline           dB(A) re 2e-5 Pa");
@@ -85,8 +87,8 @@ for ii = 1:chansOut
     xlabel("Time, s")
     ylabel("Frequency, Hz")
     set(gca, 'XLim', [0, ceil(t_grm(end))], 'YScale', 'log',...
-        'YLim', [20, 20000], 'YDir', 'normal',...
-        'CLim', [15, climMax], 'YTick', f_ticks, 'YTickLabel', f_tick_labels,...
+        'YLim', [45, 11220], 'YDir', 'normal',...
+        'CLim', [0, climMax], 'YTick', f_ticks, 'YTickLabel', f_tick_labels,...
         'YMinorTick', 'off', 'FontName', 'Times New Roman', 'FontSize', 22);
     
     set(gcf,'color','w');
@@ -106,11 +108,11 @@ for ii = 1:chansOut
 
         figname_out = [figures_dir figname_short];
         
-        resolution = '-r600'; 
+        resolution = '-r300'; 
     
         % saveas(gcf,figname_out, 'fig');
-        % print( gcf, figname_out, '-dpdf', resolution );
-        print( gcf, figname_out,  '-dpng', resolution );
+        print( gcf, figname_out, '-dpdf', resolution , '-fillpage');
+        % print( gcf, figname_out,  '-dpng', resolution );
         
         fprintf('\n%s.m: figure %s was saved on disk\n\t(full name: %s)\n',mfilename,figname_short,figname_out);
     end

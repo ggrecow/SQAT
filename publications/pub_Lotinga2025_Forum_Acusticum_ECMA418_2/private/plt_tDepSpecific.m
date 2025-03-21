@@ -12,7 +12,7 @@ function plt_tDepSpecific(x1Axis, y1Axis, z1Axis, x2Axis, y2Axis, z2Axis, metric
 % Forum Acusticum.
 %
 % Author: Gil Felix Greco, Braunschweig 27.02.2025
-% Modified: 20.03.2025 Mike Lotinga
+% Modified: 21.03.2025 Mike Lotinga
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 switch metric
@@ -111,11 +111,11 @@ if save_figs==1
     figname_short = label_fig;
     figname_out = [figures_dir figname_short];
 
-    resolution = '-r600';
+    resolution = '-r300';
 
     % saveas(gcf,figname_out, 'fig');
-    % print( gcf, figname_out, '-dpdf', resolution );
-    print( gcf, figname_out,  '-dpng', resolution );
+    print( gcf, figname_out, '-dpdf', resolution );
+    % print( gcf, figname_out,  '-dpng', resolution );
 
     fprintf('\n%s.m: figure %s was saved on disk\n\t(full name: %s)\n',mfilename,figname_short,figname_out);
 end
