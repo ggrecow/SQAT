@@ -1,5 +1,5 @@
-function signalFiltered = ShmNoiseRedLowPass(signal, sampleRatein)
-% signalFiltered = ShmNoiseRedLowPass(signal, sampleRatein)
+function signalFiltered = shmNoiseRedLowPass(signal, sampleRatein)
+% signalFiltered = shmNoiseRedLowPass(signal, sampleRatein)
 %
 % Returns signal low pass filtered for noise reduction according to
 % ECMA-418-2:2024 (the Sottek Hearing Model) for an input signal.
@@ -34,7 +34,7 @@ function signalFiltered = ShmNoiseRedLowPass(signal, sampleRatein)
 % Institution: University of Salford / ANV Measurement Systems
 %
 % Date created: 22/09/2023
-% Date last modified: 22/08/2024
+% Date last modified: 19/03/2025
 % MATLAB version: 2023b
 %
 % Copyright statement: This file and code is part of work undertaken within

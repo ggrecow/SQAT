@@ -142,7 +142,7 @@ function OUT = Loudness_ECMA418_2(insig, fs, fieldtype, time_skip, show)
 % Institution: University of Salford
 %
 % Date created: 22/09/2023
-% Date last modified: 09/01/2025
+% Date last modified: 19/03/2025
 % MATLAB version: 2023b
 %
 % Copyright statement: This file and code is part of work undertaken within
@@ -187,9 +187,9 @@ elseif  size(insig, 2) > 2  % insig is [1xN] or [2xN]
     fprintf('\nWarning: Input signal is not [Nx1] or [Nx2] and was transposed.\n');
 end
 
-% Check the length of the input data (must be longer than 304 ms)
+% Check the length of the input data (must be at least 304 ms)
 if size(insig, 1) <  t_threshold*fs
-    error('Error: Input signal is too short along the specified axis to calculate loudness (must be longer than 304 ms)')
+    error('Error: Input signal is too short along the specified axis to calculate loudness (must be at least 304 ms)')
 end
 
 % Check the channel number of the input data

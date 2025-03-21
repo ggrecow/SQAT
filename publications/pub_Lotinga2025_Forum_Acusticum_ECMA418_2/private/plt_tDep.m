@@ -12,6 +12,7 @@ function plt_tDep(xRef, yRef, xImplementation, yImplementation, metric, save_fig
 % Forum Acusticum.
 %
 % Author: Gil Felix Greco, Braunschweig 27.02.2025
+% Modified: 20.03.2025 Mike Lotinga
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 switch metric
@@ -20,29 +21,26 @@ switch metric
         xLabelTag = 'Time, s';
         yLabelTag = 'Roughness, asper_{HMS}';
         cMap = load('cmap_inferno.txt');
-        yLimits = [0 0.25];
 
     case 'loudness'
 
         xLabelTag = 'Time, s';
         yLabelTag = 'Loudness, sone_{HMS}';
         cMap = load('cmap_viridis.txt');
-        yLimits = [0 15];
 
     case 'tonality'
 
         xLabelTag = 'Time, s';
         yLabelTag = 'Tonality, tu_{HMS}';
         cMap = load('cmap_plasma.txt');
-        yLimits = [0 2];
-
 end
 
+yLimits = [0 ceil(max(max(yRef), max(yImplementation))*15)/10];
 fontSize = 22;
 stretchY = 1.5; % stretch plot in the vertical direction
 
 % plot
-h  =figure;
+h = figure;
 set(h,'Units','Inches');
 pos = get(h,'Position');
 set(h,'Position', [pos(1), pos(2), pos(3), pos(4)*stretchY]);
@@ -65,6 +63,7 @@ plot(xImplementation, yImplementation, ':', 'Color', cMap(cMap2, :), 'Linewidth'
 
 legend('Reference', 'Implementation', 'Location', 'NE');
 
+xlim([0, round(xRef(end))])
 ylim(yLimits);
 
 ax.FontName = 'Times';
@@ -84,7 +83,7 @@ ax2 =  nexttile([1 2]);
 
 plot( xImplementation(1:size(yRef)), abs(yImplementation(1:size(yRef))-yRef), '-', 'Color', [0 0 1] );
 
-yticks([0 0.1]);
+yticks([0 0.01]);
 ax2.FontName = 'Times';
 ax2.FontSize = fontSize;
 ax2.XGrid = 'on';
@@ -95,7 +94,8 @@ ax2.GridAlpha = 0.15;
 xlabel(xLabelTag, 'fontsize', fontSize);
 ylabel('Abs. difference', 'fontsize', fontSize);
 
-ylim([0  0.12]);
+xlim([0, round(xRef(end))])
+ylim([0  0.01]);
 
 set(gcf,'color','w');
 
@@ -109,9 +109,9 @@ if save_figs==1
     
     resolution = '-r600'; 
 
-    saveas(gcf,figname_out, 'fig');
+    % saveas(gcf,figname_out, 'fig');
     print( gcf, figname_out, '-dpdf', resolution );
-    print( gcf, figname_out,  '-dpng', resolution );
+    % print( gcf, figname_out,  '-dpng', resolution );
     
     fprintf('\n%s.m: figure %s was saved on disk\n\t(full name: %s)\n',mfilename,figname_short,figname_out);
 end

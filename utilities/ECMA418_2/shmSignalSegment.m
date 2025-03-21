@@ -1,6 +1,6 @@
-function [signalSegmented, iBlocks] = ShmSignalSegment(signal, axisn, blockSize, overlap,...
-                                                       i_start, endShrink)
-% signalSegmented = ShmSignalSegment(signal, axisn, blockSize, overlap, i_start)
+function [signalSegmented, iBlocksOut] = shmSignalSegment(signal, axisn, blockSize, overlap,...
+                                                          i_start, endShrink)
+% signalSegmented = shmSignalSegment(signal, axisn, blockSize, overlap, i_start)
 %
 % Returns input signal segmented into blocks for processing.
 %
@@ -37,8 +37,10 @@ function [signalSegmented, iBlocks] = ShmSignalSegment(signal, axisn, blockSize,
 %
 % Also: 
 %
-% iBlocks : vector
-%           the indices corresponding with each block starting index
+% iBlocksOut : vector
+%              the indices corresponding with each output block starting
+%              index (NOTE: the indices corresponding with the input
+%              indexing can be recovered by adding i_start to iBlocksOut)
 %
 % Assumptions
 % -----------
@@ -55,7 +57,7 @@ function [signalSegmented, iBlocks] = ShmSignalSegment(signal, axisn, blockSize,
 % Institution: University of Salford / ANV Measurement Systems
 %
 % Date created: 27/09/2023
-% Date last modified: 20/08/2024
+% Date last modified: 19/03/2025
 % MATLAB version: 2023b
 %
 % Copyright statement: This file and code is part of work undertaken within
@@ -138,11 +140,11 @@ for chan = nchans:-1:1
     % if branch to include block of end data with increased overlap
     if endShrink && (size(signal(i_start:end), 1) > size(signalTrunc, 1))
         signalSegmentedChanOut = [signalSegmentedChan, signal(end-blockSize + 1:end)];
-        iBlocks = [1:hopSize:n_blocks*hopSize,...
-                   size(signal(i_start:end), 1) - blockSize + 1];
+        iBlocksOut = [1:hopSize:n_blocks*hopSize,...
+                      size(signal(i_start:end), 1) - blockSize + 1];
     else
         signalSegmentedChanOut = signalSegmentedChan;
-        iBlocks = 1:hopSize:n_blocks*hopSize;
+        iBlocksOut = 1:hopSize:n_blocks*hopSize;
     end
 
     signalSegmented(:, :, chan) = signalSegmentedChanOut;

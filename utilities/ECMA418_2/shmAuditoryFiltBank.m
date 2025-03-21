@@ -1,5 +1,5 @@
-function signalFiltered = ShmAuditoryFiltBank(signal, outplot)
-% signalFiltered = ShmAuditoryFiltBank(signal, outplot)
+function signalFiltered = shmAuditoryFiltBank(signal, outplot)
+% signalFiltered = shmAuditoryFiltBank(signal, outplot)
 %
 % Returns a set of signals, bandpass filtered for the inner ear response
 % in each half-Bark critical band rate scale width, according to
@@ -38,7 +38,7 @@ function signalFiltered = ShmAuditoryFiltBank(signal, outplot)
 % Institution: University of Salford / ANV Measurement Systems
 %
 % Date created: 27/09/2023
-% Date last modified: 21/10/2024
+% Date last modified: 19/03/2025
 % MATLAB version: 2023b
 %
 % Copyright statement: This file and code is part of work undertaken within

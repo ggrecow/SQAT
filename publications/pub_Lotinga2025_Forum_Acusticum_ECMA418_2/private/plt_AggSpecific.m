@@ -1,8 +1,8 @@
-function plt_TonalityAvgSpecific( yRef, yImplementation, save_figs, label_fig)
-% function plt_TonalityAvgSpecific( yRef, yImplementation, save_figs, label_fig)
+function plt_AggSpecific( yRef, yImplementation, metric, save_figs, label_fig)
+% function plt_AggSpecific( yRef, yImplementation, metric, save_figs, label_fig)
 %
 % Generates the following plot:
-% Time-averaged specific tonality (channel 1)
+% Time-aggregated specific sound quality metric (channel 1)
 %
 % Plot(s) used in the following publication:
 %
@@ -12,9 +12,27 @@ function plt_TonalityAvgSpecific( yRef, yImplementation, save_figs, label_fig)
 % Forum Acusticum.
 %
 % Author: Gil Felix Greco, Braunschweig 27.02.2025
+% Modified: 19.03.2025 Mike Lotinga
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-cmap  = load('cmap_plasma.txt');
+switch metric
+    case 'tonality'
+        cmap  = load('cmap_plasma.txt');
+        yLabel1 = 'tonality, tu';
+        yLabel2 = 'tu';
+        precDig = 1;
+    case 'loudness'
+        cmap  = load('cmap_viridis.txt');
+        yLabel1 = 'loudness, sone';
+        yLabel2 = 'sone';
+        precDig = 1;
+    case 'roughness'
+        cmap  = load('cmap_inferno.txt');
+        yLabel1 = 'roughness, asper';
+        yLabel2 = 'asper';
+        precDig = 2;
+end
+
 cmap1 = 166;
 cmap2 = 34;
 fontSize = 22;
@@ -22,7 +40,7 @@ fontSize = 22;
 stretchX = 2;  % stretch plot in the horizontal direction
 stretchY= 1.5; % stretch plot in the vertical direction
 
-h  =figure;
+h = figure;
 set(h,'Units','Inches');
 pos = get(h,'Position');
 set(h,'Position', [pos(1), pos(2), pos(3)*stretchX, pos(4)*stretchY]);
@@ -43,7 +61,7 @@ yyaxis left;
 
 a = bar(barkAxis,...
     yRef,...
-    'EdgeColor',  cmap(cmap1, :),...
+    'EdgeColor', cmap(cmap1, :),...
     'EdgeAlpha', 1, ...
     'FaceColor', 'none',...
     'FaceAlpha', 1, ...
@@ -55,8 +73,8 @@ hold on;
 
 b = bar(barkAxis,...
     yImplementation,...
-    'EdgeColor',  cmap(cmap2, :),...
-    'FaceColor',  'none',...
+    'EdgeColor', cmap(cmap2, :),...
+    'FaceColor', 'none',...
     'LineWidth',1, 'LineStyle', '--',...
     'BarWidth',0.7, ...
     'DisplayName', "Implementation");
@@ -64,29 +82,29 @@ b = bar(barkAxis,...
 xtickangle(90);
 xticks(barkAxis);
 
-ylim([0 0.7]);
+ylim([0 ceil(max(max(yRef), max(yImplementation))*10^precDig)/10^precDig]);
 
 ax.XTick = 0.5:26.5;
 ax.FontName = 'Times';
 ax.FontSize = fontSize;
-ax.XGrid = 'on';
-ax.YGrid = 'on';
-ax.GridLineStyle = '--';
-ax.GridAlpha = 0.15;
 
 xlabel( 'Critical band rate, Bark_{HMS}', 'fontsize', fontSize);
-ylabel( 'Specific tonality, tu_{HMS}/Bark_{HMS}', 'fontsize', fontSize);
+ylabel( append('Specific ', yLabel1, '_{HMS}/Bark_{HMS}'), 'fontsize', fontSize);
 
 %% right axis (error plot)
 
 yyaxis right;
+ax.YAxis(2).Exponent = 0;
+ytickformat('%.3f')
 
 % difference = ( (yImplementation-yRef)./yRef).*100; % percentage difference
 difference = (yImplementation-yRef); % relative difference
 
+
+
 c = plot( barkAxis, difference, '*-', 'Color', right_color );
 
-ylabel( 'Relative difference, tu_{HMS}/Bark_{HMS}', 'fontsize', fontSize);
+ylabel( append('Relative difference, ', yLabel2 ,'_{HMS}/Bark_{HMS}'), 'fontsize', fontSize);
 
 ylim([-0.0015 0.0015]); 
 
@@ -103,9 +121,10 @@ if save_figs==1
     figname_out = [figures_dir figname_short];
 
     resolution = '-r600';
-    saveas(gcf,figname_out, 'fig');
+
+    %saveas(gcf,figname_out, 'fig');
     print( gcf, figname_out, '-dpdf', resolution );
-    print( gcf, figname_out,  '-dpng', resolution );
+    %print( gcf, figname_out,  '-dpng', resolution );
 
     fprintf('\n%s.m: figure %s was saved on disk\n\t(full name: %s)\n',mfilename,figname_short,figname_out);
 end

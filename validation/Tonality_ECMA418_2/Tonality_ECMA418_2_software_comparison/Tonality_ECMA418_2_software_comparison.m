@@ -1,13 +1,13 @@
 % Script Tonality_ECMA418_2_software_comparison
 %
 % Compute Tonality (ECMA 418-2:2024) and compare with results from
-% comercial software 
+% commercial software 
 % 
 % Signal: binaural audio recording of a 'train station' environment (30 seconds, 2-channel binaural)
 % The signal 'TrainStation.7.wav' was extracted from the EigenScape database 
 % (https://zenodo.org/doi/10.5281/zenodo.1012808), and trimmed between
 %  01m00s and 01m30s. The EigenScape database, which is described by 
-% Green et al (https://doi.org/10.3390/app7111204), is licenced 
+% Green et al (https://doi.org/10.3390/app7111204), is licensed 
 % under Creative Commons Attribution 4.0.
 %
 % FUNCTION:
@@ -15,13 +15,14 @@
 %   type <help Tonality_ECMA418_2> for more info
 %
 % Author: Gil Felix Greco, Braunschweig 12.02.2025
+% Modified: 19.03.2025 Mike Lotinga
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 clc; clear all; close all;
 
 save_figs = 0; % save figure flag
 
 %% Load  stereo .wav file
- 
+
 dir_sound = [basepath_SQAT 'sound_files' filesep 'reference_signals' filesep];
 
 fileTag = 'ExStereo_';
@@ -114,7 +115,7 @@ single_values =[ch1_reference ...
 label_title = [wav_file '.wav'];
 label_fig = [wav_file '_singleValues_Tonality'];
 
-il_plt_singleValues(single_values, label_title, save_figs,  label_fig)
+il_plt_singleValues(single_values, label_title, save_figs, label_fig)
 
 %% plot - time-dependent specific tonality
 
@@ -132,7 +133,7 @@ yAxis =  ref_results.Spec_TDep_channel_2(1, 2:end) ; % freq vector
 zAxis =  ref_results.Spec_TDep_channel_2(2:end, 2:end) ; % specific tonality
 label_fig = [wav_file ' (Channel 2)' '_tDep_Specific_Tonality_ref'];
 
-il_plt_spectrogram(xAxis, yAxis, zAxis', save_figs,  label_fig)
+il_plt_spectrogram(xAxis, yAxis, zAxis', save_figs, label_fig)
 
 % plot -  implementation (Channel 1)
 xAxis =  OUT.timeOut; % time vector
@@ -140,7 +141,7 @@ yAxis =  OUT.bandCentreFreqs; % freq vector
 zAxis =  OUT.specTonality(:,:,1) ; % specific tonality
 label_fig = [wav_file ' (Channel 1)' '_tDep_Specific_Tonality_implementation'];
 
-il_plt_spectrogram(xAxis, yAxis, zAxis', save_figs,  label_fig)
+il_plt_spectrogram(xAxis, yAxis, zAxis', save_figs, label_fig)
 
 % plot -  implementation (Channel 2)
 % xAxis =  OUT.timeOut; % time vector
@@ -148,13 +149,13 @@ il_plt_spectrogram(xAxis, yAxis, zAxis', save_figs,  label_fig)
 zAxis =  OUT.specTonality(:,:,2) ; % specific tonality
 label_fig = [wav_file ' (Channel 2)' '_tDep_Specific_Tonality_implementation'];
 
-il_plt_spectrogram(xAxis, yAxis, zAxis', save_figs,  label_fig)
+il_plt_spectrogram(xAxis, yAxis, zAxis', save_figs, label_fig)
 
 %% function / plot - time-varying quantity
 
-function il_plt_tDep(xRef, yRef, xSQAT, ySQAT, label_title, save_figs,  label_fig)
+function il_plt_tDep(xRef, yRef, xSQAT, ySQAT, label_title, save_figs, label_fig)
 
-h  =figure;
+h = figure;
 set(h,'Units','Inches');
 pos = get(h,'Position');
 set(h,'PaperPositionMode','Auto','PaperUnits','Inches','PaperSize',[pos(3), pos(4)])
@@ -197,7 +198,7 @@ if save_figs==1
 
     % saveas(gcf,figname_out, 'fig');
     % print( gcf, figname_out, '-dpdf', resolution );
-    print( gcf, figname_out,  '-dpng', resolution );
+    print( gcf, figname_out, '-dpng', resolution );
     
     fprintf('\n%s.m: figure %s was saved on disk\n\t(full name: %s)\n',mfilename,figname_short,figname_out);
 end
@@ -212,7 +213,7 @@ cmap  = load('cmap_plasma.txt');
 cmap1 = 166;
 cmap2 = 34;
 
-h  =figure('Position', [200, 200, 1500, 550]);
+h = figure('Position', [200, 200, 1500, 550]);
 set(h,'Units','Inches');
 pos = get(h,'Position');
 set(h,'PaperPositionMode','Auto','PaperUnits','Inches','PaperSize',[pos(3), pos(4)])
@@ -229,7 +230,7 @@ yyaxis left;
 
 a = bar(barkAxis,...
     yRef,...
-    'EdgeColor',  cmap(cmap1, :),...
+    'EdgeColor', cmap(cmap1, :),...
     'EdgeAlpha', 0.2, ...
     'FaceColor', cmap(cmap1, :),...
     'FaceAlpha', 0.2, ...
@@ -294,11 +295,11 @@ end
 
 %% function / single values 
 
-function il_plt_singleValues(single_values, label_title, save_figs,  label_fig)
+function il_plt_singleValues(single_values, label_title, save_figs, label_fig)
 
 % Single values
 % h  =figure('Position', [200, 200, 550, 550]);
-h  =figure;
+h = figure;
 set(h,'Units','Inches');
 pos = get(h,'Position');
 set(h,'PaperPositionMode','Auto','PaperUnits','Inches','PaperSize',[pos(3), pos(4)])
@@ -354,9 +355,9 @@ end
 
 %% function / plot spectrogram
 
-function il_plt_spectrogram(xAxis, yAxis, zAxis, save_figs,  label_fig)
+function il_plt_spectrogram(xAxis, yAxis, zAxis, save_figs, label_fig)
 
-h  =figure;
+h = figure;
 set(h,'Units','Inches');
 pos = get(h,'Position');
 set(h,'PaperPositionMode','Auto','PaperUnits','Inches','PaperSize',[pos(3), pos(4)])
@@ -370,6 +371,8 @@ shading interp; colorbar; axis tight;
 cMap  = load('cmap_plasma.txt'); colormap(cMap);
 
 ax = gca;
+ax.FontName = 'Times';
+ax.FontSize = 16;
 ax.YTick = [63, 125, 250, 500, 1e3, 2e3, 4e3, 8e3, 16e3];
 ax.YTickLabel = ["63", "125", "250", "500", "1k", "2k", "4k","8k", "16k"];
 ax.YScale = 'log';

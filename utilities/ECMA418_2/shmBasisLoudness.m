@@ -1,7 +1,7 @@
 function [signalRectSeg, basisLoudness, blockRMS]...
-           = ShmBasisLoudness(signalSegmented, bandCentreFreq)
+           = shmBasisLoudness(signalSegmented, bandCentreFreq)
 % [signalRectSeg, basisLoudness, blockRMS]...
-% = ShmBandBasisLoudness(signalSegmented, bandCentreFreq)
+% = shmBandBasisLoudness(signalSegmented, bandCentreFreq)
 %
 % Returns rectified input and basis loudness in specified half-Bark
 % critical band according to ECMA-418-2:2024 (the Sottek Hearing Model)
@@ -47,7 +47,7 @@ function [signalRectSeg, basisLoudness, blockRMS]...
 % Institution: University of Salford / ANV Measurement Systems
 %
 % Date created: 27/09/2023
-% Date last modified: 21/10/2024
+% Date last modified: 19/03/2025
 % MATLAB version: 2023b
 %
 % Copyright statement: This file and code is part of work undertaken within
