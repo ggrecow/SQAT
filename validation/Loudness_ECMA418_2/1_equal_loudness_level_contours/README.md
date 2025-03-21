@@ -15,4 +15,5 @@ The test signals are generated in the code. Therefore, no extra steps are requir
 
 # Log
 Created by Gil Felix Greco (26.01.2025)
+Updated results: Gil Felix Greco (21.03.2025)
 
