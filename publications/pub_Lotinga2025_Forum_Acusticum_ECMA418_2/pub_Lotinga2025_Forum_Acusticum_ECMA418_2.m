@@ -34,11 +34,11 @@
 % - The signals are stored in the following folder: <sound_files\reference_signals\>. 
 %
 % Author: Gil Felix Greco, Braunschweig 27.02.2025
-% Modified: 19.03.2025 Mike Lotinga
+% Modified: 21.03.2025 Mike Lotinga
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %clc; clear all; close all;
 
-save_figs = 1; % save figure flag
+save_figs = 0; % save figure flag
 
 %% Load .wav file
 
@@ -54,30 +54,30 @@ wav_fileUAS = 'Park3-0002-0027_UAS';
 
 %% Compute sound quality metrics from .wav signals
 
-% % Common settings
-% fieldtype = 'free-frontal'; % string (default: 'free-frontal'; or 'diffuse')
-% % NOTE: fieldtype is set to match capability in reference software
-% % (recorded sound fields would not match free frontal incidence assumption)
-% 
-% % Train station
-% % Roughness
-% OUTTrain.roughness = Roughness_ECMA418_2( insigTrain, fs, fieldtype );
-% 
-% % Tonality 
-% OUTTrain.tonality = Tonality_ECMA418_2( insigTrain, fs, fieldtype);
-% 
-% % Loudness
-% OUTTrain.loudness = Loudness_ECMA418_2( insigTrain, fs, fieldtype );
-%
+% Common settings
+fieldtype = 'free-frontal'; % string (default: 'free-frontal'; or 'diffuse')
+% NOTE: fieldtype is set to match capability in reference software
+% (recorded soundfields would not match free frontal incidence assumption)
+
+% Train station
+% Roughness
+OUTTrain.roughness = Roughness_ECMA418_2( insigTrain, fs, fieldtype );
+
+% Tonality 
+OUTTrain.tonality = Tonality_ECMA418_2( insigTrain, fs, fieldtype);
+
+% Loudness
+OUTTrain.loudness = Loudness_ECMA418_2( insigTrain, fs, fieldtype );
+
 % UAS over park
 % Roughness
-% OUTUAS.roughness = Roughness_ECMA418_2( insigUAS, fs, fieldtype );
-% 
-% % Tonality 
-% OUTUAS.tonality = Tonality_ECMA418_2( insigUAS, fs, fieldtype);
-% 
-% % Loudness
-% OUTUAS.loudness = Loudness_ECMA418_2( insigUAS, fs, fieldtype );
+OUTUAS.roughness = Roughness_ECMA418_2( insigUAS, fs, fieldtype );
+
+% Tonality 
+OUTUAS.tonality = Tonality_ECMA418_2( insigUAS, fs, fieldtype);
+
+% Loudness
+OUTUAS.loudness = Loudness_ECMA418_2( insigUAS, fs, fieldtype );
 
 %% Plot spectrograms - channel 1 only
 label_fig = [wav_fileTrain ' (Channel 1)' '_Spectro'];
