@@ -108,11 +108,11 @@ for ii = 1:chansOut
 
         figname_out = [figures_dir figname_short];
         
-        resolution = '-r300'; 
+        resolution = '-r400'; 
     
         % saveas(gcf,figname_out, 'fig');
-        print( gcf, figname_out, '-dpdf', resolution , '-fillpage');
-        % print( gcf, figname_out,  '-dpng', resolution );
+        % print( gcf, figname_out, '-dpdf', resolution , '-fillpage');
+        print( gcf, figname_out,  '-dpng', resolution );
         
         fprintf('\n%s.m: figure %s was saved on disk\n\t(full name: %s)\n',mfilename,figname_short,figname_out);
     end
