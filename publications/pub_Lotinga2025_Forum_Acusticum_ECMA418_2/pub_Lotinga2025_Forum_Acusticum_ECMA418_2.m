@@ -34,9 +34,9 @@
 % - The signals are stored in the following folder: <sound_files\reference_signals\>. 
 %
 % Author: Gil Felix Greco, Braunschweig 27.02.2025
-% Modified: 21.03.2025 Mike Lotinga
+% Modified: 31.03.2025 Mike Lotinga
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%clc; clear all; close all;
+% clc; clear all; close all;
 
 save_figs = 0; % save figure flag
 
@@ -61,23 +61,23 @@ fieldtype = 'free-frontal'; % string (default: 'free-frontal'; or 'diffuse')
 
 % Train station
 % Roughness
-OUTTrain.roughness = Roughness_ECMA418_2( insigTrain, fs, fieldtype );
-
-% Tonality 
-OUTTrain.tonality = Tonality_ECMA418_2( insigTrain, fs, fieldtype);
-
-% Loudness
-OUTTrain.loudness = Loudness_ECMA418_2( insigTrain, fs, fieldtype );
-
-% UAS over park
-% Roughness
-OUTUAS.roughness = Roughness_ECMA418_2( insigUAS, fs, fieldtype );
-
-% Tonality 
-OUTUAS.tonality = Tonality_ECMA418_2( insigUAS, fs, fieldtype);
-
-% Loudness
-OUTUAS.loudness = Loudness_ECMA418_2( insigUAS, fs, fieldtype );
+% OUTTrain.roughness = Roughness_ECMA418_2( insigTrain, fs, fieldtype );
+% 
+% % Tonality 
+% OUTTrain.tonality = Tonality_ECMA418_2( insigTrain, fs, fieldtype);
+% 
+% % Loudness
+% OUTTrain.loudness = Loudness_ECMA418_2( insigTrain, fs, fieldtype );
+% 
+% % UAS over park
+% % Roughness
+% OUTUAS.roughness = Roughness_ECMA418_2( insigUAS, fs, fieldtype );
+% 
+% % Tonality 
+% OUTUAS.tonality = Tonality_ECMA418_2( insigUAS, fs, fieldtype);
+% 
+% % Loudness
+% OUTUAS.loudness = Loudness_ECMA418_2( insigUAS, fs, fieldtype );
 
 %% Plot spectrograms - channel 1 only
 label_fig = [wav_fileTrain ' (Channel 1)' '_Spectro'];
@@ -197,7 +197,7 @@ plt_AggSpecific( yRef, yImplementation, 'loudness', save_figs, label_fig)
 
 yRef = ref_resultsTrain.roughness.AvgSpec(:,2);
 yImplementation = OUTTrain.roughness.specRoughnessAvg(:,1);
-label_fig = [wav_fileTrain ' (Channel 1)' '_avgSpecific_Loudness'];
+label_fig = [wav_fileTrain ' (Channel 1)' '_avgSpecific_Roughness'];
 
 % call plot function
 plt_AggSpecific( yRef, yImplementation, 'roughness', save_figs, label_fig)
@@ -218,7 +218,7 @@ single_values2 = [ch1_ref_loudness, ...
                              ch1_implementation_loudness];
 
 % roughness
-ch1_ref_AvgSpecroughness = ref_resultsTrain.roughness.single_values(1);
+ch1_ref_roughness = ref_resultsTrain.roughness.single_values(1);
 ch1_implementation_roughness = OUTTrain.roughness.roughness90Pc(1);
 
 single_values3 = [ch1_ref_roughness, ...
@@ -336,7 +336,7 @@ plt_AggSpecific( yRef, yImplementation, 'loudness', save_figs, label_fig)
 
 yRef = ref_resultsUAS.roughness.AvgSpec(:,2);
 yImplementation = OUTUAS.roughness.specRoughnessAvg(:,1);
-label_fig = [wav_fileUAS ' (Channel 1)' '_avgSpecific_Loudness'];
+label_fig = [wav_fileUAS ' (Channel 1)' '_avgSpecific_Roughness'];
 
 % call plot function
 plt_AggSpecific( yRef, yImplementation, 'roughness', save_figs, label_fig)

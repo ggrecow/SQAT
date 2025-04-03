@@ -146,7 +146,7 @@ function OUT = Tonality_ECMA418_2(insig, fs, fieldtype, time_skip, show)
 % Institution: University of Salford / ANV Measurement Systems
 %
 % Date created: 07/08/2023
-% Date last modified: 19/03/2025
+% Date last modified: 02/04/2025
 % MATLAB version: 2023b
 %
 % Copyright statement: This file and code is part of work undertaken within
@@ -539,11 +539,10 @@ for chan = size(pn_om, 2):-1:1
         % colormap
         cmap_plasma = load('cmap_plasma.txt');
 
-        %%% sound level meter parameters
-        weightFreq = 'A'; % A-frequency weighting
-        weightTime = 'f'; % Time weighting
-        transientTime = 0.6; % fast weighting has a transient response of ~0.6 s. It needs to be removed from the beginning of the SPL curve
-        dBFS = 94;
+        % generate A-weighting filter for LAeq calculation
+        [b, a] = Gen_weighting_filters(fs, 'A');
+        insig_A = filter(b, a, insig);  % filter signal
+        LAeq_all = 20*log10(rms(insig_A(idx_insig:end, :))./2e-5);  % calculate LAeq
 
         % Plot results
         fig = figure('name', sprintf( 'Tonality analysis - ECMA-418-2 (%s signal)', chans(chan) ) );
@@ -563,16 +562,15 @@ for chan = size(pn_om, 2):-1:1
         ax1.YScale = 'log';
         ax1.YLabel.String = "Frequency (Hz)";
         ax1.XLabel.String = "Time (s)";
-        ax1.FontName =  'Arial';
-        ax1.FontSize = 10;
+        ax1.FontName =  'Times';
+        ax1.FontSize = 11;
         colormap(cmap_plasma);
         h = colorbar;
         set(get(h,'label'),'string', {'Specific Tonality,'; '(tu_{HMS}/Bark_{HMS})'});
 
-        [LA, ~] = Do_SLM(p_re(idx_insig:end, chan), fs, weightFreq, weightTime, dBFS); % get A-weighted SPL
-        LAeq = Get_Leq(LA( (transientTime*fs):end ), fs); % computed without the transient response of the fast weight
+        LAeq = LAeq_all(chan);
 
-        titleString = sprintf('%s signal, $L_{\\textrm{A,eq}} =$ %.3g (dB SPL)', chans(chan), LAeq);
+        titleString = sprintf('%s signal, $L_{\\textrm{Aeq}} =$ %.3g (dB SPL)', chans(chan), LAeq);
 
         title(titleString, 'Interpreter','Latex' );
         
@@ -594,8 +592,8 @@ for chan = size(pn_om, 2):-1:1
         ax2.GridAlpha = 0.075;
         ax2.GridLineStyle = '--';
         ax2.GridLineWidth = 0.25;
-        ax2.FontName = 'Arial';
-        ax2.FontSize = 10;
+        ax2.FontName = 'Times';
+        ax2.FontSize = 11;
         legend('Location', 'eastoutside', 'FontSize', 8);
         set(gcf,'color','w');
     end
