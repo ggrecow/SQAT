@@ -12,24 +12,24 @@ function plt_AggSpecific( yRef, yImplementation, metric, save_figs, label_fig)
 % Forum Acusticum.
 %
 % Author: Gil Felix Greco, Braunschweig 27.02.2025
-% Modified: 19.03.2025 Mike Lotinga
+% Modified: 21.03.2025 Mike Lotinga
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 switch metric
     case 'tonality'
         cmap  = load('cmap_plasma.txt');
         yLabel1 = 'tonality, tu';
-        yLabel2 = 'tu';
+        yLabel2 = 'Tonality difference, tu';
         precDig = 1;
     case 'loudness'
         cmap  = load('cmap_viridis.txt');
         yLabel1 = 'loudness, sone';
-        yLabel2 = 'sone';
+        yLabel2 = 'Loudness difference, sone';
         precDig = 1;
     case 'roughness'
         cmap  = load('cmap_inferno.txt');
         yLabel1 = 'roughness, asper';
-        yLabel2 = 'asper';
+        yLabel2 = 'Roughness difference, asper';
         precDig = 2;
 end
 
@@ -104,7 +104,7 @@ difference = (yImplementation-yRef); % relative difference
 
 c = plot( barkAxis, difference, '*-', 'Color', right_color );
 
-ylabel( append('Relative difference, ', yLabel2 ,'_{HMS}/Bark_{HMS}'), 'fontsize', fontSize);
+ylabel( append(yLabel2 ,'_{HMS}/Bark_{HMS}'), 'fontsize', fontSize);
 
 ylim([-0.0015 0.0015]); 
 

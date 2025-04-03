@@ -12,7 +12,7 @@ function plt_Spectro(x, fs, df, olap, combine, save_figs, label_fig)
 % Forum Acusticum.
 %
 % Author: Mike Lotinga 20.03.2025
-% Modified: Mike Lotinga 21.03.2025
+% Modified: Mike Lotinga 31.03.2025
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %% Channel configuration
@@ -62,8 +62,8 @@ end
 figwidth = 24;
 figheight = 16;
 % octave band frequency ticks and labels
-f_ticks = [31.5, 63, 125, 250, 500, 1000, 2000, 4000, 8000];
-f_tick_labels = ["31.5", "63", "125", "250", "500", "1k", "2k", "4k", "8k"];
+f_ticks = [31.5, 63, 125, 250, 500, 1000, 2000, 4000, 8000, 16000];
+f_tick_labels = ["31.5", "63", "125", "250", "500", "1k", "2k", "4k", "8k", "16k"];
 
 
 %% Generate plot
@@ -87,7 +87,7 @@ for ii = 1:chansOut
     xlabel("Time, s")
     ylabel("Frequency, Hz")
     set(gca, 'XLim', [0, ceil(t_grm(end))], 'YScale', 'log',...
-        'YLim', [45, 11220], 'YDir', 'normal',...
+        'YLim', [45, 17.8e3], 'YDir', 'normal',...
         'CLim', [0, climMax], 'YTick', f_ticks, 'YTickLabel', f_tick_labels,...
         'YMinorTick', 'off', 'FontName', 'Times New Roman', 'FontSize', 22);
     
@@ -108,11 +108,11 @@ for ii = 1:chansOut
 
         figname_out = [figures_dir figname_short];
         
-        resolution = '-r300'; 
+        resolution = '-r400'; 
     
         % saveas(gcf,figname_out, 'fig');
-        print( gcf, figname_out, '-dpdf', resolution , '-fillpage');
-        % print( gcf, figname_out,  '-dpng', resolution );
+        % print( gcf, figname_out, '-dpdf', resolution , '-fillpage');
+        print( gcf, figname_out,  '-dpng', resolution );
         
         fprintf('\n%s.m: figure %s was saved on disk\n\t(full name: %s)\n',mfilename,figname_short,figname_out);
     end
