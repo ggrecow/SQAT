@@ -34,23 +34,24 @@
 % - The signals are stored in the following folder: <sound_files\reference_signals\>. 
 %
 % Author: Gil Felix Greco, Braunschweig 27.02.2025
-% Modified: 31.03.2025 Mike Lotinga
+% Modified: 03.04.2025 Mike Lotinga
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% clc; clear all; close all;
+clc; clear all; close all;
 
 save_figs = 0; % save figure flag
 
 %% Load .wav file
 
-dir_sound = [basepath_SQAT 'sound_files' filesep 'reference_signals' filesep];
+dir_sound1 = [basepath_SQAT 'sound_files' filesep 'reference_signals' filesep];
+dir_sound2 = [basepath_SQAT 'sound_files' filesep 'validation_SQAT_v1_0' filesep 'ECMA_418_2' filesep];
 
 fileTag = 'ExStereo_';
 
 wav_fileTrain = 'TrainStation7-0100-0130';
-[insigTrain, fs] = audioread([dir_sound fileTag wav_fileTrain '.wav']); 
+[insigTrain, fs] = audioread([dir_sound1 fileTag wav_fileTrain '.wav']); 
 
 wav_fileUAS = 'Park3-0002-0027_UAS';
-[insigUAS, ~] = audioread([dir_sound fileTag wav_fileUAS '.wav']); 
+[insigUAS, ~] = audioread([dir_sound2 fileTag wav_fileUAS '.wav']);
 
 %% Compute sound quality metrics from .wav signals
 
@@ -61,23 +62,23 @@ fieldtype = 'free-frontal'; % string (default: 'free-frontal'; or 'diffuse')
 
 % Train station
 % Roughness
-% OUTTrain.roughness = Roughness_ECMA418_2( insigTrain, fs, fieldtype );
-% 
-% % Tonality 
-% OUTTrain.tonality = Tonality_ECMA418_2( insigTrain, fs, fieldtype);
-% 
-% % Loudness
-% OUTTrain.loudness = Loudness_ECMA418_2( insigTrain, fs, fieldtype );
-% 
-% % UAS over park
-% % Roughness
-% OUTUAS.roughness = Roughness_ECMA418_2( insigUAS, fs, fieldtype );
-% 
-% % Tonality 
-% OUTUAS.tonality = Tonality_ECMA418_2( insigUAS, fs, fieldtype);
-% 
-% % Loudness
-% OUTUAS.loudness = Loudness_ECMA418_2( insigUAS, fs, fieldtype );
+OUTTrain.roughness = Roughness_ECMA418_2( insigTrain, fs, fieldtype );
+
+% Tonality 
+OUTTrain.tonality = Tonality_ECMA418_2( insigTrain, fs, fieldtype);
+
+% Loudness
+OUTTrain.loudness = Loudness_ECMA418_2( insigTrain, fs, fieldtype );
+
+% UAS over park
+% Roughness
+OUTUAS.roughness = Roughness_ECMA418_2( insigUAS, fs, fieldtype );
+
+% Tonality 
+OUTUAS.tonality = Tonality_ECMA418_2( insigUAS, fs, fieldtype);
+
+% Loudness
+OUTUAS.loudness = Loudness_ECMA418_2( insigUAS, fs, fieldtype );
 
 %% Plot spectrograms - channel 1 only
 label_fig = [wav_fileTrain ' (Channel 1)' '_Spectro'];
