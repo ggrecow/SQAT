@@ -21,6 +21,7 @@
 %   All signals are generated within this code.
 %
 % Author: Gil Felix Greco, Braunschweig 26.01.2025
+% Updated results: Gil Felix Greco, Cala Rajada 21.03.2025
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 clc; clear all; close all;
 
