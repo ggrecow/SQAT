@@ -12,7 +12,7 @@ function plt_tDepSpecific(x1Axis, y1Axis, z1Axis, x2Axis, y2Axis, z2Axis, metric
 % Forum Acusticum.
 %
 % Author: Gil Felix Greco, Braunschweig 27.02.2025
-% Modified: 21.03.2025 Mike Lotinga
+% Modified: 31.03.2025 Mike Lotinga
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 switch metric
@@ -40,7 +40,8 @@ set(h,'PaperPositionMode','Auto','PaperUnits','Inches','PaperSize',[pos(3), pos(
 movegui(h, 'center');
 
 tiledlayout(2,1);
-climMax = ceil(max(max(z1Axis, [], 'all'), max(z2Axis, [], 'all'))*7^precDig)/10^precDig;
+climMax = ceil(max(max(z1Axis, [], 'all'),...
+               max(z2Axis, [], 'all'))*5^precDig)/10^precDig;
 fontSize = 22;
 
 %% reference results
@@ -111,11 +112,11 @@ if save_figs==1
     figname_short = label_fig;
     figname_out = [figures_dir figname_short];
 
-    resolution = '-r300';
+    resolution = '-r400';
 
     % saveas(gcf,figname_out, 'fig');
-    print( gcf, figname_out, '-dpdf', resolution );
-    % print( gcf, figname_out,  '-dpng', resolution );
+    % print( gcf, figname_out, '-dpdf', resolution );
+    print( gcf, figname_out,  '-dpng', resolution );
 
     fprintf('\n%s.m: figure %s was saved on disk\n\t(full name: %s)\n',mfilename,figname_short,figname_out);
 end

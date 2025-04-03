@@ -1,40 +1,32 @@
-function OUT = Loudness_ECMA418_2(insig, fs, fieldtype, time_skip, show)
-% OUT = Loudness_ECMA418_2(insig, fs, fieldtype, time_skip, show)
+function OUT = LoudnessFromComp_ECMA418_2(specTonalLoudness, specNoiseLoudness, time_skip, show)
+% OUT = LoudnessFromComp_ECMA418_2(specTonalLoudness, specNoiseLoudness, time_skip, show)
 %
 % Returns loudness values according to ECMA-418-2:2024 (using the Sottek
-% Hearing Model) for an input calibrated single mono or single stereo
-% audio (sound pressure) time-series signal, insig. For stereo signals,  
-% Loudness is calculated for each channel [left ear, right ear],
-% and also for the combination of both, denominated as 
-% "combined binaural" (see Section 8.1.15 ECMA-418-2:2024). 
-% 
-% According to ECMA-418-2:2024 (Section 8.1.4), the representative 
-% single value to express the
-% overall loudness is obtained by a power average of the time-dependent
-% loudness, provided here as the <loudnessPowAvg> output variable.
+% Hearing Model) for input component specific tonal loudness and specific
+% noise loudness, obtained using Tonality_ECMA418_2.m. This is faster
+% than calculating via Loudness_ECMA418_2.m (which internally calls
+% Tonality_ECMA418_2.m).
 %
-% NOTE: according to ECMA-418-2:2024 (Section 8.1.4), the loudness
-% values corresponding to the first 300 ms of the input signal must be discarded 
-% due to the transient responses of the digital filters. Considering the temporal resolution
-% of the loudness model, this means any values below 304 ms must be discarded.
-% Therefore, <time_skip> must be greater or equal to 304 ms to compute any
-% time-aggregated quantity. 
+% Since the input matrices will have been calculated using given time_skip
+% and outer ear filter sound field options, these are not known to the
+% function, so cannot be included in the output.
 %
-%  Reference signal: pure tone with center frequency of 1 kHz and RMS value
-%  of 40 dBSPL equals 1 sone_HMS
+% Reference signal: pure tone with center frequency of 1 kHz and RMS value
+% of 40 dB SPL equals 1 sone_HMS
 %
 % Inputs
 % ------
-% insig : column vector [Nx1] mono or [Nx2] binaural
-%            the input signal as single mono or stereo audio (sound
-%            pressure) signals
+% specTonalLoudness : matrix
+%                     the specific tonal loudness values calculated for
+%                     a sound pressure signal (single mono or single
+%                     stereo audio)
+%                     arranged as [time, bands(, chans)]
 %
-% fs : integer
-%       the sample rate (frequency) of the input signal(s)
-%
-% fieldtype : keyword string (default: 'free-frontal')
-%                 determines whether the 'free-frontal' or 'diffuse' field stages
-%                 are applied in the outer-middle ear filter
+% specNoiseLoudness : matrix
+%                     the specific noise loudness values calculated for
+%                     a sound pressure signal (single mono or single
+%                     stereo audio)
+%                     arranged as [time, bands(, chans)]
 %
 % time_skip : integer (default: 304 ms seconds - see ECMA-418-2:2024, Section 8.1.4)
 %                   skip start of the signal in <time_skip> seconds so that
@@ -81,10 +73,6 @@ function OUT = Loudness_ECMA418_2(insig, fs, fieldtype, time_skip, show)
 % timeInsig : vector
 %           time (seconds) of insig
 %
-% soundField : string
-%              identifies the soundfield type applied (the input argument
-%              fieldtype)
-%
 % Several statistics based on loudnessTDep
 %         ** Nmean : mean value of instantaneous loudness (sone_HMS)
 %         ** Nstd : standard deviation of instantaneous loudness (sone_HMS)
@@ -128,20 +116,20 @@ function OUT = Loudness_ECMA418_2(insig, fs, fieldtype, time_skip, show)
 %
 % Assumptions
 % -----------
-% The input signal is calibrated to units of acoustic pressure in Pascals
-% (Pa).
+% The input matrices are ECMA-418-2:2024 specific tonal and specific noise
+% loudness, with dimensions orientated as [half-Bark bands, time blocks,
+% signal channels]
 %
 % Requirements
 % ------------
 % Signal Processing Toolbox
-% Audio Toolbox
 %
 % Ownership and Quality Assurance
 % -------------------------------
 % Author: Mike JB Lotinga (m.j.lotinga@edu.salford.ac.uk)
 % Institution: University of Salford
 %
-% Date created: 22/09/2023
+% Date created: 22/08/2023
 % Date last modified: 02/04/2025
 % MATLAB version: 2023b
 %
@@ -161,63 +149,43 @@ function OUT = Loudness_ECMA418_2(insig, fs, fieldtype, time_skip, show)
 % information.
 %
 % Checked by: Gil Felix Greco
-% Date last checked: 16.02.2025
+% Date last checked: 03.04.2025
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Arguments validation
     arguments (Input) % Matlab R2018b or newer
-        insig (:, :) double {mustBeReal}
-        fs (1, 1) double {mustBePositive, mustBeInteger}
-        fieldtype (1, :) string {mustBeMember(fieldtype,...
-                                                       {'free-frontal',...
-                                                        'diffuse'})} = 'free-frontal'
+        specTonalLoudness (:, :, :) double {mustBeReal}
+        specNoiseLoudness (:, :, :) double {mustBeReal}
         time_skip (1, 1) double {mustBeReal} = 304e-3
         show {mustBeNumericOrLogical} = false
     end
 
 %% Input checks
 
-% define time threshold value from which all values before must be dropped.
-t_threshold =  304e-3;
-
-% check insig dimension (only [Nx1] or [Nx2] are valid)
-if  size(insig,1) > 2 & size(insig,2) > 2 % insig has more than 2 channels
-    error('Error: Input signal has more than 2 channels. ')
-elseif  size(insig, 2) > 2  % insig is [1xN] or [2xN]
-    insig = insig';
-    fprintf('\nWarning: Input signal is not [Nx1] or [Nx2] and was transposed.\n');
-end
-
-% Check the length of the input data (must be at least 304 ms)
-if size(insig, 1) <  t_threshold*fs
-    error('Error: Input signal is too short along the specified axis to calculate loudness (must be at least 304 ms)')
+% Check the size of the input matrices (must match)
+if ~isequal(size(specTonalLoudness), size(specNoiseLoudness))
+    error('Error: Input loudness matrix sizes must match')
 end
 
 % Check the channel number of the input data
-if size(insig, 2) > 2
-    error('Error: Input signal comprises more than two channels')
+if size(specTonalLoudness, 3) > 2
+    error('Error: Input matrices comprise more than two channels')
 else
-    inchans = size(insig, 2);
+    inchans = size(specTonalLoudness, 3);
     if inchans > 1
-        chans = ["Stereo left"; "Stereo right"];
-        binaural = true;
+        chans = ["Stereo left";
+                 "Stereo right"];
     else
         chans = "Mono";
-        binaural = false;
     end
-end
-
-if time_skip<t_threshold
-        warning("Time_skip must be at least 304 ms to avoid transient responses of the digital filters (see ECMA-418-2:2024 (Section 8.1.4)). Setting time_skip to 304 ms!!!")
-        time_skip = t_threshold;
 end
 
 %% Define constants
 
 deltaFreq0 = 81.9289;  % defined in Section 5.1.4.1 ECMA-418-2:2024 [deltaf(f=0)]
-c = 0.1618;  % Half-Bark band centre-frequency demoninator constant defined in Section 5.1.4.1 ECMA-418-2:2024
+c = 0.1618;  % Half-Bark band centre-frequency denominator constant defined in Section 5.1.4.1 ECMA-418-2:2024
 
 dz = 0.5;  % critical band resolution [deltaz]
-halfBark = 0.5:dz:26.5;  % half-critical band rate scale [z]
+halfBark = dz:dz:26.5;  % half-critical band rate scale [z]
 bandCentreFreqs = (deltaFreq0/c)*sinh(c*halfBark);  % Section 5.1.4.1 Equation 9 ECMA-418-2:2024 [F(z)]
 
 % Section 8.1.1 ECMA-418-2:2024
@@ -232,33 +200,22 @@ sampleRate1875 = 48e3/256;
 
 %% Signal processing
 
-% get time vector of input signal
-timeInsig = (0 : length(insig(:,1))-1) ./ fs;
-
-% Calculate specific loudnesses for tonal and noise components
-% ------------------------------------------------------------
-
-% Obtain tonal and noise component specific loudnesses from Sections 5 & 6 ECMA-418-2:2024
-tonalitySHM = Tonality_ECMA418_2(insig, fs, fieldtype, time_skip, false);
-
-specTonalLoudness = tonalitySHM.specTonalLoudness;  % [N'_tonal(l,z)]
-specNoiseLoudness = tonalitySHM.specNoiseLoudness;  % [N'_noise(l,z)]
+% get time block vector of input signal
+timeBlockInsig = (0 : size(specTonalLoudness, 1)-1) ./ 187.5;
 
 % Section 8.1.1 ECMA-418-2:2024
 % Weight and combine component specific loudnesses
 for chan = inchans:-1:1
-
     % Equation 114 ECMA-418-2:2024 [e(z)]
     maxLoudnessFuncel = a./(max(specTonalLoudness(:, :, chan)...
                                 + specNoiseLoudness(:, :, chan), [],...
                                 2, "omitnan") + 1e-12) + b;
-
     % Equation 113 ECMA-418-2:2024 [N'(l,z)]
     specLoudness(:, :, chan) = (specTonalLoudness(:, :, chan).^maxLoudnessFuncel...
-                                + abs((weight_n.*specNoiseLoudness(:, :, chan)).^maxLoudnessFuncel)).^(1./maxLoudnessFuncel);
+                                    + abs((weight_n.*specNoiseLoudness(:, :, chan)).^maxLoudnessFuncel)).^(1./maxLoudnessFuncel);
 end
 
-if inchans == 2 && binaural
+if inchans == 2
     % Binaural loudness
     % Section 8.1.5 ECMA-418-2:2024 Equation 118 [N'_B(l,z)]
     specLoudness(:, :, 3) = sqrt(sum(specLoudness.^2, 3)/2);
@@ -269,11 +226,25 @@ else
     outchans = inchans;  % assign number of output channels
 end
 
+% Section 8.1.2 ECMA-418-2:2024
+% Time-averaged specific loudness Equation 115 [N'(z)]
+specLoudnessPowAvg = (sum(specLoudness((57 + 1):end, :, :).^(1/log10(2)), 1)./size(specLoudness((57 + 1):end, :, :), 1)).^log10(2);
+
+% Section 8.1.3 ECMA-418-2:2024
+% Time-dependent loudness Equation 116 [N(l)]
+% Discard singleton dimensions
+if outchans == 1
+    loudnessTDep = sum(specLoudness.*dz, 2);
+    specLoudnessPowAvg = transpose(specLoudnessPowAvg);
+else
+    loudnessTDep = squeeze(sum(specLoudness.*dz, 2));
+    specLoudnessPowAvg = squeeze(specLoudnessPowAvg);
+end
+
 % time (s) corresponding with results output [t]
 timeOut = (0:(size(specLoudness, 1) - 1))/sampleRate1875;
 
 [~, time_skip_idx] = min( abs(timeOut-time_skip) ); % find idx of time_skip on timeOut
-[~, idx_insig] = min( abs(timeInsig - time_skip) ); % find idx of time_skip on timeInsig
 
 % Section 8.1.2 ECMA-418-2:2024
 % Time-averaged specific loudness Equation 115 [N'(z)]
@@ -314,8 +285,6 @@ if outchans == 3 % stereo case ["Stereo left"; "Stereo right"; "Combined binaura
     % general outputs
     OUT.bandCentreFreqs = bandCentreFreqs;
     OUT.timeOut = timeOut;
-    OUT.timeInsig = timeInsig;
-    OUT.soundField = fieldtype;
 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % loudness statistics based on loudnessTDep ["Stereo left"; "Stereo right"; "Combined binaural"];
@@ -346,7 +315,6 @@ else % mono case
 
     OUT.bandCentreFreqs = bandCentreFreqs;
     OUT.timeOut = timeOut;
-    OUT.timeInsig = timeInsig;
     OUT.soundField = fieldtype;
 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -378,11 +346,6 @@ if show
     % colormap
     cmap_viridis = load('cmap_viridis.txt');
 
-    % generate A-weighting filter for LAeq calculation
-    [b, a] = Gen_weighting_filters(fs, 'A');
-    insig_A = filter(b, a, insig);  % filter signal
-    LAeq_all = 20*log10(rms(insig_A(idx_insig:end, :))./2e-5);  % calculate LAeq
-
     for chan = outchans:-1:1
         % Plot results
         fig = figure('name', sprintf( 'Loudness analysis - ECMA-418-2 (%s signal)', chans(chan) ) );
@@ -408,37 +371,9 @@ if show
         h = colorbar;
         set(get(h,'label'),'string', {'Specific Loudness,'; '(sone_{HMS}/Bark_{HMS})'});        
 
-        
-        if chan == 3 % the binaural channel
+        titleString = sprintf('%s signal', chans(chan));
 
-            % take the higher channel level as representative (PD ISO/TS 12913-3:2019 Annex D)
-            [LAeq, LR] = max(LAeq_all);
-
-            % if branch to identify which channel is higher
-            if LR == 1
-                whichEar = 'left ear';
-            else
-                whichEar = 'right ear';
-            end  % end of if branch
-
-        elseif chan == 2 % Stereo right
-
-            LAeq = LAeq_all(chan);
-            whichEar = 'right ear';
-
-        elseif chan == 1 % Stereo left or mono
-
-            LAeq = LAeq_all(chan);
-            if outchans~=1
-                whichEar = 'left ear';
-            else
-                whichEar = 'mono';
-            end
-        end
-         
-        titleString = sprintf('%s signal, $L_{\\textrm{Aeq,%s}} =$ %.3g (dB SPL)', chans(chan), whichEar, LAeq);
-
-        title(titleString, 'Interpreter','Latex' );
+        title(titleString);
 
         ax2 = nexttile(2);
         plot(ax2, timeOut, loudnessTDep(:, chan), 'color', cmap_viridis(166, :),...
@@ -464,7 +399,6 @@ if show
         ax2.FontSize = 11;
         legend('Location', 'eastoutside', 'FontSize', 8);
         set(gcf,'color','w');
-        clear LA; 
     end  % end of for loop for plotting over channels
 end  % end of if branch for plotting if outplot true
 
