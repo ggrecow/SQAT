@@ -7,6 +7,10 @@
 % SOUND QUALITY METRICS (ECMA-418-2 LOUDNESS, TONALITY AND ROUGHNESS). 
 % Forum Acusticum.
 %
+% BEFORE RUNNING THIS SCRIPT, ENSURE THE CORRECT DATA FILES ARE DOWNLOADED
+% FROM https://doi.org/10.5281/zenodo.15132459 AND STORED IN THE LOCATION
+% SPECIFIED IN THE DATA USE INSTRUCTIONS
+%
 % The signals used are:
 %
 % Stereo signal #1: binaural audio recording of a 'train station' environment (30 seconds, 2-channel binaural)
@@ -31,7 +35,8 @@
 % head-and-torso-simulator, with pre-equalisation applied.
 % - Signal label: <ExStereo_Park3-0002-0027_UAS.wav>
 %
-% - The signals are stored in the following folder: <sound_files\reference_signals\>. 
+% - Signal #1 is stored in the following folder: <sound_files\reference_signals\>. 
+% - Signal #2 is stored in the data repository: https://doi.org/10.5281/zenodo.15132459
 %
 % Author: Gil Felix Greco, Braunschweig 27.02.2025
 % Modified: 03.04.2025 Mike Lotinga
