@@ -122,10 +122,10 @@ switch weightingType
      %    end
      %    return
 
-    % case 'Z' % un-weighted
-    %     a = 1;
-    %     b = 1;
-    %     return
+    case 'Z' % un-weighted
+        a = 1;
+        b = 1;
+        return
 
     otherwise % unknown request
         error(['weightingType=''' weightingType ''' is unknown. Options are ''A'', ''B'', ''C'' or ''D'''])
