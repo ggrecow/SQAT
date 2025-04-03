@@ -43,7 +43,7 @@ save_figs = 0; % save figure flag
 %% Load .wav file
 
 dir_sound1 = [basepath_SQAT 'sound_files' filesep 'reference_signals' filesep];
-dir_sound2 = [basepath_SQAT 'sound_files' filesep 'validation_SQAT_v1_0' filesep 'ECMA_418_2' filesep];
+dir_sound2 = [basepath_SQAT 'publications' filesep 'pub_Lotinga2025_Forum_Acusticum_ECMA418_2' filesep 'data' filesep 'Audio' filesep];
 
 fileTag = 'ExStereo_';
 

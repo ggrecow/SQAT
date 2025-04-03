@@ -1,6 +1,5 @@
 function [b, a] = Gen_weighting_filters(fs, weightingType)
 % function [b, a] = Gen_weighting_filters(fs, weightingType)
-% function [b, a] = il_gen_weighting_Filters(fs, weightingType)
 %
 % 1. Description:
 %		Generates the weighting filters with the following poles:
@@ -122,10 +121,10 @@ switch weightingType
      %    end
      %    return
 
-    % case 'Z' % un-weighted
-    %     a = 1;
-    %     b = 1;
-    %     return
+    case 'Z' % un-weighted
+        a = 1;
+        b = 1;
+        return
 
     otherwise % unknown request
         error(['weightingType=''' weightingType ''' is unknown. Options are ''A'', ''B'', ''C'' or ''D'''])
