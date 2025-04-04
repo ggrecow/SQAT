@@ -40,6 +40,7 @@
 %
 % Author: Gil Felix Greco, Braunschweig 27.02.2025
 % Modified: 03.04.2025 Mike Lotinga
+% Checked: 04.04.2025 Gil Felix Greco
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 clc; clear all; close all;
 
@@ -86,16 +87,19 @@ OUTUAS.tonality = Tonality_ECMA418_2( insigUAS, fs, fieldtype);
 OUTUAS.loudness = Loudness_ECMA418_2( insigUAS, fs, fieldtype );
 
 %% Plot spectrograms - channel 1 only
-% label_fig = [wav_fileTrain ' (Channel 1)' '_Spectro'];
-% plt_Spectro(insigTrain(:, 1), fs, 4, 0.5, true, save_figs, label_fig)
-% 
-% label_fig = [wav_fileUAS ' (Channel 1)' '_Spectro'];
-% plt_Spectro(insigUAS(:, 1), fs, 4, 0.5, true, save_figs, label_fig)
+% plt_Spectro function uses the weightingFilter function. 
+% Therefore, the user needs a license for the Audio_System_Toolbox. 
+
+label_fig = [wav_fileTrain ' (Channel 1)' '_Spectro'];
+plt_Spectro(insigTrain(:, 1), fs, 4, 0.5, true, save_figs, label_fig)
+
+label_fig = [wav_fileUAS ' (Channel 1)' '_Spectro'];
+plt_Spectro(insigUAS(:, 1), fs, 4, 0.5, true, save_figs, label_fig)
 
 %% Load reference results
 
-ref_resultsTrain = get_reference_results('TrainStation7-0100-0130');
-ref_resultsUAS = get_reference_results('Park3-0002-0027_UAS');
+ref_resultsTrain = get_reference_results(wav_fileTrain);
+ref_resultsUAS = get_reference_results(wav_fileUAS);
 
 %% plot train station time-dependent quantities (only channel 1)
 
