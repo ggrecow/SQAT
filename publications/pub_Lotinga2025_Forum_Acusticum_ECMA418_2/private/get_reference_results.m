@@ -19,13 +19,21 @@ function OUT = get_reference_results(wav_file)
 %            single strcuture containing all reference results
 %
 % Author: Gil Felix Greco, Braunschweig 13.02.2025
-% Modified: Mike Lotinga 20/03/2025
+% Modified: Mike Lotinga 03/04/2025
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % define directories
-R_dir = [basepath_SQAT filesep 'validation' filesep 'Roughness_ECMA418_2' filesep '2_Roughness_ECMA418_2_software_comparison' filesep 'reference_results' filesep];
-L_dir = [basepath_SQAT filesep 'validation' filesep 'Loudness_ECMA418_2' filesep '2_Loudness_ECMA418_2_software_comparison' filesep 'reference_results' filesep];
-T_dir = [basepath_SQAT filesep 'validation' filesep 'Tonality_ECMA418_2' filesep 'Tonality_ECMA418_2_software_comparison' filesep 'reference_results' filesep];
+if wav_file == 'TrainStation7-0100-0130'
+    R_dir = [basepath_SQAT filesep 'validation' filesep 'Roughness_ECMA418_2' filesep '2_Roughness_ECMA418_2_software_comparison' filesep 'reference_results' filesep];
+    L_dir = [basepath_SQAT filesep 'validation' filesep 'Loudness_ECMA418_2' filesep '2_Loudness_ECMA418_2_software_comparison' filesep 'reference_results' filesep];
+    T_dir = [basepath_SQAT filesep 'validation' filesep 'Tonality_ECMA418_2' filesep 'Tonality_ECMA418_2_software_comparison' filesep 'reference_results' filesep];
+elseif wav_file == 'Park3-0002-0027_UAS'
+    R_dir = [basepath_SQAT filesep 'publications' filesep 'pub_Lotinga2025_Forum_Acusticum_ECMA418_2' filesep 'data' filesep 'Roughness' filesep];
+    L_dir = [basepath_SQAT filesep 'publications' filesep 'pub_Lotinga2025_Forum_Acusticum_ECMA418_2' filesep 'data' filesep 'Loudness' filesep];
+    T_dir = [basepath_SQAT filesep 'publications' filesep 'pub_Lotinga2025_Forum_Acusticum_ECMA418_2' filesep 'data' filesep 'Tonality' filesep];
+else
+    error("Only 'ExStereo_TrainStation7-0100-0130.wav' or 'ExStereo_Park3-0002-0027_UAS.wav' have reference results for this publication!")
+end
 
 
 %% get reference roughness results

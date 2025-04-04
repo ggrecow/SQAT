@@ -1,6 +1,5 @@
 function [b, a] = Gen_weighting_filters(fs, weightingType)
 % function [b, a] = Gen_weighting_filters(fs, weightingType)
-% function [b, a] = il_gen_weighting_Filters(fs, weightingType)
 %
 % 1. Description:
 %		Generates the weighting filters with the following poles:
