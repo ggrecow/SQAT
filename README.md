@@ -44,9 +44,9 @@ The implemented metrics available in the `psychoacoustic_metrics` folder are lis
 | Psychoacoustic Annoyance  | More [7]  |  [link](psychoacoustic_metrics/PsychoacousticAnnoyance_More2010) | - | [link](examples/PsychoacousticAnnoyance_More2010) | v1.0 |
 | Psychoacoustic Annoyance  | Di *et al.* [8]  |  [link](psychoacoustic_metrics/PsychoacousticAnnoyance_Di2016) | - |  [link](examples/PsychoacousticAnnoyance_Di2016) | v1.0 |
 | EPNL  | FAR Part 36 [9]  |  [link](psychoacoustic_metrics/EPNL_FAR_Part36) | [link](validation/EPNL_FAR_Part36) |  [link](examples/EPNL_FAR_Part36) | v1.1 |
-| Loudness  | ECMA-418-2:2024 [10]  |  [link](psychoacoustic_metrics/Loudness_ECMA418_2) | [link](validation/Loudness_ECMA418_2) |  [link](examples/Loudness_ECMA418_2) | tbd |
-| Roughness  | ECMA-418-2:2024 [10]  |  [link](psychoacoustic_metrics/Roughness_ECMA418_2) | [link](validation/Roughness_ECMA418_2) |  [link](examples/Roughness_ECMA418_2) | tbd |
-| Tonality  | ECMA-418-2:2024 [10]  |  [link](psychoacoustic_metrics/Tonality_ECMA418_2) | [link](validation/Tonality_ECMA418_2) |  [link](examples/Tonality_ECMA418_2) | tbd |
+| Loudness  | ECMA-418-2:2024 [10]  |  [link](psychoacoustic_metrics/Loudness_ECMA418_2) | [link](validation/Loudness_ECMA418_2) |  [link](examples/Loudness_ECMA418_2) | v1.3 |
+| Roughness  | ECMA-418-2:2024 [10]  |  [link](psychoacoustic_metrics/Roughness_ECMA418_2) | [link](validation/Roughness_ECMA418_2) |  [link](examples/Roughness_ECMA418_2) | v1.3 |
+| Tonality  | ECMA-418-2:2024 [10]  |  [link](psychoacoustic_metrics/Tonality_ECMA418_2) | [link](validation/Tonality_ECMA418_2) |  [link](examples/Tonality_ECMA418_2) | v1.3 |
 
 The following SPL-based metrics using different frequency weightings (A, B, C, D or Z) and time weightings (fast, slow, or impulse) can be calculated using the codes available in `sound_level_meter` folder (see [examples](examples/sound_level_meter)):
 
