@@ -86,11 +86,11 @@ OUTUAS.tonality = Tonality_ECMA418_2( insigUAS, fs, fieldtype);
 OUTUAS.loudness = Loudness_ECMA418_2( insigUAS, fs, fieldtype );
 
 %% Plot spectrograms - channel 1 only
-label_fig = [wav_fileTrain ' (Channel 1)' '_Spectro'];
-plt_Spectro(insigTrain(:, 1), fs, 4, 0.5, true, save_figs, label_fig)
-
-label_fig = [wav_fileUAS ' (Channel 1)' '_Spectro'];
-plt_Spectro(insigUAS(:, 1), fs, 4, 0.5, true, save_figs, label_fig)
+% label_fig = [wav_fileTrain ' (Channel 1)' '_Spectro'];
+% plt_Spectro(insigTrain(:, 1), fs, 4, 0.5, true, save_figs, label_fig)
+% 
+% label_fig = [wav_fileUAS ' (Channel 1)' '_Spectro'];
+% plt_Spectro(insigUAS(:, 1), fs, 4, 0.5, true, save_figs, label_fig)
 
 %% Load reference results
 
