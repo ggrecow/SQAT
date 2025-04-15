@@ -102,6 +102,8 @@ Raw data and extra scripts to reproduce all the paper figures can be found [here
 
 We would be very happy to know that you find SQAT useful and have used it in your own work. In this case, please reach out so we can feature your work here. 
 
+> Shen, Y., Bai, Y., Liu, X., & Zang, B. (2025). Drone noise reduction using serration-finlet blade design and its psychoacoustic and social impacts. [Sustainability](https://doi.org/10.3390/su17083451), 17(8), 3451.   
+
 > Bazilinskyy, P., Alam, M. S., & Merino-Martínez, R. (2025). Psychoacoustic assessment of synthetic sounds for electric vehicles in a virtual reality experiment. Forum Acusticum, Malaga, Spain, 23-26 June 2025. [(link)](https://www.researchgate.net/publication/390563218_Psychoacoustic_assessment_of_synthetic_sounds_for_electric_vehicles_in_a_virtual_reality_experiment).
 
 > Schade, S., Merino-Martinez, R., Moreau, A., Bartels, S., & Jaron, R. (2025). Psychoacoustic evaluation of different fan designs for an urban air mobility vehicle with distributed propulsion system. [The Journal of the Acoustical Society of America](https://doi.org/10.1121/10.0036228), 157 (3), 2150–2167.
