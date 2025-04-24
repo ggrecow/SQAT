@@ -46,8 +46,8 @@ fname_res_full = [figures_dir fname_res];
 
 bCalculation = ~exist(fname_res_full,'file');
 if bCalculation == 0
-    fprintf('%s.m: Results file found on disk, confirm that you want to load those prestored\n');
-    fprintf('\t results or whether you want to re-run the calculations.\n');
+    fprintf('%s.m: Results file found on disk!\n', fname_res);
+    fprintf('Do you want to load those prestored results or re-run the calculations?\n');
     bCalculation = input('Enter your choice (1=re-run; 0=read stored results): ');
 end
 bLoad = ~bCalculation;
@@ -205,13 +205,13 @@ end
 
 % format - results_125hz[1,fmod=0:10:100]
 for i=1:N_signals
-    results_125hz(i)=res_125hz{i}.R90;
-    results_250hz(i)=res_250hz{i}.R90;
-    results_500hz(i)=res_500hz{i}.R90;
-    results_1khz(i)=res_1khz{i}.R90;
-    results_2khz(i)=res_2khz{i}.R90;
-    results_4khz(i)=res_4khz{i}.R90;
-    results_8khz(i)=res_8khz{i}.R90;
+    results_125hz(i)=res_125hz{i}.roughness90Pc;
+    results_250hz(i)=res_250hz{i}.roughness90Pc;
+    results_500hz(i)=res_500hz{i}.roughness90Pc;
+    results_1khz(i)=res_1khz{i}.roughness90Pc;
+    results_2khz(i)=res_2khz{i}.roughness90Pc;
+    results_4khz(i)=res_4khz{i}.roughness90Pc;
+    results_8khz(i)=res_8khz{i}.roughness90Pc;
 end
 
 %% plot - fc=125 Hz
