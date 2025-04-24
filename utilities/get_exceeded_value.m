@@ -15,12 +15,12 @@ function OUT = get_exceeded_value(input, PercentValue)
 %   x = 0:0.1:10;
 %   y = gaussmf(x,[2 5]);
 %   plot(x,y); hold on;
-%   P5=get_percentile(y,5); % value exceed 5% of the time
+%   P5=get_exceeded_value(y,5); % value exceed 5% of the time
 %   yline(P5);
-%   P90=get_percentile(y,90); % value exceed 90% of the time
+%   P90=get_exceeded_value(y,90); % value exceed 90% of the time
 %   yline(P90);
 %
-% Last checked: Gil Felix Greco, 16.02.2025
+% Last checked: Gil Felix Greco, 24.04.2025
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % check input dimension (only [Nx1], [Nx2] or [Nx3] are valid)
