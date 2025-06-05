@@ -101,6 +101,8 @@ Raw data and extra scripts to reproduce all the paper figures can be found [here
 # Studies using SQAT
 
 We would be very happy to know that you find SQAT useful and have used it in your own work. In this case, please reach out so we can feature your work here. 
+ 
+> Wu, C., & Redonnet, S. (2025). A simple yet efficient data-driven model for the prediction of aircraft noise impact. [Aerospace Science and Technology](https://doi.org/10.1016/j.ast.2025.110286), 163.
 
 > Shen, Y., Bai, Y., Liu, X., & Zang, B. (2025). Drone noise reduction using serration-finlet blade design and its psychoacoustic and social impacts. [Sustainability](https://doi.org/10.3390/su17083451), 17(8), 3451.   
 
