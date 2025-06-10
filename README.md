@@ -101,7 +101,9 @@ Raw data and extra scripts to reproduce all the paper figures can be found [here
 # Studies using SQAT
 
 We would be very happy to know that you find SQAT useful and have used it in your own work. In this case, please reach out so we can feature your work here. 
- 
+
+ > Vourakis, M., Zea, E., Karlsson, M., Andersson, N., & Etemad, S. (2024). Installation effects on axial fans: Combined aeroacoustic and psychoacoustic perspective. [Applied Acoustics](https://doi.org/10.1016/j.apacoust.2025.110872), 240.
+
 > Wu, C., & Redonnet, S. (2025). A simple yet efficient data-driven model for the prediction of aircraft noise impact. [Aerospace Science and Technology](https://doi.org/10.1016/j.ast.2025.110286), 163.
 
 > Shen, Y., Bai, Y., Liu, X., & Zang, B. (2025). Drone noise reduction using serration-finlet blade design and its psychoacoustic and social impacts. [Sustainability](https://doi.org/10.3390/su17083451), 17(8), 3451.   
@@ -111,8 +113,6 @@ We would be very happy to know that you find SQAT useful and have used it in you
 > Schade, S., Merino-Martinez, R., Moreau, A., Bartels, S., & Jaron, R. (2025). Psychoacoustic evaluation of different fan designs for an urban air mobility vehicle with distributed propulsion system. [The Journal of the Acoustical Society of America](https://doi.org/10.1121/10.0036228), 157 (3), 2150–2167.
 
 > Lotinga, M. J. B., Green, M. C., & Toríja, A. J. (2025). Human perception and response to sound from unmanned aircraft systems within ambient acoustic environments. [npj Acoustics](https://doi.org/10.1038/s44384-024-00001-6), 1:2.
-
-> Vourakis, M., Zea, E., Karlsson, M., Andersson, N., & Etemad, S. (2024). Installation Effects on Axial Fans: Combined Aeroacoustic and Psychoacoustic Perspective. [SSRN preprint](https://dx.doi.org/10.2139/ssrn.4986567)
 
 > Schmidt, H., Yupa-Villanueva, R. M., Ragni, D., Merino-Martinez, R., van Gool, P., & Schmehl, R. (2024). A listening experiment exploring the relationship between noise annoyance and sound quality metrics for airborne energy systems. [Wind Energy Science](https://doi.org/10.5194/wes-2024-125) [Preprint]
 
