@@ -1,5 +1,5 @@
-function signalFiltered = shmNoiseRedLowPass(signal, sampleRatein)
-% signalFiltered = shmNoiseRedLowPass(signal, sampleRatein)
+function signalFiltered = shmNoiseRedLowPass(signal, sampleRateIn)
+% signalFiltered = shmNoiseRedLowPass(signal, sampleRateIn)
 %
 % Returns signal low pass filtered for noise reduction according to
 % ECMA-418-2:2024 (the Sottek Hearing Model) for an input signal.
@@ -10,7 +10,7 @@ function signalFiltered = shmNoiseRedLowPass(signal, sampleRatein)
 %          the input signal as single mono or stereo audio (sound
 %          pressure) signals
 %
-% sampleRatein : double
+% sampleRateIn : double
 %                the sample rate (frequency) of the input signal(s)
 % 
 % Returns
@@ -34,7 +34,7 @@ function signalFiltered = shmNoiseRedLowPass(signal, sampleRatein)
 % Institution: University of Salford / ANV Measurement Systems
 %
 % Date created: 22/09/2023
-% Date last modified: 19/03/2025
+% Date last modified: 12/06/2025
 % MATLAB version: 2023b
 %
 % Copyright statement: This file and code is part of work undertaken within
@@ -56,7 +56,7 @@ function signalFiltered = shmNoiseRedLowPass(signal, sampleRatein)
 % Arguments validation
     arguments (Input)
         signal (:, :) double {mustBeReal}
-        sampleRatein (1, 1) double {mustBePositive}
+        sampleRateIn (1, 1) double {mustBePositive}
     end
 
 k = 3; % Footnote 21 ECMA-418-2:2024
@@ -65,16 +65,16 @@ e_i = [0, 1, 1]; % Footnote 21 ECMA-418-2:2024
 % Footnote 20 ECMA-418-2:2024
 tau = 1/32*6/7;
 
-d = exp(-1/(sampleRatein*tau)); % Section 5.1.4.2 ECMA-418-2:2024
+d = exp(-1/(sampleRateIn*tau)); % Section 5.1.4.2 ECMA-418-2:2024
 
 % Feed-backward coefficients, Equation 14 ECMA-418-2:2024
-m = 1:k;
-a = [1, ((-d).^m).*arrayfun(@(m_) nchoosek(k, m_), m)];
+m_a = 1:k;
+a = [1, ((-d).^m_a).*arrayfun(@(m_) nchoosek(k, m_), m_a)];
 
 % Feed-forward coefficients, Equation 15 ECMA-418-2:2024
-m = 0:k-1;
+m_b = 0:k-1;
 i = 1:k-1;
-b = (((1 - d)^k)./sum(e_i(i + 1).*(d.^i))).*(d.^m).*e_i;
+b = (((1 - d)^k)./sum(e_i(i + 1).*(d.^i))).*(d.^m_b).*e_i;
 
 % Recursive filter Equation 13 ECMA-418-2:2024
 signalFiltered = filter(b, a, signal);

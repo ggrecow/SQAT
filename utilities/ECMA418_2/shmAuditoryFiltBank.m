@@ -1,5 +1,5 @@
-function signalFiltered = shmAuditoryFiltBank(signal, outplot)
-% signalFiltered = shmAuditoryFiltBank(signal, outplot)
+function signalFiltered = shmAuditoryFiltBank(signal, outPlot)
+% signalFiltered = shmAuditoryFiltBank(signal, outPlot)
 %
 % Returns a set of signals, bandpass filtered for the inner ear response
 % in each half-Bark critical band rate scale width, according to
@@ -11,7 +11,7 @@ function signalFiltered = shmAuditoryFiltBank(signal, outplot)
 % signal : vector
 %          the input signal as single audio (sound pressure) signal
 %
-% outplot : Boolean true/false (default: false)
+% outPlot : Boolean true/false (default: false)
 %           flag indicating whether to generate a figure a frequency and phase
 %           response figure for the filter bank
 % 
@@ -38,7 +38,7 @@ function signalFiltered = shmAuditoryFiltBank(signal, outplot)
 % Institution: University of Salford / ANV Measurement Systems
 %
 % Date created: 27/09/2023
-% Date last modified: 19/03/2025
+% Date last modified: 12/06/2025
 % MATLAB version: 2023b
 %
 % Copyright statement: This file and code is part of work undertaken within
@@ -60,16 +60,17 @@ function signalFiltered = shmAuditoryFiltBank(signal, outplot)
 %% Arguments validation
     arguments (Input)
         signal (:, 1) double {mustBeReal}
-        outplot {mustBeNumericOrLogical} = false
+        outPlot {mustBeNumericOrLogical} = false
     end
 
 %% Define constants
 
 sampleRate48k = 48e3;  % Signal sample rate prescribed to be 48kHz (to be used for resampling), Section 5.1.1 ECMA-418-2:2024
 deltaFreq0 = 81.9289;  % defined in Section 5.1.4.1 ECMA-418-2:2024
-c = 0.1618;  % Half-Bark band centre-frequency demoninator constant defined in Section 5.1.4.1 ECMA-418-2:2024
+c = 0.1618;  % Critical band centre-frequency demoninator constant defined in Section 5.1.4.1 ECMA-418-2:2024
 
-halfBark = 0.5:0.5:26.5;  % half-critical band rate scale
+dz = 0.5;
+halfBark = 0.5:dz:26.5;  % half-overlapping critical band rate scale
 bandCentreFreqs = (deltaFreq0/c)*sinh(c*halfBark);  % Section 5.1.4.1 Equation 9 ECMA-418-2:2024
 dfz = sqrt(deltaFreq0^2 + (c*bandCentreFreqs).^2);  % Section 5.1.4.1 Equation 10 ECMA-418-2:2024
 
@@ -94,23 +95,23 @@ for zBand = 53:-1:1
     bp = exp((1i.*2.*pi.*bandCentreFreqs(zBand).*(0:k+1))./sampleRate48k);
     
     % Feed-backward coefficients, Section 5.1.4.2 Equation 14 ECMA-418-2:2024
-    m = 1:k;
-    a_m = ([1, ((-d).^m).*arrayfun(@(m_) nchoosek(k, m_), m)]).*bp(1:k+1);
+    m_a = 1:k;
+    a_m = ([1, ((-d).^m_a).*arrayfun(@(m_) nchoosek(k, m_), m_a)]).*bp(1:k+1);
 
     % Feed-forward coefficients, Section 5.1.4.2 Equation 15 ECMA-418-2:2024
-    m = 0:k-1;
+    m_b = 0:k-1;
     i = 1:k-1;
-    b_m = ((((1-d).^k)./sum(e_i(i+1).*(d.^i))).*(d.^m).*e_i).*bp(1:k);
+    b_m = ((((1-d).^k)./sum(e_i(i+1).*(d.^i))).*(d.^m_b).*e_i).*bp(1:k);
 
     % Recursive filter Section 5.1.4.2 Equation 13 ECMA-418-2:2024
     % Note, the results are complex so 2x the real-valued band-pass signal
     % is required.
-    signalFiltered(:, zBand) = 2*real(filter(b_m, a_m, signal));
+    signalFiltered(:, zBand, :) = 2*real(filter(b_m, a_m, signal));
 
     %% Plot figures
 
-    if outplot
-        [H, f] = freqz(b_m, a_m, 10e3, 'whole', 48e3);
+    if outPlot
+        [H, f] = freqz(b_m, a_m, 10e3, 'whole', sampleRate48k);
         phir = angle(H);
         phirUnwrap = unwrap(phir,[], 1);
         phiUnwrap = phirUnwrap/pi*180;
@@ -152,6 +153,9 @@ for zBand = 53:-1:1
             ax2.FontName = 'Arial';
             ax2.FontSize = 12;
         end
+        ax1.XScale = 'log';
+        ax2.XScale = 'log';
+        ax1.YLim = [-100, 0];
     end
 
 

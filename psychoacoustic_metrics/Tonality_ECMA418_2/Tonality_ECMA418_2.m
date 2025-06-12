@@ -137,7 +137,6 @@ function OUT = Tonality_ECMA418_2(insig, fs, fieldtype, time_skip, show)
 % Requirements
 % ------------
 % Signal Processing Toolbox
-% Audio Toolbox
 %
 % Ownership and Quality Assurance
 % -------------------------------
@@ -146,7 +145,7 @@ function OUT = Tonality_ECMA418_2(insig, fs, fieldtype, time_skip, show)
 % Institution: University of Salford / ANV Measurement Systems
 %
 % Date created: 07/08/2023
-% Date last modified: 02/04/2025
+% Date last modified: 12/06/2025
 % MATLAB version: 2023b
 %
 % Copyright statement: This file and code is part of work undertaken within
@@ -205,8 +204,8 @@ end
 if size(insig, 2) > 2
     error('Error: Input signal comprises more than two channels')
 else
-    inchans = size(insig, 2);
-    if inchans > 1
+    chansIn = size(insig, 2);
+    if chansIn > 1
         chans = ["Stereo left"; "Stereo right"];
     else
         chans = "Mono";
@@ -222,9 +221,10 @@ end
 
 sampleRate48k = 48e3;  % Signal sample rate prescribed to be 48kHz (to be used for resampling), Section 5.1.1 ECMA-418-2:2024 [r_s]
 deltaFreq0 = 81.9289;  % defined in Section 5.1.4.1 ECMA-418-2:2024 [deltaf(f=0)]
-c = 0.1618;  % Half-Bark band centre-frequency denominator constant defined in Section 5.1.4.1 ECMA-418-2:2024
+c = 0.1618;  % Half-overlapping Bark band centre-frequency denominator constant defined in Section 5.1.4.1 ECMA-418-2:2024
 
-halfBark = 0.5:0.5:26.5;  % half-critical band rate scale [z]
+dz = 0.5;  % critical band overlap [deltaz]
+halfBark = 0.5:dz:26.5;  % half-overlapping critical band rate scale [z]
 bandCentreFreqs = (deltaFreq0/c)*sinh(c*halfBark);  % Section 5.1.4.1 Equation 9 ECMA-418-2:2024 [F(z)]
 dfz = sqrt(deltaFreq0^2 + (c*bandCentreFreqs).^2);  % Section 5.1.4.1 Equation 10 ECMA-418-2:2024 [deltaf(z)]
 
@@ -296,7 +296,7 @@ for chan = size(pn_om, 2):-1:1
     % Apply auditory filter bank
     % --------------------------
     
-    % Filter equalised signal using 53 1/2Bark ERB filters according to 
+    % Filter equalised signal using 53 1/2-overlapping Bark filters according to 
     % Section 5.1.4.2 ECMA-418-2:2024
     pn_omz = shmAuditoryFiltBank(pn_om(:, chan), false);
 
@@ -416,6 +416,7 @@ for chan = size(pn_om, 2):-1:1
             l_n = size(meanScaledACF, 2);
             x = linspace(1, l_n, l_n);
             xq = linspace(1, l_n, i_interp(zBand)*(l_n - 1) + 1);
+
             bandTonalLoudness = interp1(x, bandTonalLoudness, xq);
             bandLoudness = interp1(x, bandLoudness, xq);
             bandTonalFreqs = interp1(x, bandTonalFreqs, xq);
@@ -424,7 +425,6 @@ for chan = size(pn_om, 2):-1:1
 
         % Remove end zero-padded samples Section 6.2.6 ECMA-418-2:2024
         l_end = ceil(size(p_re, 1)/sampleRate48k*sampleRate1875) + 1;  % Equation 40 ECMA-418-2:2024
-
         bandTonalLoudness = bandTonalLoudness(1:l_end);
         bandLoudness = bandLoudness(1:l_end);
         bandTonalFreqs = bandTonalFreqs(1:l_end);
@@ -510,7 +510,7 @@ for chan = size(pn_om, 2):-1:1
             = sum(specTonalityFreqs(mask, zBand, chan), 1)./(nnz(mask) + 1e-12); %<--- time index takes <time_skip> into consideration
     end
 
-    % Calculation of total (non-specific) tonality Section 6.2.10
+    % Calculation of overall tonality Section 6.2.10
     % -----------------------------------------------------------
     % Further update can add the user input frequency range to determine
     % total tonality - not yet incorporated
@@ -603,7 +603,7 @@ end
 %% Output assignment
 
 % Discard singleton dimensions
-if inchans > 1
+if chansIn > 1
     specTonalityAvg = squeeze(specTonalityAvg);
     specTonalityAvgFreqs = squeeze(specTonalityAvgFreqs);
 else

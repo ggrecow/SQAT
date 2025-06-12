@@ -1,5 +1,5 @@
-function signalFiltered  = shmOutMidEarFilter(signal, fieldtype, outplot)
-% signalFiltered  = shmOutMidEarFilter(signal, fieldtype, outplot)
+function signalFiltered  = shmOutMidEarFilter(signal, soundField, outPlot)
+% signalFiltered  = shmOutMidEarFilter(signal, soundField, outPlot)
 %
 % Returns signal filtered for outer and middle ear response according to
 % ECMA-418-2:2024 (the Hearing Model of Sottek) for an input calibrated
@@ -11,11 +11,11 @@ function signalFiltered  = shmOutMidEarFilter(signal, fieldtype, outplot)
 % signal : vector or 2D matrix
 %          the input signal (sound pressure)
 %
-% fieldtype : keyword string (default: 'free-frontal')
+% soundField : keyword string (default: 'free-frontal')
 %             determines whether the 'free-frontal' or 'diffuse' field 
 %             stages are applied in the outer-middle ear filter
 %
-% outplot : Boolean true/false (default: false)
+% outPlot : Boolean true/false (default: false)
 %           flag indicating whether to generate a frequency and phase
 %           response figure for the filter
 % 
@@ -41,7 +41,7 @@ function signalFiltered  = shmOutMidEarFilter(signal, fieldtype, outplot)
 % Institution: University of Salford / ANV Measurement Systems
 %
 % Date created: 26/09/2023
-% Date last modified: 19/03/2025
+% Date last modified: 12/06/2025
 % MATLAB version: 2023b
 %
 % Copyright statement: This file and code is part of work undertaken within
@@ -63,10 +63,10 @@ function signalFiltered  = shmOutMidEarFilter(signal, fieldtype, outplot)
 %% Arguments validation
     arguments (Input)
         signal (:, :) double {mustBeReal}
-        fieldtype (1, 1) string {mustBeMember(fieldtype,...
+        soundField (1, 1) string {mustBeMember(soundField,...
                                               {'free-frontal'...
                                                'diffuse'})} = 'free-frontal'
-        outplot {mustBeNumericOrLogical} = false
+        outPlot {mustBeNumericOrLogical} = false
     end
 
 %% Signal processing
@@ -105,9 +105,9 @@ a_2k = [0.938014080620272, 0.835381997160530, 0.783159968178343,...
         0.727599221415107, -0.284120167620817, 0.805837815618546,...
         0.914160847411739, 0.284243574266175]; 
 
-if fieldtype == "free-frontal"
+if strcmp(soundField, "free-frontal")
     sos = [b_0k.', b_1k.', b_2k.', a_0k.', a_1k.', a_2k.'];
-elseif fieldtype == "diffuse"
+elseif strcmp(soundField, "diffuse")
     % omit free field filter stages
     sos = [b_0k(3:end).', b_1k(3:end).', b_2k(3:end).',...
            a_0k(3:end).', a_1k(3:end).', a_2k(3:end).'];
@@ -118,7 +118,7 @@ signalFiltered = sosfilt(sos, signal, 1);
 
 %% Plot figures
 
-if outplot
+if outPlot
     [H, f] = freqz(sos, 10e3, 'whole', 48e3);
     phir = angle(H);
     phirUnwrap = unwrap(phir,[], 1);
@@ -155,7 +155,8 @@ if outplot
     ax2.FontName = 'Arial';
     ax2.FontSize = 12;
 
-    title(ax1, fieldtype)
+    title(ax1, soundField)
+    ax1.TitleFontWeight = "normal";
 end
 
 

@@ -108,9 +108,9 @@ function OUT = LoudnessFromComp_ECMA418_2(specTonalLoudness, specNoiseLoudness, 
 %
 % If show==true, a set of plots is returned illustrating the energy
 % time-averaged A-weighted sound level, the time-dependent specific and
-% overall roughness, with the latter also indicating the time-aggregated
+% overall loudness, with the latter also indicating the time-aggregated
 % value. In case of stereo signals, a set of plots is returned for each input channel, 
-% with another set for the combined binaural roughness. For the latter, the
+% with another set for the combined binaural loudness. For the latter, the
 % indicated time-averaged A-weighted sound level corresponds with the channel with 
 % the highest sound level.
 %
@@ -130,7 +130,7 @@ function OUT = LoudnessFromComp_ECMA418_2(specTonalLoudness, specNoiseLoudness, 
 % Institution: University of Salford
 %
 % Date created: 22/08/2023
-% Date last modified: 02/04/2025
+% Date last modified: 12/06/2025
 % MATLAB version: 2023b
 %
 % Copyright statement: This file and code is part of work undertaken within
@@ -170,8 +170,8 @@ end
 if size(specTonalLoudness, 3) > 2
     error('Error: Input matrices comprise more than two channels')
 else
-    inchans = size(specTonalLoudness, 3);
-    if inchans > 1
+    chansIn = size(specTonalLoudness, 3);
+    if chansIn > 1
         chans = ["Stereo left";
                  "Stereo right"];
     else
@@ -181,11 +181,12 @@ end
 
 %% Define constants
 
+sampleRate48k = 48e3;  % Signal sample rate prescribed to be 48kHz, Section 5.1.1 ECMA-418-2:2024 [r_s]
 deltaFreq0 = 81.9289;  % defined in Section 5.1.4.1 ECMA-418-2:2024 [deltaf(f=0)]
-c = 0.1618;  % Half-Bark band centre-frequency denominator constant defined in Section 5.1.4.1 ECMA-418-2:2024
+c = 0.1618;  % Half-overlapping Bark band centre-frequency denominator constant defined in Section 5.1.4.1 ECMA-418-2:2024
 
-dz = 0.5;  % critical band resolution [deltaz]
-halfBark = dz:dz:26.5;  % half-critical band rate scale [z]
+dz = 0.5;  % critical band overlap [deltaz]
+halfBark = dz:dz:26.5;  % half-overlapping critical band rate scale [z]
 bandCentreFreqs = (deltaFreq0/c)*sinh(c*halfBark);  % Section 5.1.4.1 Equation 9 ECMA-418-2:2024 [F(z)]
 
 % Section 8.1.1 ECMA-418-2:2024
@@ -196,16 +197,16 @@ b = 0.5459;
 
 % Output sample rate based on tonality hop sizes (Section 6.2.6
 % ECMA-418-2:2024) [r_sd]
-sampleRate1875 = 48e3/256;
+sampleRate1875 = sampleRate48k/256;
 
 %% Signal processing
 
 % get time block vector of input signal
-timeBlockInsig = (0 : size(specTonalLoudness, 1)-1) ./ 187.5;
+timeBlockInsig = (0 : size(specTonalLoudness, 1)-1) ./ sampleRate1875;
 
 % Section 8.1.1 ECMA-418-2:2024
 % Weight and combine component specific loudnesses
-for chan = inchans:-1:1
+for chan = chansIn:-1:1
     % Equation 114 ECMA-418-2:2024 [e(z)]
     maxLoudnessFuncel = a./(max(specTonalLoudness(:, :, chan)...
                                 + specNoiseLoudness(:, :, chan), [],...
@@ -215,30 +216,17 @@ for chan = inchans:-1:1
                                     + abs((weight_n.*specNoiseLoudness(:, :, chan)).^maxLoudnessFuncel)).^(1./maxLoudnessFuncel);
 end
 
-if inchans == 2
+if chansIn == 2
     % Binaural loudness
     % Section 8.1.5 ECMA-418-2:2024 Equation 118 [N'_B(l,z)]
     specLoudness(:, :, 3) = sqrt(sum(specLoudness.^2, 3)/2);
-    outchans = 3;  % set number of 'channels' to stereo plus single binaural
+    specTonalLoudness(:, :, 3) = sqrt(sum(specTonalLoudness.^2, 3)/2);
+    specNoiseLoudness(:, :, 3) = sqrt(sum(specNoiseLoudness.^2, 3)/2);
+    chansOut = 3;  % set number of 'channels' to stereo plus single binaural
     chans = [chans;
-             "Binaural"];
+             "Combined binaural"];
 else
-    outchans = inchans;  % assign number of output channels
-end
-
-% Section 8.1.2 ECMA-418-2:2024
-% Time-averaged specific loudness Equation 115 [N'(z)]
-specLoudnessPowAvg = (sum(specLoudness((57 + 1):end, :, :).^(1/log10(2)), 1)./size(specLoudness((57 + 1):end, :, :), 1)).^log10(2);
-
-% Section 8.1.3 ECMA-418-2:2024
-% Time-dependent loudness Equation 116 [N(l)]
-% Discard singleton dimensions
-if outchans == 1
-    loudnessTDep = sum(specLoudness.*dz, 2);
-    specLoudnessPowAvg = transpose(specLoudnessPowAvg);
-else
-    loudnessTDep = squeeze(sum(specLoudness.*dz, 2));
-    specLoudnessPowAvg = squeeze(specLoudnessPowAvg);
+    chansOut = chansIn;  % assign number of output channels
 end
 
 % time (s) corresponding with results output [t]
@@ -253,7 +241,7 @@ specLoudnessPowAvg = (sum(specLoudness(time_skip_idx:end, :, :).^(1/log10(2)), 1
 % Section 8.1.3 ECMA-418-2:2024
 % Time-dependent loudness Equation 116 [N(l)]
 % Discard singleton dimensions
-if outchans == 1
+if chansOut == 1
     loudnessTDep = sum(specLoudness.*dz, 2);
     specLoudnessPowAvg = transpose(specLoudnessPowAvg);
 else
@@ -268,7 +256,7 @@ loudnessPowAvg = (sum(loudnessTDep(time_skip_idx:end, :).^(1/log10(2)), 1)./size
 %% Output assignment
 
 % Assign outputs to structure
-if outchans == 3 % stereo case ["Stereo left"; "Stereo right"; "Combined binaural"];
+if chansOut == 3 % stereo case ["Stereo left"; "Stereo right"; "Combined binaural"];
 
     % outputs only with ["Stereo left"; "Stereo right"]
     OUT.specLoudness = specLoudness(:, :, 1:2);
@@ -278,6 +266,8 @@ if outchans == 3 % stereo case ["Stereo left"; "Stereo right"; "Combined binaura
 
     % outputs only with  "combined binaural"
     OUT.specLoudnessBin = specLoudness(:, :, 3);
+    OUT.specTonalLoudnessBin = specTonalLoudness(:, :, 3);
+    OUT.specNoiseLoudnessBin = specNoiseLoudness(:, :, 3);
     OUT.specLoudnessPowAvgBin = specLoudnessPowAvg(:, 3);
     OUT.loudnessTDepBin = loudnessTDep(:, 3);
     OUT.loudnessPowAvgBin = loudnessPowAvg(:, 3);
@@ -285,13 +275,14 @@ if outchans == 3 % stereo case ["Stereo left"; "Stereo right"; "Combined binaura
     % general outputs
     OUT.bandCentreFreqs = bandCentreFreqs;
     OUT.timeOut = timeOut;
+    OUT.timeBlockInsig = timeBlockInsig;
 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % loudness statistics based on loudnessTDep ["Stereo left"; "Stereo right"; "Combined binaural"];
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
     metric_statistics = 'Loudness_ISO532_1';
-    OUT_statistics = get_statistics( loudnessTDep(time_skip_idx:end,1:outchans), metric_statistics ); % get statistics
+    OUT_statistics = get_statistics( loudnessTDep(time_skip_idx:end,1:chansOut), metric_statistics ); % get statistics
 
     % copy fields of <OUT_statistics> struct into the <OUT> struct
     fields_OUT_statistics = fieldnames(OUT_statistics);  % Get all field names in OUT_statistics
@@ -315,7 +306,7 @@ else % mono case
 
     OUT.bandCentreFreqs = bandCentreFreqs;
     OUT.timeOut = timeOut;
-    OUT.soundField = fieldtype;
+    OUT.timeBlockInsig = timeBlockInsig;
 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % Loudness statistics based on loudnessTDep (mono case)
@@ -346,7 +337,7 @@ if show
     % colormap
     cmap_viridis = load('cmap_viridis.txt');
 
-    for chan = outchans:-1:1
+    for chan = chansOut:-1:1
         % Plot results
         fig = figure('name', sprintf( 'Loudness analysis - ECMA-418-2 (%s signal)', chans(chan) ) );
         tiledlayout(fig, 2, 1);

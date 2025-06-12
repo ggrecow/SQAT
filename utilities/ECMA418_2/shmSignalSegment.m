@@ -1,6 +1,6 @@
-function [signalSegmented, iBlocksOut] = shmSignalSegment(signal, axisn, blockSize, overlap,...
-                                                          i_start, endShrink)
-% signalSegmented = shmSignalSegment(signal, axisn, blockSize, overlap, i_start)
+function [signalSegmented, iBlocksOut] = shmSignalSegment(signal, axisN, blockSize, overlap, i_start, endShrink)
+% [signalSegmented, iBlocksOut] = shmSignalSegment(signal, axisN, blockSize,
+%                                                  overlap, i_start, endShrink)
 %
 % Returns input signal segmented into blocks for processing.
 %
@@ -9,7 +9,7 @@ function [signalSegmented, iBlocksOut] = shmSignalSegment(signal, axisn, blockSi
 % signal : vector or 2D matrix
 %          the input signal/s
 %
-% axisn : integer (1 or 2, default: 1)
+% axisN : integer (1 or 2, default: 1)
 %         the axis along which to apply block segmentation
 %
 % blockSize : integer
@@ -48,7 +48,7 @@ function [signalSegmented, iBlocksOut] = shmSignalSegment(signal, axisn, blockSi
 %
 % Requirements
 % ------------
-% None
+% Signal Processing Toolbox
 %
 % Ownership and Quality Assurance
 % -------------------------------
@@ -57,7 +57,7 @@ function [signalSegmented, iBlocksOut] = shmSignalSegment(signal, axisn, blockSi
 % Institution: University of Salford / ANV Measurement Systems
 %
 % Date created: 27/09/2023
-% Date last modified: 19/03/2025
+% Date last modified: 12/06/2025
 % MATLAB version: 2023b
 %
 % Copyright statement: This file and code is part of work undertaken within
@@ -79,7 +79,7 @@ function [signalSegmented, iBlocksOut] = shmSignalSegment(signal, axisn, blockSi
 %% Arguments validation
     arguments (Input)
         signal (:, :) double {mustBeReal}
-        axisn (1, 1) {mustBeInteger, mustBeInRange(axisn, 1, 2)} = 1
+        axisN (1, 1) {mustBeInteger, mustBeInRange(axisN, 1, 2)} = 1
         blockSize (1, 1) {mustBePositive, mustBeInteger} = false
         overlap (1, 1) {mustBeReal, mustBeGreaterThanOrEqual(overlap, 0),...
                         mustBeLessThan(overlap, 1)} = 0
@@ -90,7 +90,7 @@ function [signalSegmented, iBlocksOut] = shmSignalSegment(signal, axisn, blockSi
 %% Signal pre-processing
 
 % Orient input
-if axisn == 2
+if axisN == 2
     signal = signal.';
     axisFlip = true;
 else
@@ -103,7 +103,7 @@ if size(signal(i_start:end, :), 1) <= blockSize
 end
 
 % Assign number of channels
-nchans = size(signal, 2);
+nChans = size(signal, 2);
 
 % Hop size
 hopSize = (1 - overlap)*blockSize;
@@ -112,9 +112,9 @@ hopSize = (1 - overlap)*blockSize;
 % corresponding with the truncated signal length that will fill an
 % integer number of overlapped blocks
 signalTrunc = signal(i_start:end, :);
-n_blocks = floor((size(signalTrunc, 1)...
+nBlocks = floor((size(signalTrunc, 1)...
                  - overlap*blockSize)/hopSize);
-i_end = n_blocks*hopSize + overlap*blockSize;
+i_end = nBlocks*hopSize + overlap*blockSize;
 signalTrunc = signalTrunc(1:i_end, :);
 
 %% Signal segmentation
@@ -126,25 +126,20 @@ signalTrunc = signalTrunc(1:i_end, :);
 % concatenated. The first 6 columns are then discarded as these all
 % contain zeros from the appended zero columns.
 
-for chan = nchans:-1:1
-    signalSegmentedChan = [zeros(hopSize, 3),...
-                           reshape(signalTrunc, hopSize, [])];
+for chan = nChans:-1:1
     
-    signalSegmentedChan = cat(1, circshift(signalSegmentedChan, 3, 2),...
-                              circshift(signalSegmentedChan, 2, 2),...
-                              circshift(signalSegmentedChan, 1, 2),...
-                              circshift(signalSegmentedChan, 0, 2));
-    
-    signalSegmentedChan = signalSegmentedChan(:, 7:end);
+    % segment signal
+    signalSegmentedChan = buffer(signalTrunc(:, chan), blockSize,...
+                                 blockSize - hopSize, 'nodelay');
 
     % if branch to include block of end data with increased overlap
-    if endShrink && (size(signal(i_start:end), 1) > size(signalTrunc, 1))
-        signalSegmentedChanOut = [signalSegmentedChan, signal(end-blockSize + 1:end)];
-        iBlocksOut = [1:hopSize:n_blocks*hopSize,...
-                      size(signal(i_start:end), 1) - blockSize + 1];
+    if endShrink && (size(signal(i_start:end, chan), 1) > size(signalTrunc, 1))
+        signalSegmentedChanOut = [signalSegmentedChan, signal(end-blockSize + 1:end, chan)];
+        iBlocksOut = [1:hopSize:nBlocks*hopSize,...
+                      size(signal(i_start:end, chan), 1) - blockSize + 1];
     else
         signalSegmentedChanOut = signalSegmentedChan;
-        iBlocksOut = 1:hopSize:n_blocks*hopSize;
+        iBlocksOut = 1:hopSize:nBlocks*hopSize;
     end
 
     signalSegmented(:, :, chan) = signalSegmentedChanOut;
