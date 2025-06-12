@@ -1,7 +1,7 @@
 function OUT = PsychoacousticAnnoyance_Widmann1992(insig,fs,LoudnessField,time_skip,showPA,show)
 % function OUT = PsychoacousticAnnoyance_Widmann1992(insig,fs,LoudnessField,time_skip,showPA,show)
 %
-%   This function calculates the Widmann's psychoacoustic annoyance model from an input acoustic signal
+%   This function calculates Widmann's psychoacoustic annoyance model from an input acoustic signal
 %
 %   The psychoacoustic annoyance model is according to: (page 66) Widmann, U. (1992). Ein Modell der
 %   Psychoakustischen Lästigkeit von Schallen und seine Anwendung in der Praxis der Lärmbeurteilung
