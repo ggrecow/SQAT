@@ -1,19 +1,19 @@
-function OUT = PsychoacousticAnnoyance_Zwicker1999_from_percentile(N,S,R,FS)
-% function OUT = PsychoacousticAnnoyance_Zwicker1999_from_percentile(N,S,R,FS)
+function OUT = PsychoacousticAnnoyance_Widmann1992_from_percentile(N,S,R,FS)
+% function OUT = PsychoacousticAnnoyance_Widmann1992_from_percentile(N,S,R,FS)
 %
-%   This function is a compatibility-wrapper that calculates Widmann's
-%   psychoacoustic annoyance model from an input acoustic signal ---
+%   This function calculates the Widmann's psychoacoustic annoyance model from an input acoustic signal
+%
+%   The psychoacoustic annoyance model is according to: (page 66) Widmann, U. (1992). Ein Modell der
+%   Psychoakustischen Lästigkeit von Schallen und seine Anwendung in der Praxis der Lärmbeurteilung
+%   (A model of the psychoacoustic annoyance of sounds and its application in noise assessment practice)
+%   [Doctoral thesis, Technische Universität München (Technical University of Munich)].
+%
 %   As clarified by Lotinga, M. J. B. and A. J. Torija (2025) in
 %   "Comment on "A study on calibration methods of noise annoyance data from listening tests"
 %   [J. Acoust. Soc. Am. 156, 1877–1886 (2024)]." Journal of the Acoustical
 %   Society of America 157(5): 3282–3285, this model is the same as that commonly
 %   misattributed to (page 327) Zwicker, E. and Fastl, H. Second ed,
 %   Psychoacoustics, Facts and Models, 2nd ed. Springer-Verlag, Berlin, 1999.
-%
-%   The original psychoacoustic annoyance model is according to: (page 66) Widmann, U. (1992). Ein Modell der
-%   Psychoakustischen Lästigkeit von Schallen und seine Anwendung in der Praxis der Lärmbeurteilung
-%   (A model of the psychoacoustic annoyance of sounds and its application in noise assessment practice)
-%   [Doctoral thesis, Technische Universität München (Technical University of Munich)].
 %
 % - This metric combines 4 psychoacoustic metrics to quantitatively describe annoyance:
 %
@@ -59,12 +59,40 @@ function OUT = PsychoacousticAnnoyance_Zwicker1999_from_percentile(N,S,R,FS)
 %   Psychoacoustic Annoyance computed using the input percentile values of each metric
 %
 % Author: Gil Felix Greco, Braunschweig 14.03.2023
-% Modified: Mike Lotinga, 12.06.2025 - moved content to
-% PsychoacousticAnnoyance_Zwicker1999_from_percentile and made function a
-% wrapper.
+% Modified: Mike Lotinga, 12.06.2025 - created from
+% PsychoacousticAnnoyance_Zwicker1999_from_percentile.m
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-OUT = PsychoacousticAnnoyance_Widmann1992_from_percentile(N,S,R,FS);
+%% (scalar) psychoacoustic annoyance - computed directly from percentile values
+
+% sharpness and loudness influence
+if S > 1.75
+    % in Widmann (1992), log is used without specifying the base. In
+    % Fastl&Zwicker (2007), lg is used and subsequent literature also uses log10
+    ws = (S-1.75)*(log10(N+10))/4;
+else
+    ws = 0;
+end
+
+ws( isinf(ws) | isnan(ws) ) = 0;  % replace inf and NaN with zeros
+
+% influence of roughness and fluctuation strength
+wfr = ( 2.18/(N^(0.4)) )*(0.4*FS + 0.6*R);
+
+wfr( isinf(wfr) | isnan(wfr) ) = 0;  % replace inf and NaN with zeros
+
+% psychoacoustic annoyance
+PA_scalar = N*( 1 + sqrt (ws^2 + wfr^2) );
+
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   OUTPUT
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% main output results
+OUT=PA_scalar;               % Annoyance calculated from the percentiles of each variable
+
+
+end % end PA function
 
 %**************************************************************************
 %

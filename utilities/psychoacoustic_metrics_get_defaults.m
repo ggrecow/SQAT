@@ -2,6 +2,7 @@ function params = psychoacoustic_metrics_get_defaults(model_name)
 % function params = psychoacoustic_metrics_get_defaults(model_name)
 %
 % Author: Alejandro Osses
+% Modified: Mike Lotinga, 12.06.2025 - updated to include Widmann PA
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 switch model_name
@@ -80,7 +81,7 @@ switch model_name
         params.show = 0;
         params.show_description = 'Plots the outputs (optional parameter)';
         
-    case {'PsychoacousticAnnoyance_Di2016','PsychoacousticAnnoyance_More2010','PsychoacousticAnnoyance_Zwicker1999'}
+    case {'PsychoacousticAnnoyance_Di2016','PsychoacousticAnnoyance_More2010','PsychoacousticAnnoyance_Widmann1992'}
         params.Loudness_field = 0; 
         params.Loudness_field_description = 'Loudness: 0 = free field; 1 = diffuse field';
         params.time_skip = 0.2;

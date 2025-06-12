@@ -1,19 +1,19 @@
-function OUT = PsychoacousticAnnoyance_Zwicker1999(insig,fs,LoudnessField,time_skip,showPA,show)
-% function OUT = PsychoacousticAnnoyance_Zwicker1999(insig,fs,LoudnessField,time_skip,showPA,show)
+function OUT = PsychoacousticAnnoyance_Widmann1992_from_wavfile(wavfilename,dBFS,LoudnessField,time_skip,showPA,show)
+% function OUT = PsychoacousticAnnoyance_Widmann1992_from_wavfile(wavfilename,dBFS,LoudnessField,time_skip,showPA,show)
 %
-%   This function is a compatibility-wrapper that calculates Widmann's
-%   psychoacoustic annoyance model from an input acoustic signal ---
+%   This function calculates the Widmann's psychoacoustic annoyance model from an input acoustic signal
+%
+%   The psychoacoustic annoyance model is according to: (page 66) Widmann, U. (1992). Ein Modell der
+%   Psychoakustischen Lästigkeit von Schallen und seine Anwendung in der Praxis der Lärmbeurteilung
+%   (A model of the psychoacoustic annoyance of sounds and its application in noise assessment practice)
+%   [Doctoral thesis, Technische Universität München (Technical University of Munich)].
+%
 %   As clarified by Lotinga, M. J. B. and A. J. Torija (2025) in
 %   "Comment on "A study on calibration methods of noise annoyance data from listening tests"
 %   [J. Acoust. Soc. Am. 156, 1877–1886 (2024)]." Journal of the Acoustical
 %   Society of America 157(5): 3282–3285, this model is the same as that commonly
 %   misattributed to (page 327) Zwicker, E. and Fastl, H. Second ed,
 %   Psychoacoustics, Facts and Models, 2nd ed. Springer-Verlag, Berlin, 1999.
-%
-%   The original psychoacoustic annoyance model is according to: (page 66) Widmann, U. (1992). Ein Modell der
-%   Psychoakustischen Lästigkeit von Schallen und seine Anwendung in der Praxis der Lärmbeurteilung
-%   (A model of the psychoacoustic annoyance of sounds and its application in noise assessment practice)
-%   [Doctoral thesis, Technische Universität München (Technical University of Munich)].
 %
 % - This metric combines 4 psychoacoustic metrics to quantitatively describe annoyance:
 %
@@ -39,14 +39,22 @@ function OUT = PsychoacousticAnnoyance_Zwicker1999(insig,fs,LoudnessField,time_s
 %   comprised Fastl's roughness and fluctuation strength (see Fastl &
 %   Zwicker, 2007. Psychoacoustics: Facts and models.)
 %
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%  This script, PsychoacousticAnnoyance_Widmann1992_from_wavfile, calls 
+%    internally the main algorithm, PsychoacousticAnnoyance_Widmann1992. The 
+%    only difference is that PsychoacousticAnnoyance_Widmann1992_from_wavfile 
+%    requires a file name as first input argument and the dBFS convention 
+%    value as the second input argument.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
 % INPUT:
-%   insig : array
-%   acoustic signal [1,nTimeSteps], monophonic (Pa)
+%   wavfilename : char
+%   wavfilename specifies the file name of a wav file to be processed
 %
-%   fs : integer
-%   sampling frequency (Hz) - preferible 48 kHz or 44.1 kHz (default by the authors and takes less time to compute)
+%   dBFS : integer
+%          Full scale convention. Internally this algorithm works with 
+%          a convention of full scale being equal to 94 dB SPL, or dBFS=94.
+%          if the specified dBFS is different from 94 dB SPL, then a gain 
+%          factor will be applied
 %
 %   time_skip : integer
 %   skip start of the signal in <time_skip> seconds for statistics calculations
@@ -86,29 +94,54 @@ function OUT = PsychoacousticAnnoyance_Zwicker1999(insig,fs,LoudnessField,time_s
 %        **  R : strcut with roughness results, type <help Roughness_Daniel1997> for more info
 %        ** FS : struct with fluctuation strength results, type <help FluctuationStrength_Osses2016> for more info
 %
+%   fname = [basepath_SQAT 'sound_files' filesep 'reference_signals' filesep 'RefSignal_Loudness_ISO532_1.wav'];
+%   dBFS = 94; % default for SQAT
+%   PsychoacousticAnnoyance_Widmann1992_from_wavfile(fname,dBFS);
 %
-%  NOTE: 1) Input signals should be in pascal values or calibrated .wav files
-%
-%        2) Fluctuation strength window has length of 2s. If the signal is less than 2s long, the FS calculation will be automatically
-%           changed to stationary (i.e. uses a window with length equal to signal's size) . in this case, no time-varying PA is available.
-%
-%        3) Be aware that, because of item 2), if the signal is more than 2s long, the last 2 seconds of the input signal are LOST !!!!
-%
-%        4) is a best practice to compute percentile values following a time_skip (s) after the signal's beginning to avoid misleading results caused by possible transient effects caused by digital filtering
-%
-%        5) because of item 2), the PA(t) outputs are also 2s smaller, but the percentile values are calculed inside each function before this cut
-%
-%        6) Loudness and sharpness have the same time vector, but roughness and FS differ because of their window lengths of 200ms and 2s, respectively.
-%           Therefore, in order to have the same time vector, after each respective metric calculation, the outputs are interpolated with respect to the loudness time vector and all cutted in the end
-%           to the final time corresponding to the FS metric
-%
-% Author: Gil Felix Greco, Braunschweig 04.03.2020 (updated 14.03.2023)
-% Author: Gil Felix Greco, Braunschweig 16.02.2025 - introduced get_statistics function
-% Modified: Mike Lotinga, 12.06.2025 - moved content to
-% PsychoacousticAnnoyance_Widmann1992.m and made function a wrapper.
+% Author: Alejandro Osses
+% Modified: Mike Lotinga, 12.06.2025 - created from
+% PsychoacousticAnnoyance_Zwicker1999_from_wavfile.m
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+if nargin == 0
+    help PsychoacousticAnnoyance_Widmann1992_from_wavfile;
+    return;
+end
+if nargin < 6
+    if nargout == 0
+        show = 1;
+    else
+        show = 0;
+    end
+end
+if nargin < 5
+    if nargout == 0
+        showPA = 1; 
+    else
+        showPA = 0;
+    end
+end
+if nargin <4
+    pars = psychoacoustic_metrics_get_defaults('PsychoacousticAnnoyance_Widmann1992');
+    time_skip = pars.time_skip;
+    fprintf('\n%s.m: Default time_skip value = %.0f is being used\n',mfilename,pars.time_skip);
+end
+if nargin <3
+    pars = psychoacoustic_metrics_get_defaults('PsychoacousticAnnoyance_Widmann1992');
+    LoudnessField = pars.Loudness_field;
+    fprintf('\n%s.m: Default Loudness_field value = %.0f is being used\n',mfilename,pars.Loudness_field);
+end
+
+[insig,fs] = audioread(wavfilename);
+if nargin < 2 || isempty(dBFS)
+    dBFS = 94; % dB
+    fprintf('\n%s.m: Assuming the default full scale convention, with dBFS = %.0f\n',mfilename,dBFS);
+end
+gain_factor = 10^((dBFS-94)/20);
+insig = gain_factor*insig;
 
 OUT = PsychoacousticAnnoyance_Widmann1992(insig,fs,LoudnessField,time_skip,showPA,show);
+
+end % end of file
 
 %**************************************************************************
 %
