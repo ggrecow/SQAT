@@ -43,7 +43,7 @@ function signalOut = shmPreProc(signal, blockSize, hopSize, padStart, padEnd)
 % Institution: University of Salford
 %
 % Date created: 26/09/2023
-% Date last modified: 19/03/2025
+% Date last modified: 12/06/2025
 % MATLAB version: 2023b
 %
 % Copyright statement: This file and code is part of work undertaken within

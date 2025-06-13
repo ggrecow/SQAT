@@ -48,7 +48,7 @@ function OUT = Roughness_ECMA418_2(insig, fs, fieldtype, time_skip, show)
 % -------
 %
 % OUT : structure
-%            contains the following fields:
+%       contains the following fields:
 %
 % specRoughness : matrix
 %                 time-dependent specific roughness for each (half)
@@ -80,7 +80,7 @@ function OUT = Roughness_ECMA418_2(insig, fs, fieldtype, time_skip, show)
 %           time (seconds) corresponding with time-dependent roughness outputs
 %
 % timeInsig : vector
-%           time (seconds) of insig
+%             time (seconds) of insig
 %
 % soundField : string
 %              identifies the soundfield type applied (the input argument
@@ -100,19 +100,19 @@ function OUT = Roughness_ECMA418_2(insig, fs, fieldtype, time_skip, show)
 % separately for the "comb. binaural" case (i.e. combination of left and right ears)  
 %
 % specRoughnessBin : matrix
-%                 time-dependent specific roughness for each (half)
-%                 critical band
-%                 arranged as [time, bands]
+%                    time-dependent specific roughness for each (half)
+%                    critical band
+%                    arranged as [time, bands]
 %
 % specRoughnessAvgBin : matrix
-%                    time-averaged specific roughness for each (half)
-%                    critical band
-%                    arranged as [bands]
-%                    OBS: takes <time_skip> into consideration
+%                       time-averaged specific roughness for each (half)
+%                       critical band
+%                       arranged as [bands]
+%                       OBS: takes <time_skip> into consideration
 %
 % roughnessTDepBin : vector or matrix
-%                 time-dependent overall roughness
-%                 arranged as [time]
+%                    time-dependent overall roughness
+%                    arranged as [time]
 %
 % roughness90PcBin : number
 %                    90th percentile (a.k.a. value exceeded 10% of the time) 
@@ -145,7 +145,7 @@ function OUT = Roughness_ECMA418_2(insig, fs, fieldtype, time_skip, show)
 % Institution: University of Salford
 %
 % Date created: 12/10/2023
-% Date last modified: 02/04/2025
+% Date last modified: 12/06/2025
 % MATLAB version: 2023b
 %
 % Copyright statement: This file and code is part of work undertaken within
@@ -199,8 +199,8 @@ end
 if size(insig, 2) > 2
     error("Error: Input signal comprises more than two channels")
 else
-    inchans = size(insig, 2);
-    if inchans == 2
+    chansIn = size(insig, 2);
+    if chansIn == 2
         chans = ["Stereo left"; "Stereo right"];
         binaural = true;
     else
@@ -219,10 +219,10 @@ end
 signalT = size(insig, 1)/fs;  % duration of input signal
 sampleRate48k = 48e3;  % Signal sample rate prescribed to be 48kHz (to be used for resampling), Section 5.1.1 ECMA-418-2:2024 [r_s]
 deltaFreq0 = 81.9289;  % defined in Section 5.1.4.1 ECMA-418-2:2024 [deltaf(f=0)]
-c = 0.1618;  % Half-Bark band centre-frequency denominator constant defined in Section 5.1.4.1 ECMA-418-2:2024 [c]
+c = 0.1618;  % Half-overlapping Bark band centre-frequency denominator constant defined in Section 5.1.4.1 ECMA-418-2:2024 [c]
 
-dz = 0.5;  % critical band resolution [deltaz]
-halfBark = 0.5:dz:26.5;  % half-critical band rate scale [z]
+dz = 0.5;  % critical band overlap [deltaz]
+halfBark = 0.5:dz:26.5;  % half-overlapping critical band rate scale [z]
 nBands = length(halfBark);  % number of bands
 bandCentreFreqs = (deltaFreq0/c)*sinh(c*halfBark);  % Section 5.1.4.1 Equation 9 ECMA-418-2:2024 [F(z)]
 
@@ -313,7 +313,7 @@ for chan = size(pn_om, 2):-1:1
     % Apply auditory filter bank
     % --------------------------
     
-    % Filter equalised signal using 53 1/2Bark ERB filters according to 
+    % Filter equalised signal using 53 1/2-overlapping Bark filters according to 
     % Section 5.1.4.2 ECMA-418-2:2024
     pn_omz = shmAuditoryFiltBank(pn_om(:, chan), false);
 
@@ -326,8 +326,8 @@ for chan = size(pn_om, 2):-1:1
 
         % Section 5.1.5 ECMA-418-2:2024
         i_start = 1;
-        [pn_lz, iBlocksOut] = shmSignalSegment(pn_omz(:, zBand), 1, blockSize, overlap,...
-                                            i_start, true);
+        [pn_lz, iBlocksOut] = shmSignalSegment(pn_omz(:, zBand), 1, blockSize,...
+                                               overlap, i_start, true);
 
         % Transformation into Loudness
         % ----------------------------
@@ -340,8 +340,6 @@ for chan = size(pn_om, 2):-1:1
         % Sections 7.1.2 ECMA-418-2:2024
         % magnitude of Hilbert transform with downsample - Equation 65
         % [p(ntilde)_E,l,z]
-        % Notefigure; imagesc: prefiltering is not needed because the output from the
-        % Hilbert transform is a form of low-pass filtering
         envelopes(:, :, zBand) = downsample(abs(hilbert(pn_lz)), downSample, 0);
 
     end  % end of for loop for obtaining low frequency signal envelopes
@@ -649,13 +647,13 @@ end  % end of for loop over channels
 
 % Binaural roughness
 % Section 7.1.11 ECMA-418-2:2024 [R'_B(l_50,z)]
-if inchans == 2 && binaural
+if chansIn == 2 && binaural
     specRoughness(:, :, 3) = sqrt(sum(specRoughness.^2, 3)/2);  % Equation 112
-    outchans = 3;  % set number of 'channels' to stereo plus single binaural
+    chansOut = 3;  % set number of 'channels' to stereo plus single binaural
     chans = [chans;
              "Combined binaural"];
 else
-    outchans = inchans;  % assign number of output channels
+    chansOut = chansIn;  % assign number of output channels
 end
 
 % time (s) corresponding with results output [t]
@@ -671,7 +669,7 @@ specRoughnessAvg = mean(specRoughness(time_skip_idx:end, :, :), 1); %<--- time i
 % Section 7.1.9 ECMA-418-2:2024
 % Time-dependent roughness Equation 111 [R(l_50)]
 % Discard singleton dimensions
-if outchans == 1
+if chansOut == 1
     roughnessTDep = sum(specRoughness.*dz, 2);
     specRoughnessAvg = transpose(specRoughnessAvg);
 else
@@ -686,7 +684,7 @@ roughness90Pc = prctile(roughnessTDep(time_skip_idx:end, :, :), 90, 1); %<--- ti
 %% Output assignment
 
 % Assign outputs to structure
-if outchans == 3 % stereo case ["Stereo left"; "Stereo right"; "Combined binaural"];
+if chansOut == 3 % stereo case ["Stereo left"; "Stereo right"; "Combined binaural"];
 
     % outputs only with ["Stereo left"; "Stereo right"] 
     OUT.specRoughness = specRoughness(:, :, 1:2);
@@ -711,7 +709,7 @@ if outchans == 3 % stereo case ["Stereo left"; "Stereo right"; "Combined binaura
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
     metric_statistics = 'Roughness_ECMA418_2';
-    OUT_statistics = get_statistics( roughnessTDep(time_skip_idx:end,1:outchans), metric_statistics ); % get statistics
+    OUT_statistics = get_statistics( roughnessTDep(time_skip_idx:end,1:chansOut), metric_statistics ); % get statistics
 
     % copy fields of <OUT_statistics> struct into the <OUT> struct
     fields_OUT_statistics = fieldnames(OUT_statistics);  % Get all field names in OUT_statistics
@@ -773,7 +771,7 @@ if show
     insig_A = filter(b, a, insig);  % filter signal
     LAeq_all = 20*log10(rms(insig_A(idx_insig:end, :))./2e-5);  % calculate LAeq
 
-    for chan = outchans:-1:1
+    for chan = chansOut:-1:1
         % Plot results
         fig = figure('name', sprintf( 'Roughness analysis - ECMA-418-2 (%s signal)', chans(chan) ) );
         tiledlayout(fig, 2, 1);
@@ -817,7 +815,7 @@ if show
         elseif chan == 1 % Stereo left or mono
 
             LAeq = LAeq_all(chan);
-            if outchans~=1
+            if chansOut~=1
                 whichEar = 'left ear';
             else
                 whichEar = 'mono';

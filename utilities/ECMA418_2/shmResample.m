@@ -1,7 +1,5 @@
-function [resampledSignal, resampledRate]...
-          = shmResample(signal, sampleRatein)
-% [resampledSignal, resampledRate]...
-%         = shmResample_(signal, sampleRatein)
+function [resampledSignal, resampledRate] = shmResample(signal, sampleRateIn)
+% [resampledSignal, resampledRate] = shmResample_(signal, sampleRateIn)
 %
 % Returns signal resampled to 48 kHz, according to ECMA-418-2:2024
 % (the Sottek Hearing Model) for an input signal.
@@ -11,7 +9,7 @@ function [resampledSignal, resampledRate]...
 % signal : vector or 2D matrix
 %          the input signal
 %
-% sampleRatein : integer
+% sampleRateIn : integer
 %                the sample rate (frequency) of the input signal(s)
 % 
 % Returns
@@ -39,7 +37,7 @@ function [resampledSignal, resampledRate]...
 % Institution: University of Salford
 %
 % Date created: 26/09/2023
-% Date last modified: 19/03/2025
+% Date last modified: 12/06/2025
 % MATLAB version: 2023b
 %
 % Copyright statement: This file and code is part of work undertaken within
@@ -57,7 +55,7 @@ function [resampledSignal, resampledRate]...
 %% Arguments validation
     arguments (Input)
         signal double {mustBeReal}
-        sampleRatein (1, 1) double {mustBePositive, mustBeInteger}
+        sampleRateIn (1, 1) double {mustBePositive, mustBeInteger}
     end
 
 %% Define constants
@@ -69,9 +67,9 @@ resampledRate = 48e3;  % Signal sample rate prescribed to be 48 kHz
 
 % Input pre-processing
 % --------------------
-if sampleRatein ~= resampledRate  % Resample signal
-    up = resampledRate/gcd(resampledRate, sampleRatein);  % upsampling factor
-    down = sampleRatein/gcd(resampledRate, sampleRatein);  % downsampling factor
+if sampleRateIn ~= resampledRate  % Resample signal
+    up = resampledRate/gcd(resampledRate, sampleRateIn);  % upsampling factor
+    down = sampleRateIn/gcd(resampledRate, sampleRateIn);  % downsampling factor
     resampledSignal = resample(signal, up, down);  % apply resampling
 else  % don't resample
     resampledSignal = signal;

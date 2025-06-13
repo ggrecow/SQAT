@@ -1,7 +1,5 @@
-function [signalRectSeg, basisLoudness, blockRMS]...
-           = shmBasisLoudness(signalSegmented, bandCentreFreq)
-% [signalRectSeg, basisLoudness, blockRMS]...
-% = shmBandBasisLoudness(signalSegmented, bandCentreFreq)
+function [signalRectSeg, basisLoudness, blockRMS] = shmBasisLoudness(signalSegmented, bandCentreFreq)
+% [signalRectSeg, basisLoudness, blockRMS] = shmBandBasisLoudness(signalSegmented, bandCentreFreq)
 %
 % Returns rectified input and basis loudness in specified half-Bark
 % critical band according to ECMA-418-2:2024 (the Sottek Hearing Model)
@@ -20,15 +18,13 @@ function [signalRectSeg, basisLoudness, blockRMS]...
 % Returns
 % -------
 % signalRectSeg : 2D or 3D matrix
-%                 rectified band-limited segmented signal, orientated as
-%                 per the input
+%                 rectified band-limited segmented signal
 %
 % basisLoudness : 2D or 3D matrix
-%                 basis loudness in each block, orientated as per the input
+%                 basis loudness in each block
 % 
 % blockRMS : column vector or 2D matrix
-%            RMS for each block, orientated as per the input with singleton
-%            dimension removed
+%            RMS for each block
 %
 % Assumptions
 % -----------
@@ -47,7 +43,7 @@ function [signalRectSeg, basisLoudness, blockRMS]...
 % Institution: University of Salford / ANV Measurement Systems
 %
 % Date created: 27/09/2023
-% Date last modified: 19/03/2025
+% Date last modified: 12/06/2025
 % MATLAB version: 2023b
 %
 % Copyright statement: This file and code is part of work undertaken within
@@ -94,9 +90,6 @@ bandCentreFreqs = (deltaFreq0/c)*sinh(c*halfBark);  % Section 5.1.4.1 Equation 9
 
 cal_N = 0.0211668;  % Calibration factor from Section 5.1.8 Equation 23 ECMA-418-2:2024
 cal_Nx = 1.00132;  % Calibration multiplier (Footnote 8 ECMA-418-2:2024)
-%cal_N*cal_Nx = 0.021194740176;  % Adjusted calibration factor
-%cal_Nx = 1.001398416387928;  % Calibration multiplier (Footnote 8 ECMA-418-2:2024)
-%cal_N*cal_Nx = 0.0211964;  % Adjusted calibration factor
 
 a = 1.5;  % Constant (alpha) from Section 5.1.8 Equation 23 ECMA-418-2:2024
 
@@ -137,8 +130,9 @@ blockRMS = sqrt((2/size(signalRectSeg, 1))*sum(signalRectSeg.^2, 1));
 % Section 5.1.8 Equations 23 & 24 ECMA-418-2:2024
 bandLoudness = cal_N*cal_Nx*(blockRMS/20e-6).*prod((1 + (blockRMS./p_threshold).^a).^((diff(v)/a)'));
 
-% remove singleton dimension from block RMS output
+% remove singleton dimension from outputs
 blockRMS = squeeze(blockRMS);
+bandLoudness = squeeze(bandLoudness);
 
 % Section 5.1.9 Equation 25 ECMA-418-2:2024
 if ~isempty(bandCentreFreq) && length(size(signalSegmented)) == 2
@@ -147,8 +141,7 @@ if ~isempty(bandCentreFreq) && length(size(signalSegmented)) == 2
     basisLoudness(basisLoudness < 0) = 0;
 else
     % basis loudness for all bands
-    basisLoudness = bandLoudness - repmat(reshape(LTQz, [1, 1, 53]),...
-                                              1, size(bandLoudness, 2), 1);
+    basisLoudness = bandLoudness - LTQz;
     basisLoudness(basisLoudness < 0) = 0;
 end
 
