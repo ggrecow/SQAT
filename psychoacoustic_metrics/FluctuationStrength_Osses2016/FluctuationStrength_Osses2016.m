@@ -88,6 +88,8 @@ function OUT = FluctuationStrength_Osses2016(insig,fs,method,time_skip,show,stru
 %            factor were moved to the <utilities> folder of the toolbox as
 %            standalone functions
 % Author: Gil Felix Greco, Braunschweig 16.02.2025 - introduced get_statistics function
+% Modified: Mike Lotinga May 2025 - incorporated efficiency improvements in
+% TerhardtExcitationPatterns.m to speed up calculation.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 if nargin == 0
     help FluctuationStrength_Osses2016;
@@ -162,7 +164,7 @@ attackrelease = 50;
 
 window = il_Do_cos_ramp(window,fs,attackrelease,attackrelease);
 
-for iFrame = 1:nFrames
+for iFrame = nFrames:-1:1
     
     signal = insig(:,iFrame);
     t(iFrame,1) = t_b(1,iFrame);
@@ -183,13 +185,13 @@ for iFrame = 1:nFrames
     dBFS = 94; % corresponds to 1 Pa (new default in SQAT)
     % dBFS = 100; % unit amplitude corresponds to 100 dB (AMT Toolbox 
                   % convention, default by the original authors)
-    ei   = TerhardtExcitationPatterns_v3(signal,fs,dBFS);
+    ei   = TerhardtExcitationPatterns(signal,fs,dBFS);
     dz   = 0.5; % Barks, frequency step
     z    = 0.5:dz:23.5; % Bark
-    fc   = bark2hz(z);
-    flow = bark2hz(z-.5); flow(1) = 0.01;
-    fup  = bark2hz(z+.5);
-    BWHz = fup - flow;
+    % fc   = bark2hz(z);  % unused variable
+    % flow = bark2hz(z-.5); flow(1) = 0.01;  % unused variable
+    % fup  = bark2hz(z+.5);  % unused variable
+    % BWHz = fup - flow;  % unusued variable
         
     %% 3. Modulation depth (estimation)
     [mdept,hBPi] = il_modulation_depths(ei,model_par.Hweight);
@@ -200,11 +202,12 @@ for iFrame = 1:nFrames
     % % here cross-correlation is computed before band-pass filtering:
     % Ki = il_cross_correlation(inoutsig); % with hBPi Ki goes down but not as much as 'it should'
     Ki = il_cross_correlation(hBPi);
-    [fi_,mdept,kp,gzi] = il_specific_fluctuation(mdept,Ki,model_par);
+    % [fi_,mdept,kp,gzi] = il_specific_fluctuation(mdept,Ki,model_par);
+    [fi_, ~, ~, ~] = il_specific_fluctuation(mdept,Ki,model_par);  % unused returns omitted
 
-    kp_fr(iFrame,:)= kp;
-    gzi_fr(iFrame,:) = gzi;
-    md_fr(iFrame,:) = mdept;
+    % kp_fr(iFrame,:)= kp;  % unused variable
+    % gzi_fr(iFrame,:) = gzi;  % unused variable
+    % md_fr(iFrame,:) = mdept;  % unused variable
     fi(iFrame,:)  = model_par.cal * fi_;
     fluct(iFrame) = dz*sum(fi(iFrame,:)); % total fluct = integration of the specific fluct. strength pattern
     
@@ -318,11 +321,11 @@ hBPi = transpose(hBPi);
 idx = find(h0>0);
 mdept(idx) = hBPrms(idx)./h0(idx);
 
-idx = find(h0==0);
+idx = h0==0;
 mdept(idx) = 0;
 
-idx = find(h0<0);
-if length(idx) ~= 0
+idx = find(h0<0, 1);
+if ~isempty(idx)
     error('There is an error in the algorithm')
 end
     
@@ -377,9 +380,9 @@ p_g = model_par.p_g;
 p_m = model_par.p_m;
 p_k = model_par.p_k;
 
-Chno = length(gzi);
+% Chno = length(gzi);  % unused variable
 
-fi = zeros(1,Chno);
+% fi = zeros(1,Chno);  % unused variable
 
 switch dataset
     case {0,90,99}
@@ -392,8 +395,8 @@ switch dataset
         md    = min(mdept,ones(size(mdept)));
 
     case 1
-        md    = min(mdept,ones(size(mdept)));
-        md    = mdept-0.1*ones(size(mdept));
+        % md    = min(mdept,ones(size(mdept)));  % unused variable
+        % md    = mdept-0.1*ones(size(mdept));  % unused variable
         md    = max(mdept,zeros(size(mdept)));
 end
 
