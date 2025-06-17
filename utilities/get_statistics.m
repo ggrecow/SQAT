@@ -5,6 +5,7 @@ function OUT = get_statistics(input, metric )
 % an input vector [Nx1], [Nx2] (stereo case), or [Nx3] (stereo including comb. binaural),
 %
 % Last checked; Gil Felix Greco, Braunschweig 19.02.2025
+% Modified: Mike Lotinga, 12.06.2025 - updated to include Widmann PA
 %%%%%%%%%%%%%%%%%%%%%
 
 switch metric
@@ -22,7 +23,7 @@ switch metric
         var_string = 'PA';
     case 'PsychoacousticAnnoyance_More2010'
         var_string = 'PA';
-    case 'PsychoacousticAnnoyance_Zwicker1999'
+    case 'PsychoacousticAnnoyance_Widmann1992'
         var_string = 'PA';
     case 'Loudness_ECMA418_2'
         var_string = 'N';

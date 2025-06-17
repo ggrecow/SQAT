@@ -1,10 +1,6 @@
-% Script ex_PsychoacousticAnnoyance_Zwicker1999
+% Script ex_PsychoacousticAnnoyance_Widmann1992
 %
-% Example: this is a legacy example that calculates Widmann's
-% psychoacoustic annoyance of RefSignal_Loudness_ISO532_1 ---
-% the function call to PsychoacousticAnnoyance_Zwicker1999.m is a
-% compatibility-wrapper function that calls
-% PsychoacousticAnnoyance_Widmann1992.m
+% Example: Widmann's psychoacoustic annoyance of RefSignal_Loudness_ISO532_1
 %
 %   As clarified by Lotinga, M. J. B. and A. J. Torija (2025) in
 %   "Comment on "A study on calibration methods of noise annoyance data from listening tests"
@@ -22,23 +18,13 @@
 %   his PA model (see page 65 in the above mentioned reference), to which 
 %   he assigned an annoyance value of 1 au (annoyance unit).
 %
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%   WARNING: the <PsychoacousticAnnoyance_Zwicker1999> function is merely a wrapper of the
-%   <PsychoacousticAnnoyance_Widmann1992> function, kept to maintain
-%   compatibility with SQAT v1.3 and below. Nevertheless, it will be removed in future releases
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% FUNCTION:
+%   OUT = PsychoacousticAnnoyance_Widmann1992(insig,fs,LoudnessField,time_skip,showPA,show)
+%   type <help PsychoacousticAnnoyance_Widmann1992> for more info
 %
 % FUNCTION:
-%   OUT = PsychoacousticAnnoyance_Zwicker1999(insig,fs,LoudnessField,time_skip,showPA,show)
-%   type <help PsychoacousticAnnoyance_Zwicker1999> for more info
-%   [compatibility wrapper function for
-%   PsychoacousticAnnoyance_Widmann1992]
-%
-% FUNCTION:
-%   OUT = PsychoacousticAnnoyance_Zwicker1999_from_percentile(N,S,R,FS)
-%   type <help PsychoacousticAnnoyance_Zwicker1999_from_percentile> for more info
-%   [compatibility wrapper function for
-%   PsychoacousticAnnoyance_Widmann1992_from_percentile]
+%   OUT = PsychoacousticAnnoyance_Widmann1992_from_percentile(N,S,R,FS)
+%   type <help PsychoacousticAnnoyance_Widmann1992_from_percentile> for more info
 %
 % Author: Gil Felix Greco, Braunschweig 14.03.2023
 % Modified: Mike Lotinga, 12.06.2025
@@ -61,16 +47,16 @@ fprintf('\n%s.m: the RMS level of the calibrated input signal is %.1f dB SPL\n',
 fprintf('\n\t(full scale value = %.0f dB SPL)\n', dBFS_out);
 fprintf('\n\t(file being processed: %s)\n',insig_fname);
 
-%% compute Widmann psychoacoustic annoyance (from time-varying input signal)
+%% compute psychoacoustic annoyance (from time-varying input signal)
 
-res = PsychoacousticAnnoyance_Zwicker1999(insig_cal, fs,... % input signal and sampling freq.
+res = PsychoacousticAnnoyance_Widmann1992(insig_cal, fs,... % input signal and sampling freq.
                                                0,... % field for loudness calculation; free field = 0; diffuse field = 1;
                                              0.2,... % time_skip, in seconds for level (stationary signals) and statistics (stationary and time-varying signals) calculations
                                                1,... % show results of PA, 'false' (disable, default value) or 'true' (enable)                                                                    
                                                1);   % show results of loudness, sharpness, roughness and fluctuation strength, 'false' (disable, default value) or 'true' (enable)
 PA_from_insig = res.PA5;
                                                                
-%% compute Widmann psychoacoustic annoyance (from input percentile values)
+%% compute psychoacoustic annoyance (from input percentile values)
 
 PA = PsychoacousticAnnoyance_Zwicker1999_from_percentile(res.L.N5,... % loudness percentile
                                                          res.S.S5,... % sharpness percentile

@@ -1,16 +1,9 @@
-function OUT = PsychoacousticAnnoyance_Zwicker1999_from_wavfile(wavfilename,dBFS,LoudnessField,time_skip,showPA,show)
-% function OUT = PsychoacousticAnnoyance_Zwicker1999_from_wavfile(wavfilename,dBFS,LoudnessField,time_skip,showPA,show)
+function OUT = PsychoacousticAnnoyance_Widmann1992_from_wavfile(wavfilename,dBFS,LoudnessField,time_skip,showPA,show)
+% function OUT = PsychoacousticAnnoyance_Widmann1992_from_wavfile(wavfilename,dBFS,LoudnessField,time_skip,showPA,show)
 %
-%   This function is a compatibility-wrapper that calculates Widmann's
-%   psychoacoustic annoyance model from an input acoustic signal ---
-%   As clarified by Lotinga, M. J. B. and A. J. Torija (2025) in
-%   "Comment on "A study on calibration methods of noise annoyance data from listening tests"
-%   [J. Acoust. Soc. Am. 156, 1877–1886 (2024)]." Journal of the Acoustical
-%   Society of America 157(5): 3282–3285, this model is the same as that commonly
-%   misattributed to (page 327) Zwicker, E. and Fastl, H. Second ed,
-%   Psychoacoustics, Facts and Models, 2nd ed. Springer-Verlag, Berlin, 1999.
+%   This function calculates Widmann's psychoacoustic annoyance model from an input acoustic signal
 %
-%   The original psychoacoustic annoyance model is according to: (page 66) Widmann, U. (1992). Ein Modell der
+%   The psychoacoustic annoyance model is according to: (page 66) Widmann, U. (1992). Ein Modell der
 %   Psychoakustischen Lästigkeit von Schallen und seine Anwendung in der Praxis der Lärmbeurteilung
 %   (A model of the psychoacoustic annoyance of sounds and its application in noise assessment practice)
 %   [Doctoral thesis, Technische Universität München (Technical University of Munich)].
@@ -19,12 +12,12 @@ function OUT = PsychoacousticAnnoyance_Zwicker1999_from_wavfile(wavfilename,dBFS
 %   his PA model (see page 65 in the above mentioned reference), to which 
 %   he assigned an annoyance value of 1 au (annoyance unit).
 %
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%   WARNING: this function is merely a wrapper of the
-%   <PsychoacousticAnnoyance_Widmann1992> function, kept to maintain
-%   compatibility with SQAT v1.3 and below. Nevertheless, this function,
-%   will be removed in future releases
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   As clarified by Lotinga, M. J. B. and A. J. Torija (2025) in
+%   "Comment on "A study on calibration methods of noise annoyance data from listening tests"
+%   [J. Acoust. Soc. Am. 156, 1877–1886 (2024)]." Journal of the Acoustical
+%   Society of America 157(5): 3282–3285, this model is the same as that commonly
+%   misattributed to (page 327) Zwicker, E. and Fastl, H. Second ed,
+%   Psychoacoustics, Facts and Models, 2nd ed. Springer-Verlag, Berlin, 1999.
 %
 % - This metric combines 4 psychoacoustic metrics to quantitatively describe annoyance:
 %
@@ -52,6 +45,11 @@ function OUT = PsychoacousticAnnoyance_Zwicker1999_from_wavfile(wavfilename,dBFS
 %   of Widmann's psychoacoustic annoyance from the reference signal (i.e., 40 dBSPL tone at 1 kHz)
 %   using this implementation yields a value of 1 (au).
 %
+%  This script, PsychoacousticAnnoyance_Widmann1992_from_wavfile, calls 
+%    internally the main algorithm, PsychoacousticAnnoyance_Widmann1992. The 
+%    only difference is that PsychoacousticAnnoyance_Widmann1992_from_wavfile 
+%    requires a file name as first input argument and the dBFS convention 
+%    value as the second input argument.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
 % INPUT:
@@ -104,14 +102,52 @@ function OUT = PsychoacousticAnnoyance_Zwicker1999_from_wavfile(wavfilename,dBFS
 %
 %   fname = [basepath_SQAT 'sound_files' filesep 'reference_signals' filesep 'RefSignal_Loudness_ISO532_1.wav'];
 %   dBFS = 94; % default for SQAT
-%   PsychoacousticAnnoyance_Zwicker1999_from_wavfile(fname,dBFS);
+%   PsychoacousticAnnoyance_Widmann1992_from_wavfile(fname,dBFS);
 %
 % Author: Alejandro Osses
-% Modified: Mike Lotinga, 12.06.2025 - moved content to
-% PsychoacousticAnnoyance_Widmann1992_from_wavfile and made function a wrapper
+% Modified: Mike Lotinga, 12.06.2025 - created from
+% PsychoacousticAnnoyance_Zwicker1999_from_wavfile.m
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+if nargin == 0
+    help PsychoacousticAnnoyance_Widmann1992_from_wavfile;
+    return;
+end
+if nargin < 6
+    if nargout == 0
+        show = 1;
+    else
+        show = 0;
+    end
+end
+if nargin < 5
+    if nargout == 0
+        showPA = 1; 
+    else
+        showPA = 0;
+    end
+end
+if nargin <4
+    pars = psychoacoustic_metrics_get_defaults('PsychoacousticAnnoyance_Widmann1992');
+    time_skip = pars.time_skip;
+    fprintf('\n%s.m: Default time_skip value = %.0f is being used\n',mfilename,pars.time_skip);
+end
+if nargin <3
+    pars = psychoacoustic_metrics_get_defaults('PsychoacousticAnnoyance_Widmann1992');
+    LoudnessField = pars.Loudness_field;
+    fprintf('\n%s.m: Default Loudness_field value = %.0f is being used\n',mfilename,pars.Loudness_field);
+end
 
-OUT = PsychoacousticAnnoyance_Widmann1992_from_wavfile(wavfilename,dBFS,LoudnessField,time_skip,showPA,show);
+[insig,fs] = audioread(wavfilename);
+if nargin < 2 || isempty(dBFS)
+    dBFS = 94; % dB
+    fprintf('\n%s.m: Assuming the default full scale convention, with dBFS = %.0f\n',mfilename,dBFS);
+end
+gain_factor = 10^((dBFS-94)/20);
+insig = gain_factor*insig;
+
+OUT = PsychoacousticAnnoyance_Widmann1992(insig,fs,LoudnessField,time_skip,showPA,show);
+
+end % end of file
 
 %**************************************************************************
 %
