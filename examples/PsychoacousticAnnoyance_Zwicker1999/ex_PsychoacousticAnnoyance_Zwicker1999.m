@@ -18,6 +18,15 @@
 %   (A model of the psychoacoustic annoyance of sounds and its application in noise assessment practice)
 %   [Doctoral thesis, Technische Universität München (Technical University of Munich)].
 %
+%   Widmann defined a 1-kHz tone with 40 dB SPL as the reference signal for
+%   his PA model (see page 65 in the above mentioned reference), to which 
+%   he assigned an annoyance value of 1 au (annoyance unit).
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   WARNING: the <PsychoacousticAnnoyance_Zwicker1999> function is merely a wrapper of the
+%   <PsychoacousticAnnoyance_Widmann1992> function, kept to maintain
+%   compatibility with SQAT v1.3 and below. Nevertheless, it will be removed in future releases
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
 % FUNCTION:
 %   OUT = PsychoacousticAnnoyance_Zwicker1999(insig,fs,LoudnessField,time_skip,showPA,show)
@@ -68,5 +77,5 @@ PA = PsychoacousticAnnoyance_Zwicker1999_from_percentile(res.L.N5,... % loudness
                                                          res.R.R5,... % roughness percentile
                                                          res.FS.FS5); % fluctuation strength percentile
 
-fprintf('\n%s.m: Psychoacoustic annoyance (PA) from the input signal=%.1f (arbitrary units)\n',mfilename, PA_from_insig);
-fprintf('\n\tPA estimated directly from the percentiles=%.1f (arbitrary units)\n', PA);    
+fprintf('\n%s.m: Psychoacoustic annoyance (PA) from the input signal=%.1f (au)\n',mfilename, PA_from_insig);
+fprintf('\n\tPA estimated directly from the percentiles=%.1f (au)\n', PA);    

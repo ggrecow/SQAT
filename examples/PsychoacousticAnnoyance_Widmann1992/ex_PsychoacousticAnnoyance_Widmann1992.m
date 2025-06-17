@@ -2,17 +2,21 @@
 %
 % Example: Widmann's psychoacoustic annoyance of RefSignal_Loudness_ISO532_1
 %
-%   The psychoacoustic annoyance model is according to: (page 66) Widmann, U. (1992). Ein Modell der
-%   Psychoakustischen Lästigkeit von Schallen und seine Anwendung in der Praxis der Lärmbeurteilung
-%   (A model of the psychoacoustic annoyance of sounds and its application in noise assessment practice)
-%   [Doctoral thesis, Technische Universität München (Technical University of Munich)].
-%
 %   As clarified by Lotinga, M. J. B. and A. J. Torija (2025) in
 %   "Comment on "A study on calibration methods of noise annoyance data from listening tests"
 %   [J. Acoust. Soc. Am. 156, 1877–1886 (2024)]." Journal of the Acoustical
 %   Society of America 157(5): 3282–3285, this model is the same as that commonly
 %   misattributed to (page 327) Zwicker, E. and Fastl, H. Second ed,
-%   Psychoacoustics, Facts and Models, 2nd ed. Springer-Verlag, Berlin, 1999. 
+%   Psychoacoustics, Facts and Models, 2nd ed. Springer-Verlag, Berlin, 1999.
+%
+%   The original psychoacoustic annoyance model is according to: (page 66) Widmann, U. (1992). Ein Modell der
+%   Psychoakustischen Lästigkeit von Schallen und seine Anwendung in der Praxis der Lärmbeurteilung
+%   (A model of the psychoacoustic annoyance of sounds and its application in noise assessment practice)
+%   [Doctoral thesis, Technische Universität München (Technical University of Munich)].
+%
+%   Widmann defined a 1-kHz tone with 40 dB SPL as the reference signal for
+%   his PA model (see page 65 in the above mentioned reference), to which 
+%   he assigned an annoyance value of 1 au (annoyance unit).
 %
 % FUNCTION:
 %   OUT = PsychoacousticAnnoyance_Widmann1992(insig,fs,LoudnessField,time_skip,showPA,show)
@@ -59,5 +63,5 @@ PA = PsychoacousticAnnoyance_Zwicker1999_from_percentile(res.L.N5,... % loudness
                                                          res.R.R5,... % roughness percentile
                                                          res.FS.FS5); % fluctuation strength percentile
 
-fprintf('\n%s.m: Psychoacoustic annoyance (PA) from the input signal=%.1f (arbitrary units)\n',mfilename, PA_from_insig);
-fprintf('\n\tPA estimated directly from the percentiles=%.1f (arbitrary units)\n', PA);    
+fprintf('\n%s.m: Psychoacoustic annoyance (PA) from the input signal=%.1f (au)\n',mfilename, PA_from_insig);
+fprintf('\n\tPA estimated directly from the percentiles=%.1f (au)\n', PA);    

@@ -391,7 +391,7 @@ function il_plotter(time,Instantaneous,percentile,variable)
 
         case 'annoyance'
             p='PA$'; % string for percentile legend
-            y_axis='Psychoacoustic annoyance, PA (-)'; % string for the y-axis
+            y_axis='Psychoacoustic annoyance, PA (au)'; % string for the y-axis
             h  =figure('NAME','Psychoacoustic annoyance');
     end
 

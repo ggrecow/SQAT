@@ -8,16 +8,16 @@ function OUT = PsychoacousticAnnoyance_Widmann1992_from_wavfile(wavfilename,dBFS
 %   (A model of the psychoacoustic annoyance of sounds and its application in noise assessment practice)
 %   [Doctoral thesis, Technische Universität München (Technical University of Munich)].
 %
+%   Widmann defined a 1-kHz tone with 40 dB SPL as the reference signal for
+%   his PA model (see page 65 in the above mentioned reference), to which 
+%   he assigned an annoyance value of 1 au (annoyance unit).
+%
 %   As clarified by Lotinga, M. J. B. and A. J. Torija (2025) in
 %   "Comment on "A study on calibration methods of noise annoyance data from listening tests"
 %   [J. Acoust. Soc. Am. 156, 1877–1886 (2024)]." Journal of the Acoustical
 %   Society of America 157(5): 3282–3285, this model is the same as that commonly
 %   misattributed to (page 327) Zwicker, E. and Fastl, H. Second ed,
 %   Psychoacoustics, Facts and Models, 2nd ed. Springer-Verlag, Berlin, 1999.
-%
-%   Widmann defined a 1-kHz tone with 40 dB SPL as the reference signal for
-%   his PA model (see page 65 in the above mentioned reference), to which 
-%   he assigned an annoyance value of 1 au (annoyance unit).
 %
 % - This metric combines 4 psychoacoustic metrics to quantitatively describe annoyance:
 %

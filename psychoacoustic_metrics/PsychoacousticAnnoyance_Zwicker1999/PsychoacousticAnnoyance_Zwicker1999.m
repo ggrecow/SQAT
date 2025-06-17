@@ -19,6 +19,13 @@ function OUT = PsychoacousticAnnoyance_Zwicker1999(insig,fs,LoudnessField,time_s
 %   his PA model (see page 65 in the above mentioned reference), to which 
 %   he assigned an annoyance value of 1 au (annoyance unit).
 %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   WARNING: this function is merely a wrapper of the
+%   <PsychoacousticAnnoyance_Widmann1992> function, kept to maintain
+%   compatibility with SQAT v1.3 and below. Nevertheless, this function,
+%   will be removed in future releases
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
 % - This metric combines 4 psychoacoustic metrics to quantitatively describe annoyance:
 %
 %    1) Loudness (sone) - calculated hereafter following ISO 532-1:2017

@@ -65,6 +65,9 @@ PA_Di_example      = [bp 'examples'               filesep 'PsychoacousticAnnoyan
 PA_Zwicker_main    = [bp 'psychoacoustic_metrics' filesep 'PsychoacousticAnnoyance_Zwicker1999' filesep];
 PA_Zwicker_example = [bp 'examples'               filesep 'PsychoacousticAnnoyance_Zwicker1999' filesep];
 
+PA_Widmann_main    = [bp 'psychoacoustic_metrics' filesep 'PsychoacousticAnnoyance_Widmann1992' filesep];
+PA_Widmann_example = [bp 'examples'               filesep 'PsychoacousticAnnoyance_Widmann1992' filesep];
+
 SLM_example        = [bp 'examples'               filesep 'sound_level_meter' filesep];
 
 EPNL_main        = [bp 'psychoacoustic_metrics' filesep 'EPNL_FAR_Part36' filesep];
@@ -125,6 +128,12 @@ bAdd = ~exist('PsychoacousticAnnoyance_Zwicker1999.m','file');
 if bAdd
     addpath(PA_Zwicker_main);
     addpath(PA_Zwicker_example);
+end
+
+bAdd = ~exist('PsychoacousticAnnoyance_Widmann1992.m','file');
+if bAdd
+    addpath(PA_Widmann_main);
+    addpath(PA_Widmann_example);
 end
 
 bAdd = ~exist('PsychoacousticAnnoyance_More2010.m','file');
