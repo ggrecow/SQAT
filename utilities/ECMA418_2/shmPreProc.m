@@ -2,7 +2,7 @@ function signalOut = shmPreProc(signal, blockSize, hopSize, padStart, padEnd)
 % signalFadePad = shmPreProc(signal, blockSize, hopSize, padStart, padEnd)
 %
 % Returns signal with fade-in and zero-padding pre-processing according to
-% ECMA-418-2:2024 (the Sottek Hearing Model) for an input signal.
+% ECMA-418-2:2025 (the Sottek Hearing Model) for an input signal.
 %
 % Inputs
 % ------
@@ -43,7 +43,7 @@ function signalOut = shmPreProc(signal, blockSize, hopSize, padStart, padEnd)
 % Institution: University of Salford
 %
 % Date created: 26/09/2023
-% Date last modified: 12/06/2025
+% Date last modified: 27/06/2025
 % MATLAB version: 2023b
 %
 % Copyright statement: This file and code is part of work undertaken within
@@ -73,13 +73,13 @@ function signalOut = shmPreProc(signal, blockSize, hopSize, padStart, padEnd)
 % Input pre-processing
 % --------------------
 %
-% Fade in weighting function Section 5.1.2 ECMA-418-2:2024
+% Fade in weighting function Section 5.1.2 ECMA-418-2:2025
 fadeWeight = repmat(transpose(0.5 - 0.5*cos(pi*(0:239)/240)), 1, size(signal, 2));
 % Apply fade in
 signalFade = [fadeWeight.*signal(1:240, :);
               signal(241:end, :)];
 
-% Zero-padding Section 5.1.2 ECMA-418-2:2024
+% Zero-padding Section 5.1.2 ECMA-418-2:2025
 if padStart
     n_zeross = blockSize;  % start zero-padding
 else

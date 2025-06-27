@@ -1,7 +1,7 @@
 function [resampledSignal, resampledRate] = shmResample(signal, sampleRateIn)
 % [resampledSignal, resampledRate] = shmResample_(signal, sampleRateIn)
 %
-% Returns signal resampled to 48 kHz, according to ECMA-418-2:2024
+% Returns signal resampled to 48 kHz, according to ECMA-418-2:2025
 % (the Sottek Hearing Model) for an input signal.
 %
 % Inputs
@@ -37,7 +37,7 @@ function [resampledSignal, resampledRate] = shmResample(signal, sampleRateIn)
 % Institution: University of Salford
 %
 % Date created: 26/09/2023
-% Date last modified: 12/06/2025
+% Date last modified: 27/06/2025
 % MATLAB version: 2023b
 %
 % Copyright statement: This file and code is part of work undertaken within
@@ -60,7 +60,7 @@ function [resampledSignal, resampledRate] = shmResample(signal, sampleRateIn)
 
 %% Define constants
 
-% Section 5.1.1 ECMA-418-2:2024
+% Section 5.1.1 ECMA-418-2:2025
 resampledRate = 48e3;  % Signal sample rate prescribed to be 48 kHz
 
 %% Signal processing

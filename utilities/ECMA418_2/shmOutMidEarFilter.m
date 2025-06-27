@@ -2,7 +2,7 @@ function signalFiltered  = shmOutMidEarFilter(signal, soundField, outPlot)
 % signalFiltered  = shmOutMidEarFilter(signal, soundField, outPlot)
 %
 % Returns signal filtered for outer and middle ear response according to
-% ECMA-418-2:2024 (the Hearing Model of Sottek) for an input calibrated
+% ECMA-418-2:2025 (the Hearing Model of Sottek) for an input calibrated
 % audio (sound pressure) time-series signal. Optional plot output shows
 % frequency and phase response of the filter.
 %
@@ -41,7 +41,7 @@ function signalFiltered  = shmOutMidEarFilter(signal, soundField, outPlot)
 % Institution: University of Salford / ANV Measurement Systems
 %
 % Date created: 26/09/2023
-% Date last modified: 12/06/2025
+% Date last modified: 27/06/2025
 % MATLAB version: 2023b
 %
 % Copyright statement: This file and code is part of work undertaken within
@@ -74,7 +74,7 @@ function signalFiltered  = shmOutMidEarFilter(signal, soundField, outPlot)
 % Apply outer & middle ear filter bank
 % ------------------------------------
 %
-% Filter coefficients from Section 5.1.3.2 Table 1 ECMA-418-2:2024
+% Filter coefficients from Section 5.1.3.2 Table 1 ECMA-418-2:2025
 % b_0k = [1.015896, 0.958943, 0.961372, 2.225804, 0.471735, 0.115267, 0.988029,...
 %         1.952238];
 % b_1k = [-1.925299, -1.806088, -1.763632, -1.43465, -0.366092, 0.0, -1.912434,...
@@ -113,7 +113,7 @@ elseif strcmp(soundField, "diffuse")
            a_0k(3:end).', a_1k(3:end).', a_2k(3:end).'];
 end
 
-% Section 5.1.3.2 ECMA-418-2:2024 Outer and middle/inner ear signal filtering
+% Section 5.1.3.2 ECMA-418-2:2025 Outer and middle/inner ear signal filtering
 signalFiltered = sosfilt(sos, signal, 1);
 
 %% Plot figures

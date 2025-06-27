@@ -2,7 +2,7 @@ function roughWeight = shmRoughWeight(modRate, modfreqMaxWeight, roughWeightPara
 % roughWeight = shmRoughWeight(modRate, modfreqMaxWeight, roughWeightParams)
 %
 % Returns roughness weighting for high- and low-frequency (modulation
-% rates) according to ECMA-418-2:2024 (the Sottek Hearing Model) for a set
+% rates) according to ECMA-418-2:2025 (the Sottek Hearing Model) for a set
 % of modulation rates and parameters.
 %
 % Inputs
@@ -40,7 +40,7 @@ function roughWeight = shmRoughWeight(modRate, modfreqMaxWeight, roughWeightPara
 % Institution: University of Salford
 %
 % Date created: 10/07/2024
-% Date last modified: 12/06/2025
+% Date last modified: 27/06/2025
 % MATLAB version: 2023b
 %
 % Copyright statement: This file and code is part of work undertaken within

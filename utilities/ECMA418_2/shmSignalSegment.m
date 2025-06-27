@@ -1,8 +1,8 @@
 function [signalSegmented, iBlocksOut] = shmSignalSegment(signal, axisN, blockSize, overlap, i_start, endShrink)
 % [signalSegmented, iBlocksOut] = shmSignalSegment(signal, axisN, blockSize,
 %                                                  overlap, i_start, endShrink)
-%
-% Returns input signal segmented into blocks for processing.
+% Returns input signal segmented into blocks for processing according to
+% ECMA-418-2:2025 (the Sottek Hearing Model).
 %
 % Inputs
 % ------
@@ -57,7 +57,7 @@ function [signalSegmented, iBlocksOut] = shmSignalSegment(signal, axisN, blockSi
 % Institution: University of Salford / ANV Measurement Systems
 %
 % Date created: 27/09/2023
-% Date last modified: 12/06/2025
+% Date last modified: 27/06/2025
 % MATLAB version: 2023b
 %
 % Copyright statement: This file and code is part of work undertaken within

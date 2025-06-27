@@ -1,27 +1,28 @@
 function OUT = Loudness_ECMA418_2(insig, fs, fieldtype, time_skip, show)
 % OUT = Loudness_ECMA418_2(insig, fs, fieldtype, time_skip, show)
 %
-% Returns loudness values according to ECMA-418-2:2024 (using the Sottek
+% Returns loudness values according to ECMA-418-2:2025 (using the Sottek
 % Hearing Model) for an input calibrated single mono or single stereo
 % audio (sound pressure) time-series signal, insig. For stereo signals,  
 % Loudness is calculated for each channel [left ear, right ear],
 % and also for the combination of both, denominated as 
-% "combined binaural" (see Section 8.1.15 ECMA-418-2:2024). 
+% "combined binaural" (see Section 8.1.15 ECMA-418-2:2025). 
 % 
-% According to ECMA-418-2:2024 (Section 8.1.4), the representative 
-% single value to express the
-% overall loudness is obtained by a power average of the time-dependent
-% loudness, provided here as the <loudnessPowAvg> output variable.
+% According to ECMA-418-2:2025 (Section 8.1.4), the representative 
+% single value to express the overall loudness is obtained by a power
+% average of the time-dependent loudness, provided here as the
+% <loudnessPowAvg> output variable.
 %
-% NOTE: according to ECMA-418-2:2024 (Section 8.1.4), the loudness
-% values corresponding to the first 300 ms of the input signal must be discarded 
-% due to the transient responses of the digital filters. Considering the temporal resolution
-% of the loudness model, this means any values below 304 ms must be discarded.
+% NOTE: according to ECMA-418-2:2025 (Section 8.1.4), the loudness
+% values corresponding to the first 300 ms of the input signal must be
+% discarded due to the transient responses of the digital filters.
+% Considering the temporal resolution of the loudness model, this means any
+% values below 304 ms must be discarded.
 % Therefore, <time_skip> must be greater or equal to 304 ms to compute any
 % time-aggregated quantity. 
 %
-%  Reference signal: pure tone with center frequency of 1 kHz and RMS value
-%  of 40 dBSPL equals 1 sone_HMS
+% Reference signal: pure tone with center frequency of 1 kHz and RMS value
+% of 40 dBSPL equals 1 sone_HMS
 %
 % Inputs
 % ------
@@ -36,7 +37,7 @@ function OUT = Loudness_ECMA418_2(insig, fs, fieldtype, time_skip, show)
 %                 determines whether the 'free-frontal' or 'diffuse' field stages
 %                 are applied in the outer-middle ear filter
 %
-% time_skip : integer (default: 304 ms seconds - see ECMA-418-2:2024, Section 8.1.4)
+% time_skip : integer (default: 304 ms seconds - see ECMA-418-2:2025, Section 8.1.4)
 %                   skip start of the signal in <time_skip> seconds so that
 %                   the transient response of the digital filters is avoided.
 %                   Best-practice: <time_skip> must be equal or higher than
@@ -141,7 +142,7 @@ function OUT = Loudness_ECMA418_2(insig, fs, fieldtype, time_skip, show)
 % Institution: University of Salford
 %
 % Date created: 22/09/2023
-% Date last modified: 12/06/2025
+% Date last modified: 27/06/2025
 % MATLAB version: 2023b
 %
 % Copyright statement: This file and code is part of work undertaken within
@@ -206,28 +207,28 @@ else
 end
 
 if time_skip<t_threshold
-        warning("Time_skip must be at least 304 ms to avoid transient responses of the digital filters (see ECMA-418-2:2024 (Section 8.1.4)). Setting time_skip to 304 ms!!!")
+        warning("Time_skip must be at least 304 ms to avoid transient responses of the digital filters (see ECMA-418-2:2025 (Section 8.1.4)). Setting time_skip to 304 ms!!!")
         time_skip = t_threshold;
 end
 
 %% Define constants
 
-sampleRate48k = 48e3;  % Signal sample rate prescribed to be 48kHz (to be used for resampling), Section 5.1.1 ECMA-418-2:2024 [r_s]
-deltaFreq0 = 81.9289;  % defined in Section 5.1.4.1 ECMA-418-2:2024 [deltaf(f=0)]
-c = 0.1618;  % Half-overlapping Bark band centre-frequency demoninator constant defined in Section 5.1.4.1 ECMA-418-2:2024
+sampleRate48k = 48e3;  % Signal sample rate prescribed to be 48kHz (to be used for resampling), Section 5.1.1 ECMA-418-2:2025 [r_s]
+deltaFreq0 = 81.9289;  % defined in Section 5.1.4.1 ECMA-418-2:2025 [deltaf(f=0)]
+c = 0.1618;  % Half-overlapping Bark band centre-frequency demoninator constant defined in Section 5.1.4.1 ECMA-418-2:2025
 
 dz = 0.5;  % critical band overlap [deltaz]
 halfBark = 0.5:dz:26.5;  % half-overlapping band rate scale [z]
-bandCentreFreqs = (deltaFreq0/c)*sinh(c*halfBark);  % Section 5.1.4.1 Equation 9 ECMA-418-2:2024 [F(z)]
+bandCentreFreqs = (deltaFreq0/c)*sinh(c*halfBark);  % Section 5.1.4.1 Equation 9 ECMA-418-2:2025 [F(z)]
 
-% Section 8.1.1 ECMA-418-2:2024
-weight_n = 0.5331;  % Equations 113 & 114 ECMA-418-2:2024 [w_n]
-% Table 12 ECMA-418-2:2024
+% Section 8.1.1 ECMA-418-2:2025
+weight_n = 0.5331;  % Equations 113 & 114 ECMA-418-2:2025 [w_n]
+% Table 12 ECMA-418-2:2025
 a = 0.2918;
 b = 0.5459;
 
 % Output sample rate based on tonality hop sizes (Section 6.2.6
-% ECMA-418-2:2024) [r_sd]
+% ECMA-418-2:2025) [r_sd]
 sampleRate1875 = sampleRate48k/256;
 
 %% Signal processing
@@ -246,29 +247,29 @@ end
 % Calculate specific loudnesses for tonal and noise components
 % ------------------------------------------------------------
 
-% Obtain tonal and noise component specific loudnesses from Sections 5 & 6 ECMA-418-2:2024
+% Obtain tonal and noise component specific loudnesses from Sections 5 & 6 ECMA-418-2:2025
 tonalitySHM = Tonality_ECMA418_2(p_re, sampleRate48k, fieldtype, time_skip, false);
 
 specTonalLoudness = tonalitySHM.specTonalLoudness;  % [N'_tonal(l,z)]
 specNoiseLoudness = tonalitySHM.specNoiseLoudness;  % [N'_noise(l,z)]
 
-% Section 8.1.1 ECMA-418-2:2024
+% Section 8.1.1 ECMA-418-2:2025
 % Weight and combine component specific loudnesses
 for chan = chansIn:-1:1
 
-    % Equation 114 ECMA-418-2:2024 [e(z)]
+    % Equation 114 ECMA-418-2:2025 [e(z)]
     maxLoudnessFuncel = a./(max(specTonalLoudness(:, :, chan)...
                                 + specNoiseLoudness(:, :, chan), [],...
                                 2, "omitnan") + 1e-12) + b;
 
-    % Equation 113 ECMA-418-2:2024 [N'(l,z)]
+    % Equation 113 ECMA-418-2:2025 [N'(l,z)]
     specLoudness(:, :, chan) = (specTonalLoudness(:, :, chan).^maxLoudnessFuncel...
                                 + abs((weight_n.*specNoiseLoudness(:, :, chan)).^maxLoudnessFuncel)).^(1./maxLoudnessFuncel);
 end
 
 if chansIn == 2 && binaural
     % Binaural loudness
-    % Section 8.1.5 ECMA-418-2:2024 Equation 118 [N'_B(l,z)]
+    % Section 8.1.5 ECMA-418-2:2025 Equation 118 [N'_B(l,z)]
     specLoudness(:, :, 3) = sqrt(sum(specLoudness.^2, 3)/2);
     specTonalLoudness(:, :, 3) = sqrt(sum(specTonalLoudness.^2, 3)/2);
     specNoiseLoudness(:, :, 3) = sqrt(sum(specNoiseLoudness.^2, 3)/2);
@@ -285,11 +286,11 @@ timeOut = (0:(size(specLoudness, 1) - 1))/sampleRate1875;
 [~, time_skip_idx] = min( abs(timeOut-time_skip) ); % find idx of time_skip on timeOut
 [~, idx_insig] = min( abs(timeInsig - time_skip) ); % find idx of time_skip on timeInsig
 
-% Section 8.1.2 ECMA-418-2:2024
+% Section 8.1.2 ECMA-418-2:2025
 % Time-averaged specific loudness Equation 115 [N'(z)]
 specLoudnessPowAvg = (sum(specLoudness(time_skip_idx:end, :, :).^(1/log10(2)), 1)./size(specLoudness(time_skip_idx:end, :, :), 1)).^log10(2); %<--- time index takes <time_skip> into consideration
 
-% Section 8.1.3 ECMA-418-2:2024
+% Section 8.1.3 ECMA-418-2:2025
 % Time-dependent loudness Equation 116 [N(l)]
 % Discard singleton dimensions
 if chansOut == 1
@@ -300,7 +301,7 @@ else
     specLoudnessPowAvg = squeeze(specLoudnessPowAvg);
 end
 
-% Section 8.1.4 ECMA-418-2:2024
+% Section 8.1.4 ECMA-418-2:2025
 % Overall loudness Equation 117 [N]
 loudnessPowAvg = (sum(loudnessTDep(time_skip_idx:end, :).^(1/log10(2)), 1)./size(loudnessTDep(time_skip_idx:end, :), 1)).^log10(2); %<--- time index takes <time_skip> into consideration
 
