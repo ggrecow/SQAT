@@ -3,7 +3,7 @@ function signalFiltered = shmAuditoryFiltBank(signal, outPlot)
 %
 % Returns a set of signals, bandpass filtered for the inner ear response
 % in each half-Bark critical band rate scale width, according to
-% ECMA-418-2:2024 (the Sottek Hearing Model) for an input calibrated
+% ECMA-418-2:2025 (the Sottek Hearing Model) for an input calibrated
 % single (sound pressure) time-series signal.
 %
 % Inputs
@@ -38,7 +38,7 @@ function signalFiltered = shmAuditoryFiltBank(signal, outPlot)
 % Institution: University of Salford / ANV Measurement Systems
 %
 % Date created: 27/09/2023
-% Date last modified: 12/06/2025
+% Date last modified: 27/06/2025
 % MATLAB version: 2023b
 %
 % Copyright statement: This file and code is part of work undertaken within
@@ -65,14 +65,14 @@ function signalFiltered = shmAuditoryFiltBank(signal, outPlot)
 
 %% Define constants
 
-sampleRate48k = 48e3;  % Signal sample rate prescribed to be 48kHz (to be used for resampling), Section 5.1.1 ECMA-418-2:2024
-deltaFreq0 = 81.9289;  % defined in Section 5.1.4.1 ECMA-418-2:2024
-c = 0.1618;  % Critical band centre-frequency demoninator constant defined in Section 5.1.4.1 ECMA-418-2:2024
+sampleRate48k = 48e3;  % Signal sample rate prescribed to be 48kHz (to be used for resampling), Section 5.1.1 ECMA-418-2:2025
+deltaFreq0 = 81.9289;  % defined in Section 5.1.4.1 ECMA-418-2:2025
+c = 0.1618;  % Critical band centre-frequency demoninator constant defined in Section 5.1.4.1 ECMA-418-2:2025
 
 dz = 0.5;
 halfBark = 0.5:dz:26.5;  % half-overlapping critical band rate scale
-bandCentreFreqs = (deltaFreq0/c)*sinh(c*halfBark);  % Section 5.1.4.1 Equation 9 ECMA-418-2:2024
-dfz = sqrt(deltaFreq0^2 + (c*bandCentreFreqs).^2);  % Section 5.1.4.1 Equation 10 ECMA-418-2:2024
+bandCentreFreqs = (deltaFreq0/c)*sinh(c*halfBark);  % Section 5.1.4.1 Equation 9 ECMA-418-2:2025
+dfz = sqrt(deltaFreq0^2 + (c*bandCentreFreqs).^2);  % Section 5.1.4.1 Equation 10 ECMA-418-2:2025
 
 
 %% Signal processing
@@ -80,30 +80,30 @@ dfz = sqrt(deltaFreq0^2 + (c*bandCentreFreqs).^2);  % Section 5.1.4.1 Equation 1
 % Apply auditory filter bank
 % --------------------------
 % Filter equalised signal using 53 1/2Bark ERB filters according to 
-% Section 5.1.4.2 ECMA-418-2:2024
+% Section 5.1.4.2 ECMA-418-2:2025
 
-k = 5;  % filter order = 5, footnote 5 ECMA-418-2:2024
-e_i = [0, 1, 11, 11, 1];  % filter coefficients for Section 5.1.4.2 Equation 15 ECMA-418-2:2024
+k = 5;  % filter order = 5, footnote 5 ECMA-418-2:2025
+e_i = [0, 1, 11, 11, 1];  % filter coefficients for Section 5.1.4.2 Equation 15 ECMA-418-2:2025
 
 for zBand = 53:-1:1
-    % Section 5.1.4.1 Equation 8 ECMA-418-2:2024
+    % Section 5.1.4.1 Equation 8 ECMA-418-2:2025
     tau = (1/(2^(2*k - 1))).*nchoosek(2*k - 2, k - 1).*(1./dfz(zBand));
     
-    d = exp(-1./(sampleRate48k.*tau)); % Section 5.1.4.1 ECMA-418-2:2024
+    d = exp(-1./(sampleRate48k.*tau)); % Section 5.1.4.1 ECMA-418-2:2025
     
-    % Band-pass modifier Section 5.1.4.2 Equation 16/17 ECMA-418-2:2024
+    % Band-pass modifier Section 5.1.4.2 Equation 16/17 ECMA-418-2:2025
     bp = exp((1i.*2.*pi.*bandCentreFreqs(zBand).*(0:k+1))./sampleRate48k);
     
-    % Feed-backward coefficients, Section 5.1.4.2 Equation 14 ECMA-418-2:2024
+    % Feed-backward coefficients, Section 5.1.4.2 Equation 14 ECMA-418-2:2025
     m_a = 1:k;
     a_m = ([1, ((-d).^m_a).*arrayfun(@(m_) nchoosek(k, m_), m_a)]).*bp(1:k+1);
 
-    % Feed-forward coefficients, Section 5.1.4.2 Equation 15 ECMA-418-2:2024
+    % Feed-forward coefficients, Section 5.1.4.2 Equation 15 ECMA-418-2:2025
     m_b = 0:k-1;
     i = 1:k-1;
     b_m = ((((1-d).^k)./sum(e_i(i+1).*(d.^i))).*(d.^m_b).*e_i).*bp(1:k);
 
-    % Recursive filter Section 5.1.4.2 Equation 13 ECMA-418-2:2024
+    % Recursive filter Section 5.1.4.2 Equation 13 ECMA-418-2:2025
     % Note, the results are complex so 2x the real-valued band-pass signal
     % is required.
     signalFiltered(:, zBand, :) = 2*real(filter(b_m, a_m, signal));

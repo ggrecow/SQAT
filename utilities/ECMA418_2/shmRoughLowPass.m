@@ -2,7 +2,7 @@ function specRoughness = shmRoughLowPass(specRoughEstTform, sampleRate, riseTime
 % specRoughness = shmRoughLowPass(specRoughEstTform, sampleRate, riseTime, fallTime)
 %
 % Returns specific roughness low pass filtered for smoothing according to
-% ECMA-418-2:2024 (the Sottek Hearing Model) for an input transformed
+% ECMA-418-2:2025 (the Sottek Hearing Model) for an input transformed
 % estimate of the specific roughnesss.
 %
 % Inputs
@@ -37,7 +37,7 @@ function specRoughness = shmRoughLowPass(specRoughEstTform, sampleRate, riseTime
 % Institution: University of Salford / ANV Measurement Systems
 %
 % Date created: 22/09/2023
-% Date last modified: 12/06/2025
+% Date last modified: 27/06/2025
 % MATLAB version: 2023b
 %
 % Copyright statement: This file and code is part of work undertaken within
