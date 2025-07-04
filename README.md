@@ -91,14 +91,25 @@ If you use this toolbox in your research, we would be grateful if you help us to
 
 <!-- > **Apart from the toolbox repository itself (see above), each version released has its own doi in Zenodo. As differences between releases may occur, it is a good practice to cite the specific SQAT version being used. If you need to cite the current SQAT release, please refer to the "Cite this repository" feature in the "About" section of this GitHub repository.**-->  
 
+# Publications about SQAT
+
 The following paper is the main work describing SQAT and the metrics available in the first release:
 
 > Felix Greco, G., Merino-Martínez, R., Osses, A., & Langer, S. C. (2023). SQAT: a MATLAB-based toolbox for quantitative sound quality analysis. INTER-NOISE and NOISE-CON Congress and Conference Proceedings, InterNoise23, Chiba, Japan. doi: [10.3397/IN_2023_1075](https://doi.org/10.3397/IN_2023_1075)
 
+> Raw data and extra scripts to reproduce all the paper figures can be found [here](publications/pub_Greco2023_Internoise). 
+
 Additionally, here's a paper by the members of the SQAT team showing three case studies where the SQAT toolbox was used to perform all analyses:
 
-> Osses, A., Felix Greco, G., & Merino-Martínez, R. (2023). Considerations for the perceptual evaluation of steady-state and time-varying sounds using psychoacoustic metrics. Forum Acusticum, Turin, Italy, 11-15 September 2023. doi: [10.61782/fa.2023.0600](https://www.doi.org/10.61782/fa.2023.0600). 
-Raw data and extra scripts to reproduce all the paper figures can be found [here](https://doi.org/10.5281/zenodo.7933489).
+> Osses, A., Felix Greco, G., & Merino-Martínez, R. (2023). Considerations for the perceptual evaluation of steady-state and time-varying sounds using psychoacoustic metrics. Forum Acusticum, Turin, Italy, 11-15 September 2023. doi: [10.61782/fa.2023.0600](https://www.doi.org/10.61782/fa.2023.0600).
+
+> Raw data and extra scripts to reproduce all the paper figures can be found [here](https://doi.org/10.5281/zenodo.7933489).
+
+The implementation of the psychoacoustic models from ECMA-418-2 (released in v1.3) are presented and verified in the following publication:
+
+> Lotinga, M. J. B., Torjussen, M, & Felix Greco, G. (2025). Verified implementations of the Sottek psychoacoustic Hearing Model standardised sound quality metrics (ECMA-418-2 loudness, roughness and tonality). Forum Acusticum, Malaga, Spain, 23-26 June 2025. [(link)](https://www.researchgate.net/publication/392904348_Verified_implementations_of_the_Sottek_psychoacoustic_Hearing_Model_standardised_sound_quality_metrics_ECMA-418-2_loudness_roughness_and_tonality) 
+
+> Raw data and extra scripts to reproduce all the paper figures can be found [here](publications/pub_Lotinga2025_Forum_Acusticum_ECMA418_2).
 
 # Studies using SQAT
 
