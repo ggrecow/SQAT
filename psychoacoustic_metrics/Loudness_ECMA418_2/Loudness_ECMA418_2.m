@@ -142,7 +142,7 @@ function OUT = Loudness_ECMA418_2(insig, fs, fieldtype, time_skip, show)
 % Institution: University of Salford
 %
 % Date created: 22/09/2023
-% Date last modified: 27/06/2025
+% Date last modified: 23/07/2025
 % MATLAB version: 2023b
 %
 % Copyright statement: This file and code is part of work undertaken within
@@ -231,6 +231,9 @@ b = 0.5459;
 % ECMA-418-2:2025) [r_sd]
 sampleRate1875 = sampleRate48k/256;
 
+% Footnote 14 standardised epsilon
+epsilon = 1e-12;
+
 %% Signal processing
 
 % get time vector of input signal
@@ -260,7 +263,7 @@ for chan = chansIn:-1:1
     % Equation 114 ECMA-418-2:2025 [e(z)]
     maxLoudnessFuncel = a./(max(specTonalLoudness(:, :, chan)...
                                 + specNoiseLoudness(:, :, chan), [],...
-                                2, "omitnan") + 1e-12) + b;
+                                2, "omitnan") + epsilon) + b;
 
     % Equation 113 ECMA-418-2:2025 [N'(l,z)]
     specLoudness(:, :, chan) = (specTonalLoudness(:, :, chan).^maxLoudnessFuncel...
@@ -270,9 +273,9 @@ end
 if chansIn == 2 && binaural
     % Binaural loudness
     % Section 8.1.5 ECMA-418-2:2025 Equation 118 [N'_B(l,z)]
-    specLoudness(:, :, 3) = sqrt(sum(specLoudness.^2, 3)/2);
-    specTonalLoudness(:, :, 3) = sqrt(sum(specTonalLoudness.^2, 3)/2);
-    specNoiseLoudness(:, :, 3) = sqrt(sum(specNoiseLoudness.^2, 3)/2);
+    specLoudness(:, :, 3) = sqrt(sum(specLoudness(:, :, 1:2).^2, 3)/2);
+    specTonalLoudness(:, :, 3) = sqrt(sum(specTonalLoudness(:, :, 1:2).^2, 3)/2);
+    specNoiseLoudness(:, :, 3) = sqrt(sum(specNoiseLoudness(:, :, 1:2).^2, 3)/2);
     chansOut = 3;  % set number of 'channels' to stereo plus single binaural
     chans = [chans;
              "Combined binaural"];

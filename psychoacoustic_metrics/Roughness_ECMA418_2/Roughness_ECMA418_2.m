@@ -145,7 +145,7 @@ function OUT = Roughness_ECMA418_2(insig, fs, fieldtype, time_skip, show)
 % Institution: University of Salford
 %
 % Date created: 12/10/2023
-% Date last modified: 27/06/2025
+% Date last modified: 23/07/2025
 % MATLAB version: 2023b
 %
 % Copyright statement: This file and code is part of work undertaken within
@@ -279,6 +279,9 @@ sampleRate50 = 50;
 % Calibration constant
 cal_R = 0.0180909;   % calibration factor in Section 7.1.7 Equation 104 ECMA-418-2:2025 [c_R]
 cal_Rx = 1/1.0011565;  % calibration adjustment factor
+
+% Footnote 14 standardised epsilon
+epsilon = 1e-12;
 
 %% Signal processing
 
@@ -584,7 +587,7 @@ for chan = size(pn_om, 2):-1:1
                 % Equation 93 [w_peak]
                 gravityWeight = 1 + 0.1*abs(sum(modRateForLoop(indSetMax)...
                                             .*modAmpHiWeight(indSetMax, lBlock, zBand))...
-                                            /sum(modAmpHiWeight(indSetMax, lBlock, zBand) + eps)...
+                                            /sum(modAmpHiWeight(indSetMax, lBlock, zBand) + epsilon)...
                                             - modRateForLoop(iPeak)).^0.749;
 
                 % Equation 92 [Ahat(i)]
@@ -651,7 +654,7 @@ end  % end of for loop over channels
 % Binaural roughness
 % Section 7.1.11 ECMA-418-2:2025 [R'_B(l_50,z)]
 if chansIn == 2 && binaural
-    specRoughness(:, :, 3) = sqrt(sum(specRoughness.^2, 3)/2);  % Equation 112
+    specRoughness(:, :, 3) = sqrt(sum(specRoughness(:, :, 1:2).^2, 3)/2);  % Equation 112
     chansOut = 3;  % set number of 'channels' to stereo plus single binaural
     chans = [chans;
              "Combined binaural"];
@@ -682,7 +685,7 @@ end
 
 % Section 7.1.10 ECMA-418-2:2025
 % Overall roughness [R]
-roughness90Pc = prctile(roughnessTDep(time_skip_idx:end, :, :), 90, 1); %<--- time index takes <time_skip> into consideration
+roughness90Pc = prctile(roughnessTDep(time_skip_idx:end, :), 90, 1); %<--- time index takes <time_skip> into consideration
 
 %% Output assignment
 
