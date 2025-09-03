@@ -107,7 +107,7 @@ Additionally, here's a paper by the members of the SQAT team showing three case 
 
 The implementation of the psychoacoustic models from ECMA-418-2 (released in v1.3) are presented and verified in the following publication:
 
-> Lotinga, M. J. B., Torjussen, M, & Felix Greco, G. (2025). Verified implementations of the Sottek psychoacoustic Hearing Model standardised sound quality metrics (ECMA-418-2 loudness, roughness and tonality). Forum Acusticum, Malaga, Spain, 23-26 June 2025. [(link)](https://www.researchgate.net/publication/392904348_Verified_implementations_of_the_Sottek_psychoacoustic_Hearing_Model_standardised_sound_quality_metrics_ECMA-418-2_loudness_roughness_and_tonality) 
+> Lotinga, M. J. B., Torjussen, M, & Felix Greco, G. (2025). Verified implementations of the Sottek psychoacoustic Hearing Model standardised sound quality metrics (ECMA-418-2 loudness, tonality and roughness). Forum Acusticum, Malaga, Spain, 23-26 June 2025. [(link)](https://www.researchgate.net/publication/392904348_Verified_implementations_of_the_Sottek_psychoacoustic_Hearing_Model_standardised_sound_quality_metrics_ECMA-418-2_loudness_tonality_and_roughness) 
 
 > Raw data and extra scripts to reproduce all the paper figures can be found [here](publications/pub_Lotinga2025_Forum_Acusticum_ECMA418_2).
 
