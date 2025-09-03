@@ -11,6 +11,19 @@ function OUT = LoudnessFromComp_ECMA418_2(specTonalLoudness, specNoiseLoudness, 
 % and outer ear filter sound field options, these are not known to the
 % function, so cannot be included in the output.
 %
+% According to ECMA-418-2:2025 (Section 8.1.4), the representative 
+% single value to express the overall loudness is obtained by a power
+% average of the time-dependent loudness, provided here as the
+% <loudnessPowAvg> output variable.
+%
+% NOTE: according to ECMA-418-2:2025 (Section 8.1.4), the loudness
+% values corresponding to the first 300 ms of the input signal must be
+% discarded due to the transient responses of the digital filters.
+% Considering the temporal resolution of the loudness model, this means any
+% values below 304 ms must be discarded.
+% Therefore, <time_skip> must be greater or equal to 304 ms to compute any
+% time-aggregated quantity. 
+%
 % Reference signal: pure tone with center frequency of 1 kHz and RMS value
 % of 40 dB SPL equals 1 sone_HMS
 %
