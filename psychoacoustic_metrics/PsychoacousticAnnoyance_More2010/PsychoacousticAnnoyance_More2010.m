@@ -435,7 +435,7 @@ pos = get(h,'Position');
 set(h,'PaperPositionMode','Auto','PaperUnits','Inches','PaperSize',[pos(3), pos(4)])
 
 plot( time,Instantaneous,'k','Linewidth',0.5,'HandleVisibility','off'); hold on;
-plot( time,percentile.*ones(length(time)),'r--','Linewidth',0.5);
+plot( time, percentile.*ones(length(time),1),'r--','Linewidth',0.5 );
 
 legend(sprintf('%s_5=%.2f$',p,percentile),'Location','NorthEast','Interpreter','Latex');
 legend boxoff
