@@ -48,16 +48,9 @@ The implemented metrics available in the `psychoacoustic_metrics` folder are lis
 | Roughness  | ECMA-418-2:2024 [11]  |  [link](psychoacoustic_metrics/Roughness_ECMA418_2) | [link](validation/Roughness_ECMA418_2) |  [link](examples/Roughness_ECMA418_2) | v1.3 |
 | Tonality  | ECMA-418-2:2024 [11]  |  [link](psychoacoustic_metrics/Tonality_ECMA418_2) | [link](validation/Tonality_ECMA418_2) |  [link](examples/Tonality_ECMA418_2) | v1.3 |
 
-The following SPL-based metrics using different frequency weightings (A, B, C, D or Z) and time weightings (fast, slow, or impulse) can be calculated using the codes available in `sound_level_meter` folder (see [examples](examples/sound_level_meter)):
-
-- Sound pressure level over time.
-- Equivalent sound pressure level.
-- Maximum sound pressure level.
-- Sound exposure level.
-- Sound spectrum in 1/3 octave bands.
-
-**References**
-
+<details>
+<summary><b>References</summary>
+<br> 
 [1] International Organization for Standardization. (2017). Acoustics - Methods for calculating loudness - Part 1: Zwicker method (ISO Standard No. 532-1).
 
 [2] Deutsches Institut für Normung. (2009). Measurement technique for the simulation of the auditory sensation of sharpness (DIN Standard No. 45692).
@@ -80,7 +73,18 @@ The following SPL-based metrics using different frequency weightings (A, B, C, D
 
 [11] Ecma International. (2024). Psychoacoustic metrics for ITT equipment - Part 2 (methods for describing human perception based on the Sottek Hearing Model) (Standard No. 418-2, 3rd Edition/December 2024). [https://ecma-international.org/wp-content/uploads/ECMA-418-2_3rd_edition_december_2024.pdf](https://ecma-international.org/wp-content/uploads/ECMA-418-2_3rd_edition_december_2024.pdf) (Last viewed 22 Jan 2025)
 
+</details>
 
+# Sound level meter
+
+The following SPL-based metrics using different frequency weightings (A, B, C, D or Z) and time weightings (fast, slow, or impulse) can be calculated using the codes available in `sound_level_meter` folder (see [examples](examples/sound_level_meter)):
+
+- Sound pressure level over time.
+- Equivalent sound pressure level.
+- Maximum sound pressure level.
+- Sound exposure level.
+- Sound spectrum in 1/3 octave bands.
+ 
 # How to cite this repository
 If you use this toolbox in your research, we would be grateful if you help us to gain visibility by citing SQAT. This is the main citation if you need to cite the toolbox repository itself:
 
@@ -115,23 +119,53 @@ The implementation of the psychoacoustic models from ECMA-418-2 (released in v1.
 
 We would be very happy to know that you find SQAT useful and have used it in your own work. In this case, please reach out so we can feature your work here. 
 
- > Vourakis, M., Zea, E., Karlsson, M., Andersson, N., & Etemad, S. (2024). Installation effects on axial fans: Combined aeroacoustic and psychoacoustic perspective. [Applied Acoustics](https://doi.org/10.1016/j.apacoust.2025.110872), 240.
+<!-- > 2025 **-->  
+<details>
+<summary><b>2025</summary>
+
+## Journal articles
+
+> Lotinga, M. J. B., Green, M. C., & Toríja, A. J. (2025). Development of psychoacoustic prediction models for short-term noise annoyance responses to unmanned aircraft systems.  [The Journal of the Acoustical Society of America](https://doi.org/10.1121/10.0039056), 158, 2062–2082
+
+> Vourakis, M., Zea, E., Karlsson, M., Andersson, N., & Etemad, S. (2024). Installation effects on axial fans: Combined aeroacoustic and psychoacoustic perspective. [Applied Acoustics](https://doi.org/10.1016/j.apacoust.2025.110872), 240.
 
 > Wu, C., & Redonnet, S. (2025). A simple yet efficient data-driven model for the prediction of aircraft noise impact. [Aerospace Science and Technology](https://doi.org/10.1016/j.ast.2025.110286), 163.
 
 > Shen, Y., Bai, Y., Liu, X., & Zang, B. (2025). Drone noise reduction using serration-finlet blade design and its psychoacoustic and social impacts. [Sustainability](https://doi.org/10.3390/su17083451), 17(8), 3451.   
 
-> Bazilinskyy, P., Alam, M. S., & Merino-Martínez, R. (2025). Psychoacoustic assessment of synthetic sounds for electric vehicles in a virtual reality experiment. Forum Acusticum, Malaga, Spain, 23-26 June 2025. [(link)](https://www.researchgate.net/publication/390563218_Psychoacoustic_assessment_of_synthetic_sounds_for_electric_vehicles_in_a_virtual_reality_experiment).
-
 > Schade, S., Merino-Martinez, R., Moreau, A., Bartels, S., & Jaron, R. (2025). Psychoacoustic evaluation of different fan designs for an urban air mobility vehicle with distributed propulsion system. [The Journal of the Acoustical Society of America](https://doi.org/10.1121/10.0036228), 157 (3), 2150–2167.
 
 > Lotinga, M. J. B., Green, M. C., & Toríja, A. J. (2025). Human perception and response to sound from unmanned aircraft systems within ambient acoustic environments. [npj Acoustics](https://doi.org/10.1038/s44384-024-00001-6), 1:2.
 
-> Schmidt, H., Yupa-Villanueva, R. M., Ragni, D., Merino-Martinez, R., van Gool, P., & Schmehl, R. (2024). A listening experiment exploring the relationship between noise annoyance and sound quality metrics for airborne energy systems. [Wind Energy Science](https://doi.org/10.5194/wes-2024-125) [Preprint]
+## Conference papers
+
+> Lotinga, M. J. B., Green, M. C., & Toríja, A. J. (2025). Effects of exposure to unmanned aircraft systems sound: Applying machine learning and parametric clustered-data models to human response prediction. INTER-NOISE and NOISE-CON Congress and Conference Proceedings, InterNoise25, Sao Paulo, Brazil. [(link)](https://www.researchgate.net/publication/394919259_Effects_of_exposure_to_unmanned_aircraft_systems_sound_Applying_machine_learning_and_parametric_clustered-data_models_to_human_response_prediction)
+
+> Ferrari, G. C., Pereira Gouveia da Silva, G., & Lima Pereira, L. T. (2025). Optimizing effective perceived noise in distributed electric propulsion with neural networks and differential propeller rotation. INTER-NOISE and NOISE-CON Congress and Conference Proceedings, InterNoise25, Sao Paulo, Brazil. [(link)](https://www.researchgate.net/publication/394937872_Optimizing_effective_perceived_noise_in_distributed_electric_propulsion_with_neural_networks_and_differential_propeller_rotation)
+
+> Ramos-Romero, C., Green, M. C., Lotinga, M. J. B., & Toríja, A. J. (2025). Integrated U-space societal acceptance assessment: energy-based and perception-based acoustic metrics. Forum Acusticum, Malaga, Spain. [(link)](https://www.researchgate.net/publication/393461428_Integrated_U-space_societal_acceptance_assessment_energy-based_and_perception-based_acoustic_metrics)
+
+> Ellis, M., Green, M. C., Lotinga, M. J. B., & Toríja, A. J. (2025). Comparison of Deep Learning and Psychoacoustic Models to Predict UAVNoise Impact in Soundscapes. Forum Acusticum, Malaga, Spain. [(link)](https://www.researchgate.net/publication/393231769_Comparison_of_Deep_Learning_and_Psychoacoustic_Models_to_Predict_UAV_Noise_Impact_in_Soundscapes)
+
+> Bazilinskyy, P., Alam, M. S., & Merino-Martínez, R. (2025). Psychoacoustic assessment of synthetic sounds for electric vehicles in a virtual reality experiment. Forum Acusticum, Malaga, Spain. [(link)](https://www.researchgate.net/publication/390563218_Psychoacoustic_assessment_of_synthetic_sounds_for_electric_vehicles_in_a_virtual_reality_experiment).
+
+<br> 
+</details>
+
+<!-- > 2024 **-->  
+
+<details>
+<summary>2024</summary>
+
+ ## Journal articles
+
+> Schmidt, H., Yupa-Villanueva, R. M., Ragni, D., Merino-Martinez, R., van Gool, P., & Schmehl, R. (2024). Exploring noise annoyance and sound quality for airborne wind energy systems: insights from a listening experiment. [Wind Energy Science](https://doi.org/10.5194/wes-10-579-2025)
 
 > Kawai, C., Jäggi, J., Georgiou, F., Meister, J., Pieren, R., & Schäffer, B. (2024). Short-term noise annoyance towards drones and other transportation noise sources: A laboratory study. [The Journal of the Acoustical Society of America](https://doi.org/10.1121/10.0032386), 156 (4), 2578–2595.
 
 > Louwers, G., Pont, S., Gommers, D., van der Heide, E., & Özcan, E. (2024). Sonic ambiances through fundamental needs: An approach on soundscape interventions for intensive care patients, [The Journal of the Acoustical Society of America](https://doi.org/10.1121/10.0030470), 156 (4), 2376–2394.
+
+## Conference papers
 
 > Lotinga, M. J. B., Green, M. C., & Toríja, A. J. (2024). How do flight operations and ambient acoustic environments influence noticeability and noise annoyance associated with unmanned aircraft systems? [Quiet Drones 2024 conference](https://www.researchgate.net/publication/383915149_How_do_flight_operations_and_ambient_acoustic_environments_influence_noticeability_and_noise_annoyance_associated_with_unmanned_aircraft_systems)  
 
@@ -160,10 +194,28 @@ We would be very happy to know that you find SQAT useful and have used it in you
 > Knuth, D., Ring, T. P., & Langer, S. C. (2024). Comparing auralizations and measurements of vibrating plates with physical and psychoacoustic metrics. [Proceedings of 50. Jahrestagung für Akustik (DAGA)](https://pub.dega-akustik.de/DAGA_2024/files/upload/paper/176.pdf).
 
 > Brandetti, L., Mulders, S. P., Merino-Martinez, R., Watson, S., & van Wingerden, J.-W. (2024). Multi-objective calibration of vertical-axis wind turbine controllers: balancing aero-servo-elastic performance and noise. [Wind Energy Science](https://doi.org/10.5194/wes-9-471-2024), 9, 471-493.
+<br>
 
+</details>
+ 
+<!-- > 2023 **-->  
+<details>
+<summary>2023</summary>
+
+## Conference papers
+ 
+> Knuth, D., Ring, T. P., & Langer, S. C. (2023). Utilizing auralization to investigate psychoacoustic perception of vibrating structures. [Proceedings of 49. Jahrestagung für Akustik (DAGA)](https://pub.dega-akustik.de/DAGA_2023/data/articles/000414.pdf).
+<br> 
+</details>
+
+<!-- > thesis **-->  
+<details>
+<summary>Thesis</summary>
+<br>
+ 
 > Pockelé, J. S. (2023). Auralisation of modelled wind turbine noise for psychoacoustic listening experiments: development and validation of the wind turbine auralisation tool WinTAur. Master's thesis, [Delft University of Technology](http://resolver.tudelft.nl/uuid:cc9e67b4-6bde-4114-97c0-43b11b4a48ef).
 
-> Knuth, D., Ring, T. P., & Langer, S. C. (2023). Utilizing auralization to investigate psychoacoustic perception of vibrating structures. [Proceedings of 49. Jahrestagung für Akustik (DAGA)](https://pub.dega-akustik.de/DAGA_2023/data/articles/000414.pdf).
+</details>
 
 # Toolbox history
 
