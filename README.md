@@ -108,13 +108,13 @@ The following paper is the main work describing SQAT and the metrics available i
 
 Additionally, here's a paper by the members of the SQAT team showing three case studies where the SQAT toolbox was used to perform all analyses:
 
-> Osses, A., Felix Greco, G., & Merino-Martínez, R. (2023). Considerations for the perceptual evaluation of steady-state and time-varying sounds using psychoacoustic metrics. Forum Acusticum, Turin, Italy, 11-15 September 2023. DOI: [10.61782/fa.2023.0600](https://www.doi.org/10.61782/fa.2023.0600)
+> Osses, A., Felix Greco, G., & Merino-Martínez, R. (2023). Considerations for the perceptual evaluation of steady-state and time-varying sounds using psychoacoustic metrics. 10th Convention of the European Acoustics Association (Forum Acusticum), 11-15 September 2023, Turin, Italy. DOI: [10.61782/fa.2023.0600](https://www.doi.org/10.61782/fa.2023.0600)
 
 > Raw data and extra scripts to reproduce all the paper figures can be found [here](https://doi.org/10.5281/zenodo.7933489).
 
 The implementation of the psychoacoustic models from ECMA-418-2 (released in v1.3) are presented and verified in the following publication:
 
-> Lotinga, M. J. B., Torjussen, M, & Felix Greco, G. (2025). Verified implementations of the Sottek psychoacoustic Hearing Model standardised sound quality metrics (ECMA-418-2 loudness, tonality and roughness). Forum Acusticum, Malaga, Spain. [(link)](https://www.researchgate.net/publication/392904348_Verified_implementations_of_the_Sottek_psychoacoustic_Hearing_Model_standardised_sound_quality_metrics_ECMA-418-2_loudness_tonality_and_roughness) 
+> Lotinga, M. J. B., Torjussen, M, & Felix Greco, G. (2025). Verified implementations of the Sottek psychoacoustic Hearing Model standardised sound quality metrics (ECMA-418-2 loudness, tonality and roughness). 11th Convention of the European Acoustics Association (Forum Acusticum), 23-26 June 2025, Málaga, Spain. [(link)](https://www.researchgate.net/publication/392904348_Verified_implementations_of_the_Sottek_psychoacoustic_Hearing_Model_standardised_sound_quality_metrics_ECMA-418-2_loudness_tonality_and_roughness) 
 
 > Raw data and extra scripts to reproduce all the paper figures can be found [here](publications/pub_Lotinga2025_Forum_Acusticum_ECMA418_2).
 
@@ -244,7 +244,7 @@ We would be very happy to know that you find SQAT useful and have used it in you
 
 > Gan, Z. F. (2025). Time-Varying Noise of Electric Multirotor Aircraft. Doctoral thesis, Pennsylvania State University. [(link)](https://etda.libraries.psu.edu/catalog/25752zug117) 
 
-> Priboi, S. A. (2025). Aircraft-Induced Psychoacoustic Annoyance Quantification Using Artificial Intelligence. Master thesis, Delft University of Technology. [(link)](https://resolver.tudelft.nl/uuid:70a31852-ddaa-4e5c-90d0-d9c47352da6c)
+> Priboi, S. A. (2025). Evaluation of audio-visual parameters in the perceived aircraft noise annoyance using virtual reality experiments. Master thesis, Delft University of Technology. [(link)](https://resolver.tudelft.nl/uuid:70a31852-ddaa-4e5c-90d0-d9c47352da6c)
 
 > Buzeţelu, V. S. (2025). Aircraft-Induced Psychoacoustic Annoyance Quantification Using Artificial Intelligence. Master thesis, Delft University of Technology. [(link)](https://resolver.tudelft.nl/uuid:fa3ddab2-3a9b-4ad6-97d1-c3ce0a4d9678)
 
