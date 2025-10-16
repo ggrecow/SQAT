@@ -46,11 +46,11 @@ The implemented metrics available in the `psychoacoustic_metrics` folder are lis
 
 [5] Aures, W. (1985). Berechnungsverfahren für den sensorischen Wohlklang beliebiger Schallsignale (A model for calculating the sensory euphony of various sounds). Acta Acustica united with Acustica, 59(2), 130-141.
 
-[6] Widmann, U. (1992). Ein Modell der Psychoakustischen Lästigkeit von Schallen und seine Anwendung in der Praxis der Lärmbeurteilung (A model of the psychoacoustic annoyance of sounds and its application in noise assessment practice) [Doctoral thesis, Technische Universität München (Technical University of Munich)].
+[6] Widmann, U. (1992). Ein Modell der Psychoakustischen Lästigkeit von Schallen und seine Anwendung in der Praxis der Lärmbeurteilung (A model of the psychoacoustic annoyance of sounds and its application in noise assessment practice). Doctoral thesis, Technische Universität München.
 
-[7] Zwicker, E., & Fastl, H. (1999). Psychoacoustics: facts and models, Second edition. [Springer-Verlag](https://doi.org/10.1007/978-3-662-09562-1).
+[7] Zwicker, E., & Fastl, H. (1999). Psychoacoustics: facts and models, Second edition. Springer-Verlag. DOI: [10.1007/978-3-662-09562-1](https://doi.org/10.1007/978-3-662-09562-1)
 
-[8] More, S. R. (2010). Aircraft noise characteristics and metrics. PhD thesis, Purdue University. [https://docs.lib.purdue.edu/dissertations/AAI3453255/](https://docs.lib.purdue.edu/dissertations/AAI3453255/).
+[8] More, S. R. (2010). Aircraft noise characteristics and metrics. Doctoral thesis, Purdue University. [https://docs.lib.purdue.edu/dissertations/AAI3453255/](https://docs.lib.purdue.edu/dissertations/AAI3453255/)
 
 [9] Di, G. Q., Chen, X. W., Song, K., Zhou, B., & Pei, C. M. (2016). Improvement of Zwicker’s psychoacoustic annoyance model aiming at tonal noises. [Applied Acoustics](https://doi.org/10.1016/j.apacoust.2015.12.006), 105, 164-170.
 
@@ -146,11 +146,19 @@ We would be very happy to know that you find SQAT useful and have used it in you
 
 > Ferrari, G. C., Pereira Gouveia da Silva, G., & Lima Pereira, L. T. (2025). Optimizing effective perceived noise in distributed electric propulsion with neural networks and differential propeller rotation. INTER-NOISE and NOISE-CON Congress and Conference Proceedings, InterNoise25, Sao Paulo, Brazil. [(link)](https://www.researchgate.net/publication/394937872_Optimizing_effective_perceived_noise_in_distributed_electric_propulsion_with_neural_networks_and_differential_propeller_rotation)
 
+> Podwinska, Z., Ramos-Romero, C., Green, M. C., & Toríja, A. J. (2025). The effects of time-variant characteristics of unmanned aircraft system noise on reported annoyance. Forum Acusticum, Malaga, Spain. [(link)](https://www.researchgate.net/publication/393461425_The_effects_of_time-variant_characteristics_of_unmanned_aircraft_system_noise_on_reported_annoyance)
+
 > Ramos-Romero, C., Green, M. C., Lotinga, M. J. B., & Toríja, A. J. (2025). Integrated U-space societal acceptance assessment: energy-based and perception-based acoustic metrics. Forum Acusticum, Malaga, Spain. [(link)](https://www.researchgate.net/publication/393461428_Integrated_U-space_societal_acceptance_assessment_energy-based_and_perception-based_acoustic_metrics)
 
 > Ellis, M., Green, M. C., Lotinga, M. J. B., & Toríja, A. J. (2025). Comparison of Deep Learning and Psychoacoustic Models to Predict UAVNoise Impact in Soundscapes. Forum Acusticum, Malaga, Spain. [(link)](https://www.researchgate.net/publication/393231769_Comparison_of_Deep_Learning_and_Psychoacoustic_Models_to_Predict_UAV_Noise_Impact_in_Soundscapes)
 
 > Bazilinskyy, P., Alam, M. S., & Merino-Martínez, R. (2025). Psychoacoustic assessment of synthetic sounds for electric vehicles in a virtual reality experiment. Forum Acusticum, Malaga, Spain. [(link)](https://www.researchgate.net/publication/390563218_Psychoacoustic_assessment_of_synthetic_sounds_for_electric_vehicles_in_a_virtual_reality_experiment)
+
+> Lladó, P., Neidhardt, A., Brinkmann, F., & de Sena, E. (2025). Spatial audio models' inventory to cover the attributes from the spatial audtio quality inventory. Forum Acusticum, Malaga, Spain. [(link)](https://www.researchgate.net/profile/Pedro-Llado/publication/393003782_Spatial_audio_models'_inventory_to_cover_the_attributes_from_the_spatial_audio_quality_inventory/links/685bd45799d2ce32c1cac97f/Spatial-audio-models-inventory-to-cover-the-attributes-from-the-spatial-audio-quality-inventory.pdf) 
+
+> Pockelé, J. S. & Merino-Martinez, R. (2025). Perceived Noise Impact of Transitioning Towards Larger Wind Turbines Using Auralisations. 11th Ed. International Conferences on Wind Turbine Noise, Copenhagen, Denmark. [(link)](https://www.researchgate.net/publication/393400798_Perceived_Noise_Impact_of_Transitioning_Towards_Larger_Wind_Turbines_Using_Auralisations)
+
+> Pockelé, J. S. & Merino-Martinez, R. (2025). Influence of Ambient Noise in Sound Quality Assessment of AuralisedWind Turbine Noise. 11th Ed. International Conferences on Wind Turbine Noise, Copenhagen, Denmark. [(link)](https://www.researchgate.net/publication/393401282_Influence_of_Ambient_Noise_in_Sound_Quality_Assessment_of_Auralised_Wind_Turbine_Noise)
 
 <br> 
 </details>
@@ -217,6 +225,8 @@ We would be very happy to know that you find SQAT useful and have used it in you
 <br>
 
 > Schade, S. (2025). Design of low-noise fan engines for urban air mobility and sound quality analysis using virtual flyovers. Doctoral thesis, Technische Universität Berlin. DOI: [10.14279/depositonce-24074](https://doi.org/10.14279/depositonce-24074)
+
+> Gan, Z. F. (2025). Time-Varying Noise of Electric Multirotor Aircraft. Doctoral thesis, Pennsylvania State University. [(link)](https://etda.libraries.psu.edu/catalog/25752zug117) 
 
 > Taniguchi, R. (2024). 音質評価指標を用いた感覚的快さと感覚的快くなさの評価に関する調査 (Survey on the evaluation of sensory pleasantness and unpleasantness using sound quality evaluation indexes). Master thesis, Japan Advanced Institute of Science and Technology. [(link)](http://hdl.handle.net/10119/18909)
 
