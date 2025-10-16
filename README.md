@@ -3,22 +3,6 @@
 # SQAT: a sound quality analysis toolbox for MATLAB
 This is the repository of **SQAT**, an open-source **S**ound **Q**uality **A**nalysis **T**oolbox for MATLAB. It contains a collection of codes implementing key metrics for **quantitative** sound quality analysis. With **SQAT** you can conduct quick quantitative sound quality analysis on any calibrated input sound file, in Pascal units. To give a transparent indication of how close the implementations are to the original models, we provide a detailed set of verification routines. Moreover, a number of example codes and exemplary sound files are provided in order to facilitate the initial use of the algorithms.  
 
-# Toolbox structure
-The toolbox has the following directories:
-- `psychoacoustic_metrics`: this directory contains a number of algorithms implementing a specific psychoacoustic metric (see [folder](psychoacoustic_metrics)). 
-- `sound_level_meter`: contains scripts to obtain sound pressure levels using different frequency weightings (A, B, C, D or Z) and time weightings (fast, slow, or impulse) (see [folder](sound_level_meter)). 
-- `utilities`: contains some scripts that are complementary to any of the toolbox functions (see [folder](utilities)).
-- `examples`: an example script is provided for each metric (see [folder](examples)).
-- `sound_files`: this directory hosts reference sounds in .wav format that are used mainly by the `examples` codes (see [folder](sound_files)). 
-- `validation`: this directory contains scripts used to validate each algorithm. Instructions on how to run these codes are provided in each respective folder and directly on the header of the codes (see [folder](validation)). 
-- `publications`: contains scripts to reproduce figures and/or tables of publications from the toolbox authors (see [folder](publications)). 
-
-# How to use the toolbox
-
-1. Download or clone this repository to your local computer. One way to do that is to press the button 'Code' -> Choose 'Download ZIP' and unzip somewhere).
-
-2. After that, you need to add the relevant folders of the toolbox to the path of your MATLAB. Open and run the `startup_SQAT.m` script to automatically perform this task. In order to avoid conflicts, the `startup_SQAT.m` needs to be used every time MATLAB is (re)started. If you just want to use the metrics, you can add manually only the relevant folders to the MATLAB path (e.g., `psychoacoustic_metrics`, `sound_level_meter`, and `utilities`). 
-
 # Sound quality metrics available in SQAT 
 
 <!---The following psychoacoustic-based metrics are available in the `psychoacoustic_metrics` folder :
@@ -51,6 +35,7 @@ The implemented metrics available in the `psychoacoustic_metrics` folder are lis
 <details>
 <summary><b>References</summary>
 <br> 
+ 
 [1] International Organization for Standardization. (2017). Acoustics - Methods for calculating loudness - Part 1: Zwicker method (ISO Standard No. 532-1).
 
 [2] Deutsches Institut für Normung. (2009). Measurement technique for the simulation of the auditory sensation of sharpness (DIN Standard No. 45692).
@@ -65,33 +50,51 @@ The implemented metrics available in the `psychoacoustic_metrics` folder are lis
 
 [7] Zwicker, E., & Fastl, H. (1999). Psychoacoustics: facts and models, Second edition. [Springer-Verlag](https://doi.org/10.1007/978-3-662-09562-1).
 
-[8] More, S. R. (2010). Aircraft noise characteristics and metrics. PhD thesis, [Purdue University](https://docs.lib.purdue.edu/dissertations/AAI3453255/).
+[8] More, S. R. (2010). Aircraft noise characteristics and metrics. PhD thesis, Purdue University. [https://docs.lib.purdue.edu/dissertations/AAI3453255/](https://docs.lib.purdue.edu/dissertations/AAI3453255/).
 
 [9] Di, G. Q., Chen, X. W., Song, K., Zhou, B., & Pei, C. M. (2016). Improvement of Zwicker’s psychoacoustic annoyance model aiming at tonal noises. [Applied Acoustics](https://doi.org/10.1016/j.apacoust.2015.12.006), 105, 164-170.
 
-[10] Federal Aviation Regulations. (2005). 14 CFR Parts 36 and 91, Docket No. FAA-2003-16526; Amendment No. 36-26, 91-288. [https://www.ecfr.gov/current/title-14/appendix-Appendix%20A%20to%20Part%2036](https://www.ecfr.gov/current/title-14/appendix-Appendix%20A%20to%20Part%2036) (Last viewed 30 Oct 2023)
+[10] Federal Aviation Regulations. (2005). 14 CFR Parts 36 and 91, Docket No. FAA-2003-16526; Amendment No. 36-26, 91-288. [https://www.ecfr.gov/current/title-14/appendix-Appendix%20A%20to%20Part%2036](https://www.ecfr.gov/current/title-14/appendix-Appendix%20A%20to%20Part%2036) (last viewed October 30, 2023)
 
-[11] Ecma International. (2024). Psychoacoustic metrics for ITT equipment - Part 2 (methods for describing human perception based on the Sottek Hearing Model) (Standard No. 418-2, 3rd Edition/December 2024). [https://ecma-international.org/wp-content/uploads/ECMA-418-2_3rd_edition_december_2024.pdf](https://ecma-international.org/wp-content/uploads/ECMA-418-2_3rd_edition_december_2024.pdf) (Last viewed 22 Jan 2025)
+[11] Ecma International. (2024). Psychoacoustic metrics for ITT equipment - Part 2 (methods for describing human perception based on the Sottek Hearing Model) (Standard No. 418-2, 3rd Edition/December 2024). [https://ecma-international.org/wp-content/uploads/ECMA-418-2_3rd_edition_december_2024.pdf](https://ecma-international.org/wp-content/uploads/ECMA-418-2_3rd_edition_december_2024.pdf) (last viewed January 22, 2025)
 
 </details>
 
 # Sound level meter
 
-The following SPL-based metrics using different frequency weightings (A, B, C, D or Z) and time weightings (fast, slow, or impulse) can be calculated using the codes available in `sound_level_meter` folder (see [examples](examples/sound_level_meter)):
+The following **sound pressure level** (SPL) based metrics can be calculated using the codes available in `sound_level_meter` folder (see [examples](examples/sound_level_meter)):
 
-- Sound pressure level over time.
-- Equivalent sound pressure level.
-- Maximum sound pressure level.
-- Sound exposure level.
-- Sound spectrum in 1/3 octave bands.
+- SPL over time
+- Frequency weightings (A, B, C, D or Z)
+- Time weightings (Fast, Slow or Impulse by default, but customizable)
+- Equivalent SPL
+- Maximum SPL
+- Sound exposure level
+- SPL spectrum in 1/3 octave bands
  
+# Toolbox structure
+The toolbox has the following directories:
+- `psychoacoustic_metrics`: this directory contains a number of algorithms implementing a specific psychoacoustic metric (see [folder](psychoacoustic_metrics)). 
+- `sound_level_meter`: contains scripts to obtain sound pressure levels using different frequency weightings (A, B, C, D or Z) and time weightings (Fast, Slow or Impulse) (see [folder](sound_level_meter)). 
+- `utilities`: contains some scripts that are complementary to any of the toolbox functions (see [folder](utilities)).
+- `examples`: an example script is provided for each metric (see [folder](examples)).
+- `sound_files`: this directory hosts reference sounds in .wav format that are used mainly by the `examples` codes (see [folder](sound_files)). 
+- `validation`: this directory contains scripts used to validate each algorithm. Instructions on how to run these codes are provided in each respective folder and directly on the header of the codes (see [folder](validation)). 
+- `publications`: contains scripts to reproduce figures and/or tables of publications from the toolbox authors (see [folder](publications)). 
+
+# How to use the toolbox
+
+1. Download or clone this repository to your local computer. One way to do that is to press the button 'Code' -> Choose 'Download ZIP' and unzip somewhere).
+
+2. After that, you need to add the relevant folders of the toolbox to the path of your MATLAB. Open and run the `startup_SQAT.m` script to automatically perform this task. In order to avoid conflicts, the `startup_SQAT.m` needs to be used every time MATLAB is (re)started. If you just want to use the metrics, you can add manually only the relevant folders to the MATLAB path (e.g., `psychoacoustic_metrics`, `sound_level_meter`, and `utilities`). 
+
 # How to cite this repository
 If you use this toolbox in your research, we would be grateful if you help us to gain visibility by citing SQAT. This is the main citation if you need to cite the toolbox repository itself:
 
-> Felix Greco, G., Merino-Martínez, R., &  Osses, A. (2023). SQAT: a sound quality analysis toolbox for MATLAB. Zenodo. doi: [10.5281/zenodo.7934709](https://doi.org/10.5281/zenodo.7934709)
+> Felix Greco, G., Merino-Martínez, R., &  Osses, A. (2023). SQAT: a sound quality analysis toolbox for MATLAB. Zenodo. DOI: [10.5281/zenodo.7934709](https://doi.org/10.5281/zenodo.7934709)
 
 > [!TIP]
-> **The doi above concerns the toolbox repository itself and will always resolve to the latest release. As differences between releases may occur, it is a good practice to cite the specific SQAT version being used. You can check any changes between releases [here](https://github.com/ggrecow/SQAT/releases). If you need to cite a specific release, please consult the relevant doi [here](https://doi.org/10.5281/zenodo.7934709). If you need to cite the current SQAT release, please refer to the "Cite this repository" feature in the "About" section of this GitHub repository.**
+> **The doi above concerns the toolbox repository itself and will always resolve to the latest release. As differences between releases may occur, it is a good practice to cite the specific SQAT version being used. You can check any changes between releases [here](https://github.com/ggrecow/SQAT/releases). If you need to cite a specific release, please consult the relevant DOI [here](https://doi.org/10.5281/zenodo.7934709). If you need to cite the current SQAT release, please refer to the "Cite this repository" feature in the "About" section of this GitHub repository.**
 
 <!-- > **Apart from the toolbox repository itself (see above), each version released has its own doi in Zenodo. As differences between releases may occur, it is a good practice to cite the specific SQAT version being used. If you need to cite the current SQAT release, please refer to the "Cite this repository" feature in the "About" section of this GitHub repository.**-->  
 
@@ -99,19 +102,19 @@ If you use this toolbox in your research, we would be grateful if you help us to
 
 The following paper is the main work describing SQAT and the metrics available in the first release:
 
-> Felix Greco, G., Merino-Martínez, R., Osses, A., & Langer, S. C. (2023). SQAT: a MATLAB-based toolbox for quantitative sound quality analysis. INTER-NOISE and NOISE-CON Congress and Conference Proceedings, InterNoise23, Chiba, Japan. doi: [10.3397/IN_2023_1075](https://doi.org/10.3397/IN_2023_1075)
+> Felix Greco, G., Merino-Martínez, R., Osses, A., & Langer, S. C. (2023). SQAT: a MATLAB-based toolbox for quantitative sound quality analysis. INTER-NOISE and NOISE-CON Congress and Conference Proceedings, InterNoise23, Chiba, Japan. DOI: [10.3397/IN_2023_1075](https://doi.org/10.3397/IN_2023_1075)
 
 > Raw data and extra scripts to reproduce all the paper figures can be found [here](publications/pub_Greco2023_Internoise). 
 
 Additionally, here's a paper by the members of the SQAT team showing three case studies where the SQAT toolbox was used to perform all analyses:
 
-> Osses, A., Felix Greco, G., & Merino-Martínez, R. (2023). Considerations for the perceptual evaluation of steady-state and time-varying sounds using psychoacoustic metrics. Forum Acusticum, Turin, Italy, 11-15 September 2023. doi: [10.61782/fa.2023.0600](https://www.doi.org/10.61782/fa.2023.0600).
+> Osses, A., Felix Greco, G., & Merino-Martínez, R. (2023). Considerations for the perceptual evaluation of steady-state and time-varying sounds using psychoacoustic metrics. Forum Acusticum, Turin, Italy, 11-15 September 2023. DOI: [10.61782/fa.2023.0600](https://www.doi.org/10.61782/fa.2023.0600)
 
 > Raw data and extra scripts to reproduce all the paper figures can be found [here](https://doi.org/10.5281/zenodo.7933489).
 
 The implementation of the psychoacoustic models from ECMA-418-2 (released in v1.3) are presented and verified in the following publication:
 
-> Lotinga, M. J. B., Torjussen, M, & Felix Greco, G. (2025). Verified implementations of the Sottek psychoacoustic Hearing Model standardised sound quality metrics (ECMA-418-2 loudness, tonality and roughness). Forum Acusticum, Malaga, Spain, 23-26 June 2025. [(link)](https://www.researchgate.net/publication/392904348_Verified_implementations_of_the_Sottek_psychoacoustic_Hearing_Model_standardised_sound_quality_metrics_ECMA-418-2_loudness_tonality_and_roughness) 
+> Lotinga, M. J. B., Torjussen, M, & Felix Greco, G. (2025). Verified implementations of the Sottek psychoacoustic Hearing Model standardised sound quality metrics (ECMA-418-2 loudness, tonality and roughness). Forum Acusticum, Malaga, Spain. [(link)](https://www.researchgate.net/publication/392904348_Verified_implementations_of_the_Sottek_psychoacoustic_Hearing_Model_standardised_sound_quality_metrics_ECMA-418-2_loudness_tonality_and_roughness) 
 
 > Raw data and extra scripts to reproduce all the paper figures can be found [here](publications/pub_Lotinga2025_Forum_Acusticum_ECMA418_2).
 
@@ -125,7 +128,7 @@ We would be very happy to know that you find SQAT useful and have used it in you
 
 ## Journal articles
 
-> Lotinga, M. J. B., Green, M. C., & Toríja, A. J. (2025). Development of psychoacoustic prediction models for short-term noise annoyance responses to unmanned aircraft systems.  [The Journal of the Acoustical Society of America](https://doi.org/10.1121/10.0039056), 158, 2062–2082
+> Lotinga, M. J. B., Green, M. C., & Toríja, A. J. (2025). Development of psychoacoustic prediction models for short-term noise annoyance responses to unmanned aircraft systems. [The Journal of the Acoustical Society of America](https://doi.org/10.1121/10.0039056), 158, 2062–2082.
 
 > Vourakis, M., Zea, E., Karlsson, M., Andersson, N., & Etemad, S. (2024). Installation effects on axial fans: Combined aeroacoustic and psychoacoustic perspective. [Applied Acoustics](https://doi.org/10.1016/j.apacoust.2025.110872), 240.
 
@@ -137,7 +140,7 @@ We would be very happy to know that you find SQAT useful and have used it in you
 
 > Lotinga, M. J. B., Green, M. C., & Toríja, A. J. (2025). Human perception and response to sound from unmanned aircraft systems within ambient acoustic environments. [npj Acoustics](https://doi.org/10.1038/s44384-024-00001-6), 1:2.
 
-## Conference papers
+## Conference publications
 
 > Lotinga, M. J. B., Green, M. C., & Toríja, A. J. (2025). Effects of exposure to unmanned aircraft systems sound: Applying machine learning and parametric clustered-data models to human response prediction. INTER-NOISE and NOISE-CON Congress and Conference Proceedings, InterNoise25, Sao Paulo, Brazil. [(link)](https://www.researchgate.net/publication/394919259_Effects_of_exposure_to_unmanned_aircraft_systems_sound_Applying_machine_learning_and_parametric_clustered-data_models_to_human_response_prediction)
 
@@ -147,7 +150,7 @@ We would be very happy to know that you find SQAT useful and have used it in you
 
 > Ellis, M., Green, M. C., Lotinga, M. J. B., & Toríja, A. J. (2025). Comparison of Deep Learning and Psychoacoustic Models to Predict UAVNoise Impact in Soundscapes. Forum Acusticum, Malaga, Spain. [(link)](https://www.researchgate.net/publication/393231769_Comparison_of_Deep_Learning_and_Psychoacoustic_Models_to_Predict_UAV_Noise_Impact_in_Soundscapes)
 
-> Bazilinskyy, P., Alam, M. S., & Merino-Martínez, R. (2025). Psychoacoustic assessment of synthetic sounds for electric vehicles in a virtual reality experiment. Forum Acusticum, Malaga, Spain. [(link)](https://www.researchgate.net/publication/390563218_Psychoacoustic_assessment_of_synthetic_sounds_for_electric_vehicles_in_a_virtual_reality_experiment).
+> Bazilinskyy, P., Alam, M. S., & Merino-Martínez, R. (2025). Psychoacoustic assessment of synthetic sounds for electric vehicles in a virtual reality experiment. Forum Acusticum, Malaga, Spain. [(link)](https://www.researchgate.net/publication/390563218_Psychoacoustic_assessment_of_synthetic_sounds_for_electric_vehicles_in_a_virtual_reality_experiment)
 
 <br> 
 </details>
@@ -159,27 +162,29 @@ We would be very happy to know that you find SQAT useful and have used it in you
 
  ## Journal articles
 
-> Schmidt, H., Yupa-Villanueva, R. M., Ragni, D., Merino-Martinez, R., van Gool, P., & Schmehl, R. (2024). Exploring noise annoyance and sound quality for airborne wind energy systems: insights from a listening experiment. [Wind Energy Science](https://doi.org/10.5194/wes-10-579-2025)
+> Schmidt, H., Yupa-Villanueva, R. M., Ragni, D., Merino-Martinez, R., van Gool, P., & Schmehl, R. (2024). Exploring noise annoyance and sound quality for airborne wind energy systems: insights from a listening experiment. [Wind Energy Science](https://doi.org/10.5194/wes-10-579-2025), 10, 579–595.
 
 > Kawai, C., Jäggi, J., Georgiou, F., Meister, J., Pieren, R., & Schäffer, B. (2024). Short-term noise annoyance towards drones and other transportation noise sources: A laboratory study. [The Journal of the Acoustical Society of America](https://doi.org/10.1121/10.0032386), 156 (4), 2578–2595.
 
 > Louwers, G., Pont, S., Gommers, D., van der Heide, E., & Özcan, E. (2024). Sonic ambiances through fundamental needs: An approach on soundscape interventions for intensive care patients, [The Journal of the Acoustical Society of America](https://doi.org/10.1121/10.0030470), 156 (4), 2376–2394.
 
-## Conference papers
+> Brandetti, L., Mulders, S. P., Merino-Martinez, R., Watson, S., & van Wingerden, J.-W. (2024). Multi-objective calibration of vertical-axis wind turbine controllers: balancing aero-servo-elastic performance and noise. [Wind Energy Science](https://doi.org/10.5194/wes-9-471-2024), 9, 471-493.
 
-> Lotinga, M. J. B., Green, M. C., & Toríja, A. J. (2024). How do flight operations and ambient acoustic environments influence noticeability and noise annoyance associated with unmanned aircraft systems? [Quiet Drones 2024 conference](https://www.researchgate.net/publication/383915149_How_do_flight_operations_and_ambient_acoustic_environments_influence_noticeability_and_noise_annoyance_associated_with_unmanned_aircraft_systems)  
+## Conference publications
 
-> Merino-Martinez, R., Yupa Villanueva, R. M., von den Hoff, B., & Pockelé, J. S. (2024). Human response to the flyover noise of different types of drones recorded in field measurements. [Quiet Drones 2024 conference](https://www.researchgate.net/publication/384065422_Human_response_to_the_flyover_noise_of_different_types_of_drones_recorded_in_field_measurements)
+> Lotinga, M. J. B., Green, M. C., & Toríja, A. J. (2024). How do flight operations and ambient acoustic environments influence noticeability and noise annoyance associated with unmanned aircraft systems? [Quiet Drones 2024 conference](https://www.researchgate.net/publication/383915149_How_do_flight_operations_and_ambient_acoustic_environments_influence_noticeability_and_noise_annoyance_associated_with_unmanned_aircraft_systems).  
+
+> Merino-Martinez, R., Yupa Villanueva, R. M., von den Hoff, B., & Pockelé, J. S. (2024). Human response to the flyover noise of different types of drones recorded in field measurements. [Quiet Drones 2024 conference](https://www.researchgate.net/publication/384065422_Human_response_to_the_flyover_noise_of_different_types_of_drones_recorded_in_field_measurements).
 
 > Georgiou, F., Schäffer, B., Heusser, A., & Pieren, R. (2024). Prediction of Noise Annoyance of Air Vehicle Flyovers Using Psychoacoustic Models. [Proceedings of the 30th International Congress on Sound and Vibration (ICSV)](https://www.researchgate.net/publication/384355002_PREDICTION_OF_NOISE_ANNOYANCE_OF_AIR_VEHICLE_FLY-_OVERS_USING_PSYCHOACOUSTIC_MODELS).
 
-> Yupa Villanueva, R. M., Merino-Martinez, R., Andino Cappagli, C. I., Altena, A., & Snellen, M. (2024). Effect of Unmanned Aerial Vehicle Configurations on the Acoustic and Psychoacoustic Signatures. [Proceedings of the 30th International Congress on Sound and Vibration (ICSV)](https://www.researchgate.net/publication/385660330_EFFECT_OF_UNMANNED_AERIAL_VEHICLE_CONFIGURATIONS_ON_THE_ACOUSTIC_AND_PSYCHOACOUSTIC_SIGNATURES)
+> Yupa Villanueva, R. M., Merino-Martinez, R., Andino Cappagli, C. I., Altena, A., & Snellen, M. (2024). Effect of Unmanned Aerial Vehicle Configurations on the Acoustic and Psychoacoustic Signatures. [Proceedings of the 30th International Congress on Sound and Vibration (ICSV)](https://www.researchgate.net/publication/385660330_EFFECT_OF_UNMANNED_AERIAL_VEHICLE_CONFIGURATIONS_ON_THE_ACOUSTIC_AND_PSYCHOACOUSTIC_SIGNATURES).
 
-> von den Hoff, B., Merino-Martinez, R., Yupa Villanueva, R. M., & Snellen, M. (2024). Noise Emissions and Noise Annoyance of a Single-Propeller Electric Aircraft During Flyover. [Proceedings of the 30th International Congress on Sound and Vibration (ICSV)](https://www.researchgate.net/publication/382695675_NOISE_EMISSIONS_AND_NOISE_ANNOYANCE_OF_A_SINGLE-PROPELLER_ELECTRIC_AIRCRAFT_DURING_FLYOVER)
+> von den Hoff, B., Merino-Martinez, R., Yupa Villanueva, R. M., & Snellen, M. (2024). Noise Emissions and Noise Annoyance of a Single-Propeller Electric Aircraft During Flyover. [Proceedings of the 30th International Congress on Sound and Vibration (ICSV)](https://www.researchgate.net/publication/382695675_NOISE_EMISSIONS_AND_NOISE_ANNOYANCE_OF_A_SINGLE-PROPELLER_ELECTRIC_AIRCRAFT_DURING_FLYOVER).
 
-> Pockelé, J. S. & Merino-Martinez, R. (2024). Psychoacoustic Evaluation of Modelled Wind Turbine Noise. [Proceedings of the 30th International Congress on Sound and Vibration (ICSV)](https://www.researchgate.net/publication/382256126_PSYCHOACOUSTIC_EVALUATION_OF_MODELLED_WIND_TURBINE_NOISE)
+> Pockelé, J. S. & Merino-Martinez, R. (2024). Psychoacoustic Evaluation of Modelled Wind Turbine Noise. [Proceedings of the 30th International Congress on Sound and Vibration (ICSV)](https://www.researchgate.net/publication/382256126_PSYCHOACOUSTIC_EVALUATION_OF_MODELLED_WIND_TURBINE_NOISE).
 
-> Merino-Martinez, R., Ben-Gida, H., & Snellen, M. (2024). Psychoacoustic Evaluation of an Optimized Low-Noise Drone Propeller Design. [Proceedings of the 30th International Congress on Sound and Vibration (ICSV)](https://www.researchgate.net/publication/382255303_PSYCHOACOUSTIC_EVALUATION_OF_AN_OPTIMIZED_LOW-NOISE_DRONE_PROPELLER_DESIGN)
+> Merino-Martinez, R., Ben-Gida, H., & Snellen, M. (2024). Psychoacoustic Evaluation of an Optimized Low-Noise Drone Propeller Design. [Proceedings of the 30th International Congress on Sound and Vibration (ICSV)](https://www.researchgate.net/publication/382255303_PSYCHOACOUSTIC_EVALUATION_OF_AN_OPTIMIZED_LOW-NOISE_DRONE_PROPELLER_DESIGN).
  
 > Yupa Villanueva, R.M., Merino-Martinez, R., Altena, A., & Snellen, M. (2024). Psychoacoustic Characterization of Multirotor Drones in Realistic Flyover Maneuvers. [Proceedings of the 30th AIAA/CEAS Aeroacoustics Conference](https://arc.aiaa.org/doi/10.2514/6.2024-3015).
 
@@ -192,8 +197,6 @@ We would be very happy to know that you find SQAT useful and have used it in you
 > Merino-Martinez, R., Besnea, I., von den Hoff, B., & Snellen, M. (2024). Psychoacoustic Analysis of the Noise Emissions from the Airbus A320 Aircraft Family and its Nose Landing Gear System. [Proceedings of the 30th AIAA/CEAS Aeroacoustics Conference](https://arc.aiaa.org/doi/10.2514/6.2024-3398).
 
 > Knuth, D., Ring, T. P., & Langer, S. C. (2024). Comparing auralizations and measurements of vibrating plates with physical and psychoacoustic metrics. [Proceedings of 50. Jahrestagung für Akustik (DAGA)](https://pub.dega-akustik.de/DAGA_2024/files/upload/paper/176.pdf).
-
-> Brandetti, L., Mulders, S. P., Merino-Martinez, R., Watson, S., & van Wingerden, J.-W. (2024). Multi-objective calibration of vertical-axis wind turbine controllers: balancing aero-servo-elastic performance and noise. [Wind Energy Science](https://doi.org/10.5194/wes-9-471-2024), 9, 471-493.
 <br>
 
 </details>
@@ -202,7 +205,7 @@ We would be very happy to know that you find SQAT useful and have used it in you
 <details>
 <summary>2023</summary>
 
-## Conference papers
+## Conference publications
  
 > Knuth, D., Ring, T. P., & Langer, S. C. (2023). Utilizing auralization to investigate psychoacoustic perception of vibrating structures. [Proceedings of 49. Jahrestagung für Akustik (DAGA)](https://pub.dega-akustik.de/DAGA_2023/data/articles/000414.pdf).
 <br> 
@@ -212,8 +215,12 @@ We would be very happy to know that you find SQAT useful and have used it in you
 <details>
 <summary>Thesis</summary>
 <br>
- 
-> Pockelé, J. S. (2023). Auralisation of modelled wind turbine noise for psychoacoustic listening experiments: development and validation of the wind turbine auralisation tool WinTAur. Master's thesis, [Delft University of Technology](http://resolver.tudelft.nl/uuid:cc9e67b4-6bde-4114-97c0-43b11b4a48ef).
+
+> Schade, S. (2025). Design of low-noise fan engines for urban air mobility and sound quality analysis using virtual flyovers. Doctoral thesis, Technische Universität Berlin. DOI: [10.14279/depositonce-24074](https://doi.org/10.14279/depositonce-24074)
+
+> Taniguchi, R. (2024). 音質評価指標を用いた感覚的快さと感覚的快くなさの評価に関する調査 (Survey on the evaluation of sensory pleasantness and unpleasantness using sound quality evaluation indexes). Master thesis, Japan Advanced Institute of Science and Technology. [(link)](http://hdl.handle.net/10119/18909)
+
+> Pockelé, J. S. (2023). Auralisation of modelled wind turbine noise for psychoacoustic listening experiments: development and validation of the wind turbine auralisation tool WinTAur. Master thesis, Delft University of Technology. [(link)](http://resolver.tudelft.nl/uuid:cc9e67b4-6bde-4114-97c0-43b11b4a48ef)
 
 </details>
 
