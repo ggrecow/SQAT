@@ -108,13 +108,13 @@ The following paper is the main work describing SQAT and the metrics available i
 
 Additionally, here's a paper by the members of the SQAT team showing three case studies where the SQAT toolbox was used to perform all analyses:
 
-> Osses, A., Felix Greco, G., & Merino-Martínez, R. (2023). Considerations for the perceptual evaluation of steady-state and time-varying sounds using psychoacoustic metrics. Forum Acusticum, Turin, Italy, 11-15 September 2023. DOI: [10.61782/fa.2023.0600](https://www.doi.org/10.61782/fa.2023.0600)
+> Osses, A., Felix Greco, G., & Merino-Martínez, R. (2023). Considerations for the perceptual evaluation of steady-state and time-varying sounds using psychoacoustic metrics. 10th Convention of the European Acoustics Association (Forum Acusticum), 11-15 September 2023, Turin, Italy. DOI: [10.61782/fa.2023.0600](https://www.doi.org/10.61782/fa.2023.0600)
 
 > Raw data and extra scripts to reproduce all the paper figures can be found [here](https://doi.org/10.5281/zenodo.7933489).
 
 The implementation of the psychoacoustic models from ECMA-418-2 (released in v1.3) are presented and verified in the following publication:
 
-> Lotinga, M. J. B., Torjussen, M, & Felix Greco, G. (2025). Verified implementations of the Sottek psychoacoustic Hearing Model standardised sound quality metrics (ECMA-418-2 loudness, tonality and roughness). Forum Acusticum, Malaga, Spain. [(link)](https://www.researchgate.net/publication/392904348_Verified_implementations_of_the_Sottek_psychoacoustic_Hearing_Model_standardised_sound_quality_metrics_ECMA-418-2_loudness_tonality_and_roughness) 
+> Lotinga, M. J. B., Torjussen, M, & Felix Greco, G. (2025). Verified implementations of the Sottek psychoacoustic Hearing Model standardised sound quality metrics (ECMA-418-2 loudness, tonality and roughness). 11th Convention of the European Acoustics Association (Forum Acusticum), 23-26 June 2025, Málaga, Spain. [(link)](https://www.researchgate.net/publication/392904348_Verified_implementations_of_the_Sottek_psychoacoustic_Hearing_Model_standardised_sound_quality_metrics_ECMA-418-2_loudness_tonality_and_roughness) 
 
 > Raw data and extra scripts to reproduce all the paper figures can be found [here](publications/pub_Lotinga2025_Forum_Acusticum_ECMA418_2).
 
@@ -136,29 +136,43 @@ We would be very happy to know that you find SQAT useful and have used it in you
 
 > Shen, Y., Bai, Y., Liu, X., & Zang, B. (2025). Drone noise reduction using serration-finlet blade design and its psychoacoustic and social impacts. [Sustainability](https://doi.org/10.3390/su17083451), 17(8), 3451.   
 
-> Schade, S., Merino-Martinez, R., Moreau, A., Bartels, S., & Jaron, R. (2025). Psychoacoustic evaluation of different fan designs for an urban air mobility vehicle with distributed propulsion system. [The Journal of the Acoustical Society of America](https://doi.org/10.1121/10.0036228), 157 (3), 2150–2167.
+> Schade, S., Merino-Martínez, R., Moreau, A., Bartels, S., & Jaron, R. (2025). Psychoacoustic evaluation of different fan designs for an urban air mobility vehicle with distributed propulsion system. [The Journal of the Acoustical Society of America](https://doi.org/10.1121/10.0036228), 157 (3), 2150–2167.
 
 > Lotinga, M. J. B., Green, M. C., & Toríja, A. J. (2025). Human perception and response to sound from unmanned aircraft systems within ambient acoustic environments. [npj Acoustics](https://doi.org/10.1038/s44384-024-00001-6), 1:2.
 
 ## Conference publications
 
-> Lotinga, M. J. B., Green, M. C., & Toríja, A. J. (2025). Effects of exposure to unmanned aircraft systems sound: Applying machine learning and parametric clustered-data models to human response prediction. INTER-NOISE and NOISE-CON Congress and Conference Proceedings, InterNoise25, Sao Paulo, Brazil. [(link)](https://www.researchgate.net/publication/394919259_Effects_of_exposure_to_unmanned_aircraft_systems_sound_Applying_machine_learning_and_parametric_clustered-data_models_to_human_response_prediction)
+> Lotinga, M. J. B., Green, M. C., & Toríja, A. J. (2025). Effects of exposure to unmanned aircraft systems sound: Applying machine learning and parametric clustered-data models to human response prediction. 54th International Congress & Exhibition on Noise Control Engineering (INTER-NOISE), 24-27 August 2025, São Paulo, Brazil. [(link)](https://www.researchgate.net/publication/394919259_Effects_of_exposure_to_unmanned_aircraft_systems_sound_Applying_machine_learning_and_parametric_clustered-data_models_to_human_response_prediction)
 
-> Ferrari, G. C., Pereira Gouveia da Silva, G., & Lima Pereira, L. T. (2025). Optimizing effective perceived noise in distributed electric propulsion with neural networks and differential propeller rotation. INTER-NOISE and NOISE-CON Congress and Conference Proceedings, InterNoise25, Sao Paulo, Brazil. [(link)](https://www.researchgate.net/publication/394937872_Optimizing_effective_perceived_noise_in_distributed_electric_propulsion_with_neural_networks_and_differential_propeller_rotation)
+> Ferrari, G. C., Pereira Gouveia da Silva, G., & Lima Pereira, L. T. (2025). Optimizing effective perceived noise in distributed electric propulsion with neural networks and differential propeller rotation. 54th International Congress & Exhibition on Noise Control Engineering (INTER-NOISE), 24-27 August 2025, São Paulo, Brazil. [(link)](https://www.researchgate.net/publication/394937872_Optimizing_effective_perceived_noise_in_distributed_electric_propulsion_with_neural_networks_and_differential_propeller_rotation)
 
-> Podwinska, Z., Ramos-Romero, C., Green, M. C., & Toríja, A. J. (2025). The effects of time-variant characteristics of unmanned aircraft system noise on reported annoyance. Forum Acusticum, Malaga, Spain. [(link)](https://www.researchgate.net/publication/393461425_The_effects_of_time-variant_characteristics_of_unmanned_aircraft_system_noise_on_reported_annoyance)
+> Merino-Martínez, R. & Quaroni, L. N. (2025). Human response to the noise emissions of an isolated propeller under turbulent inflow conditions. 54th International Congress & Exhibition on Noise Control Engineering (INTER-NOISE), 24-27 August 2025, Sao Paulo, Brazil. [(link)](https://www.researchgate.net/publication/395129822_Human_response_to_the_noise_emissions_of_an_isolated_propeller_under_turbulent_inflow_conditions)
 
-> Ramos-Romero, C., Green, M. C., Lotinga, M. J. B., & Toríja, A. J. (2025). Integrated U-space societal acceptance assessment: energy-based and perception-based acoustic metrics. Forum Acusticum, Malaga, Spain. [(link)](https://www.researchgate.net/publication/393461428_Integrated_U-space_societal_acceptance_assessment_energy-based_and_perception-based_acoustic_metrics)
+> Bazilinskyy, P., Alam, M. S., & Merino-Martínez, R. (2025). Pedestrian crossing behaviour in front of electric vehicles emitting synthetic sounds: A virtual reality experiment. 54th International Congress & Exhibition on Noise Control Engineering (INTER-NOISE), 24-27 August 2025, São Paulo, Brazil. [(link)](https://www.researchgate.net/publication/392237511_Pedestrian_crossing_behaviour_in_front_of_electric_vehicles_emitting_synthetic_sounds_A_virtual_reality_experiment)
 
-> Ellis, M., Green, M. C., Lotinga, M. J. B., & Toríja, A. J. (2025). Comparison of Deep Learning and Psychoacoustic Models to Predict UAVNoise Impact in Soundscapes. Forum Acusticum, Malaga, Spain. [(link)](https://www.researchgate.net/publication/393231769_Comparison_of_Deep_Learning_and_Psychoacoustic_Models_to_Predict_UAV_Noise_Impact_in_Soundscapes)
+> Merino-Martínez, R. & Schade, S. (2025). Psychoacoustic analysis of the perceptual influence of rotational speed fluctuations in an urban mobility vehicle with distributed ducted fans. 54th International Congress & Exhibition on Noise Control Engineering (INTER-NOISE), 24-27 August 2025, São Paulo, Brazil. [(link)](https://www.researchgate.net/publication/395129646_Psychoacoustic_analysis_of_the_perceptual_influence_of_rotational_speed_fluctuations_in_an_urban_mobility_vehicle_with_distributed_ducted_fans)
 
-> Bazilinskyy, P., Alam, M. S., & Merino-Martínez, R. (2025). Psychoacoustic assessment of synthetic sounds for electric vehicles in a virtual reality experiment. Forum Acusticum, Malaga, Spain. [(link)](https://www.researchgate.net/publication/390563218_Psychoacoustic_assessment_of_synthetic_sounds_for_electric_vehicles_in_a_virtual_reality_experiment)
+> Deutscher, B., Stalnov. O. & Ben-Gida, H. (2025). The Effect of Acoustic Detection Constraints on Optimizing Drones’ Delivery Missions. [Proceedings of the 31st AIAA/CEAS Aeroacoustics Conference](https://arc.aiaa.org/doi/10.2514/6.2025-3414).
 
-> Lladó, P., Neidhardt, A., Brinkmann, F., & de Sena, E. (2025). Spatial audio models' inventory to cover the attributes from the spatial audtio quality inventory. Forum Acusticum, Malaga, Spain. [(link)](https://www.researchgate.net/profile/Pedro-Llado/publication/393003782_Spatial_audio_models'_inventory_to_cover_the_attributes_from_the_spatial_audio_quality_inventory/links/685bd45799d2ce32c1cac97f/Spatial-audio-models-inventory-to-cover-the-attributes-from-the-spatial-audio-quality-inventory.pdf) 
+> Podwinska, Z., Ramos-Romero, C., Green, M. C., & Toríja, A. J. (2025). The effects of time-variant characteristics of unmanned aircraft system noise on reported annoyance. 11th Convention of the European Acoustics Association (Forum Acusticum), 23-26 June 2025, Málaga, Spain. [(link)](https://www.researchgate.net/publication/393461425_The_effects_of_time-variant_characteristics_of_unmanned_aircraft_system_noise_on_reported_annoyance)
 
-> Pockelé, J. S. & Merino-Martinez, R. (2025). Perceived Noise Impact of Transitioning Towards Larger Wind Turbines Using Auralisations. 11th Ed. International Conferences on Wind Turbine Noise, Copenhagen, Denmark. [(link)](https://www.researchgate.net/publication/393400798_Perceived_Noise_Impact_of_Transitioning_Towards_Larger_Wind_Turbines_Using_Auralisations)
+> Ramos-Romero, C., Green, M. C., Lotinga, M. J. B., & Toríja, A. J. (2025). Integrated U-space societal acceptance assessment: energy-based and perception-based acoustic metrics. 11th Convention of the European Acoustics Association (Forum Acusticum), 23-26 June 2025, Málaga, Spain. [(link)](https://www.researchgate.net/publication/393461428_Integrated_U-space_societal_acceptance_assessment_energy-based_and_perception-based_acoustic_metrics)
 
-> Pockelé, J. S. & Merino-Martinez, R. (2025). Influence of Ambient Noise in Sound Quality Assessment of AuralisedWind Turbine Noise. 11th Ed. International Conferences on Wind Turbine Noise, Copenhagen, Denmark. [(link)](https://www.researchgate.net/publication/393401282_Influence_of_Ambient_Noise_in_Sound_Quality_Assessment_of_Auralised_Wind_Turbine_Noise)
+> Ellis, M., Green, M. C., Lotinga, M. J. B., & Toríja, A. J. (2025). Comparison of Deep Learning and Psychoacoustic Models to Predict UAV Noise Impact in Soundscapes. 11th Convention of the European Acoustics Association (Forum Acusticum), 23-26 June 2025, Málaga, Spain. [(link)](https://www.researchgate.net/publication/393231769_Comparison_of_Deep_Learning_and_Psychoacoustic_Models_to_Predict_UAV_Noise_Impact_in_Soundscapes)
+
+> Bazilinskyy, P., Alam, M. S., & Merino-Martínez, R. (2025). Psychoacoustic assessment of synthetic sounds for electric vehicles in a virtual reality experiment. 11th Convention of the European Acoustics Association (Forum Acusticum), 23-26 June 2025, Málaga, Spain. [(link)](https://www.researchgate.net/publication/390563218_Psychoacoustic_assessment_of_synthetic_sounds_for_electric_vehicles_in_a_virtual_reality_experiment)
+
+> Merino-Martínez, R. & Buzeţelu, V. S. (2025). Aircraft noise-induced annoyance analysis using psychoacoustic listening experiments. 11th Convention of the European Acoustics Association (Forum Acusticum), 23-26 June 2025, Málaga, Spain. [(link)](https://www.researchgate.net/publication/393163550_Aircraft_noise-induced_annoyance_analysis_using_psychoacoustic_listening_experiments)
+
+> Priboi, S.A. & Merino-Martínez, R. (2025). Evaluation of audio-visual parameters in the perceived aircraft noise annoyance using virtual reality experiments. 11th Convention of the European Acoustics Association (Forum Acusticum), 23-26 June 2025, Málaga, Spain. [(link)](https://www.researchgate.net/publication/393163554_Evaluation_of_audio-visual_parameters_in_the_perceived_aircraft_noise_annoyance_using_virtual_reality_experiments)
+
+> Merino-Martínez, R. & Quaroni, L. N. (2025). Psychoacoustic characterization of an isolated propeller at different inflow turbulence conditions and collective pitch angles. 11th Convention of the European Acoustics Association (Forum Acusticum), 23-26 June 2025, Málaga, Spain. [(link)](https://www.researchgate.net/publication/393163829_Psychoacoustic_characterization_of_an_isolated_propeller_at_different_inflow_turbulence_conditions_and_collective_pitch_angles)
+
+> Lladó, P., Neidhardt, A., Brinkmann, F., & de Sena, E. (2025). Spatial audio models' inventory to cover the attributes from the spatial audio quality inventory. 11th Convention of the European Acoustics Association (Forum Acusticum), 23-26 June 2025, Málaga, Spain. [(link)](https://www.researchgate.net/profile/Pedro-Llado/publication/393003782_Spatial_audio_models'_inventory_to_cover_the_attributes_from_the_spatial_audio_quality_inventory/links/685bd45799d2ce32c1cac97f/Spatial-audio-models-inventory-to-cover-the-attributes-from-the-spatial-audio-quality-inventory.pdf) 
+
+> Pockelé, J. S. & Merino-Martínez, R. (2025). Perceived Noise Impact of Transitioning Towards Larger Wind Turbines Using Auralisations. 11th Ed. International Conferences on Wind Turbine Noise, Copenhagen, Denmark. [(link)](https://www.researchgate.net/publication/393400798_Perceived_Noise_Impact_of_Transitioning_Towards_Larger_Wind_Turbines_Using_Auralisations)
+
+> Pockelé, J. S. & Merino-Martínez, R. (2025). Influence of Ambient Noise in Sound Quality Assessment of Auralised Wind Turbine Noise. 11th Ed. International Conferences on Wind Turbine Noise, Copenhagen, Denmark. [(link)](https://www.researchgate.net/publication/393401282_Influence_of_Ambient_Noise_in_Sound_Quality_Assessment_of_Auralised_Wind_Turbine_Noise)
 
 <br> 
 </details>
@@ -170,39 +184,41 @@ We would be very happy to know that you find SQAT useful and have used it in you
 
  ## Journal articles
 
-> Schmidt, H., Yupa-Villanueva, R. M., Ragni, D., Merino-Martinez, R., van Gool, P., & Schmehl, R. (2024). Exploring noise annoyance and sound quality for airborne wind energy systems: insights from a listening experiment. [Wind Energy Science](https://doi.org/10.5194/wes-10-579-2025), 10, 579–595.
+> Schmidt, H., Yupa-Villanueva, R. M., Ragni, D., Merino-Martínez, R., van Gool, P., & Schmehl, R. (2024). Exploring noise annoyance and sound quality for airborne wind energy systems: insights from a listening experiment. [Wind Energy Science](https://doi.org/10.5194/wes-10-579-2025), 10, 579–595.
 
 > Kawai, C., Jäggi, J., Georgiou, F., Meister, J., Pieren, R., & Schäffer, B. (2024). Short-term noise annoyance towards drones and other transportation noise sources: A laboratory study. [The Journal of the Acoustical Society of America](https://doi.org/10.1121/10.0032386), 156 (4), 2578–2595.
 
 > Louwers, G., Pont, S., Gommers, D., van der Heide, E., & Özcan, E. (2024). Sonic ambiances through fundamental needs: An approach on soundscape interventions for intensive care patients, [The Journal of the Acoustical Society of America](https://doi.org/10.1121/10.0030470), 156 (4), 2376–2394.
 
-> Brandetti, L., Mulders, S. P., Merino-Martinez, R., Watson, S., & van Wingerden, J.-W. (2024). Multi-objective calibration of vertical-axis wind turbine controllers: balancing aero-servo-elastic performance and noise. [Wind Energy Science](https://doi.org/10.5194/wes-9-471-2024), 9, 471-493.
+> Brandetti, L., Mulders, S. P., Merino-Martínez, R., Watson, S., & van Wingerden, J.-W. (2024). Multi-objective calibration of vertical-axis wind turbine controllers: balancing aero-servo-elastic performance and noise. [Wind Energy Science](https://doi.org/10.5194/wes-9-471-2024), 9, 471-493.
 
 ## Conference publications
 
 > Lotinga, M. J. B., Green, M. C., & Toríja, A. J. (2024). How do flight operations and ambient acoustic environments influence noticeability and noise annoyance associated with unmanned aircraft systems? [Quiet Drones 2024 conference](https://www.researchgate.net/publication/383915149_How_do_flight_operations_and_ambient_acoustic_environments_influence_noticeability_and_noise_annoyance_associated_with_unmanned_aircraft_systems).  
 
-> Merino-Martinez, R., Yupa Villanueva, R. M., von den Hoff, B., & Pockelé, J. S. (2024). Human response to the flyover noise of different types of drones recorded in field measurements. [Quiet Drones 2024 conference](https://www.researchgate.net/publication/384065422_Human_response_to_the_flyover_noise_of_different_types_of_drones_recorded_in_field_measurements).
+> Merino-Martínez, R., Yupa Villanueva, R. M., von den Hoff, B., & Pockelé, J. S. (2024). Human response to the flyover noise of different types of drones recorded in field measurements. [Quiet Drones 2024 conference](https://www.researchgate.net/publication/384065422_Human_response_to_the_flyover_noise_of_different_types_of_drones_recorded_in_field_measurements).
+
+> Snellen, M., Merino-Martinez, R., Altena, A., Amiri-Simkooei, A., Andino Cappagli, C.I., Morin, A., Quaroni, L.N., Yunus, F. & Yupa-Villanueva, R.M. (2025) Research on drone and urban air mobility noise: Measurement, modelling, and human perception. [Quiet Drones 2024 conference](https://www.researchgate.net/publication/386098572_Research_on_drone_and_urban_air_mobility_noise_Measurement_modelling_and_human_perception_Session).
 
 > Georgiou, F., Schäffer, B., Heusser, A., & Pieren, R. (2024). Prediction of Noise Annoyance of Air Vehicle Flyovers Using Psychoacoustic Models. [Proceedings of the 30th International Congress on Sound and Vibration (ICSV)](https://www.researchgate.net/publication/384355002_PREDICTION_OF_NOISE_ANNOYANCE_OF_AIR_VEHICLE_FLY-_OVERS_USING_PSYCHOACOUSTIC_MODELS).
 
-> Yupa Villanueva, R. M., Merino-Martinez, R., Andino Cappagli, C. I., Altena, A., & Snellen, M. (2024). Effect of Unmanned Aerial Vehicle Configurations on the Acoustic and Psychoacoustic Signatures. [Proceedings of the 30th International Congress on Sound and Vibration (ICSV)](https://www.researchgate.net/publication/385660330_EFFECT_OF_UNMANNED_AERIAL_VEHICLE_CONFIGURATIONS_ON_THE_ACOUSTIC_AND_PSYCHOACOUSTIC_SIGNATURES).
+> Yupa Villanueva, R. M., Merino-Martínez, R., Andino Cappagli, C. I., Altena, A., & Snellen, M. (2024). Effect of Unmanned Aerial Vehicle Configurations on the Acoustic and Psychoacoustic Signatures. [Proceedings of the 30th International Congress on Sound and Vibration (ICSV)](https://www.researchgate.net/publication/385660330_EFFECT_OF_UNMANNED_AERIAL_VEHICLE_CONFIGURATIONS_ON_THE_ACOUSTIC_AND_PSYCHOACOUSTIC_SIGNATURES).
 
-> von den Hoff, B., Merino-Martinez, R., Yupa Villanueva, R. M., & Snellen, M. (2024). Noise Emissions and Noise Annoyance of a Single-Propeller Electric Aircraft During Flyover. [Proceedings of the 30th International Congress on Sound and Vibration (ICSV)](https://www.researchgate.net/publication/382695675_NOISE_EMISSIONS_AND_NOISE_ANNOYANCE_OF_A_SINGLE-PROPELLER_ELECTRIC_AIRCRAFT_DURING_FLYOVER).
+> von den Hoff, B., Merino-Martínez, R., Yupa Villanueva, R. M., & Snellen, M. (2024). Noise Emissions and Noise Annoyance of a Single-Propeller Electric Aircraft During Flyover. [Proceedings of the 30th International Congress on Sound and Vibration (ICSV)](https://www.researchgate.net/publication/382695675_NOISE_EMISSIONS_AND_NOISE_ANNOYANCE_OF_A_SINGLE-PROPELLER_ELECTRIC_AIRCRAFT_DURING_FLYOVER).
 
-> Pockelé, J. S. & Merino-Martinez, R. (2024). Psychoacoustic Evaluation of Modelled Wind Turbine Noise. [Proceedings of the 30th International Congress on Sound and Vibration (ICSV)](https://www.researchgate.net/publication/382256126_PSYCHOACOUSTIC_EVALUATION_OF_MODELLED_WIND_TURBINE_NOISE).
+> Pockelé, J. S. & Merino-Martínez, R. (2024). Psychoacoustic Evaluation of Modelled Wind Turbine Noise. [Proceedings of the 30th International Congress on Sound and Vibration (ICSV)](https://www.researchgate.net/publication/382256126_PSYCHOACOUSTIC_EVALUATION_OF_MODELLED_WIND_TURBINE_NOISE).
 
-> Merino-Martinez, R., Ben-Gida, H., & Snellen, M. (2024). Psychoacoustic Evaluation of an Optimized Low-Noise Drone Propeller Design. [Proceedings of the 30th International Congress on Sound and Vibration (ICSV)](https://www.researchgate.net/publication/382255303_PSYCHOACOUSTIC_EVALUATION_OF_AN_OPTIMIZED_LOW-NOISE_DRONE_PROPELLER_DESIGN).
+> Merino-Martínez, R., Ben-Gida, H., & Snellen, M. (2024). Psychoacoustic Evaluation of an Optimized Low-Noise Drone Propeller Design. [Proceedings of the 30th International Congress on Sound and Vibration (ICSV)](https://www.researchgate.net/publication/382255303_PSYCHOACOUSTIC_EVALUATION_OF_AN_OPTIMIZED_LOW-NOISE_DRONE_PROPELLER_DESIGN).
  
-> Yupa Villanueva, R.M., Merino-Martinez, R., Altena, A., & Snellen, M. (2024). Psychoacoustic Characterization of Multirotor Drones in Realistic Flyover Maneuvers. [Proceedings of the 30th AIAA/CEAS Aeroacoustics Conference](https://arc.aiaa.org/doi/10.2514/6.2024-3015).
+> Yupa Villanueva, R.M., Merino-Martínez, R., Altena, A., & Snellen, M. (2024). Psychoacoustic Characterization of Multirotor Drones in Realistic Flyover Maneuvers. [Proceedings of the 30th AIAA/CEAS Aeroacoustics Conference](https://arc.aiaa.org/doi/10.2514/6.2024-3015).
 
-> Thoma, E.M., Merino-Martinez, R., Grönstedt, T., & Zhao, X. (2024). Noise From Flight Procedure Designed With Statistical Wind: Auralization and Psychoacoustic Evaluation. [Proceedings of the 30th AIAA/CEAS Aeroacoustics Conference](https://arc.aiaa.org/doi/10.2514/6.2024-3017).
+> Thoma, E.M., Merino-Martínez, R., Grönstedt, T., & Zhao, X. (2024). Noise From Flight Procedure Designed With Statistical Wind: Auralization and Psychoacoustic Evaluation. [Proceedings of the 30th AIAA/CEAS Aeroacoustics Conference](https://arc.aiaa.org/doi/10.2514/6.2024-3017).
 
-> Schade, S., Merino-Martinez, R., Ratei, P., Bartels, S., Jaron, R., & Moreau, A. (2024). Initial Study on the Impact of Speed Fluctuations on the Psychoacoustic Characteristics of a Distributed Propulsion System with Ducted Fans. [Proceedings of the 30th AIAA/CEAS Aeroacoustics Conference](https://arc.aiaa.org/doi/10.2514/6.2024-3273).
+> Schade, S., Merino-Martínez, R., Ratei, P., Bartels, S., Jaron, R., & Moreau, A. (2024). Initial Study on the Impact of Speed Fluctuations on the Psychoacoustic Characteristics of a Distributed Propulsion System with Ducted Fans. [Proceedings of the 30th AIAA/CEAS Aeroacoustics Conference](https://arc.aiaa.org/doi/10.2514/6.2024-3273).
 
-> Monteiro, F.d., Merino-Martinez, R., & Lima Pereira, L.T. (2024). Psychoacoustic Evaluation of an Array of Distributed Propellers Under Synchrophasing Operation. [Proceedings of the 30th AIAA/CEAS Aeroacoustics Conference](https://arc.aiaa.org/doi/10.2514/6.2024-3321).
+> Monteiro, F.d. N., Merino-Martínez, R., & Lima Pereira, L.T. (2024). Psychoacoustic Evaluation of an Array of Distributed Propellers Under Synchrophasing Operation. [Proceedings of the 30th AIAA/CEAS Aeroacoustics Conference](https://arc.aiaa.org/doi/10.2514/6.2024-3321).
 
-> Merino-Martinez, R., Besnea, I., von den Hoff, B., & Snellen, M. (2024). Psychoacoustic Analysis of the Noise Emissions from the Airbus A320 Aircraft Family and its Nose Landing Gear System. [Proceedings of the 30th AIAA/CEAS Aeroacoustics Conference](https://arc.aiaa.org/doi/10.2514/6.2024-3398).
+> Merino-Martínez, R., Besnea, I., von den Hoff, B., & Snellen, M. (2024). Psychoacoustic Analysis of the Noise Emissions from the Airbus A320 Aircraft Family and its Nose Landing Gear System. [Proceedings of the 30th AIAA/CEAS Aeroacoustics Conference](https://arc.aiaa.org/doi/10.2514/6.2024-3398).
 
 > Knuth, D., Ring, T. P., & Langer, S. C. (2024). Comparing auralizations and measurements of vibrating plates with physical and psychoacoustic metrics. [Proceedings of 50. Jahrestagung für Akustik (DAGA)](https://pub.dega-akustik.de/DAGA_2024/files/upload/paper/176.pdf).
 <br>
@@ -227,6 +243,10 @@ We would be very happy to know that you find SQAT useful and have used it in you
 > Schade, S. (2025). Design of low-noise fan engines for urban air mobility and sound quality analysis using virtual flyovers. Doctoral thesis, Technische Universität Berlin. DOI: [10.14279/depositonce-24074](https://doi.org/10.14279/depositonce-24074)
 
 > Gan, Z. F. (2025). Time-Varying Noise of Electric Multirotor Aircraft. Doctoral thesis, Pennsylvania State University. [(link)](https://etda.libraries.psu.edu/catalog/25752zug117) 
+
+> Priboi, S. A. (2025). Evaluation of audio-visual parameters in the perceived aircraft noise annoyance using virtual reality experiments. Master thesis, Delft University of Technology. [(link)](https://resolver.tudelft.nl/uuid:70a31852-ddaa-4e5c-90d0-d9c47352da6c)
+
+> Buzeţelu, V. S. (2025). Aircraft-Induced Psychoacoustic Annoyance Quantification Using Artificial Intelligence. Master thesis, Delft University of Technology. [(link)](https://resolver.tudelft.nl/uuid:fa3ddab2-3a9b-4ad6-97d1-c3ce0a4d9678)
 
 > Taniguchi, R. (2024). 音質評価指標を用いた感覚的快さと感覚的快くなさの評価に関する調査 (Survey on the evaluation of sensory pleasantness and unpleasantness using sound quality evaluation indexes). Master thesis, Japan Advanced Institute of Science and Technology. [(link)](http://hdl.handle.net/10119/18909)
 
