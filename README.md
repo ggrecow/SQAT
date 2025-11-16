@@ -91,7 +91,7 @@ The toolbox has the following directories:
 # How to cite this repository
 If you use this toolbox in your research, we would be grateful if you help us to gain visibility by citing SQAT. This is the main citation if you need to cite the toolbox repository itself:
 
-> Felix Greco, G., Merino-Martínez, R.,  Osses, A. & Lotinga, M. J. B. (2025). SQAT: a sound quality analysis toolbox for MATLAB. Zenodo. doi: [10.5281/zenodo.7934709](https://doi.org/10.5281/zenodo.7934709)
+> Felix Greco, G., Merino-Martínez, R.,  Osses, A. & Lotinga, M. J. B. (2025). SQAT: a sound quality analysis toolbox for MATLAB. Zenodo. DOI: [10.5281/zenodo.7934709](https://doi.org/10.5281/zenodo.7934709)
 
 > [!TIP]
 > **The doi above concerns the toolbox repository itself and will always resolve to the latest release. As differences between releases may occur, it is a good practice to cite the specific SQAT version being used. You can check any changes between releases [here](https://github.com/ggrecow/SQAT/releases). If you need to cite a specific release, please consult the relevant DOI [here](https://doi.org/10.5281/zenodo.7934709). If you need to cite the current SQAT release, please refer to the "Cite this repository" feature in the "About" section of this GitHub repository.**
