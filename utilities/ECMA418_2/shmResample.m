@@ -7,20 +7,20 @@ function [resampledSignal, resampledRate] = shmResample(signal, sampleRateIn)
 % Inputs
 % ------
 % signal : vector or 2D matrix
-%          the input signal
+%   the input signal
 %
 % sampleRateIn : integer
-%                the sample rate (frequency) of the input signal(s)
+%   the sample rate (frequency) of the input signal(s)
 % 
 % Returns
 % -------
 % For each channel in the input signal:
 %
 % resampledSignal : number or vector
-%               average (overall) tonality value
+%   resampled signal
 % 
 % resampledRate : integer
-%                 the resampled signal sample rate, ie, 48 kHz
+%   the resampled signal sample rate, ie, 48 kHz
 %
 % Assumptions
 % -----------
@@ -37,7 +37,7 @@ function [resampledSignal, resampledRate] = shmResample(signal, sampleRateIn)
 % Institution: University of Salford
 %
 % Date created: 26/09/2023
-% Date last modified: 27/06/2025
+% Date last modified: 15/11/2025
 % MATLAB version: 2023b
 %
 % Copyright statement: This file and code is part of work undertaken within

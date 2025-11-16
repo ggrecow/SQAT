@@ -9,20 +9,20 @@ function signalFiltered  = shmOutMidEarFilter(signal, soundField, outPlot)
 % Inputs
 % ------
 % signal : vector or 2D matrix
-%          the input signal (sound pressure)
+%   the input signal (sound pressure)
 %
 % soundField : keyword string (default: 'free-frontal')
-%             determines whether the 'free-frontal' or 'diffuse' field 
-%             stages are applied in the outer-middle ear filter
+%   determines whether the 'free-frontal' or 'diffuse' field 
+%   stages are applied in the outer-middle ear filter
 %
 % outPlot : Boolean true/false (default: false)
-%           flag indicating whether to generate a frequency and phase
-%           response figure for the filter
+%   flag indicating whether to generate a frequency and phase
+%   response figure for the filter
 % 
 % Returns
 % -------
 % signalFiltered : vector or 2D matrix
-%                  the output filtered signal
+%   the output filtered signal
 %
 % Assumptions
 % -----------
@@ -37,11 +37,11 @@ function signalFiltered  = shmOutMidEarFilter(signal, soundField, outPlot)
 % Ownership and Quality Assurance
 % -------------------------------
 % Authors: Mike JB Lotinga (m.j.lotinga@edu.salford.ac.uk) &
-%          Matt Torjussen (matt@anv.co.uk)
-% Institution: University of Salford / ANV Measurement Systems
+%          Matt Torjussen (m.c.torjussen@edu.salford.ac.uk)
+% Institution: University of Salford
 %
 % Date created: 26/09/2023
-% Date last modified: 27/06/2025
+% Date last modified: 15/11/2025
 % MATLAB version: 2023b
 %
 % Copyright statement: This file and code is part of work undertaken within
@@ -158,6 +158,5 @@ if outPlot
     title(ax1, soundField)
     ax1.TitleFontWeight = "normal";
 end
-
 
 % end of function

@@ -1,7 +1,7 @@
 function OUT = Roughness_ECMA418_2(insig, fs, fieldtype, time_skip, show)
 % OUT = Roughness_ECMA418_2(insig, fs, fieldtype, time_skip, show)
 %
-% Returns roughness values **and frequencies** according to ECMA-418-2:2025
+% Returns roughness values according to ECMA-418-2:2025
 % (using the Sottek Hearing Model) for an input calibrated single mono
 % or single stereo audio (sound pressure) time-series signal, insig. For stereo
 % signals, Roughness is calculated for each channel [left ear, right ear],
@@ -25,66 +25,60 @@ function OUT = Roughness_ECMA418_2(insig, fs, fieldtype, time_skip, show)
 % Inputs
 % ------
 % insig : column vector [Nx1] mono or [Nx2] binaural
-%            the input signal as single mono or stereo audio (sound
-%            pressure) signals
+%   the input signal as single mono or stereo audio (sound
+%   pressure) signals
 %
 % fs : integer
-%                the sample rate (frequency) of the input signal(s)
+%   the sample rate (frequency) of the input signal(s)
 %
 % fieldtype : keyword string (default: 'free-frontal')
-%                  determines whether the 'free-frontal' or 'diffuse' field stages
-%                  are applied in the outer-middle ear filter
+%   determines whether the 'free-frontal' or 'diffuse' field stages
+%   are applied in the outer-middle ear filter
 %
 % time_skip : integer (default: 320ms - see Section 7.1.8 ECMA-418-2:2025)
-%                   skip start of the signal in <time_skip> seconds so that
-%                   the transient response of the digital filters is avoided.
-%                   Best-practice: <time_skip> must be equal or higher than
-%                   default value
+%   skip start of the signal in <time_skip> seconds so that
+%   the transient response of the digital filters is avoided.
+%   Best-practice: <time_skip> must be equal or higher than default value
 %
 % show : Boolean true/false (default: false)
-%           flag indicating whether to generate a figure from the output
+%   flag indicating whether to generate a figure from the output
 %
 % Returns
 % -------
 %
 % OUT : structure
-%       contains the following fields:
+%   contains the following fields:
 %
 % specRoughness : matrix
-%                 time-dependent specific roughness for each (half)
-%                 critical band
-%                 arranged as [time, bands(, channels)]
+%   time-dependent specific roughness for each critical band
+%   arranged as [time, bands(, channels)]
 %
 % specRoughnessAvg : matrix
-%                    time-averaged specific roughness for each (half)
-%                    critical band
-%                    arranged as [bands(, channels)]
-%                    OBS: takes <time_skip> into consideration
+%   time-averaged specific roughness for each critical band
+%   arranged as [bands(, channels)]
+%   OBS: takes <time_skip> into consideration
 %
 % roughnessTDep : vector or matrix
-%                 time-dependent overall roughness
-%                 arranged as [time(, channels)]
+%   time-dependent overall roughness arranged as [time(, channels)]
 %
 % roughness90Pc : number or vector
-%                 90th percentile (a.k.a. value exceeded 10% of the time) 
-%                 of the time-dependent roughness. According to 
-%                 ECMA-418-2:2025 (Section 7.1.10), this quantity must be used as 
-%                 as the representative single value (overall roughness).               
-%                 OBS: takes <time_skip> into consideration
+%   90th percentile (a.k.a. value exceeded 10% of the time) 
+%   of the time-dependent roughness. According to 
+%   ECMA-418-2:2025 (Section 7.1.10), this quantity must be used as 
+%   as the representative single value (overall roughness).               
+%   OBS: takes <time_skip> into consideration
 %
 % bandCentreFreqs : vector
-%                   centre frequencies corresponding with each (half)
-%                   critical band rate scale width
+%   centre frequencies corresponding with each critical band rate
 %
 % timeOut : vector
-%           time (seconds) corresponding with time-dependent roughness outputs
+%   time (seconds) corresponding with time-dependent roughness outputs
 %
 % timeInsig : vector
-%             time (seconds) of insig
+%   time (seconds) of insig
 %
 % soundField : string
-%              identifies the soundfield type applied (the input argument
-%              fieldtype)
+%   identifies the soundfield type applied (the input argument fieldtype)
 %
 % Several statistics based on roughnessTDep
 %         ** Rmean : mean value of instantaneous roughness (asper)
@@ -100,26 +94,22 @@ function OUT = Roughness_ECMA418_2(insig, fs, fieldtype, time_skip, show)
 % separately for the "comb. binaural" case (i.e. combination of left and right ears)  
 %
 % specRoughnessBin : matrix
-%                    time-dependent specific roughness for each (half)
-%                    critical band
-%                    arranged as [time, bands]
+%   time-dependent specific roughness for each critical band
+%   arranged as [time, bands]
 %
 % specRoughnessAvgBin : matrix
-%                       time-averaged specific roughness for each (half)
-%                       critical band
-%                       arranged as [bands]
-%                       OBS: takes <time_skip> into consideration
+%   time-averaged specific roughness for each critical band arranged as [bands]
+%   OBS: takes <time_skip> into consideration
 %
 % roughnessTDepBin : vector or matrix
-%                    time-dependent overall roughness
-%                    arranged as [time]
+%   time-dependent overall roughness arranged as [time]
 %
 % roughness90PcBin : number
-%                    90th percentile (a.k.a. value exceeded 10% of the time) 
-%                    of the time-dependent roughness. According to 
-%                    ECMA-418-2:2025 (Section 7.1.10), this quantity must be used as 
-%                    the representative single value (overall roughness).  
-%                    OBS: takes <time_skip> into consideration.
+%   90th percentile (a.k.a. value exceeded 10% of the time) 
+%   of the time-dependent roughness. According to 
+%   ECMA-418-2:2025 (Section 7.1.10), this quantity must be used as 
+%   the representative single value (overall roughness).  
+%   OBS: takes <time_skip> into consideration.
 %
 % If show==true, a set of plots is returned illustrating the energy
 % time-averaged A-weighted sound level, the time-dependent specific and
@@ -137,7 +127,6 @@ function OUT = Roughness_ECMA418_2(insig, fs, fieldtype, time_skip, show)
 % Requirements
 % ------------
 % Signal Processing Toolbox
-% Audio Toolbox
 %
 % Ownership and Quality Assurance
 % -------------------------------
@@ -145,7 +134,7 @@ function OUT = Roughness_ECMA418_2(insig, fs, fieldtype, time_skip, show)
 % Institution: University of Salford
 %
 % Date created: 12/10/2023
-% Date last modified: 23/07/2025
+% Date last modified: 15/11/2025
 % MATLAB version: 2023b
 %
 % Copyright statement: This file and code is part of work undertaken within
@@ -164,7 +153,7 @@ function OUT = Roughness_ECMA418_2(insig, fs, fieldtype, time_skip, show)
 % information.
 %
 % Checked by: Gil Felix Greco
-% Date last checked: 16.02.2025
+% Date last checked: TBC
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Arguments validation
     arguments (Input) % Matlab R2018b or newer
@@ -238,7 +227,7 @@ blockSize1500 = blockSize/downSample;
 % hopSize1500 = (1 - overlap)*blockSize1500;
 resDFT1500 = sampleRate1500/blockSize1500;  % DFT resolution (section 7.1.5.1) [deltaf]
 
-% Modulation rate error correction values Table 8, Section 7.1.5.1
+% Modulation rate error correction values Table 10, Section 7.1.5.1
 % ECMA-418-2:2025 [E(theta)]
 errorCorrection = [0.0000, 0.0457, 0.0907, 0.1346, 0.1765, 0.2157, 0.2515,...
                    0.2828, 0.3084, 0.3269, 0.3364, 0.3348, 0.3188, 0.2844,...
@@ -393,7 +382,7 @@ for chan = size(pn_om, 2):-1:1
     % theta used in equation 79, including additional index for
     % errorCorrection terms from table 10
     theta = 0:1:33;
-    mlabIndex = 1;  % term used to compensate for MATLAB 1-indexing
+    mlabIdx = 1;  % term used to compensate for MATLAB 1-indexing
     nBlocks = size(modWeightSpectraAvg, 2);
     modAmp = zeros(10, nBlocks, nBands);
     modRate = zeros(10, nBlocks, nBands);
@@ -404,7 +393,7 @@ for chan = size(pn_om, 2):-1:1
             % identify peaks in each block (for each band)
             startIdx = 2;
             endIdx = 255;
-            [PhiPks, kLocs, ~, proms] = findpeaks(modWeightSpectraAvg(startIdx + mlabIndex:endIdx + mlabIndex,...
+            [PhiPks, kLocs, ~, proms] = findpeaks(modWeightSpectraAvg(startIdx + mlabIdx:endIdx + mlabIdx,...
                                                                       lBlock,...
                                                                       zBand));
 
@@ -412,9 +401,8 @@ for chan = size(pn_om, 2):-1:1
             % for indexing into modulation spectra matrices
             kLocs = kLocs + startIdx;
 
-            % we cannot have peaks at k = 1, 2, 255 or 256
-            mask = ~ismember(kLocs, [startIdx - 1, startIdx,...
-                                     endIdx, endIdx + 1]);
+            % we can only have peaks at k = 3:254 -> kLocs = 4:255
+            mask = ismember(kLocs, 3:254 + mlabIdx);
             kLocs = kLocs(mask);
             PhiPks = PhiPks(mask);
 
@@ -457,9 +445,9 @@ for chan = size(pn_om, 2):-1:1
                     % in the calculation, MATLAB indexing needs to be
                     % compensated for by subtracting 1 from kLocs
                     % [K]
-                    modIndexMat = [(kLocs(iPeak) - mlabIndex - 1)^2, kLocs(iPeak) - mlabIndex - 1, 1;
-                                   (kLocs(iPeak) - mlabIndex)^2, kLocs(iPeak) - mlabIndex, 1;
-                                   (kLocs(iPeak) - mlabIndex + 1)^2, kLocs(iPeak) - mlabIndex + 1, 1];
+                    modIndexMat = [(kLocs(iPeak) - mlabIdx - 1)^2, kLocs(iPeak) - mlabIdx - 1, 1;
+                                   (kLocs(iPeak) - mlabIdx)^2, kLocs(iPeak) - mlabIdx, 1;
+                                   (kLocs(iPeak) - mlabIdx + 1)^2, kLocs(iPeak) - mlabIdx + 1, 1];
 
                     coeffVec = modIndexMat\modAmpMat;  % Equation 73 solution [C]
 
@@ -468,7 +456,7 @@ for chan = size(pn_om, 2):-1:1
 
                     % Equation 79 ECMA-418-2:2025 [beta(theta)]
                     errorBeta = (floor(modRateEst/resDFT1500) + theta(1:33)/32)*resDFT1500...
-                                - (modRateEst + errorCorrection(theta(1:33) + mlabIndex)); % compensated theta value for MATLAB-indexing
+                                - (modRateEst + errorCorrection(theta(1:33) + mlabIdx)); % compensated theta value for MATLAB-indexing
 
                     % Equation 80 ECMA-418-2:2025 [theta_min]
                     [~, i_minError] = min(abs(errorBeta));
@@ -485,12 +473,12 @@ for chan = size(pn_om, 2):-1:1
                     % thetaCorr is 0-indexed so needs adjusting when
                     % indexing
                     % [rho(ftilde_p,i(l,z))]
-                    biasAdjust = errorCorrection(thetaCorr + mlabIndex - 1)...
-                                 - (errorCorrection(thetaCorr + mlabIndex)...
-                                    - errorCorrection(thetaCorr + mlabIndex - 1))...
-                                    *errorBeta(thetaCorr + mlabIndex - 1)...
-                                    /(errorBeta(thetaCorr + mlabIndex)...
-                                      - errorBeta(thetaCorr + mlabIndex - 1));
+                    biasAdjust = errorCorrection(thetaCorr + mlabIdx - 1)...
+                                 - (errorCorrection(thetaCorr + mlabIdx)...
+                                    - errorCorrection(thetaCorr + mlabIdx - 1))...
+                                    *errorBeta(thetaCorr + mlabIdx - 1)...
+                                    /(errorBeta(thetaCorr + mlabIdx)...
+                                      - errorBeta(thetaCorr + mlabIdx - 1));
 
                     % Equation 77 ECMA-418-2:2025 [f_p,i(l,z)]
                     modRate(iPeak, lBlock, zBand) = modRateEst + biasAdjust;
@@ -789,6 +777,7 @@ if show
         view(2);
         ax1.XLim = [timeOut(1), timeOut(end) + (timeOut(2) - timeOut(1))];
         ax1.YLim = [bandCentreFreqs(1), bandCentreFreqs(end)];
+        ax1.CLim = [0, ceil(max(specRoughness(:, :, chan), [], 'all')*500)/500];
         ax1.YTick = [63, 125, 250, 500, 1e3, 2e3, 4e3, 8e3, 16e3]; 
         ax1.YTickLabel = ["63", "125", "250", "500", "1k", "2k", "4k",...
                           "8k", "16k"];

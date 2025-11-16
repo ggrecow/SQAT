@@ -7,40 +7,40 @@ function [signalSegmented, iBlocksOut] = shmSignalSegment(signal, axisN, blockSi
 % Inputs
 % ------
 % signal : vector or 2D matrix
-%          the input signal/s
+%   the input signal/s
 %
 % axisN : integer (1 or 2, default: 1)
-%         the axis along which to apply block segmentation
+%   the axis along which to apply block segmentation
 %
 % blockSize : integer
-%             the block size in samples
+%   the block size in samples
 %
 % overlap : double (>=0, < 1)
-%           the proportion of overlap for each successive block
+%   the proportion of overlap for each successive block
 %
 % i_start : integer (optional, default: 1)
-%           the sample index from which to start the segmented signal
+%   the sample index from which to start the segmented signal
 %
 % endShrink : Boolean (optional, default: false)
-%             option to include the end of the signal data in a block using
-%             increased overlap with the preceding block
+%   option to include the end of the signal data in a block using
+%   increased overlap with the preceding block
 % 
 % Returns
 % -------
 % For each channel in the input signal:
 %
 % signalSegmented : 2D or 3D matrix
-%                   the segmented signal, arranged by channels over the
-%                   last axis, samples (within each block) along the axis
-%                   corresponding with axisn, and block number along the
-%                   other remaining axis
+%   the segmented signal, arranged by channels over the
+%   last axis, samples (within each block) along the axis
+%   corresponding with axisn, and block number along the
+%   other remaining axis
 %
 % Also: 
 %
 % iBlocksOut : vector
-%              the indices corresponding with each output block starting
-%              index (NOTE: the indices corresponding with the input
-%              indexing can be recovered by adding i_start to iBlocksOut)
+%   the indices corresponding with each output block starting
+%   index (NOTE: the indices corresponding with the input
+%   indexing can be recovered by adding i_start to iBlocksOut)
 %
 % Assumptions
 % -----------
@@ -53,11 +53,11 @@ function [signalSegmented, iBlocksOut] = shmSignalSegment(signal, axisN, blockSi
 % Ownership and Quality Assurance
 % -------------------------------
 % Authors: Mike JB Lotinga (m.j.lotinga@edu.salford.ac.uk) &
-%          Matt Torjussen (matt@anv.co.uk)
-% Institution: University of Salford / ANV Measurement Systems
+%          Matt Torjussen (m.c.torjussen@edu.salford.ac.uk)
+% Institution: University of Salford
 %
 % Date created: 27/09/2023
-% Date last modified: 27/06/2025
+% Date last modified: 15/11/2025
 % MATLAB version: 2023b
 %
 % Copyright statement: This file and code is part of work undertaken within

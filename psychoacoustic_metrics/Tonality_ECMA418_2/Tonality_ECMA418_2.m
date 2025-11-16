@@ -24,95 +24,86 @@ function OUT = Tonality_ECMA418_2(insig, fs, fieldtype, time_skip, show)
 % Inputs
 % ------
 % insig : column vector [Nx1] mono or [Nx2] binaural
-%            the input signal as single mono or stereo audio (sound
-%            pressure) signals
+%   the input signal as single mono or stereo audio (sound
+%   pressure) signals
 %
 % fs : integer
-%                the sample rate (frequency) of the input signal(s)
+%   the sample rate (frequency) of the input signal(s)
 %
 % fieldtype : keyword string (default: 'free-frontal')
-%                 determines whether the 'free-frontal' or 'diffuse' field stages
-%                 are applied in the outer-middle ear filter
+%   determines whether the 'free-frontal' or 'diffuse' field stages
+%   are applied in the outer-middle ear filter
 %
 % time_skip : integer (default: 304 ms - see Section 6.2.9 ECMA-418-2:2025)
-%                   skip start of the signal in <time_skip> seconds so that
-%                   the transient response of the digital filters is avoided.
-%                   Best-practice: <time_skip> must be equal or higher than
-%                   default value
+%   skip start of the signal in <time_skip> seconds so that
+%   the transient response of the digital filters is avoided.
+%   Best-practice: <time_skip> must be equal or higher than default value
 %
 % show : Boolean true/false (default: false)
-%           flag indicating whether to generate a figure from the output
+%   flag indicating whether to generate a figure from the output
 % 
 % Returns
 % -------
 %
 % OUT : structure
-%            contains the following fields:
+%   contains the following fields:
 %
 % specTonality : matrix
-%                time-dependent specific tonality for each (half) critical
-%                band
-%                arranged as [time, bands(, channels)]
+%   time-dependent specific tonality for each critical band
+%   arranged as [time, bands(, channels)]
 %
 % specTonalityFreqs : matrix
-%                     time-dependent frequencies of the dominant tonal
-%                     components corresponding with each of the
-%                     time-dependent specific tonality values in each
-%                     (half) critical band
-%                     arranged as [time, bands(, channels)]
+%   time-dependent frequencies of the dominant tonal
+%   components corresponding with each of the
+%   time-dependent specific tonality values in each critical band
+%   arranged as [time, bands(, channels)]
 %
 % specTonalityAvg : matrix
-%                   time-averaged specific tonality for each (half)
-%                   critical band
-%                   arranged as [bands(, channels)]
-%                   OBS: takes <time_skip> into consideration
+%   time-averaged specific tonality for each critical band
+%   arranged as [bands(, channels)]
+%   OBS: takes <time_skip> into consideration
 %
 % specTonalityAvgFreqs : matrix
-%                        frequencies of the dominant tonal components
-%                        corresponding with each of the
-%                        time-averaged specific tonality values in each
-%                        (half) critical band
-%                        arranged as [bands(, channels)]
-%                        OBS: takes <time_skip> into consideration
+%   frequencies of the dominant tonal components
+%   corresponding with each of the
+%   time-averaged specific tonality values in each critical band
+%   arranged as [bands(, channels)]
+%   OBS: takes <time_skip> into consideration
 %
 % specTonalLoudness : matrix
-%                     time-dependent specific tonal loudness for each
-%                     (half) critical band
-%                     arranged as [time, bands(, channels)]
+%   time-dependent specific tonal loudness for each critical band
+%   arranged as [time, bands(, channels)]
 %
 % specNoiseLoudness : matrix
-%                     time-dependent specific noise loudness for each
-%                     (half) critical band
-%                     arranged as [time, bands(, channels)]
+%   time-dependent specific noise loudness for each critical band
+%   arranged as [time, bands(, channels)]
 %
 % tonalityTDep : vector or matrix
-%                time-dependent overall tonality
-%                arranged as [time(, channels)]
+%   time-dependent overall tonality
+%   arranged as [time(, channels)]
 %
 % tonalityTDepFreqs : vector or matrix
-%                     time-dependent frequencies of the dominant tonal
-%                     components corresponding with the
-%                     time-dependent overall tonality values
-%                     arranged as [time(, channels)]
+%   time-dependent frequencies of the dominant tonal
+%   components corresponding with the
+%   time-dependent overall tonality values
+%   arranged as [time(, channels)]
 %
 % tonalityAvg : number or vector
-%               time-averaged overall tonality
-%               arranged as [tonality(, channels)]
-%               OBS: takes <time_skip> into consideration
+%   time-averaged overall tonality
+%   arranged as [tonality(, channels)]
+%   OBS: takes <time_skip> into consideration
 %
 % bandCentreFreqs : vector
-%                   centre frequencies corresponding with each (half)
-%                   critical band rate scale width
+%   centre frequencies corresponding with each critical band rate
 %
 % timeOut : vector
-%           time (seconds) corresponding with time-dependent outputs
+%   time (seconds) corresponding with time-dependent outputs
 %
 % timeInsig : vector
-%           time (seconds) of insig
+%   time (seconds) of insig
 %
 % soundField : string
-%              identifies the soundfield type applied (the input argument
-%              fieldtype)
+%   identifies the soundfield type applied (the input argument fieldtype)
 %
 % Several statistics based on tonalityTDep
 %         ** Tmean : mean value of instantaneous tonality (tu_HMS)
@@ -141,11 +132,11 @@ function OUT = Tonality_ECMA418_2(insig, fs, fieldtype, time_skip, show)
 % Ownership and Quality Assurance
 % -------------------------------
 % Authors: Mike JB Lotinga (m.j.lotinga@edu.salford.ac.uk) &
-%          Matt Torjussen (matt@anv.co.uk)
-% Institution: University of Salford / ANV Measurement Systems
+%          Matt Torjussen (m.c.torjussen@edu.salford.ac.uk)
+% Institution: University of Salford
 %
 % Date created: 07/08/2023
-% Date last modified: 23/07/2025
+% Date last modified: 15/11/2025
 % MATLAB version: 2023b
 %
 % Copyright statement: This file and code is part of work undertaken within
@@ -168,7 +159,7 @@ function OUT = Tonality_ECMA418_2(insig, fs, fieldtype, time_skip, show)
 % The original code has been reused and updated here with permission.
 %
 % Checked by: Gil Felix Greco
-% Date last checked: 16.02.2025
+% Date last checked: TBC
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %% Arguments validation
@@ -337,7 +328,6 @@ for chan = size(pn_om, 2):-1:1
         % Sections 5.1.6 to 5.1.9 ECMA-418-2:2025 [N'_basis(z)]
         [pn_rlz, bandBasisLoudness, ~]...
             = shmBasisLoudness(pn_lz, bandCentreFreqsDupe(zBand));
-        basisLoudnessArray{zBand} = bandBasisLoudness;
 
         % Apply ACF
         % ACF implementation using DFT
@@ -356,7 +346,7 @@ for chan = size(pn_om, 2):-1:1
         unbiasedNormACF((0.75*blockSizeDupe(zBand) + 1):blockSizeDupe(zBand), :) = 0;
 
         % Section 6.2.2 Equation 30 ECMA-418-2:2025 [phi_z'(m)
-        unbiasedNormACFDupe{zBand} = basisLoudnessArray{zBand}.*unbiasedNormACF;
+        unbiasedNormACFDupe{zBand} = bandBasisLoudness.*unbiasedNormACF;
 
     end
     

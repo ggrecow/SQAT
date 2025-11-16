@@ -1,19 +1,19 @@
 % Script Loudness_ECMA418_2_equal_loudness_contours
 %
-% Recreate Fig. A.1 from ECMA-418-2:2024. Compute Loudness (ECMA 418-2:2024) using the
+% Recreate Fig. A.1 from ECMA-418-2:2025. Compute Loudness (ECMA-418-2:2025) using the
 % <Loudness_ECMA418_2.m> implementation in SQAT and
 % compare with the equal-loudness-level contours from ISO 226:2003
 %
 %   1) compute reference equal-loudness-level contours using formulation from ISO 226:2003
 %
 %   2) compute overall loudness of a 1-kHz tone, for different phon curves,
-%       using the model from ECMA418-2:2024 
+%       using the model from ECMA-418-2:2025
 %
 %   3) perform an optimization procedure to find the SPL of tones (with
 %       different frquencies) with the same loudness as the 1-kHz tone.
 %       Here, the loudness is calculated using the model from ECMA418-2:2024 
 %
-%   Loudness using the model from ECMA418-2:2024 is computed using the
+%   Loudness using the model from ECMA-418-2:2025 is computed using the
 %   following function:
 %   OUT = Loudness_ECMA418_2(insig, fs, fieldtype, time_skip, show)
 %   type <help Loudness_ECMA418_2> for more info
@@ -22,6 +22,7 @@
 %
 % Author: Gil Felix Greco, Braunschweig 26.01.2025
 % Updated results: Gil Felix Greco, Cala Rajada 21.03.2025
+% Updated: M Lotinga 16.11.2025
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 clc; clear all; close all;
 

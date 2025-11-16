@@ -7,16 +7,15 @@ function signalFiltered = shmNoiseRedLowPass(signal, sampleRateIn)
 % Inputs
 % ------
 % signal : vector or 2D matrix
-%          the input signal as single mono or stereo audio (sound
-%          pressure) signals
+%   the input signal as single mono or stereo audio (sound pressure) signals
 %
 % sampleRateIn : double
-%                the sample rate (frequency) of the input signal(s)
+%   the sample rate (frequency) of the input signal(s)
 % 
 % Returns
 % -------
 % signalFiltered : vector or 2D matrix
-%                  the filtered signal
+%   the filtered signal
 %
 % Assumptions
 % -----------
@@ -30,11 +29,11 @@ function signalFiltered = shmNoiseRedLowPass(signal, sampleRateIn)
 % Ownership and Quality Assurance
 % -------------------------------
 % Authors: Mike JB Lotinga (m.j.lotinga@edu.salford.ac.uk) &
-%          Matt Torjussen (matt@anv.co.uk)
-% Institution: University of Salford / ANV Measurement Systems
+%          Matt Torjussen (m.c.torjussen@edu.salford.ac.uk)
+% Institution: University of Salford
 %
 % Date created: 22/09/2023
-% Date last modified: 27/06/2025
+% Date last modified: 15/11/2025
 % MATLAB version: 2023b
 %
 % Copyright statement: This file and code is part of work undertaken within
