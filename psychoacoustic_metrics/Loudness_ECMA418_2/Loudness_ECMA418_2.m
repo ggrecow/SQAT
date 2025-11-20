@@ -149,7 +149,7 @@ function OUT = Loudness_ECMA418_2(insig, fs, fieldtype, time_skip, show)
 % Institution: University of Salford
 %
 % Date created: 22/09/2023
-% Date last modified: 15/11/2025
+% Date last modified: 20/11/2025
 % MATLAB version: 2023b
 %
 % Copyright statement: This file and code is part of work undertaken within
@@ -274,7 +274,7 @@ for chan = chansIn:-1:1
 
     % Equation 113 ECMA-418-2:2025 [N'(l,z)]
     specLoudness(:, :, chan) = (specTonalLoudness(:, :, chan).^maxLoudnessFuncel...
-                                + abs((weight_n.*specNoiseLoudness(:, :, chan)).^maxLoudnessFuncel)).^(1./maxLoudnessFuncel);
+                                + (weight_n.*specNoiseLoudness(:, :, chan)).^maxLoudnessFuncel).^(1./maxLoudnessFuncel);
 end
 
 if chansIn == 2 && binaural
@@ -298,7 +298,10 @@ timeOut = (0:(size(specLoudness, 1) - 1))/sampleRate1875;
 
 % Section 8.1.2 ECMA-418-2:2025
 % Time-averaged specific loudness Equation 115 [N'(z)]
-specLoudnessPowAvg = (sum(specLoudness(time_skip_idx:end, :, :).^(1/log10(2)), 1)./size(specLoudness(time_skip_idx:end, :, :), 1)).^log10(2); %<--- time index takes <time_skip> into consideration
+specLoudnessPowAvg = (sum(specLoudness(time_skip_idx:end,...
+                                       :, :).^(1/log10(2)),...
+                          1)./size(specLoudness(time_skip_idx:end,...
+                                                :, :), 1)).^log10(2); %<--- time index takes <time_skip> into consideration
 
 % Section 8.1.3 ECMA-418-2:2025
 % Time-dependent loudness Equation 116 [N(l)]
@@ -313,7 +316,10 @@ end
 
 % Section 8.1.4 ECMA-418-2:2025
 % Overall loudness Equation 117 [N]
-loudnessPowAvg = (sum(loudnessTDep(time_skip_idx:end, :).^(1/log10(2)), 1)./size(loudnessTDep(time_skip_idx:end, :), 1)).^log10(2); %<--- time index takes <time_skip> into consideration
+loudnessPowAvg = (sum(loudnessTDep(time_skip_idx:end,...
+                                   :).^(1/log10(2)),...
+                      1)./size(loudnessTDep(time_skip_idx:end,...
+                                            :), 1)).^log10(2); %<--- time index takes <time_skip> into consideration
 
 %% Output assignment
 

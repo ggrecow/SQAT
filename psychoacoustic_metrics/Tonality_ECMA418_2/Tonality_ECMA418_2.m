@@ -136,7 +136,7 @@ function OUT = Tonality_ECMA418_2(insig, fs, fieldtype, time_skip, show)
 % Institution: University of Salford
 %
 % Date created: 07/08/2023
-% Date last modified: 15/11/2025
+% Date last modified: 20/11/2025
 % MATLAB version: 2023b
 %
 % Copyright statement: This file and code is part of work undertaken within
@@ -469,6 +469,10 @@ for chan = size(pn_om, 2):-1:1
         specTonalityFreqs(:, zBand, chan) = bandTonalFreqs;
 
     end
+
+    % set any tiny negative loudness values to 0
+    specTonalLoudness(specTonalLoudness < 0) = 0;
+    specNoiseLoudness(specNoiseLoudness < 0) = 0;
 
     % Calculation of specific tonality
     % --------------------------------
