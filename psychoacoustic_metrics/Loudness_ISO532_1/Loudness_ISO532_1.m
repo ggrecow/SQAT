@@ -336,9 +336,9 @@ end
 
 CorrCL = 0.4 + 0.32 .* CoreL(:,1).^(0.2);
 
-CorrCL(CorrCL >=1) = 1;
+CorrCL(CorrCL >= 1) = 1;
 
-CoreL = CoreL.*CorrCL;
+CoreL(:,1) = CoreL(:,1).*CorrCL;
 
 
 %% **********************************************************************
