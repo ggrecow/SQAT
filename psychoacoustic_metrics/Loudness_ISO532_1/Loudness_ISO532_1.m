@@ -72,6 +72,7 @@ function OUT = Loudness_ISO532_1(insig, fs, field, method, time_skip, show)
 %                   for SQAT. The validation was based on the test signals
 %                   provided from ISO 532-1:2017
 % Author: Gil Felix Greco, Braunschweig 16.02.2025 - introduced get_statistics function
+% Updated: M Lotinga 27.11.2025
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 if nargin == 0
     help Loudness_ISO532_1;
@@ -333,15 +334,12 @@ end
 % STEP 7 - Correction of specific loudness within the lowest critical band
 % **************************************************************************
 
-for j = 1:NumSamplesLevel
-    CorrCL = 0.4 + 0.32 .* CoreL(j,1).^(0.2);
+CorrCL = 0.4 + 0.32 .* CoreL(:,1).^(0.2);
 
-    if CorrCL > 1
-        CorrCL = 1;
-    end
+CorrCL(CorrCL >=1) = 1;
 
-    CoreL(j,1) = CoreL(j,1)*CorrCL;
-end
+CoreL = CoreL.*CorrCL;
+
 
 %% **********************************************************************
 % STEP 8 - Implementation of NL Block
