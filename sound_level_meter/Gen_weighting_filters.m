@@ -93,10 +93,6 @@ end
 warnState = warning('off', 'MATLAB:nearlySingularMatrix');
 
 bOctave = exist('OCTAVE_VERSION','builtin');
-if bOctave
-    % Loading signal package to get bilinear.m
-    pkg load signal
-end
 
 if ~bOctave
     % In MATLAB:

@@ -9,14 +9,15 @@
 % available on disk.
 %
 % Author: Alejandro Osses
+% Date: 2023
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 clc; clear all ;close all;
 
 dir_sounds = [basepath_SQAT 'sound_files' filesep 'reference_signals' filesep];
 wavfilename='RefSignal_Sharpness_DIN45692.wav';
-[insig,fs]=audioread([dir_sounds 'RefSignal_Sharpness_DIN45692.wav']); % 'sound_files\reference_signals\' -  path of the sound file for reference  
+[insig,fs]=audioread([dir_sounds 'RefSignal_Sharpness_DIN45692.wav']); % 'sound_files\reference_signals\' -  path of the sound file for reference
 
-dBFS = 90; 
+dBFS = 90;
 
 %%% Checking the average level based on the calibration:
 rms_val = 20*log10(rms(insig))+dBFS;
@@ -52,7 +53,7 @@ ylabel('Sound pressure level, $L_{\mathrm{p}}$ (dB re 20~$\mu$Pa)','Interpreter'
 legend({'dB(A)','dB(Z)'});
 
 set(gcf,'color','w');
-        
+
 fprintf('\n%s.m: The level information for sound in %s, analysed using a %s time weighting\n',mfilename,wavfilename,weight_time);
 fprintf('\tAverage (RMS) level using dBFS=%.0f: lvl_rms=%.1f dB(Z)\n',dBFS,rms_val);
 fprintf('\tDuration of the sound: dur=%.1f s\n\n',T);

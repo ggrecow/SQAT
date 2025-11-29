@@ -207,3 +207,9 @@ if bAdd
         addpath(dir2add)
     end
 end
+
+bOctave = exist('OCTAVE_VERSION','builtin');
+if bOctave
+    % Loading signal package to get rms.m, bilinear.m, among other functions
+    pkg load signal
+end
