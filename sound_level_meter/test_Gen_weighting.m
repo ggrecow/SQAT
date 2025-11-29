@@ -2,12 +2,18 @@ function test_Gen_weighting
 % function test_Gen_weighting
 %
 % 1. Description:
+%   In this test function, the A, B, C, and D curves are plotted as a
+%   function of frequency.
+%
 % 2. Stand-alone example:
+%    test_Gen_weighting
+%
 % 3. Additional info:
+%    MATLAB / GNU Octave compatible: Yes / Yes
 %
 % Programmed by Alejandro Osses
-% Created on    : 16/08/2023
-% Last update on: 16/08/2023 
+% Date: 16/08/2023
+% Date: 29/11/2025, GNU Octave compatible
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 fs = 44100;
@@ -28,12 +34,16 @@ plot(    f,20*log10(abs(hB)),'g'); hold on;
 semilogx(f,20*log10(abs(hC)),'r'); hold on;
 semilogx(f,20*log10(abs(hD)),'k'); hold on;
 xlim([20 20000]); grid on;
+ylim([-55 15])
 
 legend({'A','B','C','D'},'Location','SouthEast');
 title(sprintf('Frequency-weighting curves\n(note that B and D are no longer standardised)'));
-XT = [32 63 125 250 500 1000 2000 4000 8000 16000];
+XT = [32 63 125 250 500 1000 2000 4000 8000 16000]; % Hz
 set(gca,'XTick',XT);
-set(gca,'XTickLabels',XT);
+set(gca,'XTickLabel',XT);
+
+YT = -54:3:12; % dB, gain
+set(gca,'YTick',YT);
 
 xlabel('Frequency (Hz)');
 ylabel('Relative magnitude (dB)');
