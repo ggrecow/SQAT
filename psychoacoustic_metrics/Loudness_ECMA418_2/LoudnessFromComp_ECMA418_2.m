@@ -30,61 +30,62 @@ function OUT = LoudnessFromComp_ECMA418_2(specTonalLoudness, specNoiseLoudness, 
 % Inputs
 % ------
 % specTonalLoudness : matrix
-%                     the specific tonal loudness values calculated for
-%                     a sound pressure signal (single mono or single
-%                     stereo audio)
-%                     arranged as [time, bands(, chans)]
+%   the specific tonal loudness values calculated for
+%   a sound pressure signal (single mono or single stereo audio)
+%   arranged as [time, bands(, chans)]
 %
 % specNoiseLoudness : matrix
-%                     the specific noise loudness values calculated for
-%                     a sound pressure signal (single mono or single
-%                     stereo audio)
-%                     arranged as [time, bands(, chans)]
+%   the specific noise loudness values calculated for
+%   a sound pressure signal (single mono or single stereo audio)
+%   arranged as [time, bands(, chans)]
 %
 % time_skip : integer (default: 304 ms seconds - see ECMA-418-2:2025, Section 8.1.4)
-%                   skip start of the signal in <time_skip> seconds so that
-%                   the transient response of the digital filters is avoided.
-%                   Best-practice: <time_skip> must be equal or higher than
-%                   default value
+%   skip start of the signal in <time_skip> seconds so that
+%   the transient response of the digital filters is avoided.
+%   Best-practice: <time_skip> must be equal or higher than default value
 %
 % show : Boolean true/false (default: false)
-%             flag indicating whether to generate a figure from the output
+%   flag indicating whether to generate a figure from the output
 %
 % Returns
 % -------
 %
 % OUT : structure
-%            contains the following fields:
+%   contains the following fields:
 %
 % specLoudness : matrix
-%                time-dependent specific loudness for each (half) critical
-%                band
-%                arranged as [time, bands(, channels)]
+%   time-dependent specific loudness for each critical band
+%   arranged as [time, bands(, channels)]
+%
+% specTonalLoudness : matrix
+%   time-dependent specific tonal loudness for each critical band
+%   arranged as [time, bands(, channels)]
+%
+% specNoiseLoudness : matrix
+%   time-dependent specific noise loudness for each critical band
+%   arranged as [time, bands(, channels)]
 %
 % specloudnessPowAvg : matrix
-%                      time-power-averaged specific loudness for each
-%                      (half) critical band
-%                      arranged as [bands(, channels)]
-%                      OBS: takes <time_skip> into consideration
+%   time-power-averaged specific loudness for each critical band
+%   arranged as [bands(, channels)]
+%   OBS: takes <time_skip> into consideration
 %
 % loudnessTDep : vector or matrix
-%                 time-dependent overall loudness
-%                 arranged as [time(, channels)]
+%   time-dependent overall loudness arranged as [time(, channels)]
 % 
 % loudnessPowAvg : number or vector
-%                  time-power-averaged overall loudness
-%                  arranged as [loudness(, channels)]
-%                  OBS: takes <time_skip> into consideration
+%   time-power-averaged overall loudness
+%   arranged as [loudness(, channels)]
+%   OBS: takes <time_skip> into consideration
 %
 % bandCentreFreqs : vector
-%                   centre frequencies corresponding with each (half)
-%                   critical band rate scale width
+%   centre frequencies corresponding with each critical band rate
 %
 % timeOut : vector
-%           time (seconds) corresponding with time-dependent outputs
+%   time (seconds) corresponding with time-dependent outputs
 %
 % timeInsig : vector
-%           time (seconds) of insig
+%   time (seconds) of insig
 %
 % Several statistics based on loudnessTDep
 %         ** Nmean : mean value of instantaneous loudness (sone_HMS)
@@ -100,24 +101,28 @@ function OUT = LoudnessFromComp_ECMA418_2(specTonalLoudness, specNoiseLoudness, 
 % separately for the "comb. binaural" case (i.e. combination of left and right ears)  
 %
 % specLoudnessBin : matrix
-%                 time-dependent specific loudness for each (half)
-%                 critical band
-%                 arranged as [time, bands]
+%   time-dependent specific loudness for each critical band
+%   arranged as [time, bands]
+%
+% specTonalLoudnessBin : matrix
+%   time-dependent specific tonal loudness for each critical band
+%   arranged as [time, bands]
+%
+% specNoiseLoudnessBin : matrix
+%   time-dependent specific noise loudness for each critical band
+%   arranged as [time, bands]
 %
 % specLoudnessPowAvgBin : matrix
-%                      time-power-averaged specific loudness for each
-%                      (half) critical band
-%                      arranged as [bands]
-%                      OBS: takes <time_skip> into consideration
+%   time-power-averaged specific loudness for each critical band
+%   arranged as [bands]
+%   OBS: takes <time_skip> into consideration
 %
 % loudnessTDepBin : vector or matrix
-%                 time-dependent overall loudness
-%                 arranged as [time]
+%   time-dependent overall loudness arranged as [time]
 %
 % loudnessPowAvgBin : number or vector
-%                  time-power-averaged overall loudness
-%                  arranged as [time]
-%                  OBS: takes <time_skip> into consideration
+%   time-power-averaged overall loudness arranged as [time]
+%   OBS: takes <time_skip> into consideration
 %
 % If show==true, a set of plots is returned illustrating the energy
 % time-averaged A-weighted sound level, the time-dependent specific and
@@ -130,7 +135,7 @@ function OUT = LoudnessFromComp_ECMA418_2(specTonalLoudness, specNoiseLoudness, 
 % Assumptions
 % -----------
 % The input matrices are ECMA-418-2:2025 specific tonal and specific noise
-% loudness, with dimensions orientated as [half-Bark bands, time blocks,
+% loudness, with dimensions orientated as [critical bands, time blocks,
 % signal channels]
 %
 % Requirements
@@ -143,7 +148,7 @@ function OUT = LoudnessFromComp_ECMA418_2(specTonalLoudness, specNoiseLoudness, 
 % Institution: University of Salford
 %
 % Date created: 22/08/2023
-% Date last modified: 23/07/2025
+% Date last modified: 20/11/2025
 % MATLAB version: 2023b
 %
 % Copyright statement: This file and code is part of work undertaken within
@@ -162,7 +167,7 @@ function OUT = LoudnessFromComp_ECMA418_2(specTonalLoudness, specNoiseLoudness, 
 % information.
 %
 % Checked by: Gil Felix Greco
-% Date last checked: 03.04.2025
+% Date last checked: TBC
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Arguments validation
     arguments (Input) % Matlab R2018b or newer
@@ -228,8 +233,10 @@ for chan = chansIn:-1:1
                                 + specNoiseLoudness(:, :, chan), [],...
                                 2, "omitnan") + epsilon) + b;
     % Equation 113 ECMA-418-2:2025 [N'(l,z)]
-    specLoudness(:, :, chan) = (specTonalLoudness(:, :, chan).^maxLoudnessFuncel...
-                                    + abs((weight_n.*specNoiseLoudness(:, :, chan)).^maxLoudnessFuncel)).^(1./maxLoudnessFuncel);
+    specLoudness(:, :, chan) = (specTonalLoudness(:, :,...
+                                                  chan).^maxLoudnessFuncel...
+                                + (weight_n.*specNoiseLoudness(:, :,...
+                                                               chan)).^maxLoudnessFuncel).^(1./maxLoudnessFuncel);
 end
 
 if chansIn == 2
@@ -252,7 +259,10 @@ timeOut = (0:(size(specLoudness, 1) - 1))/sampleRate1875;
 
 % Section 8.1.2 ECMA-418-2:2025
 % Time-averaged specific loudness Equation 115 [N'(z)]
-specLoudnessPowAvg = (sum(specLoudness(time_skip_idx:end, :, :).^(1/log10(2)), 1)./size(specLoudness(time_skip_idx:end, :, :), 1)).^log10(2); %<--- time index takes <time_skip> into consideration
+specLoudnessPowAvg = (sum(specLoudness(time_skip_idx:end,...
+                                       :, :).^(1/log10(2)),...
+                          1)./size(specLoudness(time_skip_idx:end,...
+                                                :, :), 1)).^log10(2); %<--- time index takes <time_skip> into consideration
 
 % Section 8.1.3 ECMA-418-2:2025
 % Time-dependent loudness Equation 116 [N(l)]
@@ -267,7 +277,10 @@ end
 
 % Section 8.1.4 ECMA-418-2:2025
 % Overall loudness Equation 117 [N]
-loudnessPowAvg = (sum(loudnessTDep(time_skip_idx:end, :).^(1/log10(2)), 1)./size(loudnessTDep(time_skip_idx:end, :), 1)).^log10(2); %<--- time index takes <time_skip> into consideration
+loudnessPowAvg = (sum(loudnessTDep(time_skip_idx:end,...
+                  :).^(1/log10(2)),...
+                      1)./size(loudnessTDep(time_skip_idx:end,...
+                                            :), 1)).^log10(2); %<--- time index takes <time_skip> into consideration
 
 %% Output assignment
 
@@ -276,6 +289,8 @@ if chansOut == 3 % stereo case ["Stereo left"; "Stereo right"; "Combined binaura
 
     % outputs only with ["Stereo left"; "Stereo right"]
     OUT.specLoudness = specLoudness(:, :, 1:2);
+    OUT.specTonalLoudness = specTonalLoudness(:, :, 1:2);
+    OUT.specNoiseLoudness = specNoiseLoudness(:, :, 1:2);
     OUT.specLoudnessPowAvg = specLoudnessPowAvg(:, 1:2);
     OUT.loudnessTDep = loudnessTDep(:, 1:2);
     OUT.loudnessPowAvg = loudnessPowAvg(1:2);
@@ -316,6 +331,8 @@ if chansOut == 3 % stereo case ["Stereo left"; "Stereo right"; "Combined binaura
 else % mono case
 
     OUT.specLoudness = specLoudness;
+    OUT.specTonalLoudness = specTonalLoudness;
+    OUT.specNoiseLoudness = specNoiseLoudness;
     OUT.specLoudnessPowAvg = specLoudnessPowAvg;
     OUT.loudnessTDep = loudnessTDep;
     OUT.loudnessPowAvg = loudnessPowAvg;

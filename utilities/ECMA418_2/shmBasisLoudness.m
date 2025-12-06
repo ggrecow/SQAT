@@ -8,28 +8,27 @@ function [signalRectSeg, basisLoudness, blockRMS] = shmBasisLoudness(signalSegme
 % Inputs
 % ------
 % signalSegmented : 2D or 3D matrix
-%                   input band-limited segmented signal(s)
+%   input band-limited segmented signal(s)
 %
 % bandCentreFreq : double (optional, default = [])
-%                  half-Bark critical band centre frequency - if empty, all
-%                  bands are assumed to be present in the input segmented
-%                  signal matrix
+%   critical band centre frequency - if empty, all bands are assumed to be
+%   present in the input segmented signal matrix
 % 
 % Returns
 % -------
 % signalRectSeg : 2D or 3D matrix
-%                 rectified band-limited segmented signal
+%   rectified band-limited segmented signal
 %
 % basisLoudness : 2D or 3D matrix
-%                 basis loudness in each block
+%   basis loudness in each block
 % 
 % blockRMS : column vector or 2D matrix
-%            RMS for each block
+%   RMS for each block
 %
 % Assumptions
 % -----------
 % The input signal is a segmented signal (either band-limited, or arranged
-% with half-Bark critical bands over the third dimension) obtained using
+% with critical bands over the third dimension) obtained using
 % acousticSHMAuditoryFiltBank.m and ShmSignalSegment.m
 %
 % Requirements
@@ -39,11 +38,11 @@ function [signalRectSeg, basisLoudness, blockRMS] = shmBasisLoudness(signalSegme
 % Ownership and Quality Assurance
 % -------------------------------
 % Authors: Mike JB Lotinga (m.j.lotinga@edu.salford.ac.uk) &
-%          Matt Torjussen (matt@anv.co.uk)
-% Institution: University of Salford / ANV Measurement Systems
+%          Matt Torjussen (m.c.torjussen@edu.salford.ac.uk)
+% Institution: University of Salford
 %
 % Date created: 27/09/2023
-% Date last modified: 27/06/2025
+% Date last modified: 15/11/2025
 % MATLAB version: 2023b
 %
 % Copyright statement: This file and code is part of work undertaken within
@@ -85,7 +84,7 @@ end
 deltaFreq0 = 81.9289;  % defined in Section 5.1.4.1 ECMA-418-2:2025
 c = 0.1618;  % Half-Bark band centre-frequency denominator constant defined in Section 5.1.4.1 ECMA-418-2:2025
 
-halfBark = 0.5:0.5:26.5;  % half-critical band rate scale
+halfBark = 0.5:0.5:26.5;  % critical band rate scale
 bandCentreFreqs = (deltaFreq0/c)*sinh(c*halfBark);  % Section 5.1.4.1 Equation 9 ECMA-418-2:2025
 
 cal_N = 0.0211668;  % Calibration factor from Section 5.1.8 Equation 23 ECMA-418-2:2025
