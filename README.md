@@ -56,7 +56,7 @@ The implemented metrics available in the `psychoacoustic_metrics` folder are lis
 
 [10] Federal Aviation Regulations. (2005). 14 CFR Parts 36 and 91, Docket No. FAA-2003-16526; Amendment No. 36-26, 91-288. [https://www.ecfr.gov/current/title-14/appendix-Appendix%20A%20to%20Part%2036](https://www.ecfr.gov/current/title-14/appendix-Appendix%20A%20to%20Part%2036) (last viewed October 30, 2023)
 
-[11] Ecma International. (2025). Psychoacoustic metrics for ITT equipment - Part 2 (methods for describing human perception based on the Sottek Hearing Model) (Standard No. 418-2, 4th Edition/June 2025). [https://ecma-international.org/wp-content/uploads/ECMA-418-2_4th_edition_june_2025.pdf](https://ecma-international.org/wp-content/uploads/ECMA-418-2_4th_edition_june_2025.pdf) (Last viewed 16 Nov 2025)
+[11] Ecma International. (2025). Psychoacoustic metrics for ITT equipment - Part 2 (methods for describing human perception based on the Sottek Hearing Model) (Standard No. 418-2, 4th Edition/June 2025). [https://ecma-international.org/wp-content/uploads/ECMA-418-2_4th_edition_june_2025.pdf](https://ecma-international.org/wp-content/uploads/ECMA-418-2_4th_edition_june_2025.pdf) (Last viewed November 16, 2025)
 
 </details>
 
@@ -86,7 +86,10 @@ The toolbox has the following directories:
 
 1. Download or clone this repository to your local computer. One way to do that is to press the button 'Code' -> Choose 'Download ZIP' and unzip somewhere).
 
-2. After that, you need to add the relevant folders of the toolbox to the path of your MATLAB. Open and run the `startup_SQAT.m` script to automatically perform this task. In order to avoid conflicts, the `startup_SQAT.m` needs to be used every time MATLAB is (re)started. If you just want to use the metrics, you can add manually only the relevant folders to the MATLAB path (e.g., `psychoacoustic_metrics`, `sound_level_meter`, and `utilities`). 
+2. After that, you need to add the relevant folders of the toolbox to the path of your MATLAB. Open and run the `startup_SQAT.m` script to automatically perform this task. In order to avoid conflicts, the `startup_SQAT.m` needs to be used every time MATLAB is (re)started. 
+
+> [!TIP]
+> **If you just want to use the metrics, you can add manually only the relevant folders to the MATLAB path (e.g., `psychoacoustic_metrics`, `sound_level_meter`, and `utilities`).**
 
 # How to cite this repository
 If you use this toolbox in your research, we would be grateful if you help us to gain visibility by citing SQAT. This is the main citation if you need to cite the toolbox repository itself:
