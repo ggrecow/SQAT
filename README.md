@@ -154,6 +154,8 @@ We would be very happy to know that you find SQAT useful and have used it in you
 
 > Deutscher, B., Stalnov. O. & Ben-Gida, H. (2025). The Effect of Acoustic Detection Constraints on Optimizing Drones’ Delivery Missions. [Proceedings of the 31st AIAA/CEAS Aeroacoustics Conference](https://arc.aiaa.org/doi/10.2514/6.2025-3414).
 
+> Aalmoes, R., Sieben, N. & Nolet, S. (2025). Sound characteristics and perception study of new generation of turbofan aircraft. 11th Convention of the European Acoustics Association (Forum Acusticum), 23-26 June 2025, Málaga, Spain. [(link)](https://www.researchgate.net/publication/397677306_11_th_Convention_of_the_European_Acoustics_Association_Malaga_Spain_23_rd_-26_th)
+
 > Podwinska, Z., Ramos-Romero, C., Green, M. C., & Toríja, A. J. (2025). The effects of time-variant characteristics of unmanned aircraft system noise on reported annoyance. 11th Convention of the European Acoustics Association (Forum Acusticum), 23-26 June 2025, Málaga, Spain. [(link)](https://www.researchgate.net/publication/393461425_The_effects_of_time-variant_characteristics_of_unmanned_aircraft_system_noise_on_reported_annoyance)
 
 > Ramos-Romero, C., Green, M. C., Lotinga, M. J. B., & Toríja, A. J. (2025). Integrated U-space societal acceptance assessment: energy-based and perception-based acoustic metrics. 11th Convention of the European Acoustics Association (Forum Acusticum), 23-26 June 2025, Málaga, Spain. [(link)](https://www.researchgate.net/publication/393461428_Integrated_U-space_societal_acceptance_assessment_energy-based_and_perception-based_acoustic_metrics)
