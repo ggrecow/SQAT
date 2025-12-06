@@ -10,7 +10,7 @@
 % you are calculating the tonality anyways, it is not necessary to
 % calculate those parameters two times. You can use the specTonalLoudness and 
 % specNoiseLoudness outputs from <Tonality_ECMA418_2.m> to directly calculate 
-% loudness using the <x_LoudnessFromComp_ECMA418_2.m> function.
+% loudness using the <ex_LoudnessFromComp_ECMA418_2.m> function.
 %
 % Stereo signal: binaural audio recording of a 'train station' environment (30 seconds, 2-channel binaural)
 % The signal 'TrainStation.7.wav' was extracted from the EigenScape database 
