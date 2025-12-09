@@ -131,7 +131,9 @@ We would be very happy to know that you find SQAT useful and have used it in you
 
 ## Journal articles
 
-> Vourakis, M., Zea, E., Karlsson, M., Andersson, N., & Etemad, S. (2024). Installation effects on axial fans: Combined aeroacoustic and psychoacoustic perspective. [Applied Acoustics](https://doi.org/10.1016/j.apacoust.2025.110872), 240.
+> Knuth, D., Hüpel, Y., Pockelé, J. S., Merino-Martínez, R., & Langer, S. (2025). Perceptual assessment of simulated aircraft cabin noise in earlydesign stages. [The Journal of the Acoustical Society of America](https://doi.org/10.1121/10.0039865), 158 (5), 3870–3886.
+
+> Vourakis, M., Zea, E., Karlsson, M., Andersson, N., & Etemad, S. (2025). Installation effects on axial fans: Combined aeroacoustic and psychoacoustic perspective. [Applied Acoustics](https://doi.org/10.1016/j.apacoust.2025.110872), 240.
 
 > Lotinga, M. J. B., Green, M. C., & Toríja, A. J. (2025). Development of psychoacoustic prediction models for short-term noise annoyance responses to unmanned aircraft systems. [The Journal of the Acoustical Society of America](https://doi.org/10.1121/10.0039056), 158 (3), 2062–2082.
 
