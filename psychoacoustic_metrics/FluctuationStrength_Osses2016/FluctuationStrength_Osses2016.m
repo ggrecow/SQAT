@@ -146,8 +146,6 @@ end
 model_par = il_Get_fluctuation_strength_params(N,fs);
 model_par.debug = 'none';
 
-% model_par = ef(model_par,'window_type','cosine');
-
 t_b = ( 1:length(insig) )/fs;
 
 overlap = round(0.9*N);
@@ -156,13 +154,12 @@ t_b     = buffer(t_b,N,overlap,'nodelay');
 nFrames = size(insig,2);
 fluct   = zeros(1,nFrames); % Memory allocation
 
-%% ei = peripheral_stage(insig,fs,N);
-% 1. Cosine window:
-
+%%% 1. Cosine window:
 window = ones(N,1);
 attackrelease = 50;
-
 window = il_Do_cos_ramp(window,fs,attackrelease,attackrelease);
+
+bOctave = startup_SQAT;
 
 for iFrame = nFrames:-1:1
 
@@ -172,7 +169,7 @@ for iFrame = nFrames:-1:1
     % Apply window to frame
     signal = transpose(window .* signal);
 
-    %% 2. Peripheral stages
+    %%% 2. Peripheral stages
     % 2.1 Peripheral hearing system (transmission factor a0)
     %     (see 'model_par.a0_in_time' == 1, in _debug version):
     %
@@ -183,27 +180,25 @@ for iFrame = nFrames:-1:1
     %     (see model_par.filterbank == 'terhardt', in _debug version):
 
     dBFS = 94; % corresponds to 1 Pa (new default in SQAT)
-    % dBFS = 100; % unit amplitude corresponds to 100 dB (AMT Toolbox
-                  % convention, default by the original authors)
-    bOctave = startup_SQAT;
-    if ~bOctave
-        % If Octave, we force Alejandro's original implementation
+    if bOctave
+        % If Octave, we force Alejandro's original implementation:
         ei   = TerhardtExcitationPatterns_v3(signal,fs,dBFS);
     else
-        % If MATLAB, it uses Mike's optimisation for parallel processing
+        % If MATLAB, it uses Mike's optimisation for parallel processing:
         ei   = TerhardtExcitationPatterns(signal,fs,dBFS);
     end
     dz   = 0.5; % Barks, frequency step
     z    = 0.5:dz:23.5; % Bark
-    % fc   = bark2hz(z);  % unused variable
-    % flow = bark2hz(z-.5); flow(1) = 0.01;  % unused variable
-    % fup  = bark2hz(z+.5);  % unused variable
-    % BWHz = fup - flow;  % unusued variable
 
-    %% 3. Modulation depth (estimation)
+    fc   = bark2hz(z);  % unused variable
+    flow = bark2hz(z-.5); flow(1) = 0.01;  % unused variable
+    fup  = bark2hz(z+.5);  % unused variable
+    BW_Hz = fup - flow;  % unusued variable
+
+    %%% 3. Modulation depth (estimation)
     [mdept,hBPi] = il_modulation_depths(ei,model_par.Hweight);
 
-    %% 4. Cross-correlation coefficient:
+    %%% 4. Cross-correlation coefficient:
     %     (see model_par.dataset == 0, in _debug version)
 
     % % here cross-correlation is computed before band-pass filtering:
@@ -231,6 +226,13 @@ OUT.TimeAveragedSpecificFluctuationStrength = mean(fi,1); % mean specific fluctu
 OUT.time = t;                                             % time
 OUT.barkAxis = transpose(z) ;                             % critical band rate (for specific fluctuation strength)
 OUT.dz = dz;
+
+% Useful outputs for the user's awareness:
+OUT.fc = fc;
+OUT.fc_description = 'Centre frequency of the critical bands in Hz';
+OUT.flow = flow;
+OUT.fup = fup;
+OUT.BW_Hz = BW_Hz;
 
 %% ************************************************************************
 % Get statistics from time-varying fluctuation strength:

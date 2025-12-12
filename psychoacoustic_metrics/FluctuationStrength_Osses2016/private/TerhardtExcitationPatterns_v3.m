@@ -87,9 +87,6 @@ for i = 1:params.Chno
         N1tmp = whichL(l);
         N2tmp = N1tmp + N01;
 
-        if i == 24
-            disp('')
-        end
         if whichZ(1,l) == i
             ExcAmp(N1tmp,i)	= 1;
         elseif whichZ(2,l) == i

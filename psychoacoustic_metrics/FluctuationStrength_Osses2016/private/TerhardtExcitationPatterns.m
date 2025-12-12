@@ -43,7 +43,7 @@ end
 nL = length(whichL);
 
 % Steepness of slopes
-S1 = -27;			
+S1 = -27;
 S2 = zeros(nL, 1);
 
 steep = -24 - (230./freqs(whichL)) + (0.2*LdB(whichL));
@@ -64,7 +64,7 @@ kk = zeros(nL, params.Chno);
 kk1 = kk;
 kk2 = kk;
 delta_z = zeros(nL, params.Chno);
-for l = nL:-1:1    
+for l = nL:-1:1
     for k = whichZ(l, 1):-1:1
         kk1(l, k) = k;
     end
@@ -85,7 +85,12 @@ delta_z(kk1mask) = zi(kk1mask) - zk(kk1mask);
 delta_z(kk2mask) = zk(kk2mask) - zi(kk2mask);
 Stemp(kk1mask) = S1*delta_z(kk1mask) + Li(kk1mask);
 Stemp(kk2mask) = S2(kk2mask).*delta_z(kk2mask) + Li(kk2mask);
-maxk = max(kk, [], 'all');
+try
+    maxk = max(kk, [], 'all');
+catch
+    % GNU Octave compatible:
+    maxk = max(max(kk));
+end
 MinBfRep = repmat(params.MinBf(1:maxk), nL, 1);
 mask = Stemp > MinBfRep;
 Slopes(mask) = 10.^(Stemp(mask)/20);
@@ -183,12 +188,12 @@ HTres = [
 
 MinExcdB            = zeros(1,length(qb));
 MinExcdB(qb-N01)    = interp1(HTres(:,1),HTres(:,2),Barkno(qb));
-   
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function MinBf = il_calculate_MinBf(N01,df,Bark,MinExcdB)
-    
+
 Cf = round(Bark(2:25,2)'/df)-N01+1;
-Bf = round(Bark(1:25,3)'/df)-N01+1;  
+Bf = round(Bark(1:25,3)'/df)-N01+1;
 
 zb      = sort([Bf Cf]);
 MinBf   = MinExcdB(zb);

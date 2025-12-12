@@ -15,7 +15,7 @@ function bOctave = startup_SQAT(bp)
 bOctave = exist('OCTAVE_VERSION','builtin');
 
 if nargout == 1
-    fprintf('This script will only return the variable bOctave, run %s without output arguments to initialise the toolbox\n',mfilename);
+    fprintf('\t%s.m: Only returning the variable bOctave\n',mfilename);
     return;
 end
 
@@ -221,4 +221,8 @@ end
 if bOctave
     % Loading signal package to get rms.m, bilinear.m, among other functions
     pkg load signal
+
+    messageId = 'Octave:data-file-in-path';
+    % [messageStr, messageId] = lastwarn(); % messageId: 'Octave:data-file-in-path'
+    warning('off', messageId);
 end

@@ -24,7 +24,7 @@ function OUT = get_exceeded_value(input, PercentValue)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % check input dimension (only [Nx1], [Nx2] or [Nx3] are valid)
-if  size(input,1) > 3 & size(input,2) > 3 % insig has more than 3 channels
+if  size(input,1) > 3 && size(input,2) > 3 % insig has more than 3 channels
     error('Error: Input signal has more than 3 channels. ')
 elseif  size(input, 2) > 3  % insig is [1xN], [2xN] or [3xN]
     input = input';
@@ -48,4 +48,4 @@ for nColumns = 1:size(input,2) % operate on the columns (time vector must be a c
 
 end
 
-end
+end % End of function
