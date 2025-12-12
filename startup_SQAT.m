@@ -1,13 +1,23 @@
-function startup_SQAT(bp)
-% function startup_SQAT(bp)
+function bOctave = startup_SQAT(bp)
+% function bOctave = startup_SQAT(bp)
 %
 % This scripts initialises the toolbox. As recommended by the authors, the
 %   added paths will be removed from the MATLAB directories when MATLAB is
 %   closed. This means that startup_SQAT needs to be run once after MATLAB
 %   has started.
 %
+% If the user requests the variable bOctave, the initialisation will be
+%   stopped and only bOctave will be returned.
+%
 % Author: Alejandro Osses
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+bOctave = exist('OCTAVE_VERSION','builtin');
+
+if nargout == 1
+    fprintf('This script will only return the variable bOctave, run %s without output arguments to initialise the toolbox\n',mfilename);
+    return;
+end
 
 if nargin == 0
     bp = [fileparts(mfilename('fullpath')) filesep]; % obtains the folder where this script is
@@ -208,7 +218,6 @@ if bAdd
     end
 end
 
-bOctave = exist('OCTAVE_VERSION','builtin');
 if bOctave
     % Loading signal package to get rms.m, bilinear.m, among other functions
     pkg load signal
