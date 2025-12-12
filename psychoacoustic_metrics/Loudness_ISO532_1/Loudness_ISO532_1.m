@@ -100,6 +100,8 @@ switch method
         end
 end
 
+bOctave = startup_SQAT;
+
 % Time constants for non-linear temporal decay
 Tshort = 0.005;
 Tlong = 0.015;
@@ -120,16 +122,16 @@ pref = sqrt(I_REF); % 2e-5 Pa
 barkAxis=(1:240)/10;
 
 switch method
-    case 0 
-        % if method == 0, no need to calculate one-third OB levels. 
+    case 0
+        % if method == 0, no need to calculate one-third OB levels.
         SampleRateLevel = 1;
         DecFactorLoudness = 1;
         NumSamplesLevel = 1;
 
         ThirdOctaveLevel = insig; % get 1/3 octave levels from insig if method = 0
 
-    otherwise  
-        % if different from stationary (from input 1/3 octave unweighted SPL)      
+    otherwise
+        % if different from stationary (from input 1/3 octave unweighted SPL)
 
         % **************************************************
         % STEP 1 - resample to 48 kHz if necessary
@@ -140,7 +142,7 @@ switch method
             fs = 48000;
         end
         len = size(insig,1);
-        
+
         % Assign values to global variables according to the selected method
         switch method
             case 1 % stationary from audio signal
@@ -161,7 +163,7 @@ switch method
         % STEP 2 - Create filter bank and filter the signal
         % **************************************************
         [filteredaudio,fc] = Do_OB13_ISO532_1(insig,fs);
-        
+
         % ***************************************************************
         % STEP 3 - Squaring and smoothing by 3 1st order lowpass filters
         % ***************************************************************
@@ -170,9 +172,14 @@ switch method
         N_bands = length(fc);
         ThirdOctaveLevel = zeros(NumSamplesLevel,N_bands);
         CentreFrequency = fc;
-        
+
         for i = 1:N_bands
 
+            if bOctave
+                % Running in GNU Octave is extremely slow, it is better
+                %   to print on screen the progress:
+                fprintf('\t%s.m: Processing band %.0f\n',mfilename,i);
+            end
             switch method
                 case {2,'time-varying'} % time-varying from audio signal
                     smoothedaudio = zeros(len,N_bands);
@@ -749,7 +756,7 @@ if method == 2 % time-varying from audio signal
         end
     end
 
-    clear OUT_statistics metric_statistics fields_OUT_statistics fieldName;  
+    clear OUT_statistics metric_statistics fields_OUT_statistics fieldName;
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
     OUT.N_ratio=OUT.N5/OUT.N95; % ratio between N5/N95 (1.1 (stationary)> N_ratio>1.1 (time varying)
@@ -858,7 +865,7 @@ elseif method==0 || method==1
 
         subplot(2, 1, 1)
         plot( OUT.time_insig, insig); hold on;
-        hLine = yline(insig_rms,'k--'); 
+        hLine = yline(insig_rms,'k--');
 
         text4legend = sprintf('$p_{\\mathrm{rms}}=$%g (Pa) \n $L_{\\mathrm{p}}$=%g (dB SPL)',insig_rms,insig_rms_dB);
         legend(hLine,text4legend,'Location','NorthEast','Interpreter','Latex'); %legend boxoff
@@ -873,7 +880,7 @@ elseif method==0 || method==1
         subplot(2, 1, 2)
         plot( OUT.barkAxis, OUT.SpecificLoudness );
 
-        % text4annotation defined as a cell variable to define different 
+        % text4annotation defined as a cell variable to define different
         %   lines of text:
         text4annotation = {sprintf('Loudness, $N$=%.3f (sone) \nLoudness level, $L_{\\mathrm{N}}$=%.1f (phon)',N,LN)};
         annotation('textbox',...
