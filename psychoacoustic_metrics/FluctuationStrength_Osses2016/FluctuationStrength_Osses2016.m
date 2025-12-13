@@ -190,26 +190,27 @@ for iFrame = nFrames:-1:1
     dz   = 0.5; % Barks, frequency step
     z    = 0.5:dz:23.5; % Bark
 
-    fc   = bark2hz(z);  % unused variable
-    flow = bark2hz(z-.5); flow(1) = 0.01;  % unused variable
-    fup  = bark2hz(z+.5);  % unused variable
-    BW_Hz = fup - flow;  % unusued variable
+    fc   = bark2hz(z);  
+    flow = bark2hz(z-.5); flow(1) = 0.01; 
+    fup  = bark2hz(z+.5); 
+    BW_Hz = fup - flow; 
 
     %%% 3. Modulation depth (estimation)
     [mdept,hBPi] = il_modulation_depths(ei,model_par.Hweight);
 
     %%% 4. Cross-correlation coefficient:
-    %     (see model_par.dataset == 0, in _debug version)
-
-    % % here cross-correlation is computed before band-pass filtering:
+    % % Here cross-correlation values are computed before band-pass filtering:
     % Ki = il_cross_correlation(inoutsig); % with hBPi Ki goes down but not as much as 'it should'
     Ki = il_cross_correlation(hBPi);
-    % [fi_,mdept,kp,gzi] = il_specific_fluctuation(mdept,Ki,model_par);
-    [fi_, ~, ~, ~] = il_specific_fluctuation(mdept,Ki,model_par);  % unused returns omitted
-
-    % kp_fr(iFrame,:)= kp;  % unused variable
-    % gzi_fr(iFrame,:) = gzi;  % unused variable
-    % md_fr(iFrame,:) = mdept;  % unused variable
+    
+    % Obtaining the specific fluctuation strength fi_. Extra outputs 
+    %   are also returned: md_fr, kp_fr, gzi_fr.
+    [fi_,mdept,kp,gzi] = il_specific_fluctuation(mdept,Ki,model_par);
+    
+    kp_fr(iFrame,:)= kp;  % unused variable
+    gzi_fr(iFrame,:) = gzi;  % unused variable
+    md_fr(iFrame,:) = mdept;  % unused variable
+    
     fi(iFrame,:)  = model_par.cal * fi_;
     fluct(iFrame) = dz*sum(fi(iFrame,:)); % total fluct = integration of the specific fluct. strength pattern
 
@@ -233,6 +234,10 @@ OUT.fc_description = 'Centre frequency of the critical bands in Hz';
 OUT.flow = flow;
 OUT.fup = fup;
 OUT.BW_Hz = BW_Hz;
+
+OUT.kp_fr = kp_fr;
+OUT.gzi_fr = gzi_fr;
+OUT.md_fr = md_fr;
 
 %% ************************************************************************
 % Get statistics from time-varying fluctuation strength:
@@ -338,6 +343,13 @@ end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function ki = il_cross_correlation(hBPi)
+% function ki = il_cross_correlation(hBPi)
+%
+% Correlation across channels: Normally, when the envelope of contiguous
+% channels are highly correlated, a higher sensation of fluctuation
+% strength is elicited. The assessment of cross correlation (for 
+% neighbouring channels) is returned in the variable ki.
+
 [Chno,~] = size(hBPi);
 
 ki = zeros(2,Chno);
@@ -345,7 +357,7 @@ for k=1:Chno-2
     try
         cfac = cov(hBPi(k,:),hBPi(k+2,:));
     catch
-        error('You do not have the function cov (stats toolbox). Contact me at ale.a.osses@gmail.com to solve this problem');
+        error('You do not have the function cov (stats toolbox).');
     end
     den  = diag(cfac);
     den  = sqrt(den*den');
@@ -375,49 +387,33 @@ end
 ki(2,3:Chno) = ki(1,1:Chno-2);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [fi,mdept,kp,gzi] = il_specific_fluctuation(mdept,Ki,model_par,dataset)
-
-if nargin <4
-    dataset = 0;
-end
+function [fi,mdept,kp,gzi] = il_specific_fluctuation(mdept,Ki,model_par)
+% function [fi,mdept,kp,gzi] = il_specific_fluctuation(mdept,Ki,model_par)
+% 
+% Obtaining the specific fluctuation stregnth fi. The variables mdept,
+% kp, and gzi are the intermediate variables that lead to the final
+% specific fluctuation strength.
 
 gzi = model_par.gzi;
 p_g = model_par.p_g;
 p_m = model_par.p_m;
 p_k = model_par.p_k;
 
-% Chno = length(gzi);  % unused variable
-
-% fi = zeros(1,Chno);  % unused variable
-
-switch dataset
-    case {0,90,99}
-
-        % Version 3: % Improves approximation for FM tones
-        thres = 0.7;
-        idx = find(mdept>thres);
-        exceed = mdept(idx)-thres;
-        mdept(idx) = thres+(1-thres)*exceed;
-        md    = min(mdept,ones(size(mdept)));
-
-    case 1
-        % md    = min(mdept,ones(size(mdept)));  % unused variable
-        % md    = mdept-0.1*ones(size(mdept));  % unused variable
-        md    = max(mdept,zeros(size(mdept)));
-end
+% Processing for the old 'dataset' variable, for dataset 0,90,99
+%   (note that dataset=1 was removed)
+thres = 0.7;
+idx = find(mdept>thres);
+exceed = mdept(idx)-thres;
+mdept(idx) = thres+(1-thres)*exceed;
+md    = min(mdept,ones(size(mdept)));
 
 kp     = Ki(1,:).*Ki(2,:);
 kpsign = (sign(kp));
 kp     = abs(kp);
 
-switch dataset
-    case {0,90,99}
-        fi = gzi.^p_g .* md.^p_m .* (kp.^p_k).*kpsign;
-    case 1
-        fi = gzi.^p_g*md.^p_m*kp.^p_k;
-    otherwise
-        error('Dataset does not include the calculation of fi')
-end
+% Processing for the old 'dataset' variable, for dataset 0,90,99 
+%   (note that dataset=1 was removed)
+fi = gzi.^p_g .* md.^p_m .* (kp.^p_k).*kpsign;
 
 mdept = md;
 

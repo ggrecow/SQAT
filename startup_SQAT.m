@@ -46,6 +46,8 @@ for i_dir = 1:length(main_dirs)
     end
 end
 
+addpath(bp); % Adding the base path
+
 L_main        = [bp 'psychoacoustic_metrics' filesep 'Loudness_ISO532_1'             filesep];
 L_validation  = [bp 'validation'             filesep 'Loudness_ISO532_1'             filesep];
 L_example     = [bp 'examples'               filesep 'Loudness_ISO532_1'             filesep];
