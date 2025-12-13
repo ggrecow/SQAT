@@ -352,28 +352,28 @@ H42 = [
 
 Hweight	= zeros(47,N);
 
-% weighting function H2
+% Weighting function H2
 last	= floor((358/fs)*N) ;
 k	= DCbins+1:1:last;
 f	= (k-1)*fs/N;
 Hweight(2,k) = interp1(H2(:,1),H2(:,2),f(k-DCbins));
 
-% weighting function H5
+% Weighting function H5
 last	=	floor((502/fs)*N);
 k	=	DCbins+1:1:last;
 f	=	(k-1)*fs/N;
 Hweight(5,k)	= interp1(H5(:,1),H5(:,2),f(k-DCbins));
 
-% weighting function H16
+% Weighting function H16
 last	=	floor((645/fs)*N);
 k	=	DCbins+1:1:last;
 f	=	(k-1)*fs/N;
 Hweight(16,k)	= interp1(H16(:,1),H16(:,2),f(k-DCbins));
 
-% weighting function H21
+% Weighting function H21
 Hweight(21,k)	= interp1(H21(:,1),H21(:,2),f(k-DCbins));
 
-% weighting function H42
+% Weighting function H42
 Hweight(42,k)	= interp1(H42(:,1),H42(:,2),f(k-DCbins));
 
 % H1-H4
@@ -405,7 +405,7 @@ end
 % END Hweights %
 %%%%%%%%%%%%%%%%
 
-%% %%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%
 % BEGIN process window %
 %%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -460,17 +460,17 @@ for windowNum = 1:n    %for each frame
             S2(w) = steep;      % set S2 with steepness value calculated earlier
         end
     end
-    whichZ	= zeros(2,sizL);    % preallocate
-    qd		= 1:1:sizL;         % indices of frequencies above excitation threshold
+    whichZ	= zeros(2,sizL);    % Memory allocation
+    qd		= 1:1:sizL;         % Indices of frequencies above excitation threshold
     whichZ(1,:)	= floor(2*Barkno(whichL(qd)+N01));  % get bark band numbers
     whichZ(2,:)	= ceil(2*Barkno(whichL(qd)+N01));
     
     ExcAmp = zeros(sizL,Chno);
     Slopes = zeros(sizL,Chno);
     
-    for k=1:1:sizL    %loop over freq indices above threshold
-        Ltmp = LdB(whichL(k)); % copy FFT magnitude (in dB) above threshold
-        Btmp = Barkno(whichL(k)+N01); % and the bark number associat
+    for k=1:1:sizL    % for: each frequency index above threshold
+        Ltmp = LdB(whichL(k)); % Copy FFT magnitude (in dB) above threshold
+        Btmp = Barkno(whichL(k)+N01); % and the related bark number
         
         for l = 1:1:whichZ(1,k) % loop up to floored bark number of freq index k
             Stemp = (S1*(Btmp-(l*0.5)))+Ltmp;
@@ -523,7 +523,7 @@ for windowNum = 1:n    %for each frame
         end
     end
     
-    % find cross-correlation coefficients
+    % Find the cross-correlation coefficients
     for k=1:1:45
         cfac	=	cov(hBPi(k,:),hBPi(k+2,:));
         den	=	diag(cfac);
@@ -556,7 +556,7 @@ for windowNum = 1:n    %for each frame
         SPL = -400;
     end
     
-    % matrices to return
+    % Matrices to return
     R_mat(windowNum) = R;
     ri_mat(1:Chno,windowNum) = ri;
     SPL_mat(windowNum) = SPL;
