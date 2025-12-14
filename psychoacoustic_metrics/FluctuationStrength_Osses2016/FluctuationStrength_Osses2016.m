@@ -335,7 +335,7 @@ h0      = mean(ei);
 ei      = ei - repmat(h0,Nc,1);
 
 if ~isnumeric( Hweight )
-    % older versions of MATLAB
+    % Older versions of MATLAB
     hBPi = filter(Hweight,ei); % getting the envelopes
 else
     hBPi = sosfilt(Hweight,ei);
@@ -345,7 +345,7 @@ try
     % In case LTFAT toolbox is installed (overloads rms from signal processing toolbox)
     hBPrms = rms(hBPi,'dim',1);
 catch
-    % uses the default rms calculation from the signal processing toolbox
+    % Uses the default RMS calculation from the signal processing toolbox
     hBPrms = rms(hBPi,1);
 end
 hBPi = transpose(hBPi);
