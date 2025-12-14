@@ -6,7 +6,9 @@ function OUT = FluctuationStrength_Osses2016(insig,fs,method,time_skip,show,stru
 %    "Modelling the sensation of fluctuation strength." Proceedings of
 %    Meetings on Acoustics 22 ICA. Vol. 28, 050005. doi:10.1121/2.0000410
 %
-%  Reference signal: 60 dBSPL 1 kHz tone 100% modulated at 4 Hz should yield 1 vacil.
+%  Reference signal: a sine tone with centre frequency of 1000 Hz, 100%
+%    modulated at a modulation frequency of 4 Hz and presented at a sound
+%    pressure level of 60 dB should yield 1 vacil.
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
@@ -14,12 +16,13 @@ function OUT = FluctuationStrength_Osses2016(insig,fs,method,time_skip,show,stru
 %   insig : [Nx1] array
 %   insig is a monophonic calibrated audio signal (Pa)
 %
-%   fs : sampling frequency (Hz) - Defaults of 48 kHz or 44.1 kHz (pre-computed
-%                                    filters.
-%   method : integer
-%   method=0, stationary analysis - window size=length(insig) (s) kind of
-%             an rms value
-%   method=1, time_varying analysis - window size=2 (s)
+%   fs : Sampling frequency (Hz) - Defaults of 48 kHz or 44.1 kHz
+%                                  (pre-computed filters).
+%   method : integer, such that:
+%     - method=0, stationary analysis - window size = length(insig) (s),
+%             where one overall fluctuation strength value is obtained.
+%             This is an 'RMS-like' fluctuation-strength value.
+%     - method=1, time-varying analysis - window size = 2 (s)
 %             NOTE: if the signal's length is smaller than 2s, the analysis
 %             is automatically changed to method=0
 %
@@ -91,6 +94,7 @@ function OUT = FluctuationStrength_Osses2016(insig,fs,method,time_skip,show,stru
 % Modified: Mike Lotinga May 2025 - incorporated efficiency improvements in
 % TerhardtExcitationPatterns.m to speed up calculation.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 if nargin == 0
     help FluctuationStrength_Osses2016;
     return;
@@ -131,14 +135,33 @@ if method==1 % 'time_varying'
     time_resolution = 2;  % window length fixed in 2s (Osses et al., 2016)
     N=round(fs*time_resolution);
 
-    if N>=length(insig) % if the signal's length is smaller than the window size, force method==0
-        warning('The signal is shorter than 2 seconds. The analysis will be automatically changed to ''stationary'', i.e. method=0 and window size=length(insig). This analysis window may lead to inaccurate fluctuation-strength estimates, especially if the modulation components are low (below 10 Hz).');
-        method=0;
+    if N >= length(insig)
+        % If the duration of the signal is shorter than the window size,
+        %   the stationary method (method = 0) will be forced.
+        fprintf('The signal is shorter than 2 seconds. The analysis will be automatically changed to ''stationary''\n');
+        pause(2); % This is a critical warning, because the user in this case
+                  %   is NOT aware of the limitations of his/her signals.
+        method = 0;
     end
 end
 
-if method==0 %'stationary'
-    N=length(insig); %  window size (N)=length(signal) kind of an rms value;
+if method == 0 % 'stationary'
+    N = length(insig); %  window size (N)=length(signal) to obtain an overall value
+    duration_this_signal = N/fs;
+
+    if duration_this_signal < 2
+        % We should throw a warning, because this fluctuation strength
+        %   may be irrelevant if the signal contains slow modulation
+        %   frequencies.
+
+        % Criterion: at least 3 cycles should be contained in the analysis window.
+        %   T = 2/3 = 0.67 s or fmod_min = 1.5 Hz;
+        %   Reference for this criterion: as specified in Praat for speech
+        %     applications and for the accurate assessment of fundamental
+        %     frequencies.
+        min_fmod = 3/duration_this_signal; % 3 cycles
+        warning('The signal is shorter than 2 seconds. This stationary analysis (method=0) may lead to inaccurate fluctuation-strength estimates, especially if the modulation components are lower than %.1f Hz.',min_fmod);
+    end
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -190,10 +213,10 @@ for iFrame = nFrames:-1:1
     dz   = 0.5; % Barks, frequency step
     z    = 0.5:dz:23.5; % Bark
 
-    fc   = bark2hz(z);  
-    flow = bark2hz(z-.5); flow(1) = 0.01; 
-    fup  = bark2hz(z+.5); 
-    BW_Hz = fup - flow; 
+    fc   = bark2hz(z);
+    flow = bark2hz(z-.5); flow(1) = 0.01;
+    fup  = bark2hz(z+.5);
+    BW_Hz = fup - flow;
 
     %%% 3. Modulation depth (estimation)
     [mdept,hBPi] = il_modulation_depths(ei,model_par.Hweight);
@@ -202,15 +225,15 @@ for iFrame = nFrames:-1:1
     % % Here cross-correlation values are computed before band-pass filtering:
     % Ki = il_cross_correlation(inoutsig); % with hBPi Ki goes down but not as much as 'it should'
     Ki = il_cross_correlation(hBPi);
-    
-    % Obtaining the specific fluctuation strength fi_. Extra outputs 
+
+    % Obtaining the specific fluctuation strength fi_. Extra outputs
     %   are also returned: md_fr, kp_fr, gzi_fr.
     [fi_,mdept,kp,gzi] = il_specific_fluctuation(mdept,Ki,model_par);
-    
+
     kp_fr(iFrame,:)= kp;  % unused variable
     gzi_fr(iFrame,:) = gzi;  % unused variable
     md_fr(iFrame,:) = mdept;  % unused variable
-    
+
     fi(iFrame,:)  = model_par.cal * fi_;
     fluct(iFrame) = dz*sum(fi(iFrame,:)); % total fluct = integration of the specific fluct. strength pattern
 
@@ -345,7 +368,7 @@ function ki = il_cross_correlation(hBPi)
 %
 % Correlation across channels: Normally, when the envelope of contiguous
 % channels are highly correlated, a higher sensation of fluctuation
-% strength is elicited. The assessment of cross correlation (for 
+% strength is elicited. The assessment of cross correlation (for
 % neighbouring channels) is returned in the variable ki.
 
 [Chno,~] = size(hBPi);
@@ -387,7 +410,7 @@ ki(2,3:Chno) = ki(1,1:Chno-2);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [fi,mdept,kp,gzi] = il_specific_fluctuation(mdept,Ki,model_par)
 % function [fi,mdept,kp,gzi] = il_specific_fluctuation(mdept,Ki,model_par)
-% 
+%
 % Obtaining the specific fluctuation stregnth fi. The variables mdept,
 % kp, and gzi are the intermediate variables that lead to the final
 % specific fluctuation strength.
@@ -409,7 +432,7 @@ kp     = Ki(1,:).*Ki(2,:);
 kpsign = (sign(kp));
 kp     = abs(kp);
 
-% Processing for the old 'dataset' variable, for dataset 0,90,99 
+% Processing for the old 'dataset' variable, for dataset 0,90,99
 %   (note that dataset=1 was removed)
 fi = gzi.^p_g .* md.^p_m .* (kp.^p_k).*kpsign;
 
