@@ -7,9 +7,11 @@ function [PNLT, PNLTM, PNLTM_idx, OUT] = get_PNLT( input, freq_bands, PNL )
 %          Refs. [1,2,3] (type <help EPNL_FAR_Part36> for more info about the references)
 %
 %       2) The largest of the tone correction factors, Cmax(k), is added to
-%       corresponding PNL(k) values in order to determine the Tone-corrected perceived noise levels, PNLT(k) 
+%          corresponding PNL(k) values in order to determine the Tone-corrected
+%          perceived noise levels, PNLT(k) 
 %
-%       3) Bandsharing adjustment to PNLTM added in 20.06.2024
+%       3) Bandsharing adjustment to PNLTM added in 20.06.2024, amended
+%          17.12.2025
 %
 % A detailed definition and discussion about the tone-correction factor is
 % provided in:
@@ -208,29 +210,23 @@ end
 
 %% Bandsharing adjustment to PNLTM
 
-if size(Cmax,1)~=1 % workaround to run the <run_validation_tone_correction.m> code, where only one time-step is considered
+if size(Cmax,1)~=1
 
     %  in case <PNLTM_idx> is closer from the lower or higher boundaries of
     %  the time vector, the bandsharing adjustment may not possible
 
-    indicesToAccess = [ (PNLTM_idx - 2), (PNLTM_idx - 1), (PNLTM_idx + 1), (PNLTM_idx + 2)]; % get indices to access
+    indicesToAccess = linspace(PNLTM_idx - 2, PNLTM_idx + 2, 5); % get indices to access
 
-    isValid = indicesToAccess > 0 & indicesToAccess <= length(PNLT); % Logical condition to check for valid indices
+    isValidIdx = indicesToAccess > 0 & indicesToAccess <= length(PNLT); % Logical condition to check for valid indices
 
-    if all(isValid~=0) % runs only if all indices are valid
+    validIndices = indicesToAccess(isValidIdx);
 
-        Cavg = sum( [Cmax(PNLTM_idx - 2), Cmax(PNLTM_idx - 1), Cmax(PNLTM_idx),...
-            Cmax(PNLTM_idx + 1), Cmax(PNLTM_idx + 2)] )/5;
+    Cavg = mean(Cmax(validIndices));
 
-        if Cavg > Cmax(PNLTM_idx)
-            DeltaB = Cavg*Cmax(PNLTM_idx);
-        else
-            DeltaB = 0;
-        end
-
-    else % there are empty indices: Bandsharing adjustment to PNLTM not possible
+    if Cavg > Cmax(PNLTM_idx)
+        DeltaB = Cavg*Cmax(PNLTM_idx);
+    else
         DeltaB = 0;
-        warning( 'Bandsharing adjustment to PNLTM not possible. DeltaB truncated to zero.' );
     end
 
     % apply adjustment
