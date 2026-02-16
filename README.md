@@ -109,6 +109,10 @@ The following paper is the main work describing SQAT and the metrics available i
 
 > Raw data and extra scripts to reproduce all the paper figures can be found [here](publications/pub_Greco2023_Internoise). 
 
+In following thesis, an extensive description and analysis covering the SPL meter, input signal calibration aspects and all metrics released till v1.2 is presented:
+
+> Felix Greco, G. (2026). Sound quality analysis of virtual aircraft prototypes: framework development and application. Doctoral thesis. Technische Universität Braunschweig. DOI: [10.24355/dbbs.084-202512262308-0](https://doi.org/10.24355/dbbs.084-202512262308-0)
+
 Additionally, here's a paper by the members of the SQAT team showing three case studies where the SQAT toolbox was used to perform all analyses:
 
 > Osses, A., Felix Greco, G., & Merino-Martínez, R. (2023). Considerations for the perceptual evaluation of steady-state and time-varying sounds using psychoacoustic metrics. 10th Convention of the European Acoustics Association (Forum Acusticum), 11-15 September 2023, Turin, Italy. DOI: [10.61782/fa.2023.0600](https://www.doi.org/10.61782/fa.2023.0600)
@@ -124,6 +128,17 @@ The implementation of the psychoacoustic models from ECMA-418-2 (released in v1.
 # Studies using SQAT
 
 We would be very happy to know that you find SQAT useful and have used it in your own work. In this case, please reach out so we can feature your work here. 
+
+<!-- > 2026 **-->  
+<details>
+<summary><b>2026</summary>
+
+## Journal articles
+
+> Kim, J., Jeong, J., Ko, J., Lee, W., Yu, K., & Lee, S. (2026). Perceptually validated auralization of brushless direct current motor-propeller noise via torque ripple-induced rotational speed fluctuation modeling. [The Journal of the Acoustical Society of America](https://doi.org/10.1121/10.0042382), 159, 1122–1136.
+
+<br> 
+</details>
 
 <!-- > 2025 **-->  
 <details>
