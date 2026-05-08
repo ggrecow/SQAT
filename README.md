@@ -137,6 +137,20 @@ We would be very happy to know that you find SQAT useful and have used it in you
 
 > Kim, J., Jeong, J., Ko, J., Lee, W., Yu, K., & Lee, S. (2026). Perceptually validated auralization of brushless direct current motor-propeller noise via torque ripple-induced rotational speed fluctuation modeling. [The Journal of the Acoustical Society of America](https://doi.org/10.1121/10.0042382), 159, 1122–1136.
 
+> Fotis, G., Schäffer, B., Heusser, A., & Pieren, R. (2026). Predicting aircraft noise annoyance from single flyby events using acoustical and psychoacoustic metrics. [The Journal of the Acoustical Society of America](https://doi.org/10.1121/10.0042533), 159, 1707-1720.
+
+> Meister, J., Jäggi, J., Van Renterghem, T., & Pieren, R. (2026). Measured differences in the sound emission of multi-rotor unmanned aerial systems during hover and cruise. [The Journal of the Acoustical Society of America](https://doi.org/10.1121/10.0043028), 159, 2398-2415.
+
+> Lee, H., Ko, J., Seshadri, P., & Rauleder, J. (2026). Bayesian machine learning framework for time-domain prediction of multirotor vehicle noise. [The Journal of the Acoustical Society of America](https://doi.org/10.1121/10.0043469), 159(4):3418-3435.
+
+## Conference publications
+
+> Hochbaum, F., & Fiebig, A. (2026). Untersuchung von Schwellen der Rauigkeitsempfindung mit einfachen Referenzsignalen und komplexen synthetisierten Drohnengeräuschen. Proceedings of DAGA 2026 - 52. Jahrestagung für Akustik. DOI: [10.71568/daga2026.346](https://doi.org/10.71568/daga2026.346).
+
+> Nurkkala, E., Czedik-Eysenberg, I., Reuter, C., Hopia, A., & Postema, M. (2026). Cheese identification based on feature extraction from rubbing sounds. Proceedings of DAGA 2026 - 52. Jahrestagung für Akustik. DOI: [10.71568/daga2026.387](https://doi.org/10.71568/daga2026.387).
+
+> Preihs, S., Schössow, D., & Peissig, J. (2026). Analysis-by-Synthesis Approach for Noise Annoyance Assessment of Air-to-Water Heat Pumps. Proceedings of DAGA 2026 - 52. Jahrestagung für Akustik. DOI: [10.71568/daga2026.239](https://doi.org/10.71568/daga2026.239).
+
 <br> 
 </details>
 
