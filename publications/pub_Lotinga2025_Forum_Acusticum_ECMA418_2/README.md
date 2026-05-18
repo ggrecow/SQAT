@@ -2,7 +2,7 @@
 
 The `pub_Lotinga2025_Forum_Acusticum_ECMA418_2.m` code generates the figures of the following publication:
 
-- Lotinga, M., Torjussen, M., & Felix Greco, G. (2025) VERIFIED IMPLEMENTATIONS OF THE SOTTEK PSYCHOACOUSTIC HEARING MODEL STANDARDISED SOUND QUALITY METRICS (ECMA-418-2 LOUDNESS, TONALITY AND ROUGHNESS). **To be presented at Forum Acusticum in June 2025**.
+-Lotinga, M. J. B., Torjussen, M, & Felix Greco, G. (2025). Verified implementations of the Sottek psychoacoustic Hearing Model standardised sound quality metrics (ECMA-418-2 loudness, tonality and roughness). 11th Convention of the European Acoustics Association (Forum Acusticum), 23-26 June 2025, Málaga, Spain. DOI: [10.61782/fa.2025.0951](https://www.doi.org/10.61782/fa.2025.0951) 
 
 The study presented in the paper compares results obtained using a commercial software (ref. results) and using the implementations in SQAT. To perform the study, two signals are used: 
 
