@@ -2,7 +2,7 @@
 
 The `pub_Osses2023c_Forum_Acusticum_SQAT.m` script generates the figures of the following publication:
 
-Osses, A., Felix Greco, G., & Merino-Martínez, R. (2023). Considerations for the perceptual evaluation of steady-state and time-varying sounds using psychoacoustic metrics. **(to be presented at Forum Acusticum in September 2023)**
+> Osses, A., Felix Greco, G., & Merino-Martínez, R. (2023). Considerations for the perceptual evaluation of steady-state and time-varying sounds using psychoacoustic metrics. 10th Convention of the European Acoustics Association (Forum Acusticum), 11-15 September 2023, Turin, Italy. DOI: [10.61782/fa.2023.0600](https://www.doi.org/10.61782/fa.2023.0600)
 
 # How to use this code
 To run the `pub_Osses2023c_Forum_Acusticum_SQAT.m` script, in addition to have initialised the SQAT toolbox, you need to download the three datasets of sounds used in the publication (Dataset 1, 2, and 3) from Zenodo <a href="https://doi.org/10.5281/zenodo.7933489" target="_blank">here</a>. Although we recommend to place the downloaded files (after uncompressing them) into a folder called `Publications/pub_Osses2023c_Forum_Acusticum_SQAT/` into the folder `sound_files`, the files can actually be placed anywhere in your computer, as long as the sound files are visible to MATLAB (i.e., the folders are added to the MATLAB path). 
