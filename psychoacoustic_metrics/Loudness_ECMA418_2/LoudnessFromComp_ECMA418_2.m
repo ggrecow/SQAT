@@ -167,7 +167,8 @@ function OUT = LoudnessFromComp_ECMA418_2(specTonalLoudness, specNoiseLoudness, 
 % information.
 %
 % Checked by: Gil Felix Greco
-% Date last checked: TBC
+% Date last checked: 06.12.2025
+% MATLAB version: 2024b
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Arguments validation
     arguments (Input) % Matlab R2018b or newer

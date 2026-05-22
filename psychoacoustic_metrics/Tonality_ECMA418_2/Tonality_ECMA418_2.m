@@ -159,7 +159,8 @@ function OUT = Tonality_ECMA418_2(insig, fs, fieldtype, time_skip, show)
 % The original code has been reused and updated here with permission.
 %
 % Checked by: Gil Felix Greco
-% Date last checked: TBC
+% Date last checked: 06.12.2025
+% MATLAB version: 2024b
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %% Arguments validation
