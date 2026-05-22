@@ -7,25 +7,24 @@ function signalOut = shmPreProc(signal, blockSize, hopSize, padStart, padEnd)
 % Inputs
 % ------
 % signal : vector or 2D matrix
-%          the input signal/s
+%   the input signal/s
 %
 % blockSize : integer
-%             the maximum signal segmentation block size
+%   the maximum signal segmentation block size
 %
 % hopSize : integer
-%           the maximum signal segmentation hop size
-%           = (1 - overlap)*blockSize
+%   the maximum signal segmentation hop size = (1 - overlap)*blockSize
 %
 % padStart : Boolean
-%            flag to indicate whether to pad the start of the signal
+%   flag to indicate whether to pad the start of the signal
 %
 % padEnd : Boolean
-%          flag to indicate whether to pad the end of the signal
+%   flag to indicate whether to pad the end of the signal
 % 
 % Returns
 % -------
 % signalFadePad : vector or 2D matrix
-%                 the output faded, padded signal
+%   the output faded, padded signal
 %
 % Assumptions
 % -----------
@@ -43,7 +42,7 @@ function signalOut = shmPreProc(signal, blockSize, hopSize, padStart, padEnd)
 % Institution: University of Salford
 %
 % Date created: 26/09/2023
-% Date last modified: 27/06/2025
+% Date last modified: 15/11/2025
 % MATLAB version: 2023b
 %
 % Copyright statement: This file and code is part of work undertaken within
@@ -96,7 +95,7 @@ end  % end of if branch to zero pad end
 
 % Apply zero-padding
 signalOut = [zeros(n_zeross, size(signalFade, 2));
-                 signalFade;
-                 zeros(n_zerose, size(signalFade, 2))];
+             signalFade;
+             zeros(n_zerose, size(signalFade, 2))];
 
 % end of function

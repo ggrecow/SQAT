@@ -1,19 +1,19 @@
 % Script Loudness_ECMA418_2_equal_loudness_contours
 %
-% Recreate Fig. A.1 from ECMA-418-2:2024. Compute Loudness (ECMA 418-2:2024) using the
+% Recreate Fig. A.1 from ECMA-418-2:2025. Compute Loudness (ECMA-418-2:2025) using the
 % <Loudness_ECMA418_2.m> implementation in SQAT and
 % compare with the equal-loudness-level contours from ISO 226:2003
 %
 %   1) compute reference equal-loudness-level contours using formulation from ISO 226:2003
 %
 %   2) compute overall loudness of a 1-kHz tone, for different phon curves,
-%       using the model from ECMA418-2:2024 
+%       using the model from ECMA-418-2:2025
 %
 %   3) perform an optimization procedure to find the SPL of tones (with
 %       different frquencies) with the same loudness as the 1-kHz tone.
-%       Here, the loudness is calculated using the model from ECMA418-2:2024 
+%       Here, the loudness is calculated using the model from ECMA-418-2:2025 
 %
-%   Loudness using the model from ECMA418-2:2024 is computed using the
+%   Loudness using the model from ECMA-418-2:2025 is computed using the
 %   following function:
 %   OUT = Loudness_ECMA418_2(insig, fs, fieldtype, time_skip, show)
 %   type <help Loudness_ECMA418_2> for more info
@@ -22,6 +22,7 @@
 %
 % Author: Gil Felix Greco, Braunschweig 26.01.2025
 % Updated results: Gil Felix Greco, Cala Rajada 21.03.2025
+% Updated: M Lotinga 16.11.2025
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 clc; clear all; close all;
 
@@ -108,7 +109,7 @@ color_40phon=[0.93,0.69,0.13]; % yellow
 color_20phon=[0.49,0.18,0.56];  %purple
 line_ISO = 1.5; % linewidth of reference results
 
-h  =figure;
+h = figure;
 set(h,'Units','Inches');
 pos = get(h,'Position');
 set(h,'PaperPositionMode','Auto','PaperUnits','Inches','PaperSize',[pos(3), pos(4)])
@@ -135,7 +136,8 @@ ylabel( 'Sound pressure level (dB SPL)','Interpreter','Latex' );
 ylim( [-15 105] );
 xlim( [80 11000] );
 
-legend([b,a], {'ISO 226:2003', 'ECMA-418-2:2024 (SQAT)'}, 'Location','southwest' );
+legend([b,a], {'ISO 226:2003', 'ECMA-418-2:2025 (SQAT)'}, 'Location','southwest' ,...
+       'FontName', 'Times New Roman', 'FontSize', 15);
 
 % Create textbox
 annotation(h,'textbox',...
@@ -177,8 +179,9 @@ annotation(h,'textbox',...
     'FitBoxToText','off',...
     'EdgeColor','none');
 
-legend boxoff
 set(gcf,'color','w');
+grid on;
+set(gca, 'GridLineStyle', '--', 'FontName', 'Times New Roman', 'FontSize', 15)
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 if save_figs==1
@@ -297,7 +300,7 @@ function out = il_comp_loudness_1khz(spl)
 %function out = il_comp_loudness_1khz(spl)
 %
 % Compute loudness of a 1-kHz tone with given RMS <spl> (dB SPL)
-% using the ECMA-418-2:2024 model
+% using the ECMA-418-2:2025 model
 %
 % FUNCTION:
 %   OUT = Loudness_ECMA418_2(insig, fs, fieldtype, time_skip, show)

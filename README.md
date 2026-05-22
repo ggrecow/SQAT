@@ -28,9 +28,9 @@ The implemented metrics available in the `psychoacoustic_metrics` folder are lis
 | Psychoacoustic Annoyance  | More [8]  |  [link](psychoacoustic_metrics/PsychoacousticAnnoyance_More2010) | - | [link](examples/PsychoacousticAnnoyance_More2010) | v1.0 |
 | Psychoacoustic Annoyance  | Di *et al.* [9]  |  [link](psychoacoustic_metrics/PsychoacousticAnnoyance_Di2016) | - |  [link](examples/PsychoacousticAnnoyance_Di2016) | v1.0 |
 | EPNL  | FAR Part 36 [10]  |  [link](psychoacoustic_metrics/EPNL_FAR_Part36) | [link](validation/EPNL_FAR_Part36) |  [link](examples/EPNL_FAR_Part36) | v1.1 |
-| Loudness  | ECMA-418-2:2024 [11]  |  [link](psychoacoustic_metrics/Loudness_ECMA418_2) | [link](validation/Loudness_ECMA418_2) |  [link](examples/Loudness_ECMA418_2) | v1.3 |
-| Roughness  | ECMA-418-2:2024 [11]  |  [link](psychoacoustic_metrics/Roughness_ECMA418_2) | [link](validation/Roughness_ECMA418_2) |  [link](examples/Roughness_ECMA418_2) | v1.3 |
-| Tonality  | ECMA-418-2:2024 [11]  |  [link](psychoacoustic_metrics/Tonality_ECMA418_2) | [link](validation/Tonality_ECMA418_2) |  [link](examples/Tonality_ECMA418_2) | v1.3 |
+| Loudness  | ECMA-418-2:2025 [11]  |  [link](psychoacoustic_metrics/Loudness_ECMA418_2) | [link](validation/Loudness_ECMA418_2) |  [link](examples/Loudness_ECMA418_2) | v1.3 |
+| Roughness  | ECMA-418-2:2025 [11]  |  [link](psychoacoustic_metrics/Roughness_ECMA418_2) | [link](validation/Roughness_ECMA418_2) |  [link](examples/Roughness_ECMA418_2) | v1.3 |
+| Tonality  | ECMA-418-2:2025 [11]  |  [link](psychoacoustic_metrics/Tonality_ECMA418_2) | [link](validation/Tonality_ECMA418_2) |  [link](examples/Tonality_ECMA418_2) | v1.3 |
 
 <details>
 <summary><b>References</summary>
@@ -56,7 +56,7 @@ The implemented metrics available in the `psychoacoustic_metrics` folder are lis
 
 [10] Federal Aviation Regulations. (2005). 14 CFR Parts 36 and 91, Docket No. FAA-2003-16526; Amendment No. 36-26, 91-288. [https://www.ecfr.gov/current/title-14/appendix-Appendix%20A%20to%20Part%2036](https://www.ecfr.gov/current/title-14/appendix-Appendix%20A%20to%20Part%2036) (last viewed October 30, 2023)
 
-[11] Ecma International. (2024). Psychoacoustic metrics for ITT equipment - Part 2 (methods for describing human perception based on the Sottek Hearing Model) (Standard No. 418-2, 3rd Edition/December 2024). [https://ecma-international.org/wp-content/uploads/ECMA-418-2_3rd_edition_december_2024.pdf](https://ecma-international.org/wp-content/uploads/ECMA-418-2_3rd_edition_december_2024.pdf) (last viewed January 22, 2025)
+[11] Ecma International. (2025). Psychoacoustic metrics for ITT equipment - Part 2 (methods for describing human perception based on the Sottek Hearing Model) (Standard No. 418-2, 4th Edition/June 2025). [https://ecma-international.org/wp-content/uploads/ECMA-418-2_4th_edition_june_2025.pdf](https://ecma-international.org/wp-content/uploads/ECMA-418-2_4th_edition_june_2025.pdf) (Last viewed November 16, 2025)
 
 </details>
 
@@ -86,12 +86,15 @@ The toolbox has the following directories:
 
 1. Download or clone this repository to your local computer. One way to do that is to press the button 'Code' -> Choose 'Download ZIP' and unzip somewhere).
 
-2. After that, you need to add the relevant folders of the toolbox to the path of your MATLAB. Open and run the `startup_SQAT.m` script to automatically perform this task. In order to avoid conflicts, the `startup_SQAT.m` needs to be used every time MATLAB is (re)started. If you just want to use the metrics, you can add manually only the relevant folders to the MATLAB path (e.g., `psychoacoustic_metrics`, `sound_level_meter`, and `utilities`). 
+2. After that, you need to add the relevant folders of the toolbox to the path of your MATLAB. Open and run the `startup_SQAT.m` script to automatically perform this task. In order to avoid conflicts, the `startup_SQAT.m` needs to be used every time MATLAB is (re)started. 
+
+> [!TIP]
+> **If you just want to use the metrics, you can add manually only the relevant folders to the MATLAB path (e.g., `psychoacoustic_metrics`, `sound_level_meter`, and `utilities`).**
 
 # How to cite this repository
 If you use this toolbox in your research, we would be grateful if you help us to gain visibility by citing SQAT. This is the main citation if you need to cite the toolbox repository itself:
 
-> Felix Greco, G., Merino-Martínez, R., &  Osses, A. (2023). SQAT: a sound quality analysis toolbox for MATLAB. Zenodo. DOI: [10.5281/zenodo.7934709](https://doi.org/10.5281/zenodo.7934709)
+> Felix Greco, G., Merino-Martínez, R.,  Osses, A. & Lotinga, M. J. B. (2025). SQAT: a sound quality analysis toolbox for MATLAB. Zenodo. DOI: [10.5281/zenodo.7934709](https://doi.org/10.5281/zenodo.7934709)
 
 > [!TIP]
 > **The doi above concerns the toolbox repository itself and will always resolve to the latest release. As differences between releases may occur, it is a good practice to cite the specific SQAT version being used. You can check any changes between releases [here](https://github.com/ggrecow/SQAT/releases). If you need to cite a specific release, please consult the relevant DOI [here](https://doi.org/10.5281/zenodo.7934709). If you need to cite the current SQAT release, please refer to the "Cite this repository" feature in the "About" section of this GitHub repository.**
@@ -106,6 +109,10 @@ The following paper is the main work describing SQAT and the metrics available i
 
 > Raw data and extra scripts to reproduce all the paper figures can be found [here](publications/pub_Greco2023_Internoise). 
 
+In following thesis, an extensive description and analysis covering the SPL meter, input signal calibration aspects and all metrics released till v1.2 is presented:
+
+> Felix Greco, G. (2026). Sound quality analysis of virtual aircraft prototypes: framework development and application. Doctoral thesis. Technische Universität Braunschweig. DOI: [10.24355/dbbs.084-202512262308-0](https://doi.org/10.24355/dbbs.084-202512262308-0)
+
 Additionally, here's a paper by the members of the SQAT team showing three case studies where the SQAT toolbox was used to perform all analyses:
 
 > Osses, A., Felix Greco, G., & Merino-Martínez, R. (2023). Considerations for the perceptual evaluation of steady-state and time-varying sounds using psychoacoustic metrics. 10th Convention of the European Acoustics Association (Forum Acusticum), 11-15 September 2023, Turin, Italy. DOI: [10.61782/fa.2023.0600](https://www.doi.org/10.61782/fa.2023.0600)
@@ -114,7 +121,7 @@ Additionally, here's a paper by the members of the SQAT team showing three case 
 
 The implementation of the psychoacoustic models from ECMA-418-2 (released in v1.3) are presented and verified in the following publication:
 
-> Lotinga, M. J. B., Torjussen, M, & Felix Greco, G. (2025). Verified implementations of the Sottek psychoacoustic Hearing Model standardised sound quality metrics (ECMA-418-2 loudness, tonality and roughness). 11th Convention of the European Acoustics Association (Forum Acusticum), 23-26 June 2025, Málaga, Spain. [(link)](https://www.researchgate.net/publication/392904348_Verified_implementations_of_the_Sottek_psychoacoustic_Hearing_Model_standardised_sound_quality_metrics_ECMA-418-2_loudness_tonality_and_roughness) 
+> Lotinga, M. J. B., Torjussen, M, & Felix Greco, G. (2025). Verified implementations of the Sottek psychoacoustic Hearing Model standardised sound quality metrics (ECMA-418-2 loudness, tonality and roughness). 11th Convention of the European Acoustics Association (Forum Acusticum), 23-26 June 2025, Málaga, Spain. DOI: [10.61782/fa.2025.0951](https://www.doi.org/10.61782/fa.2025.0951) 
 
 > Raw data and extra scripts to reproduce all the paper figures can be found [here](publications/pub_Lotinga2025_Forum_Acusticum_ECMA418_2).
 
@@ -122,15 +129,42 @@ The implementation of the psychoacoustic models from ECMA-418-2 (released in v1.
 
 We would be very happy to know that you find SQAT useful and have used it in your own work. In this case, please reach out so we can feature your work here. 
 
+<!-- > 2026 **-->  
+<details>
+<summary><b>2026</summary>
+
+## Journal articles
+
+> Kim, J., Jeong, J., Ko, J., Lee, W., Yu, K., & Lee, S. (2026). Perceptually validated auralization of brushless direct current motor-propeller noise via torque ripple-induced rotational speed fluctuation modeling. [The Journal of the Acoustical Society of America](https://doi.org/10.1121/10.0042382), 159, 1122–1136.
+
+> Fotis, G., Schäffer, B., Heusser, A., & Pieren, R. (2026). Predicting aircraft noise annoyance from single flyby events using acoustical and psychoacoustic metrics. [The Journal of the Acoustical Society of America](https://doi.org/10.1121/10.0042533), 159, 1707-1720.
+
+> Meister, J., Jäggi, J., Van Renterghem, T., & Pieren, R. (2026). Measured differences in the sound emission of multi-rotor unmanned aerial systems during hover and cruise. [The Journal of the Acoustical Society of America](https://doi.org/10.1121/10.0043028), 159, 2398-2415.
+
+> Lee, H., Ko, J., Seshadri, P., & Rauleder, J. (2026). Bayesian machine learning framework for time-domain prediction of multirotor vehicle noise. [The Journal of the Acoustical Society of America](https://doi.org/10.1121/10.0043469), 159(4):3418-3435.
+
+## Conference publications
+
+> Hochbaum, F., & Fiebig, A. (2026). Untersuchung von Schwellen der Rauigkeitsempfindung mit einfachen Referenzsignalen und komplexen synthetisierten Drohnengeräuschen. Proceedings of DAGA 2026 - 52. Jahrestagung für Akustik. DOI: [10.71568/daga2026.346](https://doi.org/10.71568/daga2026.346).
+
+> Nurkkala, E., Czedik-Eysenberg, I., Reuter, C., Hopia, A., & Postema, M. (2026). Cheese identification based on feature extraction from rubbing sounds. Proceedings of DAGA 2026 - 52. Jahrestagung für Akustik. DOI: [10.71568/daga2026.387](https://doi.org/10.71568/daga2026.387).
+
+> Preihs, S., Schössow, D., & Peissig, J. (2026). Analysis-by-Synthesis Approach for Noise Annoyance Assessment of Air-to-Water Heat Pumps. Proceedings of DAGA 2026 - 52. Jahrestagung für Akustik. DOI: [10.71568/daga2026.239](https://doi.org/10.71568/daga2026.239).
+
+<br> 
+</details>
+
 <!-- > 2025 **-->  
 <details>
 <summary><b>2025</summary>
 
 ## Journal articles
 
-> Lotinga, M. J. B., Green, M. C., & Toríja, A. J. (2025). Development of psychoacoustic prediction models for short-term noise annoyance responses to unmanned aircraft systems. [The Journal of the Acoustical Society of America](https://doi.org/10.1121/10.0039056), 158, 2062–2082.
+> Knuth, D., Hüpel, Y., Pockelé, J. S., Merino-Martínez, R., & Langer, S. (2025). Perceptual assessment of simulated aircraft cabin noise in earlydesign stages. [The Journal of the Acoustical Society of America](https://doi.org/10.1121/10.0039865), 158 (5), 3870–3886.
 
-> Vourakis, M., Zea, E., Karlsson, M., Andersson, N., & Etemad, S. (2024). Installation effects on axial fans: Combined aeroacoustic and psychoacoustic perspective. [Applied Acoustics](https://doi.org/10.1016/j.apacoust.2025.110872), 240.
+> Vourakis, M., Zea, E., Karlsson, M., Andersson, N., & Etemad, S. (2025). Installation effects on axial fans: Combined aeroacoustic and psychoacoustic perspective. [Applied Acoustics](https://doi.org/10.1016/j.apacoust.2025.110872), 240.
+
+> Lotinga, M. J. B., Green, M. C., & Toríja, A. J. (2025). Development of psychoacoustic prediction models for short-term noise annoyance responses to unmanned aircraft systems. [The Journal of the Acoustical Society of America](https://doi.org/10.1121/10.0039056), 158 (3), 2062–2082.
 
 > Wu, C., & Redonnet, S. (2025). A simple yet efficient data-driven model for the prediction of aircraft noise impact. [Aerospace Science and Technology](https://doi.org/10.1016/j.ast.2025.110286), 163.
 
@@ -153,6 +187,8 @@ We would be very happy to know that you find SQAT useful and have used it in you
 > Merino-Martínez, R. & Schade, S. (2025). Psychoacoustic analysis of the perceptual influence of rotational speed fluctuations in an urban mobility vehicle with distributed ducted fans. 54th International Congress & Exhibition on Noise Control Engineering (INTER-NOISE), 24-27 August 2025, São Paulo, Brazil. [(link)](https://www.researchgate.net/publication/395129646_Psychoacoustic_analysis_of_the_perceptual_influence_of_rotational_speed_fluctuations_in_an_urban_mobility_vehicle_with_distributed_ducted_fans)
 
 > Deutscher, B., Stalnov. O. & Ben-Gida, H. (2025). The Effect of Acoustic Detection Constraints on Optimizing Drones’ Delivery Missions. [Proceedings of the 31st AIAA/CEAS Aeroacoustics Conference](https://arc.aiaa.org/doi/10.2514/6.2025-3414).
+
+> Aalmoes, R., Sieben, N. & Nolet, S. (2025). Sound characteristics and perception study of new generation of turbofan aircraft. 11th Convention of the European Acoustics Association (Forum Acusticum), 23-26 June 2025, Málaga, Spain. [(link)](https://www.researchgate.net/publication/397677306_11_th_Convention_of_the_European_Acoustics_Association_Malaga_Spain_23_rd_-26_th)
 
 > Podwinska, Z., Ramos-Romero, C., Green, M. C., & Toríja, A. J. (2025). The effects of time-variant characteristics of unmanned aircraft system noise on reported annoyance. 11th Convention of the European Acoustics Association (Forum Acusticum), 23-26 June 2025, Málaga, Spain. [(link)](https://www.researchgate.net/publication/393461425_The_effects_of_time-variant_characteristics_of_unmanned_aircraft_system_noise_on_reported_annoyance)
 
@@ -271,5 +307,3 @@ If you would like to get in touch to report a bug, make suggestions or ask a que
 
 # Licensing
 <a rel="license" href="http://creativecommons.org/licenses/by-nc/4.0/"><img alt="Creative Commons Licence" style="border-width:0" src="https://i.creativecommons.org/l/by-nc/4.0/88x31.png" /></a><br />This work is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by-nc/4.0/">Creative Commons Attribution-NonCommercial 4.0 International License</a>.
-
-

@@ -1,6 +1,6 @@
 % Script Tonality_ECMA418_2_software_comparison
 %
-% Compute Tonality (ECMA 418-2:2024) and compare with results from
+% Compute Tonality (ECMA-418-2:2025) and compare with results from
 % commercial software 
 % 
 % Signal: binaural audio recording of a 'train station' environment (30 seconds, 2-channel binaural)
@@ -15,11 +15,11 @@
 %   type <help Tonality_ECMA418_2> for more info
 %
 % Author: Gil Felix Greco, Braunschweig 12.02.2025
-% Modified: 19.03.2025 Mike Lotinga
+% Updated: 16.11.2025 Mike Lotinga
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 clc; clear all; close all;
 
-save_figs = 0; % save figure flag
+save_figs = 1; % save figure flag
 
 %% Load  stereo .wav file
 

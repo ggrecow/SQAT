@@ -8,18 +8,17 @@ function specRoughness = shmRoughLowPass(specRoughEstTform, sampleRate, riseTime
 % Inputs
 % ------
 % specRoughEstTform : 2D matrix
-%                     the input specific roughness estimate (from
-%                     Equation 104)
+%   the input specific roughness estimate (from Equation 104)
 %
 % sampleRate : double
-%              the sample rate (frequency) of the input specific
-%              roughness (NB: this is not the original signal sample
-%              rate; currently it should be set to 50 Hz)
+%   the sample rate (frequency) of the input specific
+%   roughness (NB: this is not the original signal sample
+%   rate; currently it should be set to 50 Hz)
 % 
 % Returns
 % -------
 % specRoughness : 2D matrix
-%                 the filtered specific roughness
+%   the filtered specific roughness
 %
 % Assumptions
 % -----------
@@ -33,11 +32,11 @@ function specRoughness = shmRoughLowPass(specRoughEstTform, sampleRate, riseTime
 % Ownership and Quality Assurance
 % -------------------------------
 % Authors: Mike JB Lotinga (m.j.lotinga@edu.salford.ac.uk) &
-%          Matt Torjussen (matt@anv.co.uk)
-% Institution: University of Salford / ANV Measurement Systems
+%          Matt Torjussen (m.c.torjussen@edu.salford.ac.uk)
+% Institution: University of Salford
 %
 % Date created: 22/09/2023
-% Date last modified: 27/06/2025
+% Date last modified: 15/11/2025
 % MATLAB version: 2023b
 %
 % Copyright statement: This file and code is part of work undertaken within

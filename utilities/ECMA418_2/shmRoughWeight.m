@@ -9,21 +9,18 @@ function roughWeight = shmRoughWeight(modRate, modfreqMaxWeight, roughWeightPara
 % ------
 %
 % modRate : 3D matrix
-%           the estimated modulation rates used to determine the weighting
-%           factors
+%   the estimated modulation rates used to determine the weighting factors
 %
 % modfreqMaxWeight : vector
-%                    the modulation rate at which the weighting reaches its
-%                    maximum value (one)
+%   the modulation rate at which the weighting reaches its maximum value (one)
 %
 % roughWeightParams : 2D or 3D matrix
-%                     the parameters for the each of the weightings (high
-%                     or low)
+%   the parameters for the each of the weightings (high or low)
 %
 % Returns
 % -------
 % roughWeight : 2D or 3D matrix
-%               the weighting values for the input parameters
+%   the weighting values for the input parameters
 %
 % Assumptions
 % -----------
@@ -31,8 +28,7 @@ function roughWeight = shmRoughWeight(modRate, modfreqMaxWeight, roughWeightPara
 %
 % Requirements
 % ------------
-% Signal Processing Toolbox
-% Audio Toolbox
+% None
 %
 % Ownership and Quality Assurance
 % -------------------------------
@@ -40,7 +36,7 @@ function roughWeight = shmRoughWeight(modRate, modfreqMaxWeight, roughWeightPara
 % Institution: University of Salford
 %
 % Date created: 10/07/2024
-% Date last modified: 27/06/2025
+% Date last modified: 15/11/2025
 % MATLAB version: 2023b
 %
 % Copyright statement: This file and code is part of work undertaken within

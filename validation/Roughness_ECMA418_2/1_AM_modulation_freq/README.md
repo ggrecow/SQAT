@@ -1,5 +1,5 @@
 # About this code 
-The `run_validation_roughness_fmod.m` code is used to verify the implementation of the roughness model according to ECMA-418-2:2024 [1] (see `Roughness_ECMA418_2` code [here](../../../psychoacoustic_metrics/Roughness_ECMA418_2/Roughness_ECMA418_2.m)). The verification is performed considering the following test signals:
+The `run_validation_roughness_fmod.m` code is used to verify the implementation of the roughness model according to ECMA-418-2:2025 [1] (see `Roughness_ECMA418_2` code [here](../../../psychoacoustic_metrics/Roughness_ECMA418_2/Roughness_ECMA418_2.m)). The verification is performed considering the following test signals:
 
 - Amplitude-modulated (AM) tones with modulation depth $m_{\mathrm{d}}=1$, sound pressure level $L_{\mathrm{p}}=60~\mathrm{dB}~\mathrm{SPL}$ and different carrier frequencies $f_{\mathrm{c}}=[125, 250, 500, 1000, 2000, 4000, 8000] ~\mathrm{Hz}$ as a function of the modulation frequency $f_{\mathrm{mod}}$.  
 
@@ -21,7 +21,7 @@ The figures below compare the results obtained using the `Roughness_ECMA418_2.m`
 <img src='figs/validation_roughness_fmod_8khz.png' width=500>
 
 # References
-[1] Ecma International. (2024). Psychoacoustic metrics for ITT equipment - Part 2 (methods for describing human perception based on the Sottek Hearing Model) (Standard No. 418-2, 3rd Edition/December 2024). [https://ecma-international.org/wp-content/uploads/ECMA-418-2_3rd_edition_december_2024.pdf](https://ecma-international.org/wp-content/uploads/ECMA-418-2_3rd_edition_december_2024.pdf) (Last viewed 22 Jan 2025)
+[1] Ecma International. (2025). Psychoacoustic metrics for ITT equipment - Part 2 (methods for describing human perception based on the Sottek Hearing Model) (Standard No. 418-2, 4th Edition/June 2025). [https://ecma-international.org/wp-content/uploads/ECMA-418-2_4th_edition_june_2025.pdf](https://ecma-international.org/wp-content/uploads/ECMA-418-2_4th_edition_june_2025.pdf) (Last viewed 16 Nov 2025)
 
 [2] Fastl, H., & Zwicker, E. (2007). Psychoacoustics: facts and models, Third edition. [Springer-Verlag](https://doi.org/10.1007/978-3-540-68888-4).
 
@@ -29,4 +29,4 @@ The figures below compare the results obtained using the `Roughness_ECMA418_2.m`
 
 # Log
 Created by Gil Felix Greco (22.01.2025)
-Updated results: Gil Felix Greco (21.03.2025)
+Updated results: Mike Lotinga (16.11.2025)

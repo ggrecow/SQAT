@@ -15,8 +15,8 @@ function OUT = EPNL_FAR_Part36( insig, fs, method, dt, threshold, show )
 %        Environmental Protection, Volume I - Aircraft Noise, Eighth Edition,
 %        July 2017, Internation Civil Aviation Organization
 %
-%   [3] International Civil Aviation Organization (2015) Doc 9501, Environmental Technical Manual
-%        Volume I, Procedures for the Noise Certification of Aircraft, Second Edition - ISBN 978-92-9249-721-7
+%   [3] International Civil Aviation Organization (2018) Doc 9501, Environmental Technical Manual
+%        Volume I, Procedures for the Noise Certification of Aircraft, Third Edition - ISBN 978-92-9258-369-9
 %
 %   PLEASE NOTE - Requirements from the FAA regulations are:
 %       1) The third octave frequency analysis is limited from 50 Hz to 10 kHz

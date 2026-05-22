@@ -1,6 +1,6 @@
 % Script run_validation_roughness_fmod
 %
-%  Verification of the roughness implementation according to ECMA-418-2:2024
+%  Verification of the roughness implementation according to ECMA-418-2:2025
 %  Verification case: 100% AM tones at different center frequencies in dependence 
 % of the modulation frequency
 %
@@ -25,6 +25,7 @@
 %
 % Author: Gil Felix Greco, Braunschweig, 22.01.2025
 % Updated results: Gil Felix Greco, Cala Rajada, 21.03.2025
+% Updated: Mike Lotinga 16.11.2025
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 clc; clear all; close all;
 

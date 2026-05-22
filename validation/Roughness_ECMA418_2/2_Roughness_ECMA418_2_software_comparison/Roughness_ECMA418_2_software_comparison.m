@@ -1,6 +1,6 @@
 % Script Roughness_ECMA418_2_software_comparison
 %
-% Compute Roughness (ECMA 418-2:2024) and compare with results from
+% Compute Roughness (ECMA-418-2:2025) and compare with results from
 % commercial software 
 % 
 % Signal: binaural audio recording of a 'train station' environment (30 seconds, 2-channel binaural)
@@ -15,7 +15,7 @@
 %   type <help Roughness_ECMA418_2> for more info
 %
 % Author: Gil Felix Greco, Braunschweig 10.02.2025
-% Modified: 19.03.2025 Mike Lotinga
+% Updated: 16.11.2025 Mike Lotinga
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 clc; clear all; close all;
 
@@ -67,11 +67,11 @@ ref_results.Spec_TDep_combined_binaural = readmatrix( [ref_path Spec_TDep_fileNa
 
 % single values
 % Analysis Name    Channel Name    R/asper    AnalysisRange
-% Specific Roughness (Hearing Model) vs. Time    Ch1    0,128    [0,3 - 29,8 s]
-% Specific Roughness (Hearing Model) vs. Time    Ch2    0,103    [0,3 - 29,8 s]
-% Specific Roughness (Hearing Model) vs. Time    CombinedBinaural Ch1&Ch2    0,115    [0,3 - 29,8 s]
+% Specific Roughness (Hearing Model) vs. Time    Ch1    0,126    [0,3 - 29,9 s]
+% Specific Roughness (Hearing Model) vs. Time    Ch2    0,102    [0,3 - 29,9 s]
+% Specific Roughness (Hearing Model) vs. Time    CombinedBinaural Ch1&Ch2    0,114    [0,3 - 29,9 s]
 
-ref_results.single_values = [0.128 0.103 0.115]; % [Ch1 Ch2 combBinaural]
+ref_results.single_values = [0.126 0.102 0.114]; % [Ch1 Ch2 combBinaural]
 
 %% plot - time-varying roughness 
 
