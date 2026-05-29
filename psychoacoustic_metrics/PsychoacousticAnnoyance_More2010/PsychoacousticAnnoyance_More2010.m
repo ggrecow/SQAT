@@ -278,40 +278,28 @@ else % for signals larger than 2 seconds
     %% Time-varying psychoacoustic annoyance
     
     % declaring variables for pre allocating memory
-    PA=zeros(1,length(L.time));
-    ws=zeros(1,length(L.time));
-    wfr=zeros(1,length(L.time));
-    wt=zeros(1,length(L.time));
+    ws = zeros(length(L.time), 1);
+        
+    % sharpness influence
+    % in Widmann (1992), log is used without specifying the base. In
+    % Fastl&Zwicker (2007), lg is used and subsequent literature also uses log10
+    ws(S.InstantaneousSharpness > 1.75) = (S.InstantaneousSharpness(S.InstantaneousSharpness > 1.75) - 1.75).*(log10(L.InstantaneousLoudness(S.InstantaneousSharpness > 1.75) + 10))/4;
+    ws(isinf(ws) | isnan(ws)) = 0;  % replace inf and NaN with zeros
     
-    for i=1:length(L.time)
-        
-        % sharpness influence
-        if S.InstantaneousSharpness(i) > 1.75
-            ws(i) = (S.InstantaneousSharpness(i)-1.75).*(log10(L.InstantaneousLoudness(i)+10))./4; % in the Fastl&zwicker book, ln is used but it is not clear if it is natural log or log10, but most of subsequent literature uses log10
-        else
-            ws(i) = 0;
-        end
-        
-        ws( isinf(ws) | isnan(ws) ) = 0;  % replace inf and NaN with zeros
-        
-        % influence of roughness and fluctuation strength
-        wfr(i) = ( 2.18./(L.InstantaneousLoudness(i).^(0.4)) ).*(0.4.*fluctuation(i)+0.6.*roughness(i));
-        
-        wfr( isinf(wfr) | isnan(wfr) ) = 0;  % replace inf and NaN with zeros
-        
-        % Tonality influence
-        wt(i) = abs( ( 1-exp(-gamma_4.*L.InstantaneousLoudness(i)) ).^2 .*( 1-exp(-gamma_5.*tonality(i)) ).^2 );
-        
-        wt( isinf(wt) | isnan(wt) ) = 0;  % replace inf and NaN with zeros
-        
-        % More's modified psychoacoustic annoyance
-        PA(i) = abs(L.InstantaneousLoudness(i).*( 1 + sqrt( gamma_0 + (gamma_1.*ws(i).^2) + (gamma_2.*wfr(i).^2) + (gamma_3.*wt(i)) ) ));
-        
-    end
+    % influence of roughness and fluctuation strength
+    wfr = (2.18./(L.InstantaneousLoudness.^(0.4)) ).*(0.4*fluctuation + 0.6.*roughness);
+    wfr( isinf(wfr) | isnan(wfr) ) = 0;  % replace inf and NaN with zeros
     
-    OUT.wt=sqrt(wt); % OUTPUT: tonality and loudness weighting function (not squared)
-    OUT.wfr=wfr;     % OUTPUT: fluctuation strength and sharpness weighting function (not squared)
-    OUT.ws=ws;       % OUTPUT: sharpness and loudness weighting function (not squared)
+    % Tonality influence
+    wt = abs( ( 1-exp(-gamma_4.*L.InstantaneousLoudness) ).^2 .*( 1-exp(-gamma_5.*tonality) ).^2 );
+    wt( isinf(wt) | isnan(wt) ) = 0;  % replace inf and NaN with zeros
+    
+    % More's modified psychoacoustic annoyance
+    PA = abs(L.InstantaneousLoudness.*(1 + sqrt(gamma_0 + (gamma_1.*ws.^2) + (gamma_2.*wfr.^2) + (gamma_3.*wt)))); 
+    
+    OUT.wt = sqrt(wt); % OUTPUT: tonality and loudness weighting function (not squared)
+    OUT.wfr = wfr;     % OUTPUT: fluctuation strength and sharpness weighting function (not squared)
+    OUT.ws = ws;       % OUTPUT: sharpness and loudness weighting function (not squared)
     
     %% (scalar) psychoacoustic annoyance - computed directly from percentile values
     

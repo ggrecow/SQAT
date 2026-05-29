@@ -258,35 +258,23 @@ else % for signals larger than 2 seconds
     %% Time-varying psychoacoustic annoyance
     
     % declaring variables for pre allocating memory
-    PA=zeros(1,length(L.time));
-    ws=zeros(1,length(L.time));
-    wfr=zeros(1,length(L.time));
+    ws = zeros(length(L.time), 1);
     
-    for i=1:length(L.time)
+    % sharpness influence
+    % in Widmann (1992), log is used without specifying the base. In
+    % Fastl&Zwicker (2007), lg is used and subsequent literature also uses log10
+    ws(S.InstantaneousSharpness > 1.75) = (S.InstantaneousSharpness(S.InstantaneousSharpness > 1.75) - 1.75).*(log10(L.InstantaneousLoudness(S.InstantaneousSharpness > 1.75) + 10))/4;
+    ws(isinf(ws) | isnan(ws)) = 0;  % replace inf and NaN with zeros
         
-        % sharpness influence
-        if S.InstantaneousSharpness(i) > 1.75
-            % in Widmann (1992), log is used without specifying the base. In
-            % Fastl&Zwicker (2007), lg is used and subsequent literature also uses log10
-            ws(i) = (S.InstantaneousSharpness(i)-1.75).*(log10(L.InstantaneousLoudness(i)+10))./4;
-        else
-            ws(i) = 0;
-        end
+    % influence of roughness and fluctuation strength
+    wfr = ( 2.18./(L.InstantaneousLoudness.^(0.4)) ).*(0.4*fluctuation + 0.6.*roughness);
+    wfr(isinf(wfr) | isnan(wfr)) = 0;  % replace inf and NaN with zeros
         
-        ws(isinf(ws)|isnan(ws)) = 0;  % replace inf and NaN with zeros
-        
-        % influence of roughness and fluctuation strength
-        wfr(i) = ( 2.18./(L.InstantaneousLoudness(i).^(0.4)) ).*(0.4.*fluctuation(i)+0.6.*roughness(i));
-        
-        wfr(isinf(wfr)|isnan(wfr)) = 0;  % replace inf and NaN with zeros
-        
-        % psychoacoustic annoyance
-        PA(i) = L.InstantaneousLoudness(i).*(1 + sqrt (ws(i).^2 + wfr(i).^2));
-        
-    end
+    % psychoacoustic annoyance
+    PA = L.InstantaneousLoudness.*(1 + sqrt (ws.^2 + wfr.^2));
     
-    OUT.wfr=wfr;     % OUTPUT: fluctuation strength and sharpness weighting function (not squared)
-    OUT.ws=ws;       % OUTPUT: sharpness and loudness weighting function (not squared)
+    OUT.wfr = wfr;     % OUTPUT: fluctuation strength and sharpness weighting function (not squared)
+    OUT.ws = ws;       % OUTPUT: sharpness and loudness weighting function (not squared)
     
     %% (scalar) psychoacoustic annoyance - computed directly from percentile values
     
