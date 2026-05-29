@@ -111,6 +111,8 @@ function OUT = PsychoacousticAnnoyance_Di2016(insig,fs,LoudnessField,time_skip,s
 %
 % Author: Gil Felix Greco, Braunschweig 05.04.2023
 % Author: Gil Felix Greco, Braunschweig 16.02.2025 - introduced get_statistics function
+% Modified: Mike Lotinga, 29.05.2026 - fixed bug caused by axes swap in
+% sharpness following vectorisation
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 if nargin == 0
     help PsychoacousticAnnoyance_Di2016
@@ -266,7 +268,7 @@ else % for signals longer than 2 seconds
     idx_S=idx_L;    % indice is the same as the loudness
     
     S.time=S.time(1:idx_S);  % step 2)
-    S.InstantaneousSharpness=S.InstantaneousSharpness(1,1:idx_S);  % step 2)
+    S.InstantaneousSharpness=S.InstantaneousSharpness(1:idx_S,1);  % step 2)
     
     % roughness
     [~,idx_R] = min( abs(R.time-LastTime) ); % step 1) find idx
