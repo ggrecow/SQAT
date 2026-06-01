@@ -69,6 +69,8 @@ function OUT = Sharpness_DIN45692(insig, fs, weight_type, LoudnessField, Loudnes
 %
 % Author: Gil Felix Greco, Braunschweig 09.03.2023
 % Author: Gil Felix Greco, Braunschweig 16.02.2025 - introduced get_statistics function
+% Modified: Mike Lotinga 29.05/2026 - vectorised for 95% reduction in
+% compute time
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 if nargin == 0
     help Sharpness_DIN45692;
@@ -89,7 +91,7 @@ if nargin < 7
     end
 end
 
-if LoudnessMethod==1 % stationary loudness calculation
+if LoudnessMethod == 1 % stationary loudness calculation
     
     L = Loudness_ISO532_1(insig, fs,... % input signal and sampling freq.
                       LoudnessField,... % free field = 0; diffuse field = 1;
@@ -98,14 +100,11 @@ if LoudnessMethod==1 % stationary loudness calculation
                       show_loudness);   % show loudness results
     
     n = size(L.SpecificLoudness,2);
-    loudness_sones=zeros(size(L.SpecificLoudness,1),1); % pre allocate memory
     SpecificLoudness=L.SpecificLoudness;
     
-    for i=1:size(L.SpecificLoudness,1)
-        loudness_sones(i)=sum(L.SpecificLoudness(i,:),2).*0.10;
-    end
+    loudness_sones = sum(L.SpecificLoudness, 2).*0.10;
     
-elseif LoudnessMethod==2 % time-varying loudness calculation
+elseif LoudnessMethod == 2 % time-varying loudness calculation
     
     L = Loudness_ISO532_1(insig, fs,... % input signal and sampling freq.
                       LoudnessField,... % free field = 0; diffuse field = 1;
@@ -114,50 +113,42 @@ elseif LoudnessMethod==2 % time-varying loudness calculation
                       show_loudness);   % show loudness results
     
     n = size(L.InstantaneousSpecificLoudness,2);
-    loudness_sones=zeros(size(L.InstantaneousSpecificLoudness,1),1); % pre allocate memory
     SpecificLoudness=L.InstantaneousSpecificLoudness;
     
-    for i=1:size(L.InstantaneousSpecificLoudness,1)
-        loudness_sones(i)=sum(L.InstantaneousSpecificLoudness(i,:),2).*0.10;
-    end
+    loudness_sones = sum(L.InstantaneousSpecificLoudness, 2).*0.10;
     
 end
 
-z=linspace(0.1,24,n); % create bark axis
+z = linspace(0.1, 24, n); % create bark axis
 
-%% Sharpness calculation %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Sharpness calculation
 
 switch weight_type
-    case 'DIN45692'   % Widmann model
+    case 'DIN45692' % Widmann model
         
-        g=il_sharpWeights(z,'standard',[]); % calculate sharpness weighting factors
-        k=0.11; % adjusted to yield 1 acum using SQAT - DIN45692 allows 0.105<=k<=0.0115 for this weighting function
-        
-        for i=1:size(SpecificLoudness,1)
-            s(i) = k * sum(SpecificLoudness(i,:).*g.*z.*0.10,2) ./ loudness_sones(i);
-        end
-        
+        g = il_sharpWeights(z, 'standard', []); % calculate sharpness weighting factors
+        k = 0.11; % adjusted to yield 1 acum using SQAT - DIN45692 allows 0.105<=k<=0.0115 for this weighting function
+        s = k * sum(SpecificLoudness.*g.*z.*0.10, 2) ./ loudness_sones;
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        
     case 'aures' % Aures model
         
-        for i=1:size(SpecificLoudness,1)
-            g(i,:)=il_sharpWeights(z,'aures',loudness_sones(i)); % calculate sharpness weighting factor
-            s(i) = 0.11 * sum(SpecificLoudness(i,:).*g(i,:).*z.*0.10,2) ./ loudness_sones(i);
-        end
+        g = il_sharpWeights(z, 'aures', loudness_sones); % calculate sharpness weighting factor
+        s = 0.11 * sum(SpecificLoudness.*g.*z.*0.10, 2) ./ loudness_sones;
         
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     case 'bismarck' % von Bismarck
-        g=il_sharpWeights(z,'bismarck',[]); % calculate sharpness weighting factor
+        g = il_sharpWeights(z,'bismarck',[]); % calculate sharpness weighting factor
+        s = 0.11 * sum(SpecificLoudness.*g.*z.*0.10, 2) ./ loudness_sones;
         
-        for i=1:size(SpecificLoudness,1)
-            s(i) = 0.11 * sum(SpecificLoudness(i,:).*g.*z.*0.10,2) ./ loudness_sones(i);
-        end
+        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Output struct for time-varying signals
 
-if LoudnessMethod==2 % (time-varying sharpness)
+if LoudnessMethod == 2 % (time-varying sharpness)
     
     OUT.InstantaneousSharpness = s; % instantaneous sharpness
     OUT.time = L.time;              % time vector
@@ -218,26 +209,22 @@ end % End of Sharpness_DIN45692
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Embedded function (compute weighting functions according to required model type)
 
-function g = il_sharpWeights(z,type,N)
+function g = il_sharpWeights(z, type, N)
+    switch type
+        case 'standard' % Widmann model according to DIN 45692 (2009)
+            g = zeros(1,length(z));
+            g(z < 15.8) = 1;
+            g(z >= 15.8) = 0.15.*exp(0.42.*((z(z >= 15.8)) - 15.8)) + 0.85;
 
-g=zeros(1,length(z));
+        case 'bismarck' % von bismark's model according to DIN 45692 (2009)
+            g = zeros(1,length(z));
+            g(z < 15) = 1;
+            g(z >= 15) = 0.2.*exp(0.308.*(z(z >= 15) - 15)) + 0.8;
 
-switch type
-    case 'standard' % Widmann model according to DIN 45692 (2009)
-        g(z<15.8)=1;
-        g(z>=15.8)=0.15.*exp( 0.42.*((z(z>=15.8))-15.8) ) + 0.85;
-
-    case 'bismarck' % von bismark's model according to DIN 45692 (2009)
-        g(z<15)=1;
-        g(z>=15)=0.2.*exp( 0.308.*(z(z>=15)-15) ) + 0.8;
-
-    case 'aures'    % Aure's model according to DIN 45692 (2009)
-        for nt=1:length(N)
-            g(nt,:)=0.078.*( exp(0.171.*z)./z ).*( N(nt)./log(0.05.*N(nt)+1));
-        end
-
-end
-
+        case 'aures'    % Aures' model according to DIN 45692 (2009)
+            g = zeros(length(N), length(z));
+            g = 0.078.*(exp(0.171.*z)./z ).*(N./log(0.05.*N + 1));
+    end
 end % end of il_sharpWeights
 
 %**************************************************************************
