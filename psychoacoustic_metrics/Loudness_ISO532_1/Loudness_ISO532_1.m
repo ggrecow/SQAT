@@ -190,13 +190,12 @@ switch method
                     % local in f_lowpass).
                     A1 = exp(-1 ./ (fs * Tau));
                     B0 = 1 - A1;
+                    % y(n) = B0*x(n) + A1*y(n-1), zero initial state - i.e.
+                    % exactly filter(B0,[1 -A1],x), applied three times in
+                    % series. Same recursion as the scalar loop it replaces.
                     band = filteredaudio(:,i);
                     for k = 1:3
-                        Y1 = 0;
-                        for j = 1:len
-                            band(j) = (B0*band(j)) + (A1*Y1);
-                            Y1 = band(j);
-                        end
+                        band = filter(B0, [1 -A1], band);
                     end
                     smoothedaudio(:,i) = band;
 
@@ -267,16 +266,15 @@ for j = 1:NumSamplesLevel
     CBI(j,2) = sum(Intens(j,7:9)); % second critical band (sum of octaves (100Hz to 160Hz))
     CBI(j,3) = sum(Intens(j,10:11)); % third critical band (sum of octaves (200Hz to 250Hz))
 
-    FNGi = 10*log10(CBI);
-
-    for i = 1:3
-        if CBI(j,i)>0
-            LCB(j,i) = FNGi(j,i);
-        else
-            LCB(j,i) = 0;
-        end
-    end
 end
+
+% LCB is the level of each of the first three critical bands. This used to
+% sit inside the loop above, recomputing 10*log10 over the entire
+% NumSamplesLevel-by-3 matrix on every time sample - O(N^2) for one column
+% of results. LCB is preallocated to zero, which already covers the
+% CBI <= 0 case.
+FNGi = 10*log10(CBI);
+LCB(CBI > 0) = FNGi(CBI > 0);
 
 %% **********************************************************************
 % STEP 6 - Calculate core loudness for each critical band
@@ -600,9 +598,7 @@ for l = 1:NumSamplesLevel
 end
 
 % specific Loudness as a function of Bark number
-for i = 1:240
-    Spec_N(i) = mean(ns(:,i));
-end
+Spec_N = mean(ns,1);
 
 %% **********************************************************************
 % STEP 10 - Apply Temporal Weighting to Arbitrary signals

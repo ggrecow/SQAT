@@ -22,8 +22,47 @@ matlab -batch "cd test; run_all_tests"
 | --- | --- |
 | `tLoudness_ISO532_1_anchor.m` | Self-contained sanity tests. Signals are synthesised or hard-coded, so these need no external data and run in seconds. |
 | `tLoudness_ISO532_1_reference.m` | Conformance against the ISO 532-1:2017 Annex A.4 reference implementation, sample by sample. |
+| `bench_Loudness_ISO532_1.m` | Wall-clock benchmark over the ISO signals. Not a test - prints a table. |
 | `golden/` | Reference results produced by the ISO reference C. Committed. |
 | `tools/` | The oracle used to regenerate `golden/`. |
+
+## Two levels of assertion
+
+`tLoudness_ISO532_1_reference` checks each signal twice:
+
+- **`AbsTol`** - the conformance bound. Agreement with the reference implementation
+  must be within 0.02 sone.
+- **`MaxDevAchieved`** - the regression guard, the deviation actually achieved today,
+  per signal, plus a small slack.
+
+The second exists because the first is a weak guard on its own. Most signals currently
+agree with the reference *exactly*, so a change could degrade one by four orders of
+magnitude and still sit comfortably inside `AbsTol`. Pinning the achieved value turns
+that silent degradation into a failure.
+
+Update `MaxDevAchieved` only when a change is understood to *improve* agreement. Never
+relax it to make a regression pass.
+
+## Benchmarking
+
+```matlab
+cd test
+bench_Loudness_ISO532_1        % time-varying signals 6-25
+```
+
+To compare two revisions, run it on each and compare the totals. If the revision you
+are comparing against predates `test/`, check out just the metric so the harness stays
+in place:
+
+```sh
+git checkout <branch> -- psychoacoustic_metrics/
+matlab -batch "cd test; bench_Loudness_ISO532_1"
+git checkout HEAD -- psychoacoustic_metrics/
+```
+
+Timing is deliberately kept out of the test suite: wall-clock assertions are flaky
+across machines and would fail for reasons unrelated to the code. Correctness is
+asserted; speed is measured.
 
 ## Why compare against the reference implementation
 

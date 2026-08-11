@@ -18,6 +18,27 @@ classdef tLoudness_ISO532_1_reference < matlab.unittest.TestCase
         % reference implementation is deterministic and SQAT should track it
         % to well within this; it is not a perceptual tolerance.
         AbsTol = 0.02;
+
+        % Deviation from the reference actually achieved today, per signal,
+        % indexed by signal number. AbsTol alone is a weak guard: most
+        % signals currently agree with the reference exactly, so a change
+        % could degrade them by four orders of magnitude and still pass.
+        % Asserting against the achieved value catches that.
+        %
+        % Update these numbers only when a change is understood to improve
+        % agreement - never to make a regression pass.
+        MaxDevAchieved = [ ...
+            0 0 0 0 0, ...                                  % 1-5 (stationary)
+            0.016852, 0, 0, 0.003549, 0, ...                % 6-10
+            0, 0.000328, 0, 0.007155, 0.005293, ...         % 11-15
+            0.000204, 0.001748, 0.002967, 0.002601, ...     % 16-19
+            0.001551, 0.000416, 0, 0.001529, 0.003530, ...  % 20-24
+            0.000001];                                      % 25
+
+        % Slack over MaxDevAchieved, absorbing platform and version noise
+        % while staying far tighter than AbsTol. Reverting any one of the
+        % ISO 532-1 conformance fixes moves a signal by much more than this.
+        RegressionSlack = 1e-4;
     end
 
     properties
@@ -104,6 +125,15 @@ classdef tLoudness_ISO532_1_reference < matlab.unittest.TestCase
                  'mean|dN| = %.5f, RMS = %.5f over %d samples.'], ...
                 tvSignal, mx, 100*mx/max(ref(1:n)), (i-1)*2e-3, ...
                 mean(abs(d)), sqrt(mean(d.^2)), n));
+
+            % Regression guard: agreement must not get worse than it is today
+            budget = tc.MaxDevAchieved(tvSignal) + tc.RegressionSlack;
+            tc.verifyLessThanOrEqual(mx, budget, sprintf( ...
+                ['Signal %d agreement with the reference has REGRESSED: %.6f sone ' ...
+                 'now, %.6f before (budget %.6f).\n' ...
+                 'This still satisfies the %.3f sone conformance bound, so it is ' ...
+                 'a silent degradation rather than an outright failure.'], ...
+                tvSignal, mx, tc.MaxDevAchieved(tvSignal), budget, tc.AbsTol));
         end
 
         function stationaryMatchesReference(tc, statSignal)
