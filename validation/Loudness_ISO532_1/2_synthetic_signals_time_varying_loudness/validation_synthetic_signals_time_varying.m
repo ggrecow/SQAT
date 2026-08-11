@@ -213,6 +213,27 @@ reference = []; % to be loaded in the next line...
 fname = sprintf('%sreference_values_ISO532_1_2017_signal_%g.mat', dir_ref_values, insig_num);
 load(fname); % load reference vectors
 
+%% check compliance with the ISO 532-1 tolerance envelopes
+%
+% The scalar comparison above (Nmax, N5) averages the time series into two
+% numbers and can report agreement while the curve leaves the tolerance
+% envelope - this happened for signals 6, 9 and 10 before the ISO 532-1
+% conformance fixes. Check the envelope itself, point by point.
+
+N_on_ref_grid = interp1( OUT.time, OUT.InstantaneousLoudness, reference(:,1), 'linear', 0 );
+
+n_outside_5  = sum( N_on_ref_grid < reference(:,3) | N_on_ref_grid > reference(:,4) );
+n_outside_10 = sum( N_on_ref_grid < reference(:,5) | N_on_ref_grid > reference(:,6) );
+n_points     = size(reference,1);
+
+if n_outside_10 == 0
+    verdict = 'inside the 10% envelope';
+else
+    verdict = sprintf('*** %d points OUTSIDE the 10%% envelope ***', n_outside_10);
+end
+fprintf('Signal %g: %d/%d points outside 5%% tolerance, %s\n', ...
+        insig_num, n_outside_5, n_points, verdict);
+
 % plot reference values
 
 % plot( reference(:,1), reference(:,2),'b','Linewidth',0.5);hold on; % ref N
