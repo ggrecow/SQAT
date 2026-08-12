@@ -212,17 +212,23 @@ switch method
                     end
 
                 case {1,'stationary'} % stationary from audio signal
+                    % Mean square of the band signal after discarding the
+                    % first <time_skip> seconds. The C reference sums
+                    % samples NumSkip .. NumSamples-1 and divides by the
+                    % number of samples actually summed, NumSamples-NumSkip
+                    % (f_square_and_smooth). Dividing by the full length
+                    % instead under-reports the level by
+                    % 10*log10(len/(len-NumSkip)) dB - 0.97 dB for a 0.2 s
+                    % skip on a 1 s signal.
                     NumSkip = floor(time_skip * fs);
-                    smoothedaudio = zeros(len-NumSkip,28);
 
-                    if NumSkip > len/2
-                        warndlg('time signal too short');
+                    if NumSkip >= len
+                        error('%s: time_skip (%g s) is not shorter than the input signal (%g s).', ...
+                              mfilename, time_skip, len/fs);
                     end
 
-                    if NumSkip == 0; NumSkip = 1; end
-                    smoothedaudio(1:len-NumSkip,i) = filteredaudio(NumSkip:len-1,i);
-                    %         ThirdOctaveLevel(NumSamplesLevel,i) = 10*log10((sum(smoothedaudio(:,i))/len+TINY_VALUE)/I_REF);
-                    ThirdOctaveLevel(NumSamplesLevel,i) = 10*log10((sum(smoothedaudio(:,i)/len)+TINY_VALUE)/I_REF); % <----- modified from original by gfg
+                    meanSquare = sum(filteredaudio(NumSkip+1:len,i)) / (len - NumSkip);
+                    ThirdOctaveLevel(NumSamplesLevel,i) = 10*log10((meanSquare + TINY_VALUE)/I_REF);
 
             end
         end
