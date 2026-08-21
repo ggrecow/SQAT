@@ -72,6 +72,9 @@ function OUT = Loudness_ISO532_1(insig, fs, field, method, time_skip, show)
 %                   for SQAT. The validation was based on the test signals
 %                   provided from ISO 532-1:2017
 % Author: Gil Felix Greco, Braunschweig 16.02.2025 - introduced get_statistics function
+% Author: Sergio Aguirre (& Claude code), 21.08.2026 - several modifications
+% to mirror C reference code given by ISO 532-1, and improve performance
+% (see PR 48 and 49)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 if nargin == 0
     help Loudness_ISO532_1;
@@ -183,17 +186,22 @@ switch method
                         Tau = 2/(3*1000.);
                     end
 
-                    % 3x smoothing 1st order low-pass filters in series
+                    % 3x smoothing 1st order low-pass filters in series.
+                    % Each pass consumes the OUTPUT of the previous one - the
+                    % C reference filters in place, f_lowpass(pInput,pInput,..)
+                    % - and each pass starts from a discharged state (Y1 is a
+                    % local in f_lowpass).
                     A1 = exp(-1 ./ (fs * Tau));
                     B0 = 1 - A1;
-                    Y1 = 0;
+                    band = filteredaudio(:,i);
                     for k = 1:3
-                        for j = 1:length(filteredaudio)
-                            %                 smoothedaudio(j,i) = A1*temp(j,i) + B0*Y1;
-                            smoothedaudio(j,i)= (B0*filteredaudio(j,i))+(A1*Y1); % <----- modified from original by gfg
-                            Y1 = smoothedaudio(j,i);
+                        Y1 = 0;
+                        for j = 1:len
+                            band(j) = (B0*band(j)) + (A1*Y1);
+                            Y1 = band(j);
                         end
                     end
+                    smoothedaudio(:,i) = band;
 
                     c=1;
                     for j = 1:NumSamplesLevel
@@ -365,106 +373,78 @@ if method == 2 % time-varying from audio signal
     NlLpB(5) = exp(-DeltaT / Tlong);
     NlLpB(6) = exp(-DeltaT / Tvar);
 
+    % Mirrors f_nl() of the C reference. Per level sample there are exactly
+    % NL_ITER calls to f_nl_lp: the first one produces the stored output, the
+    % remaining NL_ITER-1 only advance the filter state along the linear
+    % interpolation towards the next sample. The final sample is processed by
+    % a single trailing call.
+    B1 = NlLpB(1); B2 = NlLpB(2); B3 = NlLpB(3);
+    B4 = NlLpB(4); B5 = NlLpB(5); B6 = NlLpB(6);
+
     for i = 1:21
 
         NlLpUoLast = 0; % At beginning capacitors C1 and C2 are discharged
         NlLpU2Last = 0;
 
-        for j = 1:NumSamplesLevel-1
-            NextInput = CoreL(j+1,i);
-            % interpolation steps between current and next sample
-            Delta = (NextInput - CoreL(j,i)) / NL_ITER;
+        for j = 1:NumSamplesLevel
+
             Ui = CoreL(j,i);
 
-            % f_nl_lp FUNCTION STARTS
-            % case 1
-            if Ui < NlLpUoLast
-                if NlLpUoLast > NlLpU2Last
-                    % case 1.1
-                    U2 = NlLpUoLast*NlLpB(1) - NlLpU2Last*NlLpB(2);
-                    Uo = NlLpUoLast*NlLpB(3) - NlLpU2Last*NlLpB(4);
-                    if  Uo < Ui
-                        Uo  = Ui;
-                    end
-                    if U2 > Uo
-                        U2 = Uo;
-                    end
-                else
-                    % case 1.2
-                    Uo = NlLpUoLast*NlLpB(5);
-                    if  Uo < Ui
-                        Uo = Ui;
-                    end
-                    U2 = Uo;
-                end
-                % case 2
-            elseif Ui == NlLpUoLast
-                Uo = Ui;
-                % case 2.1
-                if Uo > NlLpUoLast
-                    U2 = (NlLpUoLast - Ui)*NlLpB(6) + Ui;
-                    % case 2.2
-                else
-                    U2 = Ui;
-                end
-                % case 3
+            if j < NumSamplesLevel
+                % interpolation steps between current and next sample
+                Delta  = (CoreL(j+1,i) - Ui) / NL_ITER;
+                nInner = NL_ITER - 1;
             else
-                Uo = Ui;
-                U2 = (NlLpU2Last - Ui)*NlLpB(6) + Ui;
+                Delta  = 0;
+                nInner = 0;
             end
 
-            NlLpUoLast = Uo;
-            NlLpU2Last = U2;
-
-            CoreL(j,i) = Uo;
-            % f_nl_lp FUNCTION ENDS
-
-            Ui = Ui + Delta;
-
-            % inner iteration
-            for k = 1:NL_ITER
+            for k = 0:nInner
                 % f_nl_lp FUNCTION STARTS
                 % case 1
                 if Ui < NlLpUoLast
                     if NlLpUoLast > NlLpU2Last
                         % case 1.1
-                        U2 = NlLpUoLast*NlLpB(1) - NlLpU2Last*NlLpB(2);
-                        Uo = NlLpUoLast*NlLpB(3) - NlLpU2Last*NlLpB(4);
-                        if Ui > Uo
-                            Uo  = Ui;
+                        U2 = NlLpUoLast*B1 - NlLpU2Last*B2;
+                        Uo = NlLpUoLast*B3 - NlLpU2Last*B4;
+                        if Uo < Ui       % Uo can't become lower than Ui
+                            Uo = Ui;
                         end
-                        if U2 > Uo
+                        if U2 > Uo       % U2 can't become higher than Uo
                             U2 = Uo;
                         end
                     else
                         % case 1.2
-                        Uo = NlLpUoLast*NlLpB(5);
-                        if Ui > Uo
+                        Uo = NlLpUoLast*B5;
+                        if Uo < Ui
                             Uo = Ui;
                         end
                         U2 = Uo;
                     end
                     % case 2
-                elseif Ui == NlLpUoLast
+                elseif abs(Ui - NlLpUoLast) < 1e-5
                     Uo = Ui;
-                    % case 2.1
-                    if Uo > NlLpUoLast
-                        U2 = (NlLpUoLast - Ui)*NlLpB(6) + Ui;
-                        % case 2.2
+                    if Uo > NlLpU2Last
+                        % case 2.1
+                        U2 = (NlLpU2Last - Ui)*B6 + Ui;
                     else
+                        % case 2.2
                         U2 = Ui;
                     end
                     % case 3
                 else
                     Uo = Ui;
-                    U2 = (NlLpU2Last - Ui)*NlLpB(6) + Ui;
+                    U2 = (NlLpU2Last - Ui)*B6 + Ui;
                 end
 
                 NlLpUoLast = Uo;
                 NlLpU2Last = U2;
-
-                CoreL(j,i) = Uo;
                 % f_nl_lp FUNCTION ENDS
+
+                if k == 0
+                    CoreL(j,i) = Uo;    % only the first call is stored
+                end
+
                 Ui = Ui + Delta;
             end
         end
@@ -538,7 +518,7 @@ for l = 1:NumSamplesLevel
                 if n1 < CoreL(l,i)
                     j=1;
 
-                    while (RNS(j) > CoreL(l,i)) && (j < 18) % the value of j is used below to build a slope
+                    while (RNS(j) >= CoreL(l,i)) && (j < 18) % the value of j is used below to build a slope
                         j = j+1; % j becomes the index at which Nm(i)                        % to the range of specific loudness
                     end
                 end
@@ -588,12 +568,8 @@ for l = 1:NumSamplesLevel
 
             end
 
-            if (n2 <= RNS(j)) && (j < 18)
+            while (n2 <= RNS(j)) && (j < 18)
                 j = j + 1;
-            end
-
-            if (n2 <= RNS(j)) && (j >= 18)
-                j = 18;
             end
 
             z1 = z2;     % N1 and Z1 for next loop
@@ -604,12 +580,6 @@ for l = 1:NumSamplesLevel
 
     if N < 0
         N = 0;
-    end
-
-    if N <= 16
-        N = (N*1000+.5)/1000;
-    else
-        N = (N*100+.5)/100;
     end
 
     LN(l) = 40*(N + .0005)^.35;
@@ -658,9 +628,10 @@ if method == 2 % time-varying from audio signal
         Y1 = B0 * X0 + A1 * Y1;
         Loudness_t1(i) = Y1;
 
-        if i < NumSamplesLevel - 1
-            Xd = (N_mat(i) - X0) / DecFactorLevel;
-            for j = 1:DecFactorLevel
+        if i < NumSamplesLevel
+            % linear interpolation towards the next sample (C: f_lowpass_intp)
+            Xd = (N_mat(i+1) - X0) / DecFactorLevel;
+            for j = 1:DecFactorLevel-1
                 X0 = X0 + Xd;
                 Y1 = B0 * X0 + A1 * Y1;
             end
@@ -677,9 +648,10 @@ if method == 2 % time-varying from audio signal
         X0 = N_mat(i);
         Y1 = B0 * X0 + A1 * Y1;
         Loudness_t2(i) = Y1;
-        if i < NumSamplesLevel - 1
-            Xd = (N_mat(i) - X0) / DecFactorLevel;
-            for j = 1:DecFactorLevel
+        if i < NumSamplesLevel
+            % linear interpolation towards the next sample (C: f_lowpass_intp)
+            Xd = (N_mat(i+1) - X0) / DecFactorLevel;
+            for j = 1:DecFactorLevel-1
                 X0 = X0 + Xd;
                 Y1 = B0 * X0 + A1 * Y1;
             end
