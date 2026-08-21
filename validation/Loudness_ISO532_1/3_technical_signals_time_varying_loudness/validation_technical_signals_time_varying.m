@@ -13,8 +13,14 @@
 %  The obtained folder called `validation_SQAT_v1_0` has to be included in 
 %  the `sound_files` folder of the toolbox. 
 %
-% Author: Gil Felix Greco, Braunschweig 27.02.2023
-% modifided in 07.12.2024 by Gil Felix Greco - included plot with summary of differences between reference and calculated loudness
+% Log:
+% - Author: Gil Felix Greco, Braunschweig 27.02.2023
+%
+% - Modifided in 07.12.2024 by Gil Felix Greco - included plot with summary of differences between reference and calculated loudness
+%
+% - Author: Gil Felix Greco, 21.08.2026 - new version of Loudness_ISO532_1 
+%   is paired with C reference code (released in v2.0). Summary of 
+%   differences now include a comparison with results from prior implementation. 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 clc; clear all; close all;
 
@@ -62,17 +68,23 @@ for i = 1:length(X)
     diff_vector_N5(i) = OUT.RefScalar{i}(2,3); % 5 percentile loudness
 end
 
-title_fig = sprintf('Loudness - summary of differences between ref. and calculated values');
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Plot Nmax
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+title_fig = sprintf('Max. Loudness - summary of differences between ref. and calculated values');
 h = figure('Name',title_fig);
 set(h,'Units','Inches');
 pos = get(h,'Position');
 set(h,'PaperPositionMode','Auto','PaperUnits','Inches','PaperSize',[pos(3), pos(4)])
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Plot Nmax
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-yyaxis left
-handle_a = plot(X, diff_vector_Nmax, 'x', 'Markersize', 12);
+% load differences (computed with code prior to v2.0)
+diff_vector_Nmax_v1 = [0.240570757820347	0.203296116740026	0.721420425934014	0.436221397800264	0.435791057533194	0.510627573506348	0.703225122162740	0.268005107297007	0.158446479058027	0.854048664706799	0.277154618957530	0.528470554768854 ];
+
+handle_a_v1 = plot(X, diff_vector_Nmax_v1, 'xb', 'Markersize', 12); % plot results computed with v.1
+hold on;
+handle_a = plot(X, diff_vector_Nmax, 'sb', 'Markersize', 12); % plot results with current version
 
 ymin = -1; ymax =1;
 ylim([ymin ymax]);
@@ -81,21 +93,62 @@ variable_Nmax = '$N_{\mathrm{max,SQAT}} - N_{\mathrm{max,Ref.}}$';
 ylabel( [variable_Nmax  ' (sone)'], 'Interpreter','Latex');
 xlabel('Test signal','Interpreter','Latex');
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Plot N5
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-yyaxis right
+legend( [handle_a_v1, handle_a], ...
+    {[variable_Nmax '(v.1.x)'], [variable_Nmax '(current)']}, 'Location', 'SE')
+legend box on
 
-handle_b = plot(X, diff_vector_N5, 's', 'Markersize', 12);
+grid off
+
+set(gcf,'color','w');
+
+%%%%%%%%% save fig
+if save_figs==1
+
+    figures_dir = [pwd filesep 'figs' filesep];
+    
+    if ~exist(figures_dir,'dir')
+        mkdir(figures_dir);
+    end
+    
+    figname_short = 'validation_time_varying_technical_signals_loudness_difference_Nmax';
+    figname_out = [figures_dir figname_short];
+    
+    % saveas(gcf,figname_out, 'fig');
+    % saveas(gcf,figname_out, 'pdf');
+    saveas(gcf,figname_out, 'png');
+    
+    fprintf('\n%s.m: figure %s was saved on disk\n\t(full name: %s)\n',mfilename,figname_short,figname_out);
+end
+%%%%%%%%% save fig
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Plot N5
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+title_fig = sprintf('N5 - summary of differences between ref. and calculated values');
+h = figure('Name',title_fig);
+set(h,'Units','Inches');
+pos = get(h,'Position');
+set(h,'PaperPositionMode','Auto','PaperUnits','Inches','PaperSize',[pos(3), pos(4)])
+
+% load differences (computed with code prior to v2.0)
+diff_vector_N5_v1 = [ -0.157586774660548	0.133757104302569	0.452892769083640	0.0207264466517643	0.299665342470700	0.180797141954043	0.203117298298011	0.136117589415452	0.221304720739090	0.279822494241543	0.274294420486571	0.290591934661655 ];
+
+handle_b_v1 = plot(X, diff_vector_N5_v1, 'xk', 'Markersize', 12); % plot results computed with v.1
+hold on;
+handle_b = plot(X, diff_vector_N5, 'sk', 'Markersize', 12); % plot results with current version
+
 ylim([ymin ymax]);
 
 variable_N5 = '$N_{\mathrm{5\%,SQAT}} - N_{\mathrm{5\%,Ref.}}$';
 ylabel([variable_N5 ' (sone)'], 'Interpreter', 'Latex');
+xlabel('Test signal','Interpreter','Latex');
 
-legend([handle_a, handle_b], {variable_Nmax, variable_N5}, 'Location', 'SE')
-legend box on
+legend([handle_b_v1, handle_b], ...
+    {[variable_N5 '(v.1.x)'], [variable_N5 '(current)']}, 'Location', 'SE')
 
 grid off
+
 set(gcf,'color','w');
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -107,7 +160,7 @@ if save_figs==1
         mkdir(figures_dir);
     end
 
-    figname_short = 'validation_time_varying_technical_signals_loudness_difference';
+    figname_short = 'validation_time_varying_technical_signals_loudness_difference_N5';
     figname_out = [figures_dir figname_short];
     
     % saveas(gcf,figname_out, 'fig');
@@ -121,7 +174,7 @@ end
 
 %% function (compute loudness and plot comparison
 
-function [OUT,table]=compute_and_plot(insig_num,fname_insig,save_figs,tag)
+function [OUT,table] = compute_and_plot(insig_num,fname_insig,save_figs,tag)
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
