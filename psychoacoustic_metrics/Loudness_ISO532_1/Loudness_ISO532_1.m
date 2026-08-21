@@ -72,6 +72,9 @@ function OUT = Loudness_ISO532_1(insig, fs, field, method, time_skip, show)
 %                   for SQAT. The validation was based on the test signals
 %                   provided from ISO 532-1:2017
 % Author: Gil Felix Greco, Braunschweig 16.02.2025 - introduced get_statistics function
+% Author: Sergio Aguirre (& Claude code), 21.08.2026 - several modifications
+% to mirror C reference code given by ISO 532-1, and improve performance
+% (see PR 48 and 49)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 if nargin == 0
     help Loudness_ISO532_1;
