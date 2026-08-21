@@ -31,7 +31,7 @@ clc; clear all; close all;
 
 %% save figs flag
 
-save_figs = 1;
+save_figs = 0;
                                   
 %% validation signals 1 to 5
 %       signal 1 is a numeric array, specified as one-third octave band levels
