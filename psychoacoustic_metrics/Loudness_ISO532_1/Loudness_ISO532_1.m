@@ -36,7 +36,7 @@ function OUT = Loudness_ISO532_1(insig, fs, field, method, time_skip, show)
 %
 %       * time_insig - time vector of the audio input, in seconds
 %       * barkAxis - bark vector
-%       * SpecificLoudness - time-averaged specific loudness (sone/Bark)
+%       * SpecificLoudness - specific loudness (sone/Bark)
 %       * Loudness - loudness (sone)
 %       * LoudnessLevel - loudness level (phon)
 %       * TimeAveragedSPL - time-averaged overall SPL (1/3 octave bands, DBSPL)
@@ -50,7 +50,6 @@ function OUT = Loudness_ISO532_1(insig, fs, field, method, time_skip, show)
 %       * InstantaneousLoudness - instantaneous loudness (sone) vs time
 %       * InstantaneousSpecificLoudness - specific loudness (sone/Bark) vs time
 %       * InstantaneousLoudnessLevel - instantaneous loudness level (phon) vs time
-%       * SpecificLoudness - time-averaged specific loudness (sone/Bark)
 %       * InstantaneousSPL - overall SPL (1/3 octave bands) for each time step, in dBSPL
 %       * Several statistics based on the InstantaneousLoudness
 %         ** Nmean : mean value of InstantaneousLoudness (sone)
@@ -71,10 +70,14 @@ function OUT = Loudness_ISO532_1(insig, fs, field, method, time_skip, show)
 % Author: Gil Felix Greco, Braunschweig 22.02.2023 - adapted and validated
 %                   for SQAT. The validation was based on the test signals
 %                   provided from ISO 532-1:2017
-% Author: Gil Felix Greco, Braunschweig 16.02.2025 - introduced get_statistics function
+% Author: Gil Felix Greco, Braunschweig 16.02.2025 - introduced get_statistics 
+% function
 % Author: Sergio Aguirre (& Claude code), 21.08.2026 - several modifications
 % to mirror C reference code given by ISO 532-1, and improve performance
 % (see PR 48 and 49)
+% Author: Gil Felix Greco, 22.08.2026 - removed time-averaged
+% specific loudness from output of time-varying model resultsbecause this 
+% is not a quantity specified by ISO 532-1
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 if nargin == 0
     help Loudness_ISO532_1;
@@ -485,7 +488,6 @@ USL = [13 8.2 6.3 5.5 5.5 5.5 5.5 5.5;
 
 LN = zeros(NumSamplesLevel,1);
 N_mat = zeros(NumSamplesLevel,1);
-Spec_N = zeros(1,240);
 ZUP = ZUP+0.0001; %<----- add constant factor to ZUP according to code provided by ISO 532-1 (see ISO 532-1 - Program etc\Annex A.4\ISO_532-1_LIB\src\ISO_532-1.c - line 862)
 ns = zeros(NumSamplesLevel,240);
 
@@ -600,8 +602,12 @@ for l = 1:NumSamplesLevel
     N_mat(l) = N; % total loudness at current timeframe l
 end
 
-% specific Loudness as a function of Bark number
-Spec_N = mean(ns,1);
+% Specific loudness as a function of Bark number. Only defined for the
+% stationary methods, where NumSamplesLevel == 1. ISO 532-1 specifies no
+% time-aggregated specific loudness for time-varying signals.
+if method == 0 || method == 1
+    Spec_N = ns(1,:);
+end
 
 %% **********************************************************************
 % STEP 10 - Apply Temporal Weighting to Arbitrary signals
@@ -694,7 +700,6 @@ if method == 2 % time-varying from audio signal
     OUT.time=(0:length(Total_Loudness)-1)' * 2e-3; % time vector of the final loudness calculation, in seconds
     OUT.time_insig=(0 : length(insig)-1) ./ fs;  % time vector of the audio input, in seconds
     OUT.InstantaneousLoudness=Total_Loudness; % Time-varying Loudness, in sone
-    OUT.SpecificLoudness=Spec_N; % time-averaged specific loudness (sone/Bark)
     OUT.InstantaneousSpecificLoudness=ns_dec; % specific loudness (sone/Bark) vs time
     OUT.InstantaneousLoudnessLevel=LN ; % Time-varying Loudness level, in phon
     OUT.InstantaneousSPL=10.*log10(sum(10.^(ThirdOctaveLevel(:,1:end)./10),2)); % total SPL (1/3 octave bands) for each time step, in dBSPL
@@ -768,16 +773,8 @@ if method == 2 % time-varying from audio signal
         xlabel('Time, $t$ (s)','Interpreter','Latex');
         ylabel('Loudness, $N$ (sone)','Interpreter','Latex'); grid on;
 
-        % plot specific loudness (sone/bark)
-        subplot( 2, 6, [9,10])
-        plot( OUT.barkAxis, OUT.SpecificLoudness);
-        ax = axis; axis([0 24 ax(3) ax(4)*1.1]);
-        title('Time-averaged specific loudness','Interpreter','Latex');
-        xlabel('Critical band, $z$ (Bark)','Interpreter','Latex');
-        ylabel('Specific loudness, $N^{\prime}$ ($\mathrm{sone}/\mathrm{Bark}$)','Interpreter','Latex'); grid on;
-
         % plot instantaneous specific loudness (sone/bark)
-        subplot( 2, 6, [11,12])
+        subplot( 2, 6, [9,12])
         [xx,yy]=meshgrid(OUT.time,OUT.barkAxis);
         pcolor(xx,yy,OUT.InstantaneousSpecificLoudness');
         shading interp; colorbar; axis tight;
@@ -805,7 +802,7 @@ elseif method==0 || method==1
     end
 
     OUT.barkAxis=(1:240)/10; % bark vector
-    OUT.SpecificLoudness=Spec_N; % time-averaged specific loudness (sone/Bark)
+    OUT.SpecificLoudness=Spec_N;  % specific loudness (sone/Bark)
     OUT.Loudness=N; % loudness (sone)
     OUT.LoudnessLevel=LN ; % loudness level (phon)
     OUT.TimeAveragedSPL=10.*log10(sum(10.^(ThirdOctaveLevel(:,1:end)./10),2)); % total SPL (1/3 octave bands) for each time step, in dBSPL
