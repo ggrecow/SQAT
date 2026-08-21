@@ -15,8 +15,17 @@
 %  The obtained folder called `validation_SQAT_v1_0` has to be included in 
 %  the `sound_files` folder of the toolbox. 
 %
-% Author: Gil Felix Greco, Braunschweig 27.02.2023
-% modifided in 07.12.2024 by Gil Felix Greco - included plot with summary of differences between reference and calculated loudness
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Log:
+%
+% - Author: Gil Felix Greco, Braunschweig 27.02.2023
+%
+% - Modifided in 07.12.2024 by Gil Felix Greco - included plot with summary of 
+%   differences between reference and calculated loudness
+%
+% - Author: Gil Felix Greco, 21.08.2026 - new version of Loudness_ISO532_1 
+%   is paired with C reference code (released in v2.0). Summary of 
+%   differences now include a comparison with results from prior implementation.  
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 clc; clear all; close all;
 
@@ -55,13 +64,18 @@ for i = 1:length(X)
     diff_vector(i) = OUT.RefScalar{i}(1,3);
 end
 
+% load differences in total loudness (computed with code prior to v2.0)
+v1_differences = [0.00466115895234509	0.0147382149170721	0.00505608049373318	0.00107894602105496	-0.000130696980720657];
+
 title_fig = sprintf('Loudness - summary of differences between ref. and calculated values');
 h = figure('Name',title_fig);
 set(h,'Units','Inches');
 pos = get(h,'Position');
 set(h,'PaperPositionMode','Auto','PaperUnits','Inches','PaperSize',[pos(3), pos(4)])
 
-plot(X, diff_vector, 'x', 'Markersize', 12);
+a = plot(X, diff_vector, 'xb', 'Markersize', 12); % plot results with current version
+hold on;
+b = plot(X, v1_differences, 'sb', 'Markersize', 12); % plot results computed with v.1
 
 tolerance = 0.1;
 handle_a = yline(  tolerance, '--r'); % plot tolerance of N=1 sone stipulated by the ISO norm
@@ -73,7 +87,8 @@ ylim([ymin ymax]);
 ylabel('$N_{\mathrm{SQAT}} - N_{\mathrm{Ref.}}$ (sone)','Interpreter','Latex');
 xlabel('Test signal','Interpreter','Latex');
 
-legend(handle_a, 'ISO 532-1:2017 tolerance', 'Location', 'SE');
+legend( [a, b, handle_a], {'Results: current version', 'Results: v1.x', 'ISO 532-1:2017 tolerance'}, 'Location', 'SE');
+
 legend box on;
 
 grid off
