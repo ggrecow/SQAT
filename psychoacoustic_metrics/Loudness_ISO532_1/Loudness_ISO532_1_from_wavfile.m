@@ -56,7 +56,6 @@ function OUT = Loudness_ISO532_1_from_wavfile(wavfilename, dBFS, field, method, 
 %       * InstantaneousLoudness - instantaneous loudness (sone) vs time
 %       * InstantaneousSpecificLoudness - specific loudness (sone/Bark) vs time
 %       * InstantaneousLoudnessLevel - instantaneous loudness level (phon) vs time
-%       * SpecificLoudness - time-averaged specific loudness (sone/Bark) 
 %       * InstantaneousSPL - overall SPL (1/3 octave bands) for each time step, in dBSPL
 %       * Several statistics based on the InstantaneousLoudness 
 %         ** Nmean : mean value of InstantaneousLoudness (sone)

@@ -72,12 +72,12 @@ function OUT = Loudness_ISO532_1(insig, fs, field, method, time_skip, show)
 %                   provided from ISO 532-1:2017
 % Author: Gil Felix Greco, Braunschweig 16.02.2025 - introduced get_statistics 
 % function
-% Author: Sergio Aguirre (& Claude code), 21.08.2026 - several modifications
+% Author: Sergio Aguirre, 21.08.2026 - several modifications
 % to mirror C reference code given by ISO 532-1, and improve performance
 % (see PR 48 and 49)
-% Author: Gil Felix Greco, 22.08.2026 - removed time-averaged
-% specific loudness from output of time-varying model resultsbecause this 
-% is not a quantity specified by ISO 532-1
+% Author: Gil Felix Greco, 25.08.2026 - removed time-averaged
+% specific loudness from output of time-varying model results. This 
+% quantity is not specified by ISO 532-1
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 if nargin == 0
     help Loudness_ISO532_1;
