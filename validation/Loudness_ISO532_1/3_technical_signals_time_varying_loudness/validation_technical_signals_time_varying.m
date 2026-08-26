@@ -141,9 +141,8 @@ pos = get(h,'Position');
 set(h,'PaperPositionMode','Auto','PaperUnits','Inches','PaperSize',[pos(3), pos(4)])
 
 % load differences (computed with code prior to v2.0)
-% TODO: recompute these with the corrected time window (see below), otherwise 
-% the v.1.x and current marker sets differ by both the change in the loudness 
-% implementation and the change in the percentile window.
+% Recomputed using the same time window as the current version, so that the 
+% two marker sets differ only by the change in the loudness implementation.
 diff_vector_N5_v1 = [ 0.0654677427423103	0.138824097883232	0.499375217756686	0.496738810406429	0.444634442553939	0.397488740479751	0.488979193365671	0.216062319420050	0.231669567381521	0.415432100498771	0.290675684403160	0.471122066114694 ];
 
 handle_b_v1 = plot(X, diff_vector_N5_v1, 'xk', 'Markersize', 12); % plot results computed with v.1
