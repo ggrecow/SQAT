@@ -50,5 +50,4 @@ A summary presenting the differences (max. total loudness and loudness value exc
 
 - Summary of loudness differences include now comparison between code versions (Gil Felix Greco, 21.08.2026)
 
-- N5 values computed using correct time intervals (Gil Felix Greco, 26.08.2026)
-
+- Loudness value exceeded 5% of the time is now computed over the time interval used by the reference spreadsheets of the ISO standard (Gil Felix Greco, 26.08.2026)
