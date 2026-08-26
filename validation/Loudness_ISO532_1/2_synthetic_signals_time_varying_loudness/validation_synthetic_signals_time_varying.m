@@ -17,11 +17,17 @@
 % Log:
 % - Author: Gil Felix Greco, Braunschweig 27.02.2023
 %
-% - modifided in 07.12.2024 by Gil Felix Greco - included plot with summary of differences between reference and calculated loudness
+% - modifided in 07.12.2024 by Gil Felix Greco - included plot with summary 
+%   of differences between reference and calculated loudness
 %
 % - Author: Gil Felix Greco, 21.08.2026 - new version of Loudness_ISO532_1 
 %   is paired with C reference code (released in v2.0). Summary of 
 %   differences now include a comparison with results from prior implementation. 
+%
+% - Author: Gil Felix Greco, 26.08.2026: computation of percentile values
+%   is corrected (i.e. now accounts for the silence at the start/end of the 
+%   signals, as given by the reference spreadsheets). Percentile values of the 
+%   old loudness code version (prior to v2.0) also updated.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 clc; clear all; close all;
 
@@ -78,6 +84,8 @@ pos = get(h,'Position');
 set(h,'PaperPositionMode','Auto','PaperUnits','Inches','PaperSize',[pos(3), pos(4)])
 
 % load differences (computed with code prior to v2.0)
+% Nmax is the maximum over the complete record and is therefore not affected 
+% by the time window used for the percentile, so these values are unchanged.
 diff_vector_Nmax_v1 = [0.0372880903658199	-0.0512195125604560	-0.000835903437273800	0.359239435993054	0.0843054498700742	0.123630690212455	0.0454045744748406	0.250010519131029];
 
 handle_a_v1 = plot(X, diff_vector_Nmax_v1, 'xb', 'Markersize', 12); % plot results computed with v.1
@@ -93,9 +101,9 @@ xlabel('Test signal','Interpreter','Latex');
 
 legend( [handle_a_v1, handle_a], ...
     {[variable_Nmax '(v.1.x)'], [variable_Nmax '(current)']}, 'Location', 'SE')
-legend box on
 
-grid off
+legend box on
+grid on
 
 set(gcf,'color','w');
 
@@ -130,7 +138,11 @@ pos = get(h,'Position');
 set(h,'PaperPositionMode','Auto','PaperUnits','Inches','PaperSize',[pos(3), pos(4)])
 
 % load differences (computed with code prior to v2.0)
-diff_vector_N5_v1 = [-0.0284526846876574	-0.161942748121691	-0.210097135107681	0.198682080156029	0.208431787949568	0.239685821483114	0.449410398530912	0.266884105570234];
+% Recomputed using the same time window as the current version, so that the 
+% two marker sets differ only by the change in the loudness implementation.
+% Only the signals 6 to 9 change: for the signals 10 to 13 the reference window 
+% is the complete record, so their values are identical to the previous ones.
+diff_vector_N5_v1 = [0.0619926930259584	-0.0328758481754168	-0.00970772116831853	0.371149775511022	0.208431787949568	0.239685821483114	0.449410398530912	0.266884105570234];
 
 handle_b_v1 = plot(X, diff_vector_N5_v1, 'xk', 'Markersize', 12); % plot results computed with v.1
 hold on;
@@ -145,7 +157,7 @@ xlabel('Test signal','Interpreter','Latex');
 legend([handle_b_v1, handle_b], ...
     {[variable_N5 '(v.1.x)'], [variable_N5 '(current)']}, 'Location', 'SE')
 
-grid off
+grid on
 
 set(gcf,'color','w');
 
@@ -203,6 +215,7 @@ function [OUT,table] = compute_and_plot(insig_num,fname_insig,save_figs,tag,tag_
 %
 % Author: Gil Felix Greco, Braunschweig 27.02.2023
 % modifided in 07.12.2024 by Gil Felix Greco - included plot with summary of differences between reference and calculated loudness
+% modified in 26.08.2026 by Gil Felix Greco - N5 computed over the reference time window
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% signals from ISO 532-2:2017
 
@@ -235,9 +248,48 @@ OUT = Loudness_ISO532_1( ycal,   fs,...   % input signal and sampling freq.
 
 %% calculate difference from reference values given by ISO 532-1:2017
 
+% time window used by ISO 532-1:2017 - Annex B.4 for the N5 statistics
+%
+% The header of the reference spreadsheets states that the test signals contain
+% 100 ms of silence at the beginning and 500 ms at the end, and that N5 is 
+% obtained disregarding these intervals. This is only actually applied to the
+% signals 6 to 9 (record length 10.598 s), where the reference is 
+% PERCENTILE(B61:B5060,0.95), i.e. t = [0.100, 10.098] s.
+% The tone-pulse signals 10 to 13 are only 500 samples (0.998 s) long and their
+% reference is PERCENTILE(B11:B510,0.95) / PERCENTILE(E11:E510,0.95), i.e. taken
+% over the COMPLETE record without excluding any silence. Applying the 
+% 100 ms / 500 ms exclusion to those signals removes most of the pulse.
+
+if insig_num <= 9
+    t_start = 0.1;                     % (s) skip leading silence
+    t_end   = OUT.time(end) - 0.5;     % (s) skip trailing silence
+else
+    t_start = OUT.time(1);             % full record - no exclusion
+    t_end   = OUT.time(end);
+end
+
+tol = 1e-9;  % avoid dropping the boundary samples due to round-off
+idx_valid = ( OUT.time >= t_start - tol ) & ( OUT.time <= t_end + tol );
+
+N_valid = OUT.InstantaneousLoudness(idx_valid);
+
+% overwrite N5 computed inside Loudness_ISO532_1.m 
+OUT.N5 = get_exceeded_value(N_valid, 5);
+
 % reference values provided by ISO 532-1:2017 for signals 6 to 13
-reference_Nmax=[14.359 15.953 23.950 29.314 4.3 5.975 8.077 9.976];   
-reference_N5=[11.858 13.379 20.262 24.222 0.745 4.160 7.670 3.239]; 
+%
+% NOTE: the reference N5 of the signals 12 and 13 is obtained in the reference
+% spreadsheet from PERCENTILE(E11:E510,0.95). Column E is not the loudness but
+% the lower bound of the 5% tolerance band,
+%   =IF(0.05*B11>0.1, 0.95*B11, IF(B11<0.1, 0, B11-0.1))
+% while the sheets of the signals 10 and 11 correctly use column B. Taking the
+% percentile of column B would give 8.074 and 3.410 sone instead of the 
+% tabulated 7.670 and 3.239 sone. This cell-reference slip of the reference
+% spreadsheet imposes a fixed positive bias of about +0.40 sone (signal 12) and
+% +0.17 sone (signal 13) on the differences reported here, independently of the
+% quality of the implementation.
+reference_Nmax = [14.359 15.953 23.950 29.314 4.3 5.975 8.077 9.976];   
+reference_N5 = [11.858 13.379 20.262 24.222 0.745 4.160 7.670 3.239]; 
 
 reference_Nmax=reference_Nmax(insig_num-5);
 reference_N5=reference_N5(insig_num-5);

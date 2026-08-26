@@ -17,11 +17,17 @@
 % Log:
 % - Author: Gil Felix Greco, Braunschweig 27.02.2023
 %
-% - Modifided in 07.12.2024 by Gil Felix Greco - included plot with summary of differences between reference and calculated loudness
+% - Modifided in 07.12.2024 by Gil Felix Greco - included plot with summary 
+%   of differences between reference and calculated loudness
 %
 % - Author: Gil Felix Greco, 21.08.2026 - new version of Loudness_ISO532_1 
 %   is paired with C reference code (released in v2.0). Summary of 
 %   differences now include a comparison with results from prior implementation. 
+%
+% - Author: Gil Felix Greco, 26.08.2026: computation of percentile values
+%   is corrected (i.e. now accounts for the silence at the start/end of the 
+%   signals, as given by the reference spreadsheets). Percentile values of the 
+%   old loudness code version (prior to v2.0) also updated.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 clc; clear all; close all;
 
@@ -81,6 +87,8 @@ pos = get(h,'Position');
 set(h,'PaperPositionMode','Auto','PaperUnits','Inches','PaperSize',[pos(3), pos(4)])
 
 % load differences (computed with code prior to v2.0)
+% Nmax is the maximum over the complete record and is therefore not affected 
+% by the time window used for the percentile, so these values are unchanged.
 diff_vector_Nmax_v1 = [0.240570757820347	0.203296116740026	0.721420425934014	0.436221397800264	0.435791057533194	0.510627573506348	0.703225122162740	0.268005107297007	0.158446479058027	0.854048664706799	0.277154618957530	0.528470554768854 ];
 
 handle_a_v1 = plot(X, diff_vector_Nmax_v1, 'xb', 'Markersize', 12); % plot results computed with v.1
@@ -96,9 +104,9 @@ xlabel('Test signal','Interpreter','Latex');
 
 legend( [handle_a_v1, handle_a], ...
     {[variable_Nmax '(v.1.x)'], [variable_Nmax '(current)']}, 'Location', 'SE')
-legend box on
 
-grid off
+legend box on
+grid on
 
 set(gcf,'color','w');
 
@@ -133,7 +141,10 @@ pos = get(h,'Position');
 set(h,'PaperPositionMode','Auto','PaperUnits','Inches','PaperSize',[pos(3), pos(4)])
 
 % load differences (computed with code prior to v2.0)
-diff_vector_N5_v1 = [ -0.157586774660548	0.133757104302569	0.452892769083640	0.0207264466517643	0.299665342470700	0.180797141954043	0.203117298298011	0.136117589415452	0.221304720739090	0.279822494241543	0.274294420486571	0.290591934661655 ];
+% TODO: recompute these with the corrected time window (see below), otherwise 
+% the v.1.x and current marker sets differ by both the change in the loudness 
+% implementation and the change in the percentile window.
+diff_vector_N5_v1 = [ 0.0654677427423103	0.138824097883232	0.499375217756686	0.496738810406429	0.444634442553939	0.397488740479751	0.488979193365671	0.216062319420050	0.231669567381521	0.415432100498771	0.290675684403160	0.471122066114694 ];
 
 handle_b_v1 = plot(X, diff_vector_N5_v1, 'xk', 'Markersize', 12); % plot results computed with v.1
 hold on;
@@ -148,7 +159,7 @@ xlabel('Test signal','Interpreter','Latex');
 legend([handle_b_v1, handle_b], ...
     {[variable_N5 '(v.1.x)'], [variable_N5 '(current)']}, 'Location', 'SE')
 
-grid off
+grid on
 
 set(gcf,'color','w');
 
@@ -207,6 +218,7 @@ function [OUT,table] = compute_and_plot(insig_num,fname_insig,save_figs,tag)
 %
 % Author: Gil Felix Greco, Braunschweig 27.02.2023
 % modifided in 07.12.2024 by Gil Felix Greco - included plot with summary of differences between reference and calculated loudness
+% modified in 26.08.2026 by Gil Felix Greco - N5 computed over the reference time window
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% signals from ISO 532-2:2017
 
@@ -249,9 +261,39 @@ end
 
 %% calculate difference from reference values given by ISO 532-1:2017
 
+% time window used by ISO 532-1:2017 - Annex B.5 for the N5 statistics
+%
+% The header of the reference spreadsheets states that the test signals contain
+% 100 ms of silence at the beginning and 500 ms at the end, and that N5 is
+% obtained disregarding these intervals. The leading 100 ms is indeed skipped 
+% for all signals (the reference range always starts at row 61, t = 0.100 s), 
+% but the trailing 500 ms is NOT skipped for the signals 18, 22 and 24:
+%   - signal 18: the reference range B61:B1093 ends exactly at the last data row;
+%   - signals 22 and 24: the reference ranges (B61:B1494 and B61:B4492) extend 
+%     beyond the last data row (935 and 1210), and PERCENTILE ignores the empty 
+%     cells, so the effective upper limit is again the end of the record.
+% These are stale ranges in the reference spreadsheet, but since the tabulated 
+% reference values inherit them, the same window has to be used here in order to
+% reproduce the published N5 values. Applying a uniform 0.5 s trailing trim to
+% the signals 18, 22 and 24 introduces spurious deviations of about +0.42, 
+% +0.14 and +0.09 sone.
+
+trailing_trim = [0.5 0.5 0.5 0.5 0.0 0.5 0.5 0.5 0.0 0.5 0.0 0.5]; % (s), signals 14 to 25
+
+t_start = 0.1;                                          % (s) skip leading silence
+t_end   = OUT.time(end) - trailing_trim(insig_num-13);  % (s) skip trailing silence
+
+tol = 1e-9;  % avoid dropping the boundary samples due to round-off
+idx_valid = ( OUT.time >= t_start - tol ) & ( OUT.time <= t_end + tol );
+
+N_valid = OUT.InstantaneousLoudness(idx_valid);
+
+% overwrite N5 computed inside Loudness_ISO532_1.m 
+OUT.N5 = get_exceeded_value(N_valid, 5);
+
 % reference values provided by ISO 532-1:2017 for signals 14 to 25
-reference_Nmax=[22.640 9.606 38.536 11.211 12.647 10.882 14.880 9.719 8.906 11.186 9.275 7.259];   
-reference_N5=[18.081 8.755 36.888 9.722 10.392 10.009 13.093 9.00 8.158 10.421 8.519 5.761]; 
+reference_Nmax = [22.640 9.606 38.536 11.211 12.647 10.882 14.880 9.719 8.906 11.186 9.275 7.259];   
+reference_N5 = [18.081 8.755 36.888 9.722 10.392 10.009 13.093 9.00 8.158 10.421 8.519 5.761]; 
 
 reference_Nmax=reference_Nmax(insig_num-13);
 reference_N5=reference_N5(insig_num-13);

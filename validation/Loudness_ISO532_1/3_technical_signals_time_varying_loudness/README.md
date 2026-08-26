@@ -1,5 +1,5 @@
 # About this code 
-The `validation_technical_signals_time_varying.m` code is used to verify the loudness implementation according to ISO 532-1 [1] (see `Loudness_ISO532_1`code [here](../../../psychoacoustic_metrics/Loudness_ISO532_1/Loudness_ISO532_1.m)). The verification of the time-varying loudness method is performed considering the technical test sounds provided in the Annex B.5 of the ISO standard.
+The `validation_technical_signals_time_varying.m` code is used to verify the loudness implementation according to ISO 532-1 [1] (see `Loudness_ISO532_1`code [here](../../../psychoacoustic_metrics/Loudness_ISO532_1/Loudness_ISO532_1.m)). The verification of the time-varying loudness method is performed considering the technical test sounds provided in the Annex B.5 of the ISO standard. The loudness value exceeded 5% of the time, ${N_{5\\%}}$, is computed over the same time interval used by the reference spreadsheets of the ISO standard, which excludes the silence at the beginning of the signals and, for most of them, the decaying tail at the end. The excluded intervals are not identical for all test signals: for the signals 18, 22 and 24 the reference range covers the record up to its end, so no trailing interval is discarded.
 
 # How to use this code
 In order to run this code and reproduce the figures available in the `figs` folder, the user needs to download the dataset of sound files from zenodo <a href="https://doi.org/10.5281/zenodo.7933206" target="_blank">here</a>. The obtained folder called `validation_SQAT_v1_0` has to be included in the `sound_files` folder of the toolbox. 
@@ -32,7 +32,7 @@ The figures below compare the results obtained using the `Loudness_ISO532_1` imp
 | ![](figs/validation_time_varying_loudness_signal_24.png)   | ![](figs/validation_time_varying_loudness_signal_25.png) |
 
 
-A summary presenting the differences (max. total loudness and loudness value exceed 5\% of the time) between calculated (SQAT) and reference values provided by ISO 532-1 is presented below for signals 14-25. With the reformulation of the code (released from v2.x), results computed using prior version (released on v1.x) are provided for comparison. Results of max. total loudness are very close to zero with the new version of the code. Differences in exceeded value are no bigger than 0.5 sone. Despite providing reference values, the ISO standard do not stipulates any tolerance values for technical time-varying signals in terms of those single-value indicators.
+A summary presenting the differences (max. total loudness and loudness value exceed 5\% of the time) between calculated (SQAT) and reference values provided by ISO 532-1 is presented below for signals 14-25. With the reformulation of the code (released from v2.x), results computed using prior version (released on v1.x) are provided for comparison. Results of max. total loudness are very close to zero with the new version of the code. Differences in the exceeded value are also close to zero with the new version of the code. Despite providing reference values, the ISO standard do not stipulates any tolerance values for technical time-varying signals in terms of those single-value indicators.
 
 | Summary of loudness differences for signals 14-25 (Max. total loudness)   | Summary of loudness differences for signals 14-25 (loudness value exceed 5\% of the time)         |
 | -------------- | -------------- |
@@ -50,3 +50,4 @@ A summary presenting the differences (max. total loudness and loudness value exc
 
 - Summary of loudness differences include now comparison between code versions (Gil Felix Greco, 21.08.2026)
 
+- Loudness value exceeded 5% of the time is now computed over the time interval used by the reference spreadsheets of the ISO standard (Gil Felix Greco, 26.08.2026)
