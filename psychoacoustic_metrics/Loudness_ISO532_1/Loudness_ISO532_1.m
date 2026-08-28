@@ -64,20 +64,31 @@ function OUT = Loudness_ISO532_1(insig, fs, field, method, time_skip, show)
 %                     due to transient effects in the beginning of the loudness calculations
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Source: C code is provided in the ISO532 Annex A (2014).
+% Log
+% 
+% - Source: C code is provided in the ISO532 Annex A (2014).
 %
-% Author: Ella Manor - MATLAB implementation for AARAE (2015)
-% Author: Gil Felix Greco, Braunschweig 22.02.2023 - adapted and validated
+% - Author: Ella Manor - MATLAB implementation for AARAE (2015)
+% 
+% - Author: Gil Felix Greco, Braunschweig 22.02.2023 - adapted and validated
 %                   for SQAT. The validation was based on the test signals
 %                   provided from ISO 532-1:2017
-% Author: Gil Felix Greco, Braunschweig 16.02.2025 - introduced get_statistics 
-% function
-% Author: Sergio Aguirre, 21.08.2026 - several modifications
-% to mirror C reference code given by ISO 532-1, and improve performance
-% (see PR 48 and 49)
-% Author: Gil Felix Greco, 25.08.2026 - removed time-averaged
-% specific loudness from output of time-varying model results. This 
-% quantity is not specified by ISO 532-1
+% 
+% - Author: Gil Felix Greco, Braunschweig 16.02.2025 - introduced get_statistics 
+%   function
+% 
+% - Author: Sergio Aguirre, 21.08.2026 - several modifications
+%   to mirror C reference code given by ISO 532-1, and improve performance
+%   (see PR 48 and 49)
+% 
+% - Author: Gil Felix Greco, 25.08.2026 - removed time-averaged
+%   specific loudness from output of time-varying model results. This 
+%   quantity is not specified by ISO 532-1
+% 
+% - Author: Sergio Aguirre, 28.08.2026 - corrected the <time_skip> handling in
+%   the stationary level calculation (method = 1). Results change for
+%   method = 1 with time_skip > 0 only. An over-long <time_skip> now raises an
+%   error, as in the reference code (see PR 52)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 if nargin == 0
     help Loudness_ISO532_1;
