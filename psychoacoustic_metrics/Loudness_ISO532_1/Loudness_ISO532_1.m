@@ -25,7 +25,10 @@ function OUT = Loudness_ISO532_1(insig, fs, field, method, time_skip, show)
 %   2 = time varying (from audio file)
 %
 %   time_skip : integer
-%   skip start of the signal in <time_skip> seconds for level (stationary signals) and statistics (stationary and time-varying signals) calculations
+%   skip start of the signal in <time_skip> seconds for level (stationary
+%   signals) and statistics (stationary and time-varying signals)
+%   calculations. For method = 1 it must be shorter than the signal,
+%   otherwise an error is raised
 %
 %   show : logical(boolean)
 %   optional parameter for figures (results) display
