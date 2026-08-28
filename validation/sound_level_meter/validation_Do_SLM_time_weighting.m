@@ -8,16 +8,32 @@
 %   Leq = Get_Leq(levels, fs, dt)
 %   type <help Do_SLM> and <help Get_Leq> for more info
 %
-% - IEC 61672-1 defines exponential time weighting as a first order low-pass
-%   applied to the SQUARED sound pressure, with the level taken as 10*log10
-%   of the resulting mean square. Averaging that quantity over the whole
-%   signal returns the equivalent continuous sound level, so for a stationary
-%   input the result must equal 20*log10(rms(p_weighted)/p0) whatever the
-%   waveform is. That identity is the reference used here.
+% - Reference. The reference of this check is derived here from the
+%   definition of exponential time weighting, and no value is taken from the
+%   tables of the standard: IEC 61672-1 applies a first order low-pass to
+%   the SQUARED sound pressure and takes the level as 10*log10 of the
+%   resulting mean square. That low-pass has unit gain at zero frequency, so
+%   averaging its output over a stationary signal returns the mean square of
+%   the weighted pressure whatever the waveform is, and the reference level
+%   is
 %
-% - The reference needs no measured data, so unlike the other validation
-%   scripts in this folder this one is self-contained: it generates every
-%   signal it uses and can be run straight after cloning the toolbox.
+%       L_ref = 20*log10( rms(p_weighted)/p0 ),   p0 = 20e-6 Pa
+%
+%   computed here from the same signal that is fed to Do_SLM. The reference
+%   needs no measured data, so this script generates every signal it uses
+%   and can be run straight after cloning the toolbox.
+%
+% - Scope. The identity above holds for any time constant and for any
+%   frequency weighting, because both cancel: the time constant cancels
+%   under energy averaging, and the weighting filter is applied on both
+%   sides of the comparison. This check therefore verifies the structure of
+%   the measurement, that is, squaring before averaging and the calibration
+%   of the result, which is the fault reported in issue 43. It cannot detect
+%   a wrong time constant or a wrong weighting curve. Those are verified
+%   against the values tabulated in IEC 61672-1 by the other scripts of this
+%   folder, validation_Do_SLM_frequency_weightings,
+%   validation_Do_SLM_toneburst_response and
+%   validation_Do_SLM_repeated_tonebursts.
 %
 % - Three families of signals are used, all scaled to the same root mean
 %   square and therefore all representing the same true sound pressure level:

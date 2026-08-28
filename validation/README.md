@@ -10,7 +10,7 @@ This folder contains a series of codes used to verify the implementation of a pa
 - [Loudness model according to ECMA-418-2:2025 [7]](Loudness_ECMA418_2) 
 - [Roughness model according to ECMA-418-2:2025 [7]](Roughness_ECMA418_2) 
 - [Tonality model according to ECMA-418-2:2025 [7]](Tonality_ECMA418_2) 
-- [Sound level meter, exponential time weighting according to IEC 61672-1 [8]](sound_level_meter)
+- [Sound level meter, frequency and time weightings according to IEC 61672-1 [8]](sound_level_meter)
 
 # References
 [1] International Organization for Standardization. (2017). Acoustics - Methods for calculating loudness - Part 1: Zwicker method (ISO Standard No. 532-1).
