@@ -47,7 +47,7 @@ S1 = -27;
 S2 = zeros(nL, 1);
 
 steep = -24 - (230./freqs(whichL)) + (0.2*LdB(whichL));
-S2(steep < 0) = steep;
+S2(steep < 0) = steep(steep < 0);
 S2 = repmat(S2, 1, params.Chno);
 
 whichZ = zeros(nL, 2);
