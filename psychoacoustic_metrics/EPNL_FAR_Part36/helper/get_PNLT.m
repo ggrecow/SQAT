@@ -224,7 +224,7 @@ if size(Cmax,1)~=1
     Cavg = mean(Cmax(validIndices));
 
     if Cavg > Cmax(PNLTM_idx)
-        DeltaB = Cavg*Cmax(PNLTM_idx);
+        DeltaB = Cavg-Cmax(PNLTM_idx);
     else
         DeltaB = 0;
     end
