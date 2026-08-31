@@ -6,6 +6,7 @@ In SQAT, an implementation of the roughness model from Daniel & Weber [1] is pro
 - [Roughness dependence of FM tones on the modulation depth](3_FM_modulation_depth)
 - [Roughness dependence of FM tones on the level](4_FM_level)
 - [Roughness of unmodulated and AM white noise](5_white_noise)
+- [Definitional anchor and regression pins for AM tones](6_Anchor_and_Regression)
 
 # References
 [1] Daniel, P., & Weber, R. (1997). Psychoacoustical Roughness: Implementation of an Optimized Model. [Acta Acustica united with Acustica](https://www.ingentaconnect.com/content/dav/aaua/1997/00000083/00000001/art00020), 83(1), 113-123.
