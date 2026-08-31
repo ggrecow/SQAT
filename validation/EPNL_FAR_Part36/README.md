@@ -9,6 +9,7 @@ In this folder, we provide a (partial) verification of the EPNL code provided in
 - [Implementation of the Perceived Noisiness](1_Perceived_Noisiness)
 - [Implementation of the tone correction factor](2_Tone_Correction_Factor)
 - [Cross-verification of EPNL with values from the literature](3_EPNL_cross_verification)
+- [Implementation of the bandsharing adjustment to PNLTM](4_Bandsharing_Adjustment)
 
 # References
 
@@ -18,3 +19,5 @@ In this folder, we provide a (partial) verification of the EPNL code provided in
 README.md created on 30.10.2023 by Gil Felix Greco
 
 README.md modified on 20.12.2023 by Gil Felix Greco (Cross-verification study included)
+
+README.md modified on 31.08.2026 by Sergio Aguirre (Bandsharing adjustment verification included)
