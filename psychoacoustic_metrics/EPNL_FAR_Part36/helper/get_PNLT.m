@@ -10,8 +10,8 @@ function [PNLT, PNLTM, PNLTM_idx, OUT] = get_PNLT( input, freq_bands, PNL )
 %          corresponding PNL(k) values in order to determine the Tone-corrected
 %          perceived noise levels, PNLT(k) 
 %
-%       3) Bandsharing adjustment to PNLTM added in 20.06.2024, amended
-%          17.12.2025
+%       3) Bandsharing adjustment to PNLTM added in 20.06.2024 (amended
+%          17.12.2025, amended again 31/08/2026)
 %
 % A detailed definition and discussion about the tone-correction factor is
 % provided in:
@@ -224,7 +224,7 @@ if size(Cmax,1)~=1
     Cavg = mean(Cmax(validIndices));
 
     if Cavg > Cmax(PNLTM_idx)
-        DeltaB = Cavg-Cmax(PNLTM_idx);
+        DeltaB = Cavg - Cmax(PNLTM_idx);  % follows definition corrected in amended edition 14 (2024) of ICAO Annex 16 Vol 1 Appendix 2
     else
         DeltaB = 0;
     end
