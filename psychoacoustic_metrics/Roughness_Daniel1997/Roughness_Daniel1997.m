@@ -50,6 +50,13 @@ function OUT = Roughness_Daniel1997(insig,fs,time_skip,show)
 % Author: Gil Felix Greco (2023). Adapted (and verified) for SQAT. 
 % Author: Alejandro Osses, 10/05/2023. Appropriate scaling for the specific roughness.
 % Author: Gil Felix Greco, Braunschweig 16.02.2025 - introduced get_statistics function
+% Author: Sergio Aguirre, 01.09.2026 - corrected the model against the revised
+%   implementation sent by Dik Hermes in 2025 (see issue #47): the upper excitation
+%   slope uses the frequency of the masking component, the g(z) table is the revised
+%   table Hermes derived with that correction, the slope equation uses the exact bin
+%   frequency, the analysis window and the level calibration use the same periodic
+%   Blackman window, and the window length follows the sampling frequency after
+%   resampling.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 if nargin == 0
@@ -75,16 +82,17 @@ if size(audio,2)~=1 % if the insig is not a [Nx1] array
     audio=audio';   % correct the dimension of the insig
 end
 
-hopsize=N/2; % hopsize is the number of samples hop between successive windows (window length is 8192).
-window = blackman(N);
-
 %% resampling input signal
 
 if ~(fs == 44100 || fs == 40960 || fs == 48000)
     gcd_fs = gcd(48000,fs); % greatest common denominator
     audio = resample(audio,48000/gcd_fs,fs/gcd_fs);
     fs = 48000;
+    N = fs*time_resolution; % window length follows the new sampling frequency
 end
+
+hopsize=N/2; % hopsize is the number of samples hop between successive windows (window length is 8192).
+window = blackman(N,'periodic'); % same window as the level calibration AmpCal below
 
 samples = size(audio,1);
 n = floor((samples-N)/hopsize);
@@ -198,15 +206,20 @@ MinBf = MinExcdB(zb);
 ei    = zeros(47,N);
 Fei   = zeros(47,N);
 
+% g(z) weighting of the specific roughness: revised table that Dik Hermes
+% derived in 2025 together with the correction of the upper excitation slope
+% (CalcGFactors.m of his routines, see issue #47); the 2002 table was tuned
+% around the uncorrected slope. Linear interpolation between the nodes, as in
+% his code.
 gr  = [
-    0 1 2.5 4.9  6.5 8 9 10 11 11.5 13 17.5 21 24
-    0 0.35 0.7 0.7 1.1 1.25 1.26 1.18 1.08 1 0.66 0.46 0.38 0.3
+    0    1    2    3    4    5    6    7    8    9    10   11   12   13   14   15   16   17   18   19   20   21   22   23   24
+    0.15 0.26 0.38 0.47 0.54 0.65 0.76 0.83 0.90 0.98 0.98 0.90 0.80 0.70 0.62 0.54 0.49 0.43 0.39 0.35 0.30 0.30 0.30 0.30 0.30
     ];
 
 gzi    = zeros(1,47);
 h0     = zeros(1,47);
 k      = 1:1:47;
-gzi(k) = sqrt(interp1(gr(1,:)',gr(2,:)',k/2,'spline'));
+gzi(k) = sqrt(interp1(gr(1,:)',gr(2,:)',k/2));
 
 
 % calculate a0
@@ -409,7 +422,7 @@ end
 % BEGIN process window %
 %%%%%%%%%%%%%%%%%%%%%%%%
 
-AmpCal = db2mag(91.2)*2/(N*mean(blackman(N, 'periodic')));
+AmpCal = db2mag(91.2)*2/(N*mean(window));
 %     AmpCal=length(window)/sum(window);
 
 % Calibration between wav-level and loudness-level (assuming
@@ -418,7 +431,7 @@ AmpCal = db2mag(91.2)*2/(N*mean(blackman(N, 'periodic')));
 Chno	=	47;     % number of channels
 Cal	 	=	0.50;   % calibration factor, twice the old value (0.25)
 qb		=	N0:1:Ntop;
-freqs	=	(qb+1)*fs/N;
+freqs	=	(qb-1)*fs/N; % bin q holds the frequency (q-1)*fs/N
 hBPi	=	zeros(Chno,N);
 hBPrms	=	zeros(1,Chno);
 mdept	=	zeros(1,Chno);
@@ -453,8 +466,10 @@ for windowNum = 1:n    %for each frame
     
     for w = 1:1:sizL
         
-        % Steepness of upper slope [dB/Bark] in accordance with Terhardt
-        steep = -24-(230/freqs(w))+(0.2*LdB(whichL(w)));
+        % Steepness of upper slope [dB/Bark] in accordance with Terhardt:
+        % the term 230/f uses the frequency of the masking component itself,
+        % freqs(whichL(w)), as its level LdB(whichL(w)) already did
+        steep = -24-(230/freqs(whichL(w)))+(0.2*LdB(whichL(w)));
         
         if steep < 0
             S2(w) = steep;      % set S2 with steepness value calculated earlier
