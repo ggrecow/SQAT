@@ -2,7 +2,7 @@
 %
 % Self-contained verification gate for the fluctuation strength model
 % from Osses et al. [1] as implemented in SQAT
-% (see <FluctuationStrength_Osses2016>). Three layers of checks:
+% (see <FluctuationStrength_Osses2016>). Four layers of checks:
 %
 % 1) Definitional anchor: a 1 kHz tone at 60 dB SPL, 100% amplitude
 %    modulated at fmod = 4 Hz, yields a fluctuation strength of 1 vacil
@@ -25,12 +25,22 @@
 %    state matches the published figure of 1_AM_tones_fmod, including the
 %    overshoot at fmod = 2 Hz.
 %
+% 4) Warning behaviour: the very loud signal drives Terhardt's upper slope
+%    into the regime where the model clamps it to zero (component level
+%    above 120 + 1150/f dB, about 121 dB at 1 kHz), and the implementation
+%    must raise SQAT:FluctuationStrength:TerhardtSlopeClamped there, since
+%    the value returned is an extrapolation outside the range over which
+%    the metric was validated. The same warning must stay silent at 60 and
+%    70 dB SPL.
+%
 %  HOW TO RUN THIS CODE: this code requires the
 %  <FluctuationStrength_Osses2016> function implemented in SQAT. All test
 %  signals are generated inside this script, so no download of sound
 %  files is necessary. Run startup_SQAT first.
 %
 % Author: Sergio Aguirre, Saarbruecken 31.08.2026
+% Modified: Sergio Aguirre, 02.09.2026 (check 4, warning behaviour of the
+% Terhardt filterbank at very high levels)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 clc; clear all; close all;
 
@@ -75,6 +85,9 @@ tol_jnd = 0.10;          % fluctuation strength JND [2], for the anchor
 t = (0:round(dur*fs)-1)/fs;
 FSg = zeros(1,numel(fmod));
 
+warn_id_clamp = 'SQAT:FluctuationStrength:TerhardtSlopeClamped';
+
+lastwarn(''); % check 4 inspects the last warning raised at moderate levels
 for k = 1:numel(fmod)
     insig = (1 + md*sin(2*pi*fmod(k)*t)).*sin(2*pi*fc*t);
     insig = (p0*10^(spl_grid/20))/rms(insig)*insig;  % overall level = spl_grid
@@ -86,10 +99,13 @@ insig = (1 + md*sin(2*pi*4*t)).*sin(2*pi*fc*t);
 insig_anchor = (p0*10^(spl_anchor/20))/rms(insig)*insig;
 OUT = FluctuationStrength_Osses2016(insig_anchor', fs, 0, 0, 0);
 FS_anchor = OUT.FSmean;
+[~, warn_id_moderate] = lastwarn;
 
 insig_high = (p0*10^(spl_high/20))/rms(insig)*insig;
-OUT = FluctuationStrength_Osses2016(insig_high', fs, 0, 0, 0);
+lastwarn('');
+OUT = FluctuationStrength_Osses2016(insig_high', fs, 0, 0, 0); % raises the clamp warning once (method = 0 uses a single frame)
 FS_high = OUT.FSmean;
+[~, warn_id_high] = lastwarn;
 
 %% Checks
 
@@ -131,8 +147,20 @@ else
 end
 check_pass = check_pass && check3;
 
+% Check 4: warning behaviour of the Terhardt filterbank at very high levels
+check4a = ~strcmp(warn_id_moderate, warn_id_clamp);
+check4b = strcmp(warn_id_high, warn_id_clamp);
+if ~check4a
+    fprintf('CHECK 4 FAILED: %s was raised at 60 or 70 dB SPL, inside the range over which the metric was validated\n', warn_id_clamp);
+elseif ~check4b
+    fprintf('CHECK 4 FAILED: the 125 dB SPL signal did not raise %s (last warning identifier: "%s")\n', warn_id_clamp, warn_id_high);
+else
+    fprintf('CHECK 4 PASSED: no clamp warning at 60 and 70 dB SPL; the 125 dB SPL signal raised %s\n', warn_id_clamp);
+end
+check_pass = check_pass && check4a && check4b;
+
 if check_pass
-    fprintf('\nAll checks PASSED: the anchor holds, the implementation matches the pinned state, and the agreement with Ref. [1] is at the pinned level\n');
+    fprintf('\nAll checks PASSED: the anchor holds, the implementation matches the pinned state, the agreement with Ref. [1] is at the pinned level, and the very loud signal is flagged as an extrapolation\n');
 else
     fprintf('\nAt least one check FAILED\n');
 end
