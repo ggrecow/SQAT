@@ -4,6 +4,9 @@ function [ei,ei_f,freq] = TerhardtExcitationPatterns(insig,fs,dBFS)
 % Author: Alejandro Osses, extracted from FluctuationStrength_Osses2016.m on 12/05/2023
 % Modified: Mike Lotinga, May 2025 (parallelised code to omit loop over
 % whichL for improved performance)
+% Modified: Sergio Aguirre, September 2026 (masked both sides of the S2
+% assignment, which crashed above a component level of about 121 dB, and
+% warn when the upper slope is clamped to zero)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 if nargin < 3
@@ -47,7 +50,27 @@ S1 = -27;
 S2 = zeros(nL, 1);
 
 steep = -24 - (230./freqs(whichL)) + (0.2*LdB(whichL));
-S2(steep < 0) = steep;
+% Terhardt's upper slope is defined for steep < 0 only. A component whose
+% level exceeds 120 + 1150/f dB (about 121 dB at 1 kHz) gives steep >= 0,
+% which would mean an excitation that does not decay towards higher
+% frequencies. S2 stays at zero for such a component (flat spread), so the
+% result is an extrapolation outside the range over which the metric was
+% validated (60 to 70 dB SPL); a wrong dBFS is the most likely cause.
+if any(steep >= 0)
+    [~, iw] = max(steep);
+    warning('SQAT:FluctuationStrength:TerhardtSlopeClamped', ...
+        ['Terhardt upper slope clamped to zero for %d component(s) whose level ' ...
+         'exceeds 120 + 1150/f dB (highest: %.1f dB at %.0f Hz). The fluctuation ' ...
+         'strength of this frame is an extrapolation outside the range over which ' ...
+         'the metric was validated; check the dBFS calibration.'], ...
+        nnz(steep >= 0), LdB(whichL(iw)), freqs(whichL(iw)));
+end
+% Both sides are masked on purpose: this reproduces the element-wise guard
+% of the scalar loop in TerhardtExcitationPatterns_v3.m (S2 stays 0 whenever
+% steep >= 0) and keeps the two sides the same size once any component has
+% steep >= 0. With the right-hand side unmasked the assignment raised a size
+% mismatch error as soon as one component crossed that level.
+S2(steep < 0) = steep(steep < 0);
 S2 = repmat(S2, 1, params.Chno);
 
 whichZ = zeros(nL, 2);
