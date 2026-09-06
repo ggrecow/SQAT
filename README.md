@@ -71,7 +71,9 @@ The following **sound pressure level** (SPL) based metrics can be calculated usi
 - Maximum SPL
 - Sound exposure level
 - SPL spectrum in 1/3 octave bands
- 
+
+The frequency weightings, the exponential time weightings and the energy averaging are verified against the reference values tabulated in IEC 61672-1:2013, and conform with the acceptance limits of performance classes 1 and 2 (see [validation](validation/sound_level_meter)).
+
 # Toolbox structure
 The toolbox has the following directories:
 - `psychoacoustic_metrics`: this directory contains a number of algorithms implementing a specific psychoacoustic metric (see [folder](psychoacoustic_metrics)). 
