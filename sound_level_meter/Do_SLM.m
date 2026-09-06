@@ -37,6 +37,12 @@ function [outsig_dB, dBFS] = Do_SLM(insig,fs,weight_freq,weight_time,dBFS)
 % 3. Additional info:
 %       Tested cross-platform: No
 %       See also: Get_Leq
+%
+% Author: Sergio Aguirre (& Claude code), 23.08.2026 - exponential time
+% weighting now follows IEC 61672-1: the signal is squared before the leaky
+% integrator and the level is taken as 10*log10 of the resulting mean
+% square. The empirical 0.93 dB calibration offset was removed, since it
+% only compensated the mean-absolute deficit of a sinusoid (see issue 43).
 % 
 % Programmed by Alejandro Osses, HTI, TU/e, the Netherlands, 2014-2016
 % Created on    : 12/07/2016
@@ -65,15 +71,13 @@ end
 [b,a] = Gen_weighting_filters(fs,weight_freq);
 
 % same processing, but without AMT, as done in PsySound:
-dBoffset = 0.93; % determined empirically on 13/07/2016 to obtain the same values
-                 % with this implementation and the one in PsySound.
-calCoeff = 10.^((dBFS+dBoffset-94)/20);
+calCoeff = 10.^((dBFS-94)/20);
 insig = calCoeff*insig; % same as: insig = setdbspl(insig,rmsdb(insig)+dBFS,'dboffset',94);
 
 outsig = filter(b,a,insig);
-outsig = il_integrator(outsig,fs,weight_time);
+outsig = il_integrator(outsig,fs,weight_time); % time-weighted mean square, in Pa^2
 
-outsig_dB = 20*log10(abs(outsig)/2e-5);
+outsig_dB = 10*log10(outsig/(2e-5)^2);
 
 try
     idx = find(outsig_dB<0);
@@ -111,8 +115,10 @@ end
 function outsig = il_integrator(insig,fs, weightingType)
 % function outsig = il_integrator(insig,fs, weightingType)
 %
-% 1. Description: This function generates and applies an integration filter
-%      to the input data. This code is based on an implementation taken from
+% 1. Description: This function applies the exponential time weighting of
+%      IEC 61672-1 to the input data. The input is squared before the leaky
+%      integrator is applied, so the output is the time-weighted mean square
+%      of the signal. This code is based on an implementation taken from
 %      the PsySound toolbox by Matt Flax (January 2007) and Farhan Rizwi 
 %      (July 2007).
 %
@@ -163,4 +169,4 @@ a = [1 -E];
 
 % Create run function handle
 % Use filter to perform the integration
-outsig = filter(b, a, abs(insig), Z, 1);
+outsig = filter(b, a, insig.^2, Z, 1);
