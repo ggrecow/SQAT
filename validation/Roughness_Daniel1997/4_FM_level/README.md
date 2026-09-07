@@ -21,6 +21,8 @@ The figure below compares the results obtained using the `Roughness_Daniel1997` 
 # Log
 This code was released in SQAT v1.0, 14.05.2023
 
+Figures recomputed in September 2026, after the correction of the model implementation (see the log of `Roughness_Daniel1997.m` and issue 47).
+
 
 
 
