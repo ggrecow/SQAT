@@ -1,9 +1,17 @@
-function [ei,ei_f,freq] = TerhardtExcitationPatterns(insig,fs,dBFS)
-% function [ei,ei_f,freq] = TerhardtExcitationPatterns(insig,fs,dBFS)
+function [ei,ei_f,freq,clamp] = TerhardtExcitationPatterns(insig,fs,dBFS)
+% function [ei,ei_f,freq,clamp] = TerhardtExcitationPatterns(insig,fs,dBFS)
+%
+% The optional fourth output <clamp> reports whether the Terhardt upper
+% slope was clamped to zero for any component (see below); when it is
+% requested, no warning is raised here.
 %
 % Author: Alejandro Osses, extracted from FluctuationStrength_Osses2016.m on 12/05/2023
 % Modified: Mike Lotinga, May 2025 (parallelised code to omit loop over
 % whichL for improved performance)
+% Modified: Sergio Aguirre, September 2026 (masked both sides of the S2
+% assignment, which crashed above a component level of about 121 dB, and
+% report in <clamp> when the upper slope is clamped to zero, warning only
+% when that output is not requested)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 if nargin < 3
@@ -32,6 +40,7 @@ LdB = 20*log10(Lg); % il_To_dB(Lg);
 % Use only components that are above the hearing threshold
 MinExcdB = params.MinExcdB(:);
 whichL = find(LdB > MinExcdB);
+clamp = struct('n', 0, 'LdB', [], 'freq', []); % Terhardt upper slope clamped to zero: none so far
 
 if isempty(whichL)
     ei = zeros(params.Chno, params.N);  % Return silence
@@ -47,7 +56,37 @@ S1 = -27;
 S2 = zeros(nL, 1);
 
 steep = -24 - (230./freqs(whichL)) + (0.2*LdB(whichL));
-S2(steep < 0) = steep;
+% Terhardt's upper slope is defined for steep < 0 only. A component whose
+% level exceeds 120 + 1150/f dB (about 121 dB at 1 kHz) gives steep >= 0,
+% which would mean an excitation that does not decay towards higher
+% frequencies. S2 stays at zero for such a component (flat spread), so the
+% result is an extrapolation outside the range over which the metric was
+% validated (60 to 70 dB SPL); a wrong dBFS is the most likely cause.
+% The clamping is reported in <clamp>: number of components, and level and
+% frequency of the component farthest into the clamped regime. The warning
+% is raised here only when the caller does not request <clamp>, so that a
+% caller running the filterbank once per frame (FluctuationStrength_Osses2016.m)
+% can aggregate the frames and warn once per call.
+clamp.n = nnz(steep >= 0);
+if clamp.n > 0
+    [~, iw] = max(steep);
+    clamp.LdB  = LdB(whichL(iw));
+    clamp.freq = freqs(whichL(iw));
+    if nargout < 4
+        warning('SQAT:FluctuationStrength:TerhardtSlopeClamped', ...
+            ['Terhardt upper slope clamped to zero for %d component(s) whose level ' ...
+             'exceeds 120 + 1150/f dB (highest: %.1f dB at %.0f Hz). The fluctuation ' ...
+             'strength of this frame is an extrapolation outside the range over which ' ...
+             'the metric was validated; check the dBFS calibration.'], ...
+            clamp.n, clamp.LdB, clamp.freq);
+    end
+end
+% Both sides are masked on purpose: this reproduces the element-wise guard
+% of the scalar loop in TerhardtExcitationPatterns_v3.m (S2 stays 0 whenever
+% steep >= 0) and keeps the two sides the same size once any component has
+% steep >= 0. With the right-hand side unmasked the assignment raised a size
+% mismatch error as soon as one component crossed that level.
+S2(steep < 0) = steep(steep < 0);
 S2 = repmat(S2, 1, params.Chno);
 
 whichZ = zeros(nL, 2);

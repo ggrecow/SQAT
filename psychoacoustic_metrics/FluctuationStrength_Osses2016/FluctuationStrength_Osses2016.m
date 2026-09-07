@@ -90,6 +90,9 @@ function OUT = FluctuationStrength_Osses2016(insig,fs,method,time_skip,show,stru
 % Author: Gil Felix Greco, Braunschweig 16.02.2025 - introduced get_statistics function
 % Modified: Mike Lotinga May 2025 - incorporated efficiency improvements in
 % TerhardtExcitationPatterns.m to speed up calculation.
+% Modified: Sergio Aguirre, September 2026 - a single warning per call when
+% the Terhardt upper slope is clamped to zero in any frame (component level
+% above 120 + 1150/f dB, see TerhardtExcitationPatterns.m)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 if nargin == 0
     help FluctuationStrength_Osses2016;
@@ -155,6 +158,7 @@ insig = buffer(insig,N,overlap,'nodelay');
 t_b     = buffer(t_b,N,overlap,'nodelay');
 nFrames = size(insig,2);
 fluct   = zeros(1,nFrames); % Memory allocation
+clampFrames = 0; clampLdB = -Inf; clampFreq = NaN; % frames with a clamped Terhardt slope
 
 %% ei = peripheral_stage(insig,fs,N);
 % 1. Cosine window:
@@ -185,7 +189,14 @@ for iFrame = nFrames:-1:1
     dBFS = 94; % corresponds to 1 Pa (new default in SQAT)
     % dBFS = 100; % unit amplitude corresponds to 100 dB (AMT Toolbox 
                   % convention, default by the original authors)
-    ei   = TerhardtExcitationPatterns(signal,fs,dBFS);
+    [ei, ~, ~, clamp] = TerhardtExcitationPatterns(signal,fs,dBFS); % <clamp> requested, so the filterbank does not warn per frame
+    if clamp.n > 0
+        clampFrames = clampFrames + 1;
+        if clamp.LdB > clampLdB
+            clampLdB  = clamp.LdB;
+            clampFreq = clamp.freq;
+        end
+    end
     dz   = 0.5; % Barks, frequency step
     z    = 0.5:dz:23.5; % Bark
     % fc   = bark2hz(z);  % unused variable
@@ -211,6 +222,17 @@ for iFrame = nFrames:-1:1
     fi(iFrame,:)  = model_par.cal * fi_;
     fluct(iFrame) = dz*sum(fi(iFrame,:)); % total fluct = integration of the specific fluct. strength pattern
     
+end
+
+% One warning per call, aggregated over the frames (the filterbank itself
+% stays silent because <clamp> is requested above)
+if clampFrames > 0
+    warning('SQAT:FluctuationStrength:TerhardtSlopeClamped', ...
+        ['Terhardt upper slope clamped to zero in %d of %d frame(s): at least one ' ...
+         'component exceeds 120 + 1150/f dB (highest: %.1f dB at %.0f Hz). The ' ...
+         'fluctuation strength of those frames is an extrapolation outside the range ' ...
+         'over which the metric was validated; check the dBFS calibration.'], ...
+        clampFrames, nFrames, clampLdB, clampFreq);
 end
 
 
