@@ -45,6 +45,8 @@ function OUT = Roughness_Daniel1997(insig,fs,time_skip,show)
 %         ** Rmin : minimum of instantaneous roughness (asper)
 %         ** Rx : roughness value exceeded during x percent of the time (asper)
 %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
 % Structure of the implementation (see also FluctuationStrength_Osses2016,
 % which Alejandro Osses derived from this model):
 %   1. Analysis windows of 200 ms (Blackman) with 50 % overlap, at 48 kHz
@@ -83,22 +85,23 @@ function OUT = Roughness_Daniel1997(insig,fs,time_skip,show)
 % - Author: Gil Felix Greco, Braunschweig 16.02.2025 - introduced
 %   get_statistics function
 %
-% - Author: Sergio Aguirre, September 2026 - rewrite (issue #47). The model
-%   is corrected against the revised implementation that Dik Hermes sent in
-%   2025: the upper excitation slope is evaluated at the frequency of the
-%   masking component (the previous code used the index of the component
-%   counter), the g(z) table is the revised table Hermes derived together
-%   with that correction, the slope equation uses the exact bin frequency,
-%   the analysis window and the level conversion use the same periodic
-%   Blackman window, and the window length follows the sampling frequency
-%   after resampling. The structure follows the roughness implementation of
-%   Alejandro Osses and his fluctuation strength model: the shared parts
-%   (Terhardt filterbank and its parameters, a0 transmission factor, Bark
-%   scale, statistics) come from the utilities folder, and the parts
-%   specific to the roughness (modulation weighting Hweight, g(z)) are
-%   private helpers. The level conversion is the physical one (see below)
-%   and the calibration factor of Daniel & Weber is re-derived on the
-%   reference signal. Results change with respect to the previous version.
+% - Author: Sergio Aguirre, September 2026 - rewrite (issue #47). The
+%   implementation is corrected against the revised implementation that Dik
+%   Hermes sent in 2025: the upper excitation slope is evaluated at the
+%   freq of the masking component (the previous code used the index of the
+%   component counter), the g(z) table is the revised table Hermes derived
+%   together with that correction, the slope equation uses the exact bin
+%   frequency, the analysis window and the level conversion use the same
+%   periodic Blackman window, and the window length follows the sampling
+%   frequency after resampling. The structure follows the roughness
+%   implementation of Alejandro Osses and his fluctuation strength model:
+%   the shared parts (Terhardt filterbank and its parameters, a0
+%   transmission factor, Bark scale, statistics) come from the utilities
+%   folder, and the parts specific to the roughness (modulation weighting
+%   Hweight, g(z)) are private helpers. The level conversion is the
+%   physical one (see below) and the calibration factor of Daniel & Weber
+%   is re-derived on the reference signal. Results change with respect to
+%   the previous version.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 if nargin == 0
