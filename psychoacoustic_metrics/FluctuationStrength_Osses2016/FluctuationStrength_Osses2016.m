@@ -186,7 +186,7 @@ for iFrame = nFrames:-1:1
     % 2.2 Excitation patterns
     %     (see model_par.filterbank == 'terhardt', in _debug version):
     
-    dBFS = 94; % corresponds to 1 Pa (new default in SQAT)
+    dBFS = 94; % corresponds to 1 Pa (SQAT toolbox convention)
 
     [ei, ~, ~, clamp] = TerhardtExcitationPatterns(signal,fs,dBFS); % <clamp> requested, so the filterbank does not warn per frame
     if clamp.n > 0
