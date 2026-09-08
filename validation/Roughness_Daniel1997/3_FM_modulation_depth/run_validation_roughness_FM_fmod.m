@@ -45,14 +45,6 @@ dir_sounds = get_dir_validation_sounds('Roughness_Daniel1997',SQAT_version);
 load([dir_sounds 'FM_fmod_fc_1600hz.mat']); % load signals with varying fmod
 load([dir_sounds 'FM_fmod_fc_1600hz_reference_tone.mat']); % load ref signal (fmod=70Hz)
 
-%% generate signals to compute roughness (.mat variables in time [s] x sound pressure [Pa] (all with fs=48 kHz)
-
-% generate signals with varying fmod
-s=make_FM_fmod_fc_1600hz;
-
-% generate ref signal (fmod=70Hz)
-s_ref=make_FM_fmod_fc_1600hz_reference_tone;
-
 %% compute FS from signals
 
 fs=48e3;

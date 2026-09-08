@@ -10,7 +10,7 @@ The signals are generated within the codes. Therefore, the user should be able t
 # Results
 One aspect of the roughness model from Daniel & Weber concerns its ability to calculate small roughness values ($\ll 1~\mathrm{asper}$) correctly. According to [1], unmodulated white noise produces little or no subjective roughness while the roughness threshold is close to $\approx 0.07~\mathrm{asper}$. For this type of signal, the roughness value calculated by the original model implementation is $\approx 0.02~\mathrm{asper}$ [1]. For a AM white-noise, the value calculated by the original model is reported to be $\approx 3~\mathrm{asper}$ [1].
 
-The figure below presents the results obtained using the `Roughness_Daniel1997` implementation in SQAT.   
+The figures below present the results obtained using the `Roughness_Daniel1997` implementation in SQAT. On one realisation of the noise, the implementation gives 0.023 asper for the unmodulated signal and 2.19 asper for the AM signal, against the 0.02 asper and 3 asper reported in [1]. The signals are drawn from a random sequence, so the values move slightly from run to run.
 
 Test signal 1| Test signal 2
  | -------------- | -------------- |
@@ -22,4 +22,6 @@ Test signal 1| Test signal 2
 
 # Log
 This code was released in SQAT v1.0, 14.05.2023
+
+Figures recomputed in September 2026, after the correction of the model implementation (see the log of `Roughness_Daniel1997.m` and issue 47).
 

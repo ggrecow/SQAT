@@ -6,7 +6,9 @@ function OUT = Roughness_Daniel1997(insig,fs,time_skip,show)
 %     Daniel, P., & Weber, R. (1997). Psychoacoustical roughness: implementation
 %     of an optimized model. Acustica(83), 113-123.
 %
-%   Reference signal: 60 dB 1 kHz tone 100% modulated at 70 Hz should yield 1 asper.
+%   Reference signal: 1 kHz tone, 100% amplitude modulated at 70 Hz, with a
+%   sound pressure level of 60 dB (rms of the modulated signal), yields
+%   1 asper (see the calibration below).
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
@@ -43,13 +45,63 @@ function OUT = Roughness_Daniel1997(insig,fs,time_skip,show)
 %         ** Rmin : minimum of instantaneous roughness (asper)
 %         ** Rx : roughness value exceeded during x percent of the time (asper)
 %
-% Original file name: roughnessDW.m obtained from 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% Structure of the implementation (see also FluctuationStrength_Osses2016,
+% which Alejandro Osses derived from this model):
+%   1. Analysis windows of 200 ms (Blackman) with 50 % overlap, at 48 kHz
+%      (the input is resampled unless it is sampled at 40960, 44100 or
+%      48000 Hz).
+%   2. Spectrum of each window, weighted by the a0 transmission factor of
+%      the outer and middle ear (utilities/calculate_a0.m, curve of Fastl &
+%      Zwicker 2007), with the level conversion described below.
+%   3. Excitation patterns of the 47 half-Bark channels following Terhardt
+%      (1979): utilities/Terhardt_filterbank.m, shared with the fluctuation
+%      strength, with the parameters of utilities/Terhardt_filterbank_params.m.
+%   4. Modulation depth of the temporal envelope of each channel, weighted
+%      by the modulation transfer functions H(fmod) of Daniel & Weber
+%      (private/Get_Hweight_roughness.m).
+%   5. Cross-correlation of the envelopes of channels 1 Bark apart, and
+%      specific roughness r_i = (g(z_i)^0.5 * m_i * k_i)^2 with the g(z)
+%      weighting of private/Get_gzi_roughness.m.
+%   6. Total roughness R = cal * sum(r_i), Daniel & Weber Eq. 9, and the
+%      statistics of get_statistics.
+%
+% Log
+%
+% - Original file name: roughnessDW.m obtained from 
 %   https://github.com/densilcabrera/aarae/ (accessed 11/02/2020)
-% Author: Dik Hermes (2000-2005)
-% Author: Matt Flax (2006) and Farhan Rizwi (2007), adapted for the PsySound3 toolbox
-% Author: Gil Felix Greco (2023). Adapted (and verified) for SQAT. 
-% Author: Alejandro Osses, 10/05/2023. Appropriate scaling for the specific roughness.
-% Author: Gil Felix Greco, Braunschweig 16.02.2025 - introduced get_statistics function
+%
+% - Author: Dik Hermes (2000-2005)
+%
+% - Author: Matt Flax (2006) and Farhan Rizwi (2007), adapted for the
+%   PsySound3 toolbox
+%
+% - Author: Gil Felix Greco (2023). Adapted (and verified) for SQAT.
+%
+% - Author: Alejandro Osses, 10/05/2023. Appropriate scaling for the
+%   specific roughness.
+%
+% - Author: Gil Felix Greco, Braunschweig 16.02.2025 - introduced
+%   get_statistics function
+%
+% - Author: Sergio Aguirre, September 2026 - rewrite (issue #47). The
+%   implementation is corrected against the revised implementation that Dik
+%   Hermes sent in 2025: the upper excitation slope is evaluated at the
+%   freq of the masking component (the previous code used the index of the
+%   component counter), the g(z) table is the revised table Hermes derived
+%   together with that correction, the slope equation uses the exact bin
+%   frequency, the analysis window and the level conversion use the same
+%   periodic Blackman window, and the window length follows the sampling
+%   frequency after resampling. The structure follows the roughness
+%   implementation of Alejandro Osses and his fluctuation strength model:
+%   the shared parts (Terhardt filterbank and its parameters, a0
+%   transmission factor, Bark scale, statistics) come from the utilities
+%   folder, and the parts specific to the roughness (modulation weighting
+%   Hweight, g(z)) are private helpers. The level conversion is the
+%   physical one (see below) and the calibration factor of Daniel & Weber
+%   is re-derived on the reference signal. Results change with respect to
+%   the previous version.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 if nargin == 0
@@ -64,19 +116,15 @@ if nargin < 4
         show = 0;
     end
 end
+
 %% window settings
 
-time_resolution=0.2;  % time-step for the windowing
-N=fs*time_resolution; % window length
+time_resolution = 0.2;    % time-step for the windowing (s)
 
-audio=insig;
-
+audio = insig;
 if size(audio,2)~=1 % if the insig is not a [Nx1] array
-    audio=audio';   % correct the dimension of the insig
+    audio = audio';   % correct the dimension of the insig
 end
-
-hopsize=N/2; % hopsize is the number of samples hop between successive windows (window length is 8192).
-window = blackman(N);
 
 %% resampling input signal
 
@@ -86,491 +134,122 @@ if ~(fs == 44100 || fs == 40960 || fs == 48000)
     fs = 48000;
 end
 
+N = round(fs*time_resolution); % window length
+hopsize = N/2;                 % number of samples hop between successive windows
+window = blackman(N,'periodic');
 samples = size(audio,1);
-n = floor((samples-N)/hopsize);
+n = floor((samples-N)/hopsize); % number of analysis windows
 
-%% %%%%%%%%%%%%%%%
-% BEGIN InitAll %
-%%% %%%%%%%%%%%%%%
+%% model parameters
 
-Bark = [0     0	   50	 0.5
-    1   100	  150	 1.5
-    2   200	  250	 2.5
-    3   300	  350	 3.5
-    4   400	  450	 4.5
-    5   510	  570	 5.5
-    6   630	  700	 6.5
-    7   770	  840	 7.5
-    8   920	 1000	 8.5
-    9  1080	 1170	 9.5
-    10  1270 1370	10.5
-    11  1480 1600	11.5
-    12  1720 1850	12.5
-    13  2000 2150	13.5
-    14  2320 2500	14.5
-    15  2700 2900	15.5
-    16  3150 3400	16.5
-    17  3700 4000	17.5
-    18  4400 4800	18.5
-    19  5300 5800	19.5
-    20  6400 7000	20.5
-    21  7700 8500	21.5
-    22  9500 10500	22.5
-    23 12000 13500	23.5
-    24 15500 20000	24.5];
+% frequency axis, Bark scale, hearing threshold: shared with the
+% fluctuation strength (utilities)
+params = Terhardt_filterbank_params(N,fs);
+Chno   = params.Chno;  % number of critical-band channels, half-Bark spacing
 
-N2	= N/2+1;
-dFs	= fs/N;
-Bark2	= [
-    sort([Bark(:,2);Bark(:,3)]),...
-    sort([Bark(:,1);Bark(:,4)])
-    ];
-N0	= round(20*N/fs)+1;         % low frequency index @ 20 Hz
-N01	= N0-1;
-Ntop	= round(20000*N/fs)+1; % high frequency index @ 20 kHz?
+% a0 transmission factor of the outer and middle ear (Fastl & Zwicker
+% 2007), applied on the spectrum of each window as in the reference code
+% of Hermes; utilities/calculate_a0.m returns the curve over the audible
+% bins params.qb
+[~, ~, a0_qb] = calculate_a0(fs,N,'fastl2007');
+a0 = ones(1,N);
+a0(params.qb) = a0_qb;
 
+Hweight = Get_Hweight_roughness(N,fs);  % modulation weighting functions (private)
+gzi     = Get_gzi_roughness(Chno);      % g(z) weighting, Hermes 2025 table (private)
 
-%% Make list with Barknumber of each frequency bin
+dz = 0.5;            % Bark, integration step of the specific roughness
+zi = (1:Chno)'/2;    % Bark axis of the specific roughness
 
-Barkno	  = zeros(1,N2);
-f	      = N0:1:Ntop;
-Barkno(f) = interp1(Bark2(:,1),Bark2(:,2),(f-1)*dFs);
+% Level conversion: the spectrum of each window must carry the sound
+% pressure level of every component in dB SPL, since the hearing threshold
+% and the upper excitation slope of Terhardt depend on it. With the
+% magnitude of the windowed spectrum scaled by 2/(N*mean(window)), a
+% sinusoid of amplitude A lands at A, so the constant that turns a
+% component of L dB SPL (rms) into a magnitude of 10^(L/20) is
+% 20*log10(1/20e-6) - 20*log10(sqrt(2)) = 90.97 dB (reference pressure and
+% peak to rms of a sinusoid). This is the conversion used by Hermes; the
+% previous value of 91.2 dB carried an empirical adjustment of 0.23 dB.
+L_cal  = 20*log10(1/20e-6) - 20*log10(sqrt(2));
+AmpCal = 10^(L_cal/20)*2/(N*mean(window));
 
-%% Make list of frequency bins closest to Cf's
+% Calibration of the asper scale: Daniel & Weber (1997), Eq. 9, R =
+% cal*sum(r_i), with cal = 0.25 chosen so that the reference signal (1 kHz
+% tone, 100 % amplitude modulated at 70 Hz, 60 dB SPL as the rms of the
+% modulated signal) gives 1 asper. With the corrected excitation slope,
+% the revised g(z) table and the level conversion above, cal = 0.25 gives
+% R_ref asper on the reference signal of the toolbox
+% (sound_files/reference_signals/RefSignal_Roughness_Daniel1997.wav), so
+% cal is re-derived as 0.25/R_ref, keeping the definition of the paper.
+% The specific roughness is scaled by Cal = cal/dz, so that its integral
+% over the Bark axis gives R.
+R_ref = 1.006197; % asper, measured on the reference signal with cal = 0.25 (MATLAB R2026a, 48 kHz)
+cal   = 0.25/R_ref;
+Cal   = cal/dz;
 
-Cf = ones(2,24);
-for a=1:1:24
-    Cf(1,a)=round(Bark((a+1),2)*N/fs)+1-N0;
-    Cf(2,a)=Bark(a+1,2);
-end
-
-%% Make list of frequency bins closest to Critical Band Border frequencies
-
-Bf = ones(2,24);
-Bf(1,1)=round(Bark(1,3)*N/fs);
-
-for a=1:1:24
-    Bf(1,a+1)=round(Bark((a+1),3)*N/fs)+1-N0;
-    Bf(2,a)=Bf(1,a)-1;
-end
-
-Bf(2,25)=round(Bark((25),3)*N/fs)+1-N0;
-
-%% Make list of minimum excitation (Hearing Treshold)
-
-HTres= [0		  130
-    0.01      70
-    0.17	  60
-    0.8	      30
-    1	      25
-    1.5	      20
-    2		  15
-    3.3	      10
-    4		  8.1
-    5		  6.3
-    6		  5
-    8		  3.5
-    10		  2.5
-    12		  1.7
-    13.3	  0
-    15		 -2.5
-    16		 -4
-    17		 -3.7
-    18		 -1.5
-    19		  1.4
-    20		  3.8
-    21		  5
-    22		  7.5
-    23 	      15
-    24 	      48
-    24.5 	  60
-    25		  130];
-
-k = (N0:1:Ntop);
-MinExcdB = interp1(HTres(:,1),HTres(:,2),Barkno(k));
-
-%% Initialize constants and variables
-
-dz   = 0.5; % Barks
-z    = (0.5:dz:23.5)'; % frequency in Barks
-zb    = sort([Bf(1,:),Cf(1,:)]);
-MinBf = MinExcdB(zb);
-ei    = zeros(47,N);
-Fei   = zeros(47,N);
-
-gr  = [
-    0 1 2.5 4.9  6.5 8 9 10 11 11.5 13 17.5 21 24
-    0 0.35 0.7 0.7 1.1 1.25 1.26 1.18 1.08 1 0.66 0.46 0.38 0.3
-    ];
-
-gzi    = zeros(1,47);
-h0     = zeros(1,47);
-k      = 1:1:47;
-gzi(k) = sqrt(interp1(gr(1,:)',gr(2,:)',k/2,'spline'));
-
-
-% calculate a0
-a0tab =	[ 0	     0
-    10	 0
-    12	 1.15
-    13	 2.31
-    14	 3.85
-    15	 5.62
-    16	 6.92
-    16.5	 7.38
-    17	 6.92
-    18	 4.23
-    18.5	 2.31
-    19	 0
-    20	-1.43
-    21	-2.59
-    21.5	-3.57
-    22	-5.19
-    22.5	-7.41
-    23	-11.3
-    23.5	-20
-    24	-40
-    25	-130
-    26	-999];
-
-a0    = ones(1,N);
-k     = (N0:1:Ntop);
-a0(k) = db2mag(interp1(a0tab(:,1),a0tab(:,2),Barkno(k)));
-
-%%%%%%%%%%%%%%%
-% END InitAll %
-%%%%%%%%%%%%%%%
-
-%% %%%%%%%%%%%%%%%%
-% BEGIN Hweights %
-%%% %%%%%%%%%%%%%%%
-% weights for freq. bins < N/2
-
-DCbins	= 2;
-
-H2 = [
-    0       0
-    17      0.8
-    23		0.95
-    25		0.975
-    32		1
-    37		0.975
-    48		0.9
-    67      0.8
-    90		0.7
-    114     0.6
-    171     0.4
-    206     0.3
-    247     0.2
-    294     0.1
-    358     0
-    ];
-
-H5 = [
-    0       0
-    32      0.8
-    43      0.95
-    56      1
-    69      0.975
-    92      0.9
-    120     0.8
-    142     0.7
-    165     0.6
-    231     0.4
-    277     0.3
-    331     0.2
-    397     0.1
-    502     0
-    ];
-
-H16 = [
-    0		0
-    23.5	0.4
-    34		0.6
-    47		0.8
-    56		0.9
-    63		0.95
-    79		1
-    100     0.975
-    115     0.95
-    135     0.9
-    159     0.85
-    172     0.8
-    194     0.7
-    215     0.6
-    244     0.5
-    290     0.4
-    348     0.3
-    415     0.2
-    500     0.1
-    645     0
-    ];
-
-H21 = [
-    0		0
-    19		0.4
-    44		0.8
-    52.5	0.9
-    58		0.95
-    75		1
-    101.5	0.95
-    114.5	0.9
-    132.5	0.85
-    143.5	0.8
-    165.5	0.7
-    197.5   0.6
-    241     0.5
-    290     0.4
-    348     0.3
-    415     0.2
-    500     0.1
-    645     0
-    ];
-
-
-H42 = [
-    0		0
-    15		0.4
-    41		0.8
-    49		0.9
-    53		0.965
-    64		0.99
-    71		1
-    88		0.95
-    94		0.9
-    106     0.85
-    115     0.8
-    137     0.7
-    180     0.6
-    238     0.5
-    290     0.4
-    348     0.3
-    415     0.2
-    500     0.1
-    645     0
-    ];
-
-Hweight	= zeros(47,N);
-
-% weighting function H2
-last	= floor((358/fs)*N) ;
-k	= DCbins+1:1:last;
-f	= (k-1)*fs/N;
-Hweight(2,k) = interp1(H2(:,1),H2(:,2),f(k-DCbins));
-
-% weighting function H5
-last	=	floor((502/fs)*N);
-k	=	DCbins+1:1:last;
-f	=	(k-1)*fs/N;
-Hweight(5,k)	= interp1(H5(:,1),H5(:,2),f(k-DCbins));
-
-% weighting function H16
-last	=	floor((645/fs)*N);
-k	=	DCbins+1:1:last;
-f	=	(k-1)*fs/N;
-Hweight(16,k)	= interp1(H16(:,1),H16(:,2),f(k-DCbins));
-
-% weighting function H21
-Hweight(21,k)	= interp1(H21(:,1),H21(:,2),f(k-DCbins));
-
-% weighting function H42
-Hweight(42,k)	= interp1(H42(:,1),H42(:,2),f(k-DCbins));
-
-% H1-H4
-Hweight(1,:) = Hweight(2,:);
-Hweight(3,:) = Hweight(2,:);
-Hweight(4,:) = Hweight(2,:);
-
-% H5-H15
-for l =	6:1:15
-    Hweight(l,:) = Hweight(5,:);
-end
-
-% H17-H20
-for l =	17:1:20
-    Hweight(l,:) = Hweight(16,:);
-end
-
-% H22-H41
-for l =	22:1:41
-    Hweight(l,:) = Hweight(21,:);
-end
-
-% H43-H47
-for l =	43:1:47
-    Hweight(l,:) = Hweight(42,:);
-end
-
-%%%%%%%%%%%%%%%%
-% END Hweights %
-%%%%%%%%%%%%%%%%
-
-%% %%%%%%%%%%%%%%%%%%%%%%
-% BEGIN process window %
-%%%%%%%%%%%%%%%%%%%%%%%%
-
-AmpCal = db2mag(91.2)*2/(N*mean(blackman(N, 'periodic')));
-%     AmpCal=length(window)/sum(window);
-
-% Calibration between wav-level and loudness-level (assuming
-% blackman window and FFT will follow)
-
-Chno	=	47;     % number of channels
-Cal	 	=	0.50;   % calibration factor, twice the old value (0.25)
-qb		=	N0:1:Ntop;
-freqs	=	(qb+1)*fs/N;
-hBPi	=	zeros(Chno,N);
-hBPrms	=	zeros(1,Chno);
-mdept	=	zeros(1,Chno);
-ki		=	zeros(1,Chno-2);
-ri		=	zeros(1,Chno);
+%% process window
 
 startIndex = 1;
 endIndex = N;
-[TimePoints,R_mat,SPL_mat] = deal(zeros(n,1));
+[TimePoints,R_mat] = deal(zeros(n,1));
 ri_mat = zeros(Chno,n);
+clampFrames = 0; clampLdB = -Inf; clampFreq = NaN; % windows with a clamped Terhardt slope
 
-for windowNum = 1:n    %for each frame
-    
+for windowNum = 1:n  % for each window
+
     dataIn = audio(startIndex:endIndex,1).*window;
     currentTimePoint = startIndex/fs;
-    
-    % Calculate Excitation Patterns
-    TempIn =  dataIn*AmpCal;
-    [rt,~]=size(TempIn);
-    [r,~]=size(a0);
-    if rt~=r; TempIn=TempIn'; end
-    
-    TempIn	=	a0.*fft(TempIn);
-    Lg		=	abs(TempIn(qb));    % get absolute value of fourier transform for  indices in range of human hearing
-    LdB		=	mag2db(Lg);
-    whichL	=	find(LdB>MinExcdB); % extract indices where FFT magnitudes exceed excitation threshold
-    sizL	=	length(whichL);     % get number of frequencies where this holds
-    
-    % steepness of slopes (Terhardt)
-    S1 = -27;
-    S2 = zeros(1,sizL);             % preallocate
-    
-    for w = 1:1:sizL
-        
-        % Steepness of upper slope [dB/Bark] in accordance with Terhardt
-        steep = -24-(230/freqs(w))+(0.2*LdB(whichL(w)));
-        
-        if steep < 0
-            S2(w) = steep;      % set S2 with steepness value calculated earlier
+
+    % 1. Spectrum of the window with the level conversion and the a0
+    %    transmission factor
+    FreqIn = a0.*fft( transpose(dataIn*AmpCal) );
+
+    % 2. Excitation patterns of the critical-band channels (Terhardt),
+    %    shared with the fluctuation strength. <info> is requested, so the
+    %    filterbank does not warn per window; one warning per call is
+    %    raised below
+    [ei, info] = Terhardt_filterbank(FreqIn, params);
+    if info.clamp.n > 0
+        clampFrames = clampFrames + 1;
+        if info.clamp.LdB > clampLdB
+            clampLdB  = info.clamp.LdB;
+            clampFreq = info.clamp.freq;
         end
     end
-    whichZ	= zeros(2,sizL);    % preallocate
-    qd		= 1:1:sizL;         % indices of frequencies above excitation threshold
-    whichZ(1,:)	= floor(2*Barkno(whichL(qd)+N01));  % get bark band numbers
-    whichZ(2,:)	= ceil(2*Barkno(whichL(qd)+N01));
-    
-    ExcAmp = zeros(sizL,Chno);
-    Slopes = zeros(sizL,Chno);
-    
-    for k=1:1:sizL    %loop over freq indices above threshold
-        Ltmp = LdB(whichL(k)); % copy FFT magnitude (in dB) above threshold
-        Btmp = Barkno(whichL(k)+N01); % and the bark number associat
-        
-        for l = 1:1:whichZ(1,k) % loop up to floored bark number of freq index k
-            Stemp = (S1*(Btmp-(l*0.5)))+Ltmp;
-            if Stemp>MinBf(l)
-                Slopes(k,l)=db2mag(Stemp);
-            end
-        end
-        
-        for l = whichZ(2,k):1:Chno % loop up to ceil'd bark number
-            Stemp =	(S2(k)*((l*0.5)-Btmp))+Ltmp;
-            if Stemp>MinBf(l)
-                Slopes(k,l)=db2mag(Stemp); % critical filterbank upper side
-            end
-        end
-    end
-    
-    for k=1:Chno % loop over each channel
-        etmp = zeros(1,N);
-        for l=1:1:sizL   % for each l index of fft bin in human hearing freq range
-            N1tmp = whichL(l); % get freq index of bin
-            N2tmp = N1tmp + N01;
-            if (whichZ(1,l) == k)
-                ExcAmp(N1tmp, k) = 1;
-            elseif (whichZ(2,l) == k)
-                ExcAmp(N1tmp, k) = 1;
-            elseif (whichZ(2,l) > k)
-                ExcAmp(N1tmp,k) = Slopes(l,k+1)/Lg(N1tmp);
-            else
-                ExcAmp(N1tmp,k) = Slopes(l,k-1)/Lg(N1tmp);
-            end
-            etmp(N2tmp) = ExcAmp(N1tmp,k)*TempIn(N2tmp);
-        end      % this is the specific excitation time function
-        
-        % ifft to get time domain blocks of signal
-        ei(k,:)	= N*real(ifft(etmp));
-        etmp	= abs(ei(k,:));
-        h0(k)	= mean(etmp);
-        Fei(k,:)	= fft(etmp-h0(k));
-        hBPi(k,:)	= 2*real(ifft(Fei(k,:).*Hweight(k,:)));
-        hBPrms(k)	= rms(hBPi(k,:));
-        
-        if h0(k)>0
-            mdept(k) = hBPrms(k)/h0(k);
-            
-            if mdept(k)>1
-                mdept(k)=1;
-            end
-        else
-            mdept(k)=0;
-        end
-    end
-    
-    % find cross-correlation coefficients
-    for k=1:1:45
-        cfac	=	cov(hBPi(k,:),hBPi(k+2,:));
-        den	=	diag(cfac);
-        den	=	sqrt(den*den');
-        if den(2,1)>0
-            ki(k)	=	cfac(2,1)/den(2,1);
-        else
-            ki(k)	=	0;
-        end
-    end
-    
-    % Calculate specific roughness ri and total roughness R
-    ri(1)	=	(gzi(1)*mdept(1)*ki(1))^2;
-    ri(2)	=	(gzi(2)*mdept(2)*ki(2))^2;
-    
-    for k = 3:1:45
-        ri(k)	=	(gzi(k)*mdept(k)*ki(k-2)*ki(k))^2;
-    end
-    
-    ri(46)	=	(gzi(46)*mdept(46)*ki(44))^2;
-    ri(47)	=	(gzi(47)*mdept(47)*ki(45))^2;
-    
-    ri      = Cal*ri; % appropriately scaled specific roughness
-    R       = dz*sum(ri); % total R = integration of the specific R pattern
-    
-    SPL = mean(rms(dataIn));
-    if SPL > 0
-        SPL = mag2db(SPL)+83; % -20 dBFS <--> 60 dB SPL
-    else
-        SPL = -400;
-    end
-    
+
+    % 3. Modulation depth of the temporal envelope of each channel
+    [mdept,hBPi] = il_modulation_depths(ei,Hweight);
+
+    % 4. Cross-correlation coefficients between channels 1 Bark apart
+    ki = il_cross_correlation(hBPi);
+
+    % 5. Specific roughness and total roughness
+    ri = il_specific_roughness(mdept,ki,gzi,Cal,Chno);
+    R  = dz*sum(ri);  % total R = integration of the specific R pattern
+
     % matrices to return
     R_mat(windowNum) = R;
     ri_mat(1:Chno,windowNum) = ri;
-    SPL_mat(windowNum) = SPL;
-    
+    TimePoints(windowNum,1) = currentTimePoint;
+
     startIndex = startIndex+hopsize;
     endIndex = endIndex+hopsize;
-    TimePoints(windowNum,1) = currentTimePoint;
+
 end
 
-%%%%%%%%%%%%%%%%%%%%%%
-% END process window %
-%%%%%%%%%%%%%%%%%%%%%%
+% One warning per call when the Terhardt upper slope was clamped to zero
+% in any window (component level above 120 + 1150/f dB, about 121 dB at
+% 1 kHz), as in FluctuationStrength_Osses2016
+if clampFrames > 0
+    warning('SQAT:Roughness:TerhardtSlopeClamped', ...
+        ['Terhardt upper slope clamped to zero in %d of %d window(s): at least one ' ...
+         'component exceeds 120 + 1150/f dB (highest: %.1f dB at %.0f Hz). The ' ...
+         'roughness of those windows is an extrapolation outside the range over ' ...
+         'which the model was validated; check the dBFS calibration.'], ...
+        clampFrames, n, clampLdB, clampFreq);
+end
 
-%% *************************************************************************
+%% ************************************************************************
 % output struct
 % *************************************************************************
 
@@ -579,7 +258,7 @@ OUT.InstantaneousRoughness = R_mat;                       % instantaneous roughn
 OUT.InstantaneousSpecificRoughness = ri_mat;              % time-varying specific roughness
 OUT.TimeAveragedSpecificRoughness = mean(ri_mat,2);       % mean specific roughness
 OUT.time = TimePoints;                                    % time
-OUT.barkAxis = z;                                         % critical band rate (for specific roughness)
+OUT.barkAxis = zi;                                        % critical band rate (for specific roughness)
 OUT.dz = dz;
 
 % Roughness statistics based on InstantaneousRoughness
@@ -601,7 +280,7 @@ for i = 1:numel(fields_OUT_statistics)
 end
 
 clear OUT_statistics metric_statistics fields_OUT_statistics fieldName;
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %% plots
 
@@ -622,7 +301,7 @@ if show == true
     % Time-averaged roughness as a function of critical band
     subplot(2,2,3)
     
-    plot((1:47)'/2, mean(ri_mat,2),'r-');
+    plot(zi, mean(ri_mat,2),'r-');
     
     title('Time-averaged specific roughness','Interpreter','Latex');
     xlabel('Critical band, $z$ (Bark)','Interpreter','Latex');
@@ -643,6 +322,88 @@ if show == true
     
     set(gcf,'color','w')
     
+end
+
+end
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function [mdept,hBPi] = il_modulation_depths(ei,Hweight)
+% function [mdept,hBPi] = il_modulation_depths(ei,Hweight)
+%
+% Modulation depth of the temporal envelope of each channel: the envelope
+% is the full-wave rectified excitation, its fluctuation is band-passed by
+% the modulation weighting Hweight in the frequency domain, and the depth
+% is the rms of the band-passed fluctuation over the DC component h0.
+
+[Chno,N] = size(ei);
+
+% channel by channel, in the operation order of the original code: the
+% correlation coefficient of channels whose envelope sits at the rounding
+% floor of the FFT depends on that rounding pattern, so a batched FFT
+% along the channel dimension moves the roughness of a few signals by up
+% to 5e-4 asper. The loop keeps the results identical to the previous
+% implementation.
+hBPi   = zeros(Chno,N);
+h0     = zeros(1,Chno);
+hBPrms = zeros(1,Chno);
+mdept  = zeros(1,Chno);
+
+for k = 1:Chno
+    etmp      = abs(ei(k,:));
+    h0(k)     = mean(etmp);
+    Fei       = fft(etmp-h0(k));
+    hBPi(k,:) = 2*real(ifft(Fei.*Hweight(k,:)));
+    hBPrms(k) = rms(hBPi(k,:));
+    if h0(k) > 0
+        mdept(k) = min(hBPrms(k)/h0(k), 1);
+    end
+end
+
+end
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function ki = il_cross_correlation(hBPi)
+% function ki = il_cross_correlation(hBPi)
+%
+% Pearson correlation coefficient between the band-passed envelopes of
+% channels 1 Bark (two channels) apart.
+
+Chno = size(hBPi,1);
+ki = zeros(1,Chno-2);
+
+for k=1:1:Chno-2
+    cfac = cov(hBPi(k,:),hBPi(k+2,:));
+    den  = diag(cfac);
+    den  = sqrt(den*den');
+    if den(2,1)>0
+        ki(k) = cfac(2,1)/den(2,1);
+    end
+end
+
+end
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function ri = il_specific_roughness(mdept,ki,gzi,Cal,Chno)
+% function ri = il_specific_roughness(mdept,ki,gzi,Cal,Chno)
+%
+% Specific roughness of each channel, Daniel & Weber (1997), Eq. 12. The
+% g(z) weighting enters linearly: gzi carries the square root of the
+% tabulated g(z), so squaring the product applies the table once.
+
+ri = zeros(1,Chno);
+
+ri(1) = (gzi(1)*mdept(1)*ki(1))^2;
+ri(2) = (gzi(2)*mdept(2)*ki(2))^2;
+
+for k = 3:1:Chno-2
+    ri(k) = (gzi(k)*mdept(k)*ki(k-2)*ki(k))^2;
+end
+
+ri(Chno-1) = (gzi(Chno-1)*mdept(Chno-1)*ki(Chno-3))^2;
+ri(Chno)   = (gzi(Chno)*mdept(Chno)*ki(Chno-2))^2;
+
+ri = Cal*ri; % appropriately scaled specific roughness
+
 end
 
 %**************************************************************************

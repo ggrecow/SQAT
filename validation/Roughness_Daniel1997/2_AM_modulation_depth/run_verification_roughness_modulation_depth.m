@@ -3,13 +3,22 @@
 % Verification of DW roughness code for roughness dependence on the 
 %  modulation depth for AM tones
 %
-% - Inputs, signals: 1 kHz sinosoidal tone modulated at 70 Hz (60 dBSPL) 
+% - Inputs, signals: 1 kHz sinusoidal tone modulated at 70 Hz (70 dBSPL) 
 %   with varying modulation depth, md (from 0 to 1, in 0.05 increments).
-%   Refer to the function in the end of this script to see how the
-%   signals were originally generated.
+%   The signals are generated on the fly by the local function at the end 
+%   of this script. The AM tone follows Eq. (1) of Daniel & Weber (1997):
+%       p(t) = p0*[1 + md*cos(2*pi*fm*t)]*cos(2*pi*fc*t)
 %
-% - Ref. values are the power law md^(~1.6), from 
-%   Zwicker, E. and Fastl, H. Second ed, Psychoacoustics, Facts and Models, page 258
+% - Ref. values are the power law R = 1.36*md^(1.6), from 
+%   Daniel, P. and Weber, R. Psychoacoustical Roughness: Implementation of
+%   an Optimized Model, Acustica 83 (1997) 113-123, Fig. 5 (fc = 1 kHz,
+%   fmod = 70 Hz, L = 70 dBSPL). The exponent 1.6 is from Zwicker, E. and
+%   Fastl, H. Second ed, Psychoacoustics, Facts and Models, page 258.
+%
+%   NOTE: the test conditions of this reference curve (70 dBSPL, prefactor
+%   1.36) differ from the conditions defining the asper unit (1 kHz, 70 Hz,
+%   md = 1, 60 dBSPL -> 1 asper). Changing <SPL> below therefore requires
+%   changing <a> accordingly.
 %
 % - An increment of roughness becomes audible for an increment in the degree
 %   of modulation of about 10%, which corresponds to an increment of about
@@ -20,28 +29,74 @@
 %   OUT = Roughness_Daniel1997(insig,fs,time_skip,show) 
 %   type <help Roughness_Daniel1997> for more info
 %
-% In order to run this code, the user needs to download the dataset of 
-%  sound files from zenodo (https://doi.org/10.5281/zenodo.7933206).
-%  The obtained folder called `validation_SQAT_v1_0` has to be included in 
-%  the `sound_files` folder of the toolbox. 
+% Unlike the other roughness validation cases, this script does NOT require 
+% the dataset of sound files from zenodo 
+% (https://doi.org/10.5281/zenodo.7933206). The signals are generated 
+% locally by this script; see the correction note below.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%Log:
 %
 % Author: Gil Felix Greco, Braunschweig 17.02.2020 (updated in 13.05.2023)
+%
+% Corrected by Gil Felix Greco, Braunschweig 08.09.2026
+%   The version of this script released with SQAT v1.0 loaded pre-generated
+%   signals from `vary_modulation_depth.mat` and contained two errors in the
+%   test conditions:
+%
+%   (1) Wrong level and reference anchor. The signals were generated at
+%       60 dBSPL and compared against the power law md^1.6 with a unity
+%       prefactor. The reference condition for the modulation-depth
+%       dependence is 70 dBSPL with R = 1.36*md^1.6 (Daniel & Weber 1997,
+%       Fig. 5; see also Schrader, J.E., A MATLAB implementation of a model
+%       of auditory roughness, TU Eindhoven, 2002, Fig. 13). The 60 dBSPL /
+%       1 asper condition defines the asper unit, but is not the condition
+%       of this curve.
+%
+%   (2) Wrong modulation index. The AM tones were generated as
+%       [1 - md/2 + (md/2)*cos(2*pi*fm*t)]*cos(2*pi*fc*t), whose envelope
+%       spans [1-md, 1] and whose modulation index is therefore md/(2-md),
+%       not md. The two definitions coincide only at md = 0 and md = 1, so
+%       all intermediate points were plotted against the wrong abscissa.
+%
+%   Both errors are corrected here. The signals are now generated inline
+%   following Eq. (1) of Daniel & Weber (1997) at 70 dBSPL, and the
+%   reference curve uses a = 1.36. Results published from the v1.0 version
+%   of this script are superseded.
+%
+%   The zenodo dataset (https://doi.org/10.5281/zenodo.7933206) has 
+%   deliberately NOT been updated. Its `vary_modulation_depth.mat` file 
+%   still holds the erroneous 60 dBSPL signals and is kept unchanged so 
+%   that the SQAT v1.0 record stays reproducible as published. That file is 
+%   no longer read by this script and must not be used for this test case.
+%
+%   Scope: only this verification case is affected. The remaining roughness
+%   validation cases use either md = 1, where the two AM definitions are
+%   proportional and therefore identical after level calibration, or FM and
+%   noise signals, and remain valid as published.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-clc; clear all; close all;
+clc; clear; close all;
 
 %% save figs flag
 
-save_figs=0;
+save_figs = 0;
 
 %% path settings 
 
-SQAT_version=1; % v1.0
-dir_sounds = get_dir_validation_sounds('Roughness_Daniel1997',SQAT_version);
 dir_out = [fileparts(mfilename('fullpath')) filesep];
- 
-%% load signals (not .wav)
 
-load([dir_sounds 'vary_modulation_depth.mat']);
+%% signal settings
+
+fs  = 48000;      % sampling frequency, Hz
+L   = 10;         % signal length, s
+fc  = 1000;       % carrier frequency, Hz
+fm  = 70;         % modulation frequency, Hz
+SPL = 70;         % signal level, dBSPL (Daniel & Weber 1997, Fig. 5)
+md  = 0:0.05:1;   % modulation depth vector
+
+%% generate signals
+
+s = il_make_AM_varying_md(md,fc,fm,SPL,fs,L);
 
 %% compute roughness using SQAT
 
@@ -59,29 +114,29 @@ pos = get(h,'Position');
 set(h,'PaperPositionMode','Auto','PaperUnits','Inches','PaperSize',[pos(3), pos(4)])
 
 % create a vector of results with time-averaged roughness values
+results = zeros(1,size(s,1));
+
 for i=1:size(s,1)
     results(i)=res{1,i}.Rmean;
 end
 
-md=0:.05:1;  % modulation depth vector 
-
 % ref curve, and jnd of 17% for roughness
-a=1;
+a=1.36;
 power_law=a.*md.^(1.6);
 
 err= (0.17*power_law);
-errorbar(md,power_law,err,'k-*','MarkerSize',6,'Linewidth',.5);hold all % results from SQAT
+errorbar(md,power_law,err,'k-*','MarkerSize',6,'Linewidth',.5);hold all % ref. values
 
 % plot results SQAT
 plot(md,results,'ko:','MarkerSize',8);hold all % results from SQAT
 
-legend('Ref. - $m_{\mathrm{d}}^{1.6}\pm17\:\%\:(\mathrm{JND})$','SQAT','Location','NW','Interpreter','Latex');
+legend('Ref. - $1.36\,m_{\mathrm{d}}^{1.6}\pm17\:\%\:(\mathrm{JND})$','SQAT','Location','NW','Interpreter','Latex');
 legend boxoff
 
-axis([0 1 0 1.2]);
+axis([0 1 0 1.8]);
 ax = gca;
 set(ax,'XTick',[0 0.2 0.4 0.6 .8 1]);
-set(ax,'YTick',[0 0.2 0.4 0.6 .8 1 1.2 1.4 1.6]);
+set(ax,'YTick',[0 0.2 0.4 0.6 .8 1 1.2 1.4 1.6 1.8]);
 ax.XAxis.MinorTick = 'on';
 ax.XAxis.MinorTickValues =  0:0.05:1;
 ax.YAxis.MinorTick = 'on';
@@ -112,64 +167,51 @@ if save_figs==1
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-%% function used to generate the signals (only for reference, not used here)
+%% local function used to generate the signals
 
-function [s,fs] = il_make_AM_varying_md
-
-%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Generates amplitude modulated (AM) signals for roughness algorithm validation
+function s = il_make_AM_varying_md(md,fc,fm,SPL,fs,L)
+% function s = il_make_AM_varying_md(md,fc,fm,SPL,fs,L)
 %
-% Roughness dependence on the modulation depth for AM tonesGenerates amplitude modulated (AM) signals for roughness algorithm validation
+% Generates amplitude modulated (AM) tones for roughness verification,
+% following Eq. (1) of Daniel & Weber (1997):
 %
-%   - 1 kHz sinosoidal tone modulated at 70 Hz (60 dBSPL) with varying
-%       modulation depth, md (from 0 to 1, in 0.05 increments)%
+%   p(t) = p0*[1 + md*cos(2*pi*fm*t)]*cos(2*pi*fc*t)
 %
-% Gil Felix Greco, Braunschweig 17.02.2020 (updated in 10.03.2023)
+% so that <md> is the modulation index used in the reference literature.
+% Each signal is scaled to the desired overall (rms-based) level.
 %
+% INPUTS:
+%   md  : vector, modulation depth (0 to 1)
+%   fc  : scalar, carrier frequency, Hz
+%   fm  : scalar, modulation frequency, Hz
+%   SPL : scalar, signal level, dBSPL
+%   fs  : scalar, sampling frequency, Hz
+%   L   : scalar, signal length, s
+%
+% OUTPUT:
+%   s   : matrix, length(md) x length(t), one AM tone per row
+%
+% Gil Felix Greco, Braunschweig 17.02.2020 (updated in 08.09.2026)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-save_figs=0;  % save fig flag
+dt = 1/fs;        % time step
+t  = 0:dt:L;      % time vector
 
-%% Specify signal temporal characteristics
+pref = 2e-5;      % reference sound pressure, Pa
 
-L=10;                            % Length (seconds)
-fs=48000;                        % Sampling frequency
-dt=1/fs;                         % Time step
-t = 0:dt:L;                      % Time vector
+carrier = cos(2*pi*fc.*t);
 
-%% Make carrier signal 
+s = zeros(length(md),length(t));
 
-fc=1000;                   % carrier center frequency (Hz)
+for i = 1:length(md)
 
-s1=cos(2*pi*fc.*t); % carrier signal 70 dB
+    modulator = 1 + md(i).*cos(2*pi*fm.*t);
 
-%% make modulation signal
+    s(i,:) = carrier.*modulator;
 
-m=[0 0.05 .1 .15 .2 .25 .3 .35 .4 .45 .5 .55 .6 .65 .7 .75 .8 .85 .9 .95 1];    % modulation depth
-fm=70;                                 % modulation frequency (Hz)
-
-for i=1:length(m)
-    
-    s2(i,:) = (1-m(i)./2+m(i)./2.*cos(2*pi*fm.*t));
-
-end
-
-%% modulated signal
-
-s=s1.*s2;
-
-levelOut = 60;                % desired signal level (dBSPL)
-
-for i=1:length(m)
-    
-    levelIn = 20*log10(rms(s(i,:))/2e-5);
-    s(i,:) = s(i,:) * 10^((levelOut-levelIn)/20);
-
-end
-
-for i=1:length(m)
-    
-    SPL(i)=20.*log10(rms(s(i,:))/2e-5);
+    % calibrate each signal to the desired SPL (rms-based)
+    levelIn = 20*log10( sqrt(mean(s(i,:).^2)) / pref );
+    s(i,:)  = s(i,:) .* 10^((SPL-levelIn)/20);
 
 end
 

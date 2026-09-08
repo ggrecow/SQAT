@@ -13,7 +13,22 @@ The figures below compare the results obtained using the `Roughness_Daniel1997` 
 | -------------- | -------------- |
 | ![](figs/validation_roughness_fmod_250hz_4khz.png)   | ![](figs/validation_roughness_fmod_2khz.png)  |
 
-It should be noted that the differences between the reference data and the `Roughness_Daniel1997` implementation are similar to the ones presented by the original implementation of Daniel & Weber (see Ref. [1], Fig. 3). Therefore, it is not clear if the differences are due to a limitation of the Daniel & Weber's model itself or attributed to the specific implementation in SQAT.
+The differences between the reference data and the `Roughness_Daniel1997` implementation are of the same size as the ones of the original implementation of Daniel & Weber (see Ref. [1], Fig. 3). They are a property of the model: run point by point against the corrected implementation that Dik Hermes provided to the SQAT team in 2025, the two agree within 0.041 asper over a grid of 105 AM tones (7 carriers, 15 modulation frequencies, 60 dB SPL), with a median difference of 0.002 asper, so the implementation sits at the ceiling that the model itself sets.
+
+Root mean square deviation from the reference data of Ref. [1], per carrier, in asper:
+
+| carrier | v1.x | current |
+| -- | -- | -- |
+| 125 Hz | 0.044 | 0.027 |
+| 250 Hz | 0.048 | 0.040 |
+| 500 Hz | 0.100 | 0.049 |
+| 1 kHz | 0.072 | 0.021 |
+| 2 kHz | 0.041 | 0.101 |
+| 4 kHz | 0.061 | 0.056 |
+| 8 kHz | 0.045 | 0.029 |
+| mean | 0.059 | 0.046 |
+
+Six of the seven carriers improve. The median relative deviation over the points above 0.1 asper falls from 13.7 % to 9.4 %, and the number of points outside the 17 % JND band falls from 42 to 30 out of 94. The 2 kHz carrier moves the other way: there the corrected model overshoots the listening-test data around its maximum, and the implementation of Hermes shows the same behaviour.
 
 # References
 [1] Daniel, P., & Weber, R. (1997). Psychoacoustical Roughness: Implementation of an Optimized Model. [Acta Acustica united with Acustica](https://www.ingentaconnect.com/content/dav/aaua/1997/00000083/00000001/art00020), 83(1), 113-123.
@@ -22,4 +37,6 @@ It should be noted that the differences between the reference data and the `Roug
 
 # Log
 This code was released in SQAT v1.0, 14.05.2023
+
+Figures and results recomputed in September 2026, after the correction of the model implementation (see the log of `Roughness_Daniel1997.m` and issue 47).
 
