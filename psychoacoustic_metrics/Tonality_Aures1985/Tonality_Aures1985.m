@@ -52,6 +52,9 @@ function OUT = Tonality_Aures1985(insig,fs,LoudnessField,time_skip,show)
 %
 % Author: Gil Felix Greco, Braunschweig 13/07/2020 (updated 14.04.2023)
 % Author: Gil Felix Greco, Braunschweig 16.02.2025 - introduced get_statistics function
+% Author: Sergio Aguirre, September 2026 - the tones are removed from the
+%   windowed spectrum and the notch is at least one main lobe wide, so the
+%   result no longer depends on where the tone falls between two FFT bins
 % Author: Sergio Aguirre, September 2026 - the sound pressure excess is now
 %   stored per tonal component, and the bins that replace a tone keep the
 %   phase they already had, so the function is deterministic
@@ -200,6 +203,8 @@ for iFrame = 1:nFrames
     end
     
     BW( isinf(BW) | isnan(BW) ) = 1;  % replace inf and NaN 
+    BW = max(BW, 4*df);  % a tone occupies the main lobe of the window, four bins
+                         % wide for a Hann window, so a narrower notch leaves it in
         
     if isempty(ToneIdx)==1  % if ToneRef is empty, then there are no tones for this time-frame
         
@@ -233,7 +238,8 @@ for iFrame = 1:nFrames
                                     
             %% filtering out the tones from the signal
             
-            y=insig(:,iFrame);     % get insig for each iFrames
+            y=window.*insig(:,iFrame);  % windowed frame: the notch below removes a
+                                        % tone from the same spectrum that found it
             
             insigSpectrum=fft(y);  % spectrum of insig for each iFrames
             
