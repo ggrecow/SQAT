@@ -52,6 +52,9 @@ function OUT = Tonality_Aures1985(insig,fs,LoudnessField,time_skip,show)
 %
 % Author: Gil Felix Greco, Braunschweig 13/07/2020 (updated 14.04.2023)
 % Author: Gil Felix Greco, Braunschweig 16.02.2025 - introduced get_statistics function
+% Author: Sergio Aguirre, September 2026 - the sound pressure excess is now
+%   stored per tonal component, and the bins that replace a tone keep the
+%   phase they already had, so the function is deterministic
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 if nargin < 5
@@ -265,7 +268,7 @@ for iFrame = 1:nFrames
                     magn=0.5.*(abs(SingleSidedinsigSpectrum(index_low-1))+abs(SingleSidedinsigSpectrum(index_up+1))); % create a magnitude vector
                 end
                 
-                phase = (rand(1,index_up-index_low+1)-0.5).*pi.*2; % create random phase vector
+                phase = angle( SingleSidedinsigSpectrum(index_low:index_up) ).'; % keep the phase the replaced bins already had
                 SingleSidedinsigSpectrum(index_low:index_up) = magn.*exp(1j.*phase); % replace tones
                 
             end
@@ -495,10 +498,8 @@ for i = 1:NTones
         LXi = ToneL(i) - 10.*log10( AEK.^2 + EGR  + EHS ); %eq 4 from Ref. [3]
     end
 
-    NTonesM = 0;
     if LXi > 0
-        NTonesM = NTonesM + 1;
-        LX(NTonesM) = LXi;
+        LX(i) = LXi;
     end
 
 end
