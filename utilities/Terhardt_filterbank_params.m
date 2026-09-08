@@ -26,7 +26,6 @@ function params = Terhardt_filterbank_params(N,fs)
 %   unchanged, so that both modulation metrics build the same parameters
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-
 params      = struct;
 params.N    = N;
 params.Chno = 47;
@@ -40,6 +39,7 @@ params.qb    = N0:Ntop;
 params.freqs = (params.qb-1)*df;
 
 [params.Barkno,Bark_raw] = Get_Bark(params.N,params.qb,params.freqs);
+
 % Loudness threshold related parameters
 params.MinExcdB = il_calculate_MinExcdB(params.N01,params.qb,params.Barkno);
 params.MinBf    = il_calculate_MinBf(params.N01,df,Bark_raw,params.MinExcdB);

@@ -26,7 +26,7 @@ function [ei,ei_f,freq,clamp] = TerhardtExcitationPatterns(insig,fs,dBFS)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 if nargin < 3
-    dBFS = 100; % AMT toolbox convention
+    dBFS = 94; % AMT toolbox convention
 end
 corr = dBFS + 3;
 
