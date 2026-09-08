@@ -1,7 +1,7 @@
 # Tonality model from Aures: verification of the implementation in SQAT
 The `validation_signal_to_noise_ratio.m` code is used to verify the implementation of the tonality model from Aures [1] (see `Tonality_Aures1985` code [here](../../psychoacoustic_metrics/Tonality_Aures1985/Tonality_Aures1985.m)). The verification is performed considering the foloowing test signals:
 
-- Pure tone (center frequency $f_{\mathrm{c}}=1~\mathrm{kHz}$ and sound pressure level $L_{\mathrm{p}}=85~\mathrm{dB}~\mathrm{SPL}$) with different signal-to-noise ratios (SNRs) from narrowband noises (one-critical-band wide, bandwidth $\mathrm{BW}=1081-918.8 ~\mathrm{Hz}$).
+- Pure tone (center frequency $f_{\mathrm{c}}=1~\mathrm{kHz}$ and sound pressure level $L_{\mathrm{p}}=85~\mathrm{dB}~\mathrm{SPL}$) in broadband noise, as a function of the signal-to-noise ratio inside the critical band centered about the tone, following Fig. 1(a) of [2].
 
 Three scripts are provided. The first compares the metric with published data, the other two were added in September 2026: one states the internal consistency of the implementation against properties that follow from the definition of the model, and the other compares the dependence of tonality on bandwidth with the subjective data of Hastings. The last two generate the signals they use and need no external dataset.
 
@@ -12,7 +12,7 @@ Three scripts are provided. The first compares the metric with published data, t
 | [`validation_bandwidth_dependence.m`](validation_bandwidth_dependence.m) | Hastings [3], Table B.52 of the thesis | the fall of the tonality as a narrow band of noise widens, Aures [1] Fig. 6 |
 
 # How to use this code
-In order to run this code and reproduce the figures available in the `figs` folder, the user needs to download the dataset of sound files from zenodo <a href="https://doi.org/10.5281/zenodo.7933206" target="_blank">here</a>. The obtained folder called `validation_SQAT_v1_0` has to be included in the `sound_files` folder of the toolbox. 
+The three scripts generate the signals they use, so no external dataset is needed.
 
 # Results
 The figures below compare the results obtained using the `Tonality_Aures1985` implementation in SQAT with reference data from [2]. 
