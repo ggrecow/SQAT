@@ -29,6 +29,10 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 clear all; close all; clc; %#ok<CLALL>
 
+%% save settings
+save_figs = 0;
+dir_out = [fileparts(mfilename('fullpath')) filesep];
+
 fs  = 48000;
 N   = fs;                 % one second per signal
 fc  = 700;                % centre frequency of the third tone test
@@ -95,8 +99,19 @@ plot(pct, rel, 'ko:', 'MarkerSize', 8);
 set(gca,'XScale','log'); xlim([1 200]); ylim([0 1.1]); grid off;
 xlabel('Peak bandwidth (per cent of the critical bandwidth)','Interpreter','Latex');
 ylabel('Tonality relative to the pure tone','Interpreter','Latex');
-legend({'Reference, Hastings Table B.52','SQAT'},'Location','SouthWest','Interpreter','Latex');
+legend({'Reference, Hastings Table B.52','SQAT'},'Location','NorthEast','Interpreter','Latex');
 legend boxoff;
+
+if save_figs==1
+    figures_dir = [dir_out 'figs' filesep];
+    if ~exist(figures_dir,'dir')
+        mkdir(figures_dir);
+    end
+    figname_short = 'tonality_validation_bandwidth_dependence_700Hz';
+    figname_out = [figures_dir figname_short];
+    saveas(gcf, figname_out, 'png');
+    fprintf('%s.m: figure %s was saved on disk\n\t(full name: %s)\n',mfilename,figname_short,figname_out);
+end
 
 %% local function
 function K = il_tonality_at_loudness(x, fs, N_target)

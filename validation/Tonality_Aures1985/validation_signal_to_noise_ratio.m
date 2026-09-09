@@ -31,6 +31,11 @@ clear all; close all; clc;
 
 save_figs = 0;
 
+plot_spectra = 0;  % set to 1 to inspect the spectrum of each generated signal,
+                   % with the level of the tone and the level of the noise inside
+                   % the critical band marked, so that the signal to noise ratio
+                   % can be checked against the value asked for
+
 %% define input/output paths
 
 dir_out = [fileparts(mfilename('fullpath')) filesep];
@@ -77,6 +82,36 @@ for i = 1:N_signals
     L_band      = Ltone - SNR(i);                  % noise level inside the band
     L_total     = L_band + 10*log10((fs/2)/CB);    % level of the white noise
     insigs(:,i) = tone + wn*p0*10^(L_total/20);
+end
+
+%% optional check of the generated signals
+% Reads back the level of the tone and the level of the noise inside the
+% critical band, so that the signal to noise ratio of each generated signal can
+% be compared with the value asked for. The readout is good to about 1 dB: the
+% peak of the tone carries the scalloping loss of the window, and the region
+% excluded around the tone takes a part of the noise with it.
+if plot_spectra==1
+    Nfft   = 2^nextpow2(fs);              % about 1 Hz of resolution
+    w      = hann(Nfft);
+    ENBW   = 1.5;                         % noise bandwidth of the Hann window, in bins
+    fvec   = (0:Nfft/2).'*fs/Nfft;
+    inband = fvec >= fc-CB/2 & fvec <= fc+CB/2;
+    figure('name','Generated signals','color','w');
+    for i = 1:N_signals
+        P     = abs(fft(insigs(1:Nfft,i).*w))*2^0.5/(Nfft*mean(w));
+        Lspec = 20*log10(P(1:Nfft/2+1)/p0 + eps);
+        [Lpk,ipk] = max(Lspec(inband));  idx = find(inband);  ipk = idx(ipk);
+        band  = inband;  band( abs(fvec-fvec(ipk)) < 25 ) = false;
+        Lnoise = 10*log10(sum(10.^(Lspec(band)/10))) - 10*log10(ENBW);
+        subplot(3,3,i);
+        semilogx(fvec,Lspec,'k'); hold on;
+        plot([fc-CB/2 fc+CB/2],Lnoise*[1 1],'r--','LineWidth',1.5);
+        xlim([100 10000]); ylim([-20 110]); grid off;
+        title(sprintf('%d dB asked, %.1f dB read', SNR(i), Lpk-Lnoise),'Interpreter','Latex');
+        if i>6, xlabel('Frequency (Hz)','Interpreter','Latex'); end
+        if mod(i,3)==1, ylabel('SPL (dB)','Interpreter','Latex'); end
+    end
+    set(gcf,'color','w');
 end
 
 %% compute tonality
