@@ -308,4 +308,10 @@ Within the SQAT team, we are committed to carefully maintaining the toolbox in t
 If you would like to get in touch to report a bug, make suggestions or ask a question, please contact us on GitHub by opening an issue.
 
 # Licensing
-<a rel="license" href="http://creativecommons.org/licenses/by-nc/4.0/"><img alt="Creative Commons Licence" style="border-width:0" src="https://i.creativecommons.org/l/by-nc/4.0/88x31.png" /></a><br />This work is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by-nc/4.0/">Creative Commons Attribution-NonCommercial 4.0 International License</a>.
+<a rel="license" href="http://creativecommons.org/licenses/by-nc/4.0/"><img alt="Creative Commons Licence" style="border-width:0" src="https://i.creativecommons.org/l/by-nc/4.0/88x31.png" /></a><br />This work is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by-nc/4.0/">Creative Commons Attribution-NonCommercial 4.0 International License</a>. 
+
+Some implementations in SQAT are licensed differently, because they derive from code released by their original authors under other terms. These files state their license in their own header and reproduce the license text at the end of the file.
+
+## Disclaimer
+
+The SQAT toolbox and all files within it are provided "AS IS", WITHOUT WARRANTY OF ANY KIND, express or implied, including but not limited to the warranties of MERCHANTABILITY and FITNESS FOR A PARTICULAR PURPOSE. In no event shall the authors or copyright holders be liable for any claim, damages or other liability arising from the use of this software.
