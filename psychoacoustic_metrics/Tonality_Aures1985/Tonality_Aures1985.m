@@ -62,7 +62,16 @@ function OUT = Tonality_Aures1985(insig,fs,LoudnessField,time_skip,show)
 %   are narrower than a critical band are extracted as tonal components as
 %   well, as Aures asks in section 2.3.2, and the noise term of the level
 %   excess is summed over the spectrum those extractions leave behind
+% Author: Sergio Aguirre, September 2026 - Tonality_Aures1985('localfunctions')
+%   returns the handles of the local functions, so that the verification
+%   scripts can run the extraction and the level excess on a published
+%   spectrum; the function does nothing else with that input
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+if nargin == 1 && ischar(insig) && strcmp(insig, 'localfunctions')
+    OUT = localfunctions;  % handles to the local functions, for the verification scripts
+    return;
+end
 
 if nargin < 5
     if nargout == 0
@@ -156,41 +165,10 @@ for iFrame = 1:nFrames
     
     threshold = 7;  % condition for tonal component, in dBSPL
 
-    % The criterion of Terhardt asks for the level two and three bins away. Those
-    % two bins were 25 and 37.5 Hz at the resolution of the original method, so
-    % the distances are kept in hertz and the criterion no longer moves with the
-    % length of the analysis window.
-    k2 = max(round(25/df),1);
-    k3 = max(round(37.5/df),2);
+    % The criterion of Terhardt, in a local function so that the verification
+    % scripts can run it on a published spectrum
+    ToneIdx = il_find_sinusoids( SPL, MinFrequencyindex, MaxFrequencyIndex, df, threshold );
     
-    ToneIdx = zeros(length(SPLcrop),1); % initialize vector, tonal components idx
-    k = 1; % initialize counter
-    
-    % find tones... The bins the criterion compares with are read from the
-    % full spectrum, so that a tone near the lower edge of the range still has
-    % neighbours below it: with the distances in hertz the criterion reaches
-    % 37.5 Hz down, and read from the cropped vector alone it could not fire
-    % below 57.5 Hz.
-    for i = 1:length(SPLcrop)
-        
-        j = i + MinFrequencyindex - 1; % index of the same bin on the full spectrum
-        
-        if j-k3 < 1 || j+k3 > length(SPL)
-            continue
-        end
-        
-        if SPL(j) > SPL(j-1) && ... % first condition
-           SPL(j) >= SPL(j+1) && ...
-           SPL(j) - SPL(j-k3) >= threshold && ... % second condition
-           SPL(j) - SPL(j-k2) >= threshold && ...
-           SPL(j) - SPL(j+k2) >= threshold && ...
-           SPL(j) - SPL(j+k3) >= threshold
-            
-           ToneIdx(k) = i; % get the idx of the tones on Lcrop
-           k = k+1;
-        end
-    end
-           
     % save tone information
     ToneIdx(ToneIdx==0) = [];   % if no tones were found, ToneIdx shall remain empty
     ToneL = SPLcrop(ToneIdx);   % SPL of the tones
@@ -521,6 +499,58 @@ end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Beginning of inline functions:
+%% function: find the sinusoidal components with the criterion of Terhardt
+
+function ToneIdx = il_find_sinusoids(SPL, idxLo, idxHi, df, threshold)
+% function ToneIdx = il_find_sinusoids(SPL, idxLo, idxHi, df, threshold)
+%
+%   Peaks of the spectrum that satisfy the criterion of Terhardt et al.
+%   (1982), eq. (1) and (2): a local maximum that stands at least threshold dB
+%   above the bins 25 and 37.5 Hz away on each side. Those two distances were
+%   two and three bins at the resolution of the original method, so they are
+%   kept in hertz and the criterion does not move with the analysis window.
+%   The neighbours are read from the full spectrum, so a peak near the lower
+%   edge of the range still has neighbours below it.
+%
+%   INPUT
+%     SPL         : [Nx1] sound pressure level of the full spectrum, dB
+%     idxLo,idxHi : first and last index of the range searched
+%     df          : frequency resolution, Hz
+%     threshold   : level a peak must have over the four neighbours, dB
+%
+%   OUTPUT
+%     ToneIdx     : indices of the peaks, counted from idxLo
+
+k2 = max(round(25/df),1);
+k3 = max(round(37.5/df),2);
+
+ToneIdx = zeros(idxHi-idxLo+1,1);
+k = 1;
+
+for i = 1:(idxHi-idxLo+1)
+
+    j = i + idxLo - 1; % index of the same bin on the full spectrum
+
+    if j-k3 < 1 || j+k3 > length(SPL)
+        continue
+    end
+
+    if SPL(j) > SPL(j-1) && ... % first condition
+       SPL(j) >= SPL(j+1) && ...
+       SPL(j) - SPL(j-k3) >= threshold && ... % second condition
+       SPL(j) - SPL(j-k2) >= threshold && ...
+       SPL(j) - SPL(j+k2) >= threshold && ...
+       SPL(j) - SPL(j+k3) >= threshold
+
+       ToneIdx(k) = i;
+       k = k+1;
+    end
+end
+
+ToneIdx(ToneIdx==0) = [];
+
+end
+
 function LX=il_SPL_excess(input)
 % function LX=il_SPL_excess(input)
 %
