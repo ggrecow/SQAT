@@ -79,7 +79,8 @@ end
 %% window parameters
 
 % time_resolution=80e-3;    % window length fixed in 80 ms (Terhard), gives a df=12.5 Hz
-time_resolution=160e-3; % window length fixed in 160 ms, gives a df=6.25 Hz
+time_resolution=250e-3; % window length, chosen from the scale over which w1
+                        % varies; gives df = 4 Hz at both sampling rates
 
 N=round(fs*time_resolution); % define window length, N bins
 window = hann(N);
@@ -145,19 +146,26 @@ for iFrame = 1:nFrames
     SPLcrop = SPL(MinFrequencyindex:MaxFrequencyIndex); % crop SPL vector from MinFrequencyindex to MaxFrequencyIndex
     
     threshold = 7;  % condition for tonal component, in dBSPL
+
+    % The criterion of Terhardt asks for the level two and three bins away. Those
+    % two bins were 25 and 37.5 Hz at the resolution of the original method, so
+    % the distances are kept in hertz and the criterion no longer moves with the
+    % length of the analysis window.
+    k2 = max(round(25/df),1);
+    k3 = max(round(37.5/df),2);
     
     ToneIdx = zeros(length(SPLcrop),1); % initialize vector, tonal components idx
     k = 1; % initialize counter
     
     % find tones...
-    for i = 4:(length(SPLcrop)-3)
+    for i = (k3+1):(length(SPLcrop)-k3)
         
         if SPLcrop(i) > SPLcrop(i-1) && ... % first condition
            SPLcrop(i) >= SPLcrop(i+1) && ...
-           SPLcrop(i) - SPLcrop(i-3) >= threshold && ... % second condition
-           SPLcrop(i) - SPLcrop(i-2) >= threshold && ...
-           SPLcrop(i) - SPLcrop(i+2) >= threshold && ...
-           SPLcrop(i) - SPLcrop(i+3) >= threshold
+           SPLcrop(i) - SPLcrop(i-k3) >= threshold && ... % second condition
+           SPLcrop(i) - SPLcrop(i-k2) >= threshold && ...
+           SPLcrop(i) - SPLcrop(i+k2) >= threshold && ...
+           SPLcrop(i) - SPLcrop(i+k3) >= threshold
             
            ToneIdx(k) = i; % get the idx of the tones on Lcrop
            k = k+1;
@@ -179,7 +187,7 @@ for iFrame = 1:nFrames
                 
         ymx = ToneL(i); % SPL of the i-th tone
         [~,idx] = min( abs(Freq-ToneF(i)) ); % index of the i-th tone 
-        hafmax = ymx.*0.707; % target value 
+        hafmax = ymx-3; % half power, three decibels below the peak
         % hafmax = ymx-3; % target value (-3 dB decay)
         
         idxrng1 = find(SPL(1:idx)<hafmax, 1, 'last');
@@ -203,8 +211,9 @@ for iFrame = 1:nFrames
     end
     
     BW( isinf(BW) | isnan(BW) ) = 1;  % replace inf and NaN 
-    BW = max(BW, 4*df);  % a tone occupies the main lobe of the window, four bins
-                         % wide for a Hann window, so a narrower notch leaves it in
+    BWnotch = max(BW, 4*df);  % the notch has to cover the main lobe of the window,
+                              % four bins wide for a Hann window. BW itself stays the
+                              % measured width, which is what the weighting w1 needs
         
     if isempty(ToneIdx)==1  % if ToneRef is empty, then there are no tones for this time-frame
         
@@ -225,6 +234,7 @@ for iFrame = 1:nFrames
         NTones = NTones(idx);   % number of tones
         ToneF = ToneF(idx);     % central freq of the tone
         BW = BW(idx);           % bandwidth
+        BWnotch = BWnotch(idx);
         
         if isempty(ToneIdx)==1  % if ToneRef is empty (there are no tonal
                                 % components with SPL>0 dB), then there are 
@@ -257,8 +267,8 @@ for iFrame = 1:nFrames
             
             for i=1:length(NTones) % loop across tones
                 
-                index_low = find (FreqSingleSidedinsigSpectrum>=(ToneF(i)-(BW(i)./2)),1,'first'); % find idx of i-th tone's lower freq
-                index_up = find (FreqSingleSidedinsigSpectrum>=(ToneF(i)+(BW(i)./2)),1,'first');  % find idx of i-th tone's upper freq
+                index_low = find (FreqSingleSidedinsigSpectrum>=(ToneF(i)-(BWnotch(i)./2)),1,'first'); % find idx of i-th tone's lower freq
+                index_up = find (FreqSingleSidedinsigSpectrum>=(ToneF(i)+(BWnotch(i)./2)),1,'first');  % find idx of i-th tone's upper freq
                 
                 if isempty(index_low) 
                     index_low = 1;
@@ -342,7 +352,7 @@ for iFrame = 1:nFrames
             
             %% TONALITY
             
-            C=1.125;  % is a constant such that 1 kHz pure tone with a level of 60 dB would have a tonalness of 1, which for an ideal implementaiton should be =1.09
+            C=1.1055;  % is a constant such that 1 kHz pure tone with a level of 60 dB would have a tonalness of 1, which for an ideal implementaiton should be =1.09
             
             tonality(iFrame,1) = abs( C.*w_tonal(iFrame,1).^(0.29).*w_gr(iFrame,1).^(0.79) );
             
@@ -520,9 +530,16 @@ df=input.df;      % freq discretization
 
 %% w1 accounts for each tonal component bandwidth
 
-zup = il_Fq2Bark(fc+(bw./2));
-zlow = il_Fq2Bark(fc-(bw./2));
-dz = (zup-zlow)/df^2;
+% The measured width carries the width of the analysis window. For two smooth
+% kernels the widths add in quadrature, so the window is removed the same way.
+% The width to remove is the one the estimator reads on a pure tone, which
+% depends on where the tone falls between two bins and reaches 1.43 bins for a
+% Hann window. Taking that worst case makes any pure tone give dz = 0.
+Wwin  = 1.43*df;
+Wtrue = sqrt( max(bw.^2 - Wwin^2, 0) );
+zup   = il_Fq2Bark(fc+(Wtrue./2));
+zlow  = il_Fq2Bark(fc-(Wtrue./2));
+dz    = zup - zlow;
 
 w1 = ( 0.13./(dz+0.13) );
 

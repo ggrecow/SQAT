@@ -18,7 +18,7 @@ The three scripts generate the signals they use, so no external dataset is neede
 
 ## Behaviour as a tone emerges from noise
 
-`validation_signal_to_noise_ratio.m` compares the implementation with Fig. 1(a) of [2], for a pure tone of 85 dB SPL at 1 kHz in broadband noise. The root mean square deviation over the nine points is 0.0249 t.u. and the largest single deviation is 0.0526 t.u., at a signal to noise ratio of 0 dB.
+`validation_signal_to_noise_ratio.m` compares the implementation with Fig. 1(a) of [2], for a pure tone of 85 dB SPL at 1 kHz in broadband noise. The root mean square deviation over the nine points is 0.0151 t.u. and the largest single deviation is 0.0188 t.u.
 
 ![](figs/tonality_validation_SNR_tone_85dBSPL_1khz.png)
 
@@ -28,7 +28,7 @@ The three scripts generate the signals they use, so no external dataset is neede
 
 ![](figs/tonality_validation_bandwidth_dependence_700Hz.png)
 
-**This comparison fails, and it is kept because of what it records.** The reference falls from 0.58 to 0.38 of the tonality of a pure tone across the sweep, and the implementation stays between 0.02 and 0.13 without order. A band of 1.3 Hz, which is perceptually a tone, scores about a tenth of what a pure tone scores.
+**This comparison fails, and it is kept because of what it records.** The reference falls from 0.58 to 0.38 of the tonality of a pure tone across the sweep, and the implementation stays between 0.004 and 0.042 without order. A band of 1.3 Hz, which is perceptually a tone, scores a few per cent of what a pure tone scores. The distance grew when the weighting w1 was repaired, and that is the expected direction: the components the peak criterion does find in a band of noise are not tonal components, and a weighting that works suppresses them, while the regions that are tonal are still not found at all.
 
 Two reasons, and they are of different kinds.
 
