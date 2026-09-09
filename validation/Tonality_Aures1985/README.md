@@ -27,6 +27,6 @@ The figures below compare the results obtained using the `Tonality_Aures1985` im
 [3] Hastings, A. L. (2004). Sound quality of diesel engines. PhD thesis, Purdue University, ProQuest 3154642. The tables of Appendix B carry the subjective scores of the experiments reported in [2].
 
 # Log
-This code was released in SQAT v1.0, 14.05.2023
+`validation_signal_to_noise_ratio.m`: code released in SQAT v1.0, 14.05.2023
 
-`validation_internal_consistency.m` and `validation_bandwidth_dependence.m` added in September 2026, together with the correction of the tonal weighting and of the removal of the tones (see the log of `Tonality_Aures1985.m`).
+`validation_internal_consistency.m` and `validation_bandwidth_dependence.m` added in September 2026, together with the correction of the tonal weighting and of the removal of the tones (see the log of `Tonality_Aures1985.m`). Unlike previous versions, test signals for `validation_signal_to_noise_ratio.m` are now generated locally by the script. The zenodo dataset (https://doi.org/10.5281/zenodo.7933206) has deliberately not been updated so that the SQAT v1.x record remains reproducible as published.  
