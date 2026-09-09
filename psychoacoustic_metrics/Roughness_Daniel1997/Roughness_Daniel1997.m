@@ -46,7 +46,6 @@ function OUT = Roughness_Daniel1997(insig,fs,time_skip,show)
 %         ** Rx : roughness value exceeded during x percent of the time (asper)
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%
 % Structure of the implementation (see also FluctuationStrength_Osses2016,
 % which Alejandro Osses derived from this model):
 %   1. Analysis windows of 200 ms (Blackman) with 50 % overlap, at 48 kHz
@@ -67,41 +66,43 @@ function OUT = Roughness_Daniel1997(insig,fs,time_skip,show)
 %   6. Total roughness R = cal * sum(r_i), Daniel & Weber Eq. 9, and the
 %      statistics of get_statistics.
 %
-% Log
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Code history
 %
-% - Original file name: roughnessDW.m obtained from 
-%   https://github.com/densilcabrera/aarae/ (accessed 11/02/2020)
+% The first MATLAB implementation of the Daniel & Weber model was written by
+% J. E. Schrader at TU Eindhoven, supervised by Dik Hermes:
+%   Schrader, J. E. (2002). A MATLAB implementation of a model of auditory
+%   roughness. Technische Universiteit Eindhoven. Available at 
+%   (last viewed September 2026):
+%   https://research.tue.nl/en/publications/a-matlab-implementation-of-a-model-of-auditory-roughness/
+%   Hermes distributed and maintained that code, from which the versions
+%   available in PsySound3 and AARAE derive.
 %
-% - Author: Dik Hermes (2000-2005)
+% - SQAT v1.x: <roughnessDW.m> obtained from
+%   https://github.com/densilcabrera/aarae/ (accessed 11.02.2020), where it
+%   is attributed to Dik Hermes. Adapted and verified for SQAT by Gil Felix
+%   Greco (2023); scaling of the specific roughness corrected by Alejandro
+%   Osses (10.05.2023); <get_statistics> introduced by Gil Felix Greco
+%   (16.02.2025).
 %
-% - Author: Matt Flax (2006) and Farhan Rizwi (2007), adapted for the
-%   PsySound3 toolbox
+% - SQAT v2.0: implementation restructured by Sergio Aguirre and 
+%   Gil Felix Greco (September 2026, see issue #47) to follow the structure
+%   of <FluctuationStrength_Osses2016.m>, so that shared components are 
+%   reused from <utilities>. The corrections deployed were taken from a 
+%   revised implementation that Dik Hermes wrote
+%   for his book "The Perceptual Structure of Sound" (Springer, 2023, Chap. 6,
+%   Sec. 2) and sent to the SQAT team in 2025. Results change with respect 
+%   to SQAT v1.x.
 %
-% - Author: Gil Felix Greco (2023). Adapted (and verified) for SQAT.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Copyright statement: This file and code is subject to the MIT license in
+% its entirety, as detailed in the license text reproduced at the end of
+% this file.
 %
-% - Author: Alejandro Osses, 10/05/2023. Appropriate scaling for the
-%   specific roughness.
+% As per the licensing information, please be aware that this code is
+% WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 %
-% - Author: Gil Felix Greco, Braunschweig 16.02.2025 - introduced
-%   get_statistics function
-%
-% - Author: Sergio Aguirre, September 2026 - rewrite (issue #47). The
-%   implementation is corrected against the revised implementation that Dik
-%   Hermes sent in 2025: the upper excitation slope is evaluated at the
-%   freq of the masking component (the previous code used the index of the
-%   component counter), the g(z) table is the revised table Hermes derived
-%   together with that correction, the slope equation uses the exact bin
-%   frequency, the analysis window and the level conversion use the same
-%   periodic Blackman window, and the window length follows the sampling
-%   frequency after resampling. The structure follows the roughness
-%   implementation of Alejandro Osses and his fluctuation strength model:
-%   the shared parts (Terhardt filterbank and its parameters, a0
-%   transmission factor, Bark scale, statistics) come from the utilities
-%   folder, and the parts specific to the roughness (modulation weighting
-%   Hweight, g(z)) are private helpers. The level conversion is the
-%   physical one (see below) and the calibration factor of Daniel & Weber
-%   is re-derived on the reference signal. Results change with respect to
-%   the previous version.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 if nargin == 0
@@ -134,7 +135,7 @@ if ~(fs == 44100 || fs == 40960 || fs == 48000)
     fs = 48000;
 end
 
-N = round(fs*time_resolution); % window length
+N = round(fs*time_resolution); % window length, in bins
 hopsize = N/2;                 % number of samples hop between successive windows
 window = blackman(N,'periodic');
 samples = size(audio,1);
@@ -143,7 +144,7 @@ n = floor((samples-N)/hopsize); % number of analysis windows
 %% model parameters
 
 % frequency axis, Bark scale, hearing threshold: shared with the
-% fluctuation strength (utilities)
+% <FluctuationStrength_Osses2016.m> (utilities)
 params = Terhardt_filterbank_params(N,fs);
 Chno   = params.Chno;  % number of critical-band channels, half-Bark spacing
 
@@ -408,29 +409,26 @@ end
 
 %**************************************************************************
 %
-% Redistribution and use in source and binary forms, with or without 
-% modification, are permitted provided that the following conditions are 
-% met:
-%
-%  * Redistributions of source code must retain the above copyright notice,
-%    this list of conditions and the following disclaimer.
-%  * Redistributions in binary form must reproduce the above copyright 
-%    notice, this list of conditions and the following disclaimer in the 
-%    documentation and/or other materials provided with the distribution.
-%  * Neither the name of the <ORGANISATION> nor the names of its contributors
-%    may be used to endorse or promote products derived from this software 
-%    without specific prior written permission.
-%
-% THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS 
-% "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
-% TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A 
-% PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER
-% OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-% EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-% PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-% PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-% LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING 
-% NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-% SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+% copyright © 1999-2023 Dik Hermes
+% 
+% This software is licenced under the MIT license:
+% 
+% Permission is hereby granted, free of charge, to any person obtaining a 
+% copy of this software and associated documentation files (the “Software”), 
+% to deal in the Software without restriction, including without limitation 
+% the rights to use, copy, modify, merge, publish, distribute, sublicense, a
+% nd/or sell copies of the Software, and to permit persons to whom the 
+% Software is furnished to do so, subject to the following conditions:
+% 
+% The above copyright notice and this permission notice shall be included 
+% in all copies or substantial portions of the Software.
+% 
+% THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS 
+% OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF 
+% MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. 
+% IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY 
+% CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, 
+% TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE 
+% SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
 %
 %**************************************************************************
