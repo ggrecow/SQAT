@@ -23,6 +23,10 @@ The four scripts generate the signals they use, so no external dataset is needed
 
 ![](figs/tonality_validation_SNR_tone_85dBSPL_1khz.png)
 
+## The data set of SQAT v1.x
+
+The nine files `1Bark_tone_prominence_XXdB_fc_1khz_44khz_64bit.wav` of the data set of SQAT v1.x (Zenodo, [doi:10.5281/zenodo.7933206](https://doi.org/10.5281/zenodo.7933206)) stay as published so that the v1.x record remains reproducible, and the script above no longer reads them. Measured on the files: 5 s at 44.1 kHz, one tone of 82.0 dB SPL at 1 kHz, and noise one Bark wide centred on the tone, whose level inside the critical band is 111 dB minus the label of the file, in steps of 10 dB. The signal to noise ratio inside the critical band, which is the abscissa of Fig. 1(a) of [2], is therefore the label minus 29 to 31 dB, and below the label of 30 dB the tone sits under the noise, so the total level of the file equals the level of the noise. Two further differences with [2]: the reference describes tones in broadband noise, and the files hold noise one critical band wide, which weighs differently in the loudness term of the model; and the comparison published with v1.x plotted the label on the axis where [2] has the signal to noise ratio.
+
 ## The weighting of bandwidth, against the data it was fitted to
 
 `validation_bandwidth_weighting.m` compares the implementation with Fig. 6 of [1], the relative tonality of bandpass noise against its bandwidth in Bark, normalised by a sine tone of the same frequency, which is the data the weighting w1 of eq. (7) was fitted to. The test signals follow [1]: ideal bandpass noise 30 Hz wide at ten centre frequencies from 150 Hz to 4.5 kHz, which covers bandwidths from 0.04 to 0.29 Bark, and a band 1 kHz wide at 4.2 kHz, 1.37 Bark, all at 14 sone, with three noise realisations each. The reference curve is eq. (7) itself; the points of Fig. 6 are shown as read off the figure.
@@ -60,4 +64,6 @@ The roll-off term is tracked in issue [#67](https://github.com/ggrecow/SQAT/issu
 
 - Sergio Aguirre, September 2026: both figures regenerated and the text of the bandwidth comparison rewritten after `Tonality_Aures1985.m` gained the extraction of narrow band components and the corrected noise term of the level excess.
 
-- Sergio Aguirre, September 2026: `validation_bandwidth_weighting.m` added, against Fig. 6 and eq. (7) of Aures.  
+- Sergio Aguirre, September 2026: `validation_bandwidth_weighting.m` added, against Fig. 6 and eq. (7) of Aures.
+
+- Sergio Aguirre, September 2026: section on the data set of SQAT v1.x added, with what the files contain and how their labels map to the abscissa of Fig. 1(a) of [2].  
