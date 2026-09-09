@@ -19,7 +19,7 @@ The four scripts generate the signals they use, so no external dataset is needed
 
 ## Behaviour as a tone emerges from noise
 
-`validation_signal_to_noise_ratio.m` compares the implementation with Fig. 1(a) of [2], for a pure tone of 85 dB SPL at 1 kHz in broadband noise. The root mean square deviation over the nine points is 0.0128 t.u. and the largest single deviation is 0.0213 t.u. The reference curve is the output of the implementation of [2], so this comparison is code against code.
+`validation_signal_to_noise_ratio.m` compares the implementation with Fig. 1(a) of [2], for a pure tone of 85 dB SPL at 1 kHz in broadband noise. The root mean square deviation over the nine points is 0.0129 t.u. and the largest single deviation is 0.0216 t.u. The reference curve is the output of the implementation of [2], so this comparison is code against code.
 
 ![](figs/tonality_validation_SNR_tone_85dBSPL_1khz.png)
 

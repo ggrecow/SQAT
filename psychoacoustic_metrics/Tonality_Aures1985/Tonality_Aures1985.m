@@ -591,8 +591,11 @@ for i = 1:NTones
 
     % Intensity of noise for each tone paragraph after eq 7b in Ref. [3] (Terhard's papers)
 
-    idx_cb = spectrumBark >= round( toneBark(i)-0.5 )...
-           & spectrumBark <= round( toneBark(i)+0.5 ); % idx of the critical band around the tonal component
+    % the critical band around the component, z minus 0.5 to z plus 0.5 Bark
+    % as Terhardt et al. (1982) define it; the edges were rounded to whole
+    % Bark before, which moved the band by up to half a Bark
+    idx_cb = spectrumBark >= toneBark(i)-0.5 ...
+           & spectrumBark <= toneBark(i)+0.5;
 
     idx_toneBark = find( round( spectrumBark==toneBark(i) )); % find idx of the tone on the Bark vector
 
