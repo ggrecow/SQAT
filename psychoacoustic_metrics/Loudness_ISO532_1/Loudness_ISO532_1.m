@@ -7,7 +7,6 @@ function OUT = Loudness_ISO532_1(insig, fs, field, method, time_skip, show)
 %  Reference signal: 40 dBSPL 1 kHz tone yields 1 sone
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%
 % INPUT ARGUMENTS
 %   insig : array
 %   for method = 0 [1xN] array, insig is an array containing N=28 third octave unweighted SPL from 25 Hz to 12500 Hz
@@ -75,12 +74,12 @@ function OUT = Loudness_ISO532_1(insig, fs, field, method, time_skip, show)
 % 
 % - Author: Gil Felix Greco, Braunschweig 22.02.2023 - adapted and validated
 %                   for SQAT. The validation was based on the test signals
-%                   provided from ISO 532-1:2017
+%                   provided by ISO 532-1:2017
 % 
 % - Author: Gil Felix Greco, Braunschweig 16.02.2025 - introduced get_statistics 
 %   function
 % 
-% - Author: Sergio Aguirre, 21.08.2026 - several modifications
+% - Author: Sergio Aguirre and Gil Felix Greco, 21.08.2026 - several modifications
 %   to mirror C reference code given by ISO 532-1, and improve performance
 %   (see PR 48 and 49)
 % 
@@ -91,7 +90,17 @@ function OUT = Loudness_ISO532_1(insig, fs, field, method, time_skip, show)
 % - Author: Sergio Aguirre, 28.08.2026 - corrected the <time_skip> handling in
 %   the stationary level calculation (method = 1). Results change for
 %   method = 1 with time_skip > 0 only. An over-long <time_skip> now raises an
-%   error, as in the reference code (see PR 52)
+%   error, as in the reference code (see PR #52)
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Copyright statement: This file and code is subject to the BSD-3 license in
+% its entirety, as detailed in the license text reproduced at the end of
+% this file.
+%
+% As per the licensing information, please be aware that this code is
+% WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 if nargin == 0
     help Loudness_ISO532_1;
