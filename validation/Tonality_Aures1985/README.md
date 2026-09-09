@@ -3,17 +3,18 @@ The `validation_signal_to_noise_ratio.m` code is used to verify the implementati
 
 - Pure tone (center frequency $f_{\mathrm{c}}=1~\mathrm{kHz}$ and sound pressure level $L_{\mathrm{p}}=85~\mathrm{dB}~\mathrm{SPL}$) in broadband noise, as a function of the signal-to-noise ratio inside the critical band centered about the tone, following Fig. 1(a) of [2].
 
-Four scripts are provided. The first compares the metric with published data, the other three were added in September 2026: one states the internal consistency of the implementation against properties that follow from the definition of the model, one compares the weighting of bandwidth with the data of Aures it was fitted to, and one compares the dependence of tonality on bandwidth with the subjective data of Hastings. The last three generate the signals they use and need no external dataset.
+Five scripts are provided. The first compares the metric with published data, the other four were added in September 2026: one states the internal consistency of the implementation against properties that follow from the definition of the model, one compares the extraction of components and the level excess with the intermediate values of an independent implementation, one compares the weighting of bandwidth with the data of Aures it was fitted to, and one compares the dependence of tonality on bandwidth with the subjective data of Hastings. None of them needs an external dataset: three generate the signals they use, and the fourth reads two published spectra kept in `reference_values`.
 
 | script | reference | what it constrains |
 | --- | --- | --- |
 | [`validation_signal_to_noise_ratio.m`](validation_signal_to_noise_ratio.m) | Hastings *et al.* [2], Fig. 1(a) | the behaviour of the metric as a tone emerges from noise |
 | [`validation_internal_consistency.m`](validation_internal_consistency.m) | derived in the script itself | the definitional anchor of 1 t.u., determinism, the sum over the tonal components of eq. (11), and the independence from the position of a tone in the analysis grid |
+| [`validation_extraction_and_level_excess.m`](validation_extraction_and_level_excess.m) | Zhang and Shrestha [5], Appendix C and Tables 6.2 and 6.3 | the extraction of components and the level excess of Terhardt [4], code against an independent implementation |
 | [`validation_bandwidth_weighting.m`](validation_bandwidth_weighting.m) | Aures [1], Fig. 6 and eq. (7) | the weighting w1, on ideal bands of noise of known bandwidth in Bark |
 | [`validation_bandwidth_dependence.m`](validation_bandwidth_dependence.m) | Hastings [3], Table B.52 of the thesis | the fall of the tonality as a trapezoidal band of noise widens, against subjective scores |
 
 # How to use this code
-The four scripts generate the signals they use, so no external dataset is needed.
+No external dataset is needed: four scripts generate the signals they use, and `validation_extraction_and_level_excess.m` reads the two spectra of [5] from `reference_values`.
 
 # Results
 
@@ -26,6 +27,16 @@ The four scripts generate the signals they use, so no external dataset is needed
 ## The data set of SQAT v1.x
 
 The nine files `1Bark_tone_prominence_XXdB_fc_1khz_44khz_64bit.wav` of the data set of SQAT v1.x (Zenodo, [doi:10.5281/zenodo.7933206](https://doi.org/10.5281/zenodo.7933206)) stay as published so that the v1.x record remains reproducible, and the script above no longer reads them. Measured on the files: 5 s at 44.1 kHz, one tone of 82.0 dB SPL at 1 kHz, and noise one Bark wide centred on the tone, whose level inside the critical band is 111 dB minus the label of the file, in steps of 10 dB. The signal to noise ratio inside the critical band, which is the abscissa of Fig. 1(a) of [2], is therefore the label minus 29 to 31 dB, and below the label of 30 dB the tone sits under the noise, so the total level of the file equals the level of the noise. Two further differences with [2]: the reference describes tones in broadband noise, and the files hold noise one critical band wide, which weighs differently in the loudness term of the model; and the comparison published with v1.x plotted the label on the axis where [2] has the signal to noise ratio.
+
+## The extraction of components and the level excess, against an independent implementation
+
+`validation_extraction_and_level_excess.m` injects the two power spectra that Zhang and Shrestha [5] print in their Appendix C, 401 samples 10.77 Hz apart, into the extraction stage and the level excess stage of the metric, through the local functions that `Tonality_Aures1985('localfunctions')` hands out, and compares the result with their Tables 6.2 and 6.3. Reference [5] implements the extraction and masking stages of Terhardt [4] from the papers, at IMM/DTU with Bruel and Kjaer, independently of the lineage this code descends from, so it is the only source at hand that can tell an error of this implementation from one shared with its ancestors. Test 1 uses 3 dB in the criterion, which is what [5] used for its tables (p. 49 of the thesis); Test 2 uses the 7 dB of [4].
+
+![](figs/tonality_validation_extraction_ZhangShrestha2003.png)
+
+Three results. The extraction finds the fourteen components of Table 6.2 and the four of Table 6.3, each within one sample in frequency and with the same level to 0.01 dB. The excitation and threshold terms of the level excess reproduce the values of [5] within 0.20 dB on the components masked by the other components, with the noise term left out. The noise term of the metric equals the sum that eq. (4) of [4] defines, the intensities of the samples within half a Bark on each side of the component with the five central samples of every component skipped, to 0.000 dB on the four components of Test 2 with a positive excess; the edges of that band were rounded to whole Bark before September 2026, which moved the band by up to half a Bark.
+
+The level excess of [5] cannot verify the noise term. With that term replaced by one constant of 18.5 dB the formula reproduces all twelve published values within 1.6 dB, while the sum the definition asks for reads 31 to 62 dB on those spectra. The noise term of [5] does not follow its own eq. (4), so its level excesses hold no information about that term, and the script reports this rather than asserting on it.
 
 ## The weighting of bandwidth, against the data it was fitted to
 
@@ -56,6 +67,8 @@ The roll-off term is tracked in issue [#67](https://github.com/ggrecow/SQAT/issu
 
 [4] Terhardt, E., Stoll, G., & Seewann, M. (1982). Algorithm for extraction of pitch and pitch salience from complex tonal signals. [The Journal of the Acoustical Society of America](https://doi.org/10.1121/1.387544), 71(3), 679-688.
 
+[5] Zhang, Z., & Shrestha, M. (2003). Sound Quality User-defined Cursor Reading Control, Tonality Metric. Master thesis, IMM-Thesis-2003-22, Technical University of Denmark, with Bruel and Kjaer. [PDF at the IMM publication database](http://www2.imm.dtu.dk/pubdb/edoc/imm2385.pdf).
+
 # Log
 
 - Gil Felix Greco, 14.05.2023: `validation_signal_to_noise_ratio.m` code released in SQAT v1.0,  
@@ -66,4 +79,6 @@ The roll-off term is tracked in issue [#67](https://github.com/ggrecow/SQAT/issu
 
 - Sergio Aguirre, September 2026: `validation_bandwidth_weighting.m` added, against Fig. 6 and eq. (7) of Aures.
 
-- Sergio Aguirre, September 2026: section on the data set of SQAT v1.x added, with what the files contain and how their labels map to the abscissa of Fig. 1(a) of [2].  
+- Sergio Aguirre, September 2026: section on the data set of SQAT v1.x added, with what the files contain and how their labels map to the abscissa of Fig. 1(a) of [2].
+
+- Sergio Aguirre, September 2026: `validation_extraction_and_level_excess.m` added, against the spectra and tables of Zhang and Shrestha [5], with the two spectra kept in `reference_values`.  
