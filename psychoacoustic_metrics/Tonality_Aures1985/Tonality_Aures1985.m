@@ -113,6 +113,10 @@ t_b = ( 1:length(insig) )/fs; % time vector
  
 overlap = round(0.5*N);       % overlap 
 
+if length(insig) <= N
+    error('Input must be longer than one analysis window of %g s (%d samples at %d Hz).', N/fs, N, fs);
+end
+
 insig = buffer(insig,N,overlap,'nodelay');
 t_b = buffer(t_b,N,overlap,'nodelay');
 
@@ -703,9 +707,14 @@ for k = (1+side):(nBins-side)
     Yav(k) = 10*log10( sum(10.^(SPL(k-side:k+side)./10)) ) - 10*log10(BWt);
 end
 
-% -100 marks a bin the search must not enter, either out of range or already taken
+% the peak search stays inside the frequency range of the model, marked with
+% -100 in Ysearch; the walks that bound a region may cross the edges of that
+% range, so a component sitting at an edge keeps its whole footprint. A bin
+% that belongs to a region already found is marked in taken, and neither the
+% search nor the walks enter it again.
 Ysearch = Yav;
 Ysearch( f < fmin | f > fmax ) = -100;
+taken = false(nBins,1);
 
 Ywork = SPL;   % the residue, which the floors below are written into
 zAll  = il_Fq2Bark(f);
@@ -726,7 +735,7 @@ for iComp = 1:MaxToneCount
             LeftPowerIndex = 1; break
         elseif Yav(PeakIndex-ink)+3 < Ymax
             LeftPowerIndex = PeakIndex-ink; break
-        elseif Ysearch(PeakIndex-ink) == -100
+        elseif taken(PeakIndex-ink)
             LeftPowerIndex = PeakIndex-ink; LToneFlag = 1; break
         end
     end
@@ -737,7 +746,7 @@ for iComp = 1:MaxToneCount
             RightPowerIndex = nBins; break
         elseif Yav(PeakIndex+ink)+3 < Ymax
             RightPowerIndex = PeakIndex+ink; break
-        elseif Ysearch(PeakIndex+ink) == -100
+        elseif taken(PeakIndex+ink)
             RightPowerIndex = PeakIndex+ink; RToneFlag = 1; break
         end
     end
@@ -758,7 +767,7 @@ for iComp = 1:MaxToneCount
         LeftNoiseFloor = tmp(ti);
         LeftRegion = StartLeft;
         for k = LeftPowerIndex:-1:StartLeft
-            if Ysearch(k) == -100, LeftRegion = k+1; break; end
+            if taken(k), LeftRegion = k+1; break; end
             if Yav(k) <= LeftNoiseFloor
                 LeftRegion = k; break
             end
@@ -781,7 +790,7 @@ for iComp = 1:MaxToneCount
         RightNoiseFloor = tmp(ti);
         RightRegion = StopRight;
         for k = RightPowerIndex:StopRight
-            if Ysearch(k) == -100, RightRegion = k-1; break; end
+            if taken(k), RightRegion = k-1; break; end
             if Yav(k) <= RightNoiseFloor
                 RightRegion = k; break
             end
@@ -789,6 +798,7 @@ for iComp = 1:MaxToneCount
     end
 
     % the region is taken out of the search whether or not it turns out tonal
+    taken(LeftRegion:RightRegion) = true;
     Ysearch(LeftRegion:RightRegion) = -100;
 
     idx    = (LeftRegion:RightRegion).';
