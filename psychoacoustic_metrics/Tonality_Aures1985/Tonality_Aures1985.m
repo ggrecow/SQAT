@@ -157,15 +157,25 @@ for iFrame = 1:nFrames
     ToneIdx = zeros(length(SPLcrop),1); % initialize vector, tonal components idx
     k = 1; % initialize counter
     
-    % find tones...
-    for i = (k3+1):(length(SPLcrop)-k3)
+    % find tones... The bins the criterion compares with are read from the
+    % full spectrum, so that a tone near the lower edge of the range still has
+    % neighbours below it: with the distances in hertz the criterion reaches
+    % 37.5 Hz down, and read from the cropped vector alone it could not fire
+    % below 57.5 Hz.
+    for i = 1:length(SPLcrop)
         
-        if SPLcrop(i) > SPLcrop(i-1) && ... % first condition
-           SPLcrop(i) >= SPLcrop(i+1) && ...
-           SPLcrop(i) - SPLcrop(i-k3) >= threshold && ... % second condition
-           SPLcrop(i) - SPLcrop(i-k2) >= threshold && ...
-           SPLcrop(i) - SPLcrop(i+k2) >= threshold && ...
-           SPLcrop(i) - SPLcrop(i+k3) >= threshold
+        j = i + MinFrequencyindex - 1; % index of the same bin on the full spectrum
+        
+        if j-k3 < 1 || j+k3 > length(SPL)
+            continue
+        end
+        
+        if SPL(j) > SPL(j-1) && ... % first condition
+           SPL(j) >= SPL(j+1) && ...
+           SPL(j) - SPL(j-k3) >= threshold && ... % second condition
+           SPL(j) - SPL(j-k2) >= threshold && ...
+           SPL(j) - SPL(j+k2) >= threshold && ...
+           SPL(j) - SPL(j+k3) >= threshold
             
            ToneIdx(k) = i; % get the idx of the tones on Lcrop
            k = k+1;
