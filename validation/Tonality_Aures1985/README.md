@@ -18,7 +18,7 @@ The three scripts generate the signals they use, so no external dataset is neede
 
 ## Behaviour as a tone emerges from noise
 
-`validation_signal_to_noise_ratio.m` compares the implementation with Fig. 1(a) of [2], for a pure tone of 85 dB SPL at 1 kHz in broadband noise. The root mean square deviation over the nine points is 0.0151 t.u. and the largest single deviation is 0.0188 t.u.
+`validation_signal_to_noise_ratio.m` compares the implementation with Fig. 1(a) of [2], for a pure tone of 85 dB SPL at 1 kHz in broadband noise. The root mean square deviation over the nine points is 0.0128 t.u. and the largest single deviation is 0.0213 t.u. The reference curve is the output of the implementation of [2], so this comparison is code against code.
 
 ![](figs/tonality_validation_SNR_tone_85dBSPL_1khz.png)
 
@@ -28,15 +28,11 @@ The three scripts generate the signals they use, so no external dataset is neede
 
 ![](figs/tonality_validation_bandwidth_dependence_700Hz.png)
 
-**This comparison fails, and it is kept because of what it records.** The reference falls from 0.58 to 0.38 of the tonality of a pure tone across the sweep, and the implementation stays between 0.004 and 0.042 without order. A band of 1.3 Hz, which is perceptually a tone, scores a few per cent of what a pure tone scores. The distance grew when the weighting w1 was repaired, and that is the expected direction: the components the peak criterion does find in a band of noise are not tonal components, and a weighting that works suppresses them, while the regions that are tonal are still not found at all.
+**This comparison fails, and it is kept because of what it records.** The reference falls from 0.58 to 0.38 of the tonality of a pure tone across the sweep. The implementation reads between 0.07 and 0.11 up to half a critical bandwidth and falls to zero from three quarters on, where the component it finds is as wide as a critical band and the model counts it as noise. The gap between the mean of the reference and the mean of the model is 0.47. It was 0.49 before the extraction of narrow band components was implemented in September 2026, when the implementation stayed between 0.004 and 0.042 without order.
 
-Two reasons, and they are of different kinds.
+The reason is a limit of the model, and these stimuli make it visible. With a roll-off of 100 dB per octave the skirts carry most of the power of the band: the stimulus with a peak bandwidth of 1 per cent of the critical bandwidth, 1.3 Hz, holds the middle 90 per cent of its power over 86 Hz, which is 0.66 Bark, and the stimulus with a peak bandwidth of 25 per cent holds it over 93 Hz, 0.71 Bark. The implementation extracts each of them as one component of that width, following the second extraction step of Aures [1], and the weighting w1 of eq. (7) gives both about 0.16. Listeners respond to the sharp tip and score the narrowest stimulus at 0.58 of a pure tone. The weighting of Aures accounts for the bandwidth of a component and has no term for the rate at which its skirt falls. In the same table of [3], with the bandwidth held at 1 per cent of the critical bandwidth, the score runs from 0.05 to 0.87 of the scale as the roll-off goes from 20 to 250 dB per octave, while with the roll-off held at 100 dB per octave the whole bandwidth sweep covers 0.58 to 0.38. Reference [3] states this and proposes a modified weighting that carries a roll-off term. This figure is not expected to close with the model as published.
 
-The first is an omission of this implementation. Aures [1] describes a second extraction step, in the paragraph after Fig. 8: once the sinusoidal components have been removed, the residue is searched for regions narrower than a critical band whose level exceeds each neighbouring critical band by at least 7 dB, and those regions are counted among the tonal components. That step is not implemented here. What is implemented is the peak criterion of Terhardt [4], which asks for 7 dB above the bins two and three away. At 700 Hz with the present analysis window that distance is 0.038 octave, where a skirt of 100 dB per octave falls 3.8 dB, so the criterion does not fire and a narrow band of noise is never promoted to a tonal component.
-
-The second is a limit of the model. The weighting of Aures accounts for the bandwidth of a component and has no term for the rate at which its skirt falls. In the same table of [3], with the bandwidth held at 1 per cent of the critical bandwidth, the score runs from 0.05 to 0.87 of the scale as the roll-off goes from 20 to 250 dB per octave, while with the roll-off held at 100 dB per octave the whole bandwidth sweep covers 0.58 to 0.38. Reference [3] states this and proposes a modified weighting that carries a roll-off term. So this figure is expected to improve when the missing extraction step is implemented, and it is not expected to close.
-
-The work on both points is tracked in issue [#67](https://github.com/ggrecow/SQAT/issues/67).
+The roll-off term is tracked in issue [#67](https://github.com/ggrecow/SQAT/issues/67).
 
 # References
 [1] Aures, W. (1985). Berechnungsverfahren für den sensorischen Wohlklang beliebiger Schallsignale (A model for calculating the sensory euphony of various sounds). [Acta Acustica united with Acustica](https://www.ingentaconnect.com/content/dav/aaua/1985/00000059/00000002/art00008), 59(2), 130-141.
@@ -51,4 +47,6 @@ The work on both points is tracked in issue [#67](https://github.com/ggrecow/SQA
 
 - Gil Felix Greco, 14.05.2023: `validation_signal_to_noise_ratio.m` code released in SQAT v1.0,  
 
-- Sergio Aguirre, September 2026: `validation_internal_consistency.m` and `validation_bandwidth_dependence.m` added after corrections on the main code (see the log of `Tonality_Aures1985.m`). Unlike previous versions, test signals for `validation_signal_to_noise_ratio.m` are now generated locally by the script. The zenodo dataset (https://doi.org/10.5281/zenodo.7933206) has deliberately not been updated so that the SQAT v1.x record remains reproducible as published.  
+- Sergio Aguirre, September 2026: `validation_internal_consistency.m` and `validation_bandwidth_dependence.m` added after corrections on the main code (see the log of `Tonality_Aures1985.m`). Unlike previous versions, test signals for `validation_signal_to_noise_ratio.m` are now generated locally by the script. The zenodo dataset (https://doi.org/10.5281/zenodo.7933206) has deliberately not been updated so that the SQAT v1.x record remains reproducible as published.
+
+- Sergio Aguirre, September 2026: both figures regenerated and the text of the bandwidth comparison rewritten after `Tonality_Aures1985.m` gained the extraction of narrow band components and the corrected noise term of the level excess.  

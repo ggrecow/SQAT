@@ -58,6 +58,10 @@ function OUT = Tonality_Aures1985(insig,fs,LoudnessField,time_skip,show)
 % Author: Sergio Aguirre, September 2026 - the sound pressure excess is now
 %   stored per tonal component, and the bins that replace a tone keep the
 %   phase they already had, so the function is deterministic
+% Author: Sergio Aguirre, September 2026 - the regions of the spectrum that
+%   are narrower than a critical band are extracted as tonal components as
+%   well, as Aures asks in section 2.3.2, and the noise term of the level
+%   excess is summed over the spectrum those extractions leave behind
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 if nargin < 5
@@ -86,6 +90,7 @@ N=round(fs*time_resolution); % define window length, N bins
 window = hann(N);
 
 fftgain = 2^0.5/(N*mean(hann(N))); % gain to be applied based on the FFT length
+ENBW = N*sum(window.^2)/sum(window)^2; % equivalent noise bandwidth of the window, in bins (1.5 for Hann)
 
 %% freq vectors based on window input signals
 
@@ -225,7 +230,42 @@ for iFrame = 1:nFrames
                               % four bins wide for a Hann window. BW itself stays the
                               % measured width, which is what the weighting w1 needs
         
-    if isempty(ToneIdx)==1  % if ToneRef is empty, then there are no tones for this time-frame
+    % Aures (1985), section 2.3.2: besides the sinusoidal components, the
+    % spectrum holds regions narrower than a critical band whose critical band
+    % stands at least 7 dB above each of the two neighbouring critical bands.
+    % Those regions count as tonal components as well, and what is left once
+    % they are taken out is the noise spectrum of the model. The geometry
+    % follows FindBand_V, appendix A.3.8 of the Purdue thesis of Hastings
+    % (2004), the only published operational form of this step.
+    %
+    % The paper states the criterion and leaves open how it ranks against the
+    % sinusoidal extraction, and that has to be settled here: the criterion of
+    % Terhardt compares a peak with the bins 25 and 37.5 Hz away, so inside a
+    % band narrower than that reach it measures the edges of the band and every
+    % local maximum of the noise passes it. A region therefore stands as one
+    % component and the sinusoids inside it are dropped, since the region
+    % already carries their power; a sinusoid stands where no region covers it.
+    % For a pure tone the two paths agree: the region around it has the width
+    % of the analysis window, which the weighting below takes out again, and
+    % its level is the SPL of the tone.
+
+    nHalf = ceil( (N+1)/2 );  % bins of the single sided spectrum
+    [nbF,nbBW,nbL,nbIdx,nbBridge] = il_find_narrowband( SPL(1:nHalf),...
+                              Freq(1:nHalf), threshold, MinFrequency, MaxFrequency );
+
+    % the level of a region is a sum of bin powers of a windowed spectrum, so
+    % it is divided by the equivalent noise bandwidth of the window to read as
+    % the level of the component; a pure tone then reads its own SPL
+    nbL = nbL - 10*log10(ENBW);
+
+    for i = 1:numel(nbF)   % a region carries the power of the sinusoids in it
+        ToneIdx( ToneF >= Freq(nbIdx{i}(1)) & ToneF <= Freq(nbIdx{i}(end)) ) = 0;
+    end
+    absorbed = (ToneIdx==0);
+    ToneIdx(absorbed) = [];  ToneL(absorbed) = [];  ToneF(absorbed) = [];
+    BW(absorbed) = [];  BWnotch(absorbed) = [];  NTones(absorbed) = [];
+
+    if isempty(ToneIdx)==1 && isempty(nbF)  % if ToneRef is empty, then there are no tones for this time-frame
         
         %% OUTPUTS for this case
         
@@ -246,7 +286,7 @@ for iFrame = 1:nFrames
         BW = BW(idx);           % bandwidth
         BWnotch = BWnotch(idx);
         
-        if isempty(ToneIdx)==1  % if ToneRef is empty (there are no tonal
+        if isempty(ToneIdx)==1 && isempty(nbF)  % if ToneRef is empty (there are no tonal
                                 % components with SPL>0 dB), then there are 
                                 % no tones for this time-frame
             %% OUTPUTS for this case
@@ -303,6 +343,39 @@ for iFrame = 1:nFrames
             % figure; semilogy(FreqSingleSidedinsigSpectrum,abs(SingleSidedinsigSpectrum).^2);
             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             
+            % Footprint of the estimator that measured each width, taken out of
+            % it before the width is turned into Bark. The half power estimator
+            % of the sinusoids reads 0.997 to 1.43 bins for a pure tone, the
+            % quantile estimator of the regions reads 2.082 to 2.667 bins over
+            % 300 Hz to 3 kHz and every position between two bins. The larger of
+            % the two is taken for each, so that a pure tone always comes out
+            % with no width left and w1 stays at one for it.
+            
+            ToneF = ToneF(:); ToneL = ToneL(:); BW = BW(:);
+            Wfoot = repmat( 1.43*df, numel(ToneF), 1 );
+            
+            % the regions are replaced by the floor the detector measured, so
+            % that what is left of the spectrum is the noise of the model
+            for i = 1:numel(nbF)
+                rr = nbIdx{i};
+                magn = sqrt( 10.^(nbBridge{i}(:)./10).*4e-10 )./fftgain;
+                phase = angle( SingleSidedinsigSpectrum(rr) );
+                SingleSidedinsigSpectrum(rr) = magn.*exp(1j.*phase);
+            end
+            
+            if ~isempty(nbF)
+                ToneF = [ToneF; nbF];
+                ToneL = [ToneL; nbL];
+                BW = [BW; nbBW];
+                Wfoot = [Wfoot; repmat( 2.667*df, numel(nbF), 1 )];
+                [ToneF,iSort] = sort(ToneF);
+                ToneL = ToneL(iSort); BW = BW(iSort); Wfoot = Wfoot(iSort);
+            end
+            
+            % the noise spectrum of the model, which the level excess reads
+            FreqNoise = FreqSingleSidedinsigSpectrum(:);
+            SPLnoise = 10.*log10( (abs(SingleSidedinsigSpectrum(:)).*fftgain).^2./4e-10 + TINY_VALUE );
+            
             doubleSideFilteredSpectrum = [SingleSidedinsigSpectrum; conj(flipud(SingleSidedinsigSpectrum(2:end-1)))]; % double-side the filtered spectrum
             
             %%%% check plot (only for debugging) %%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -355,6 +428,9 @@ for iFrame = 1:nFrames
             tone{iFrame,1}.ToneL = ToneL;    %  ToneL: SPL of the tones
             tone{iFrame,1}.BW = BW;          %  bandwidth of the tones
             tone{iFrame,1}.df = df;          %  freq discretization
+            tone{iFrame,1}.Wfoot = Wfoot;    %  footprint of the width estimator of each component, Hz
+            tone{iFrame,1}.Lnoise = interp1( FreqNoise, SPLnoise,...
+                                             FreqCrop, 'linear', 'extrap' ); % noise spectrum on the cropped axis
                           
             tone{iFrame,1}.LX=il_SPL_excess(tone{iFrame,1}); %  Sound pressure excess calculation (define aurally relevance of the tones)
                                
@@ -461,8 +537,11 @@ function LX=il_SPL_excess(input)
 % Gil Felix Greco - Braunschweig 10.06.2020
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-pref = 2e-5; % reference pressure, Pa
-Intensity = pref.*10.^(input.Lcrop./10);
+% Terhardt et al. (1982), eq. (4), asks for a dimensionless intensity summed
+% over the spectrum that holds the noise. The sum below runs over the spectrum
+% the extraction stages left behind, and it carries no reference pressure: the
+% terms it is added to further down are dimensionless as well.
+Intensity = 10.^(input.Lnoise./10);
 
 freq_Lx = input.freq;   % freq vector of the tone
 ToneF = input.ToneF;    % tone(s) central frequency
@@ -536,7 +615,6 @@ function [w_tonal]=il_tonal_weighting(input)
 bw=input.BW;      % bandwidth of the tones [Hz]
 fc=input.ToneF;   % central frequency of the tonal components
 delta_L=input.LX; % SPL excess for each tonal component
-df=input.df;      % freq discretization
 
 %% w1 accounts for each tonal component bandwidth
 
@@ -545,8 +623,8 @@ df=input.df;      % freq discretization
 % The width to remove is the one the estimator reads on a pure tone, which
 % depends on where the tone falls between two bins and reaches 1.43 bins for a
 % Hann window. Taking that worst case makes any pure tone give dz = 0.
-Wwin  = 1.43*df;
-Wtrue = sqrt( max(bw.^2 - Wwin^2, 0) );
+Wfoot = input.Wfoot(:);
+Wtrue = sqrt( max(bw(:).^2 - Wfoot.^2, 0) );
 zup   = il_Fq2Bark(fc+(Wtrue./2));
 zlow  = il_Fq2Bark(fc-(Wtrue./2));
 dz    = zup - zlow;
@@ -572,6 +650,219 @@ ww3 = w3.^(1./0.29);
 w_tonal= sqrt(sum( (ww1 .* ww2 .* ww3).^2 ) );
 
 end % End il_tonal_weightin
+
+%% function: find the narrow band components of a spectrum
+
+function [nbF,nbBW,nbL,nbIdx,nbBridge] = il_find_narrowband(SPL,f,threshold,fmin,fmax)
+% function [nbF,nbBW,nbL,nbIdx,nbBridge] = il_find_narrowband(SPL,f,threshold,fmin,fmax)
+%
+%   Narrow band components of the residual spectrum. Aures (1985b), section
+%   2.3.2, asks for the residue to be searched for regions narrower than a
+%   critical band whose neighbouring critical bands are at least 7 dB lower.
+%   The paper states the criterion and leaves the geometry open. The geometry
+%   used here follows FindBand_V, appendix A.3.8 of the Purdue thesis of
+%   Hastings (2004), which is the only published operational form: a band sum
+%   over three bins, a half power walk that sets the width and the centre, and
+%   an extension out to a noise floor taken as the level exceeded by 90 % of
+%   the half critical band beyond the half power point.
+%
+%   INPUT
+%     SPL       : [Nx1] sound pressure level of the residual spectrum, dB
+%     f         : [Nx1] frequency vector, Hz
+%     threshold : level a region must have over each neighbouring critical
+%                 band to count as a component, dB
+%     fmin,fmax : frequency range of the search, Hz
+%
+%   OUTPUT
+%     nbF      : centre frequency of each component, Hz, geometric mean of
+%                the two half power points
+%     nbBW     : half power width of each component, Hz
+%     nbL      : level of each component over the floor, dB
+%     nbIdx    : index range each component occupies
+%     nbBridge : level of the floor over that range, dB
+
+SPL = SPL(:); f = f(:);
+nBins = numel(SPL);
+df    = f(2)-f(1);
+
+MinPeakLevel = 0;     % dB, the search stops below this peak level
+MaxToneCount = 20;    % the default of 1 of the reference is not usable here
+Fraction     = 0.5;   % of a critical band, the span of the noise floor estimate
+PercentBelow = 0.1;   % the noise floor is the level exceeded by 90 % of it
+BWt          = 3;     % bins of the smoothing band sum, must be odd
+
+side = (BWt-1)/2;
+
+nbF = zeros(MaxToneCount,1); nbBW = nbF; nbL = nbF;
+nbIdx = cell(MaxToneCount,1); nbBridge = cell(MaxToneCount,1);
+nFound = 0;
+
+% band sum over BWt bins, expressed as a mean per bin (step 1 of the reference)
+Yav = SPL;
+for k = (1+side):(nBins-side)
+    Yav(k) = 10*log10( sum(10.^(SPL(k-side:k+side)./10)) ) - 10*log10(BWt);
+end
+
+% -100 marks a bin the search must not enter, either out of range or already taken
+Ysearch = Yav;
+Ysearch( f < fmin | f > fmax ) = -100;
+
+Ywork = SPL;   % the residue, which the floors below are written into
+zAll  = il_Fq2Bark(f);
+
+for iComp = 1:MaxToneCount
+
+    [Ymax,PeakIndex] = max(Ysearch);
+    if Ymax < MinPeakLevel
+        break
+    end
+
+    % half power point on each side, or the edge of an identified region
+    LToneFlag = 0; RToneFlag = 0;
+    ink = 0;
+    while true
+        ink = ink+1;
+        if PeakIndex-ink <= 0
+            LeftPowerIndex = 1; break
+        elseif Yav(PeakIndex-ink)+3 < Ymax
+            LeftPowerIndex = PeakIndex-ink; break
+        elseif Ysearch(PeakIndex-ink) == -100
+            LeftPowerIndex = PeakIndex-ink; LToneFlag = 1; break
+        end
+    end
+    ink = 0;
+    while true
+        ink = ink+1;
+        if PeakIndex+ink > nBins
+            RightPowerIndex = nBins; break
+        elseif Yav(PeakIndex+ink)+3 < Ymax
+            RightPowerIndex = PeakIndex+ink; break
+        elseif Ysearch(PeakIndex+ink) == -100
+            RightPowerIndex = PeakIndex+ink; RToneFlag = 1; break
+        end
+    end
+
+    % noise floor on the left, over a fraction of a critical band
+    if f(LeftPowerIndex) < 500
+        StartLeft = LeftPowerIndex - round(Fraction*100/df);
+    else
+        StartLeft = LeftPowerIndex - round(Fraction*0.2*f(LeftPowerIndex)/df);
+    end
+    StartLeft = max(StartLeft,1);
+
+    if LToneFlag == 1
+        LeftRegion = LeftPowerIndex;
+    else
+        tmp = sort( Yav(StartLeft:LeftPowerIndex) );
+        ti  = max( floor(PercentBelow*numel(tmp))-1, 1 );
+        LeftNoiseFloor = tmp(ti);
+        LeftRegion = StartLeft;
+        for k = LeftPowerIndex:-1:StartLeft
+            if Ysearch(k) == -100, LeftRegion = k+1; break; end
+            if Yav(k) <= LeftNoiseFloor
+                LeftRegion = k; break
+            end
+        end
+    end
+
+    % noise floor on the right, same construction
+    if f(RightPowerIndex) < 500
+        StopRight = RightPowerIndex + round(Fraction*100/df);
+    else
+        StopRight = RightPowerIndex + round(Fraction*0.2*f(RightPowerIndex)/df);
+    end
+    StopRight = min(StopRight,nBins);
+
+    if RToneFlag == 1
+        RightRegion = RightPowerIndex;
+    else
+        tmp = sort( Yav(RightPowerIndex:StopRight) );
+        ti  = max( floor(PercentBelow*numel(tmp))-1, 1 );
+        RightNoiseFloor = tmp(ti);
+        RightRegion = StopRight;
+        for k = RightPowerIndex:StopRight
+            if Ysearch(k) == -100, RightRegion = k-1; break; end
+            if Yav(k) <= RightNoiseFloor
+                RightRegion = k; break
+            end
+        end
+    end
+
+    % the region is taken out of the search whether or not it turns out tonal
+    Ysearch(LeftRegion:RightRegion) = -100;
+
+    idx    = (LeftRegion:RightRegion).';
+    span   = max(RightRegion-LeftRegion,1);
+    bridge = Ywork(LeftRegion) + ...
+             ( Ywork(RightRegion)-Ywork(LeftRegion) ).*(idx-LeftRegion)./span;
+
+    fc  = sqrt( f(LeftPowerIndex)*f(RightPowerIndex) );
+    bwp = f(RightPowerIndex) - f(LeftPowerIndex);
+    CBW = 25 + 75*(1+1.4*(fc/1000)^2)^0.69;
+
+    if fc <= 0 || bwp <= 0 || bwp >= CBW
+        continue   % a region as wide as a critical band is noise
+    end
+
+    % the two conditions of Aures, the region against its neighbouring bands
+    zc   = il_Fq2Bark(fc);
+    own  = zAll >= zc-0.5  & zAll <= zc+0.5;
+    low  = zAll >= zc-1.5  & zAll <  zc-0.5;
+    upp  = zAll >  zc+0.5  & zAll <= zc+1.5;
+    if ~any(low) || ~any(upp)
+        continue
+    end
+    Lown = 10*log10( sum(10.^(Ywork(own)./10)) );
+    Llow = 10*log10( sum(10.^(Ywork(low)./10)) );
+    Lupp = 10*log10( sum(10.^(Ywork(upp)./10)) );
+    if ~( Lown-Llow >= threshold && Lown-Lupp >= threshold )
+        continue
+    end
+
+    % level of the component over the floor, taken over the half power band
+    inHalf = idx >= LeftPowerIndex & idx <= RightPowerIndex;
+    Pold   = sum( 10.^(Ywork(LeftPowerIndex:RightPowerIndex)./10) );
+    Pnew   = sum( 10.^(bridge(inHalf)./10) );
+    if Pold <= Pnew
+        continue
+    end
+
+    % Width of the component. The half power walk of the reference measures the
+    % width of a fluctuation peak once the component is noise, and saturates:
+    % ideal bands of 33, 66 and 133 Hz all read 11 Hz at a resolution of 1 Hz.
+    % The width used here is the span of the middle 90 % of the power of the
+    % region, divided by 0.9 so that a rectangular band reads its own width. It
+    % reads those same three bands within 12 %, and it does not move when the
+    % component sits in broadband noise, where the moments of the distribution
+    % are carried by the tails. Aures states the criterion for these components
+    % and leaves the measurement of their width open, so this is a choice made
+    % here and not something the paper prescribes.
+    Preg = 10.^(Ywork(idx)./10) - 10.^(bridge./10);
+    Preg(Preg<0) = 0;
+    if sum(Preg) <= 0
+        continue
+    end
+    freg = f(idx);
+    cw   = cumsum(Preg)./sum(Preg) + (1:numel(Preg)).'.*1e-12;  % strictly rising
+    flo90 = interp1(cw,freg,0.05,'linear','extrap');
+    fhi90 = interp1(cw,freg,0.95,'linear','extrap');
+    wrms  = (fhi90-flo90)./0.9;
+
+    Ywork(LeftRegion:RightRegion) = bridge;   % the residue keeps only the floor
+
+    nFound = nFound+1;
+    nbF(nFound)      = fc;
+    nbBW(nFound)     = wrms;
+    nbL(nFound)      = 10*log10( Pold-Pnew );
+    nbIdx{nFound}    = idx;
+    nbBridge{nFound} = bridge;
+
+end
+
+nbF = nbF(1:nFound); nbBW = nbBW(1:nFound); nbL = nbL(1:nFound);
+nbIdx = nbIdx(1:nFound); nbBridge = nbBridge(1:nFound);
+
+end
 
 %% function: convert frequency to bark
 
