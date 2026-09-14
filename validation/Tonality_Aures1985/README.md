@@ -3,16 +3,17 @@ The `validation_signal_to_noise_ratio.m` code is used to verify the implementati
 
 - Pure tone (center frequency $f_{\mathrm{c}}=1~\mathrm{kHz}$ and sound pressure level $L_{\mathrm{p}}=85~\mathrm{dB}~\mathrm{SPL}$) in broadband noise, as a function of the signal-to-noise ratio inside the critical band centered about the tone, following Fig. 1(a) of [2].
 
-Three scripts are provided. The first compares the metric with published data, the other two were added in September 2026: one states the internal consistency of the implementation against properties that follow from the definition of the model, and the other compares the dependence of tonality on bandwidth with the subjective data of Hastings. The last two generate the signals they use and need no external dataset.
+Four scripts are provided. The first compares the metric with published data, the other three were added in September 2026: one states the internal consistency of the implementation against properties that follow from the definition of the model, one compares the weighting of bandwidth with the data of Aures it was fitted to, and one compares the dependence of tonality on bandwidth with the subjective data of Hastings. The last three generate the signals they use and need no external dataset.
 
 | script | reference | what it constrains |
 | --- | --- | --- |
 | [`validation_signal_to_noise_ratio.m`](validation_signal_to_noise_ratio.m) | Hastings *et al.* [2], Fig. 1(a) | the behaviour of the metric as a tone emerges from noise |
 | [`validation_internal_consistency.m`](validation_internal_consistency.m) | derived in the script itself | the definitional anchor of 1 t.u., determinism, the sum over the tonal components of eq. (11), and the independence from the position of a tone in the analysis grid |
-| [`validation_bandwidth_dependence.m`](validation_bandwidth_dependence.m) | Hastings [3], Table B.52 of the thesis | the fall of the tonality as a narrow band of noise widens, Aures [1] Fig. 6 |
+| [`validation_bandwidth_weighting.m`](validation_bandwidth_weighting.m) | Aures [1], Fig. 6 and eq. (7) | the weighting w1, on ideal bands of noise of known bandwidth in Bark |
+| [`validation_bandwidth_dependence.m`](validation_bandwidth_dependence.m) | Hastings [3], Table B.52 of the thesis | the fall of the tonality as a trapezoidal band of noise widens, against subjective scores |
 
 # How to use this code
-The three scripts generate the signals they use, so no external dataset is needed.
+The four scripts generate the signals they use, so no external dataset is needed.
 
 # Results
 
@@ -21,6 +22,14 @@ The three scripts generate the signals they use, so no external dataset is neede
 `validation_signal_to_noise_ratio.m` compares the implementation with Fig. 1(a) of [2], for a pure tone of 85 dB SPL at 1 kHz in broadband noise. The root mean square deviation over the nine points is 0.0128 t.u. and the largest single deviation is 0.0213 t.u. The reference curve is the output of the implementation of [2], so this comparison is code against code.
 
 ![](figs/tonality_validation_SNR_tone_85dBSPL_1khz.png)
+
+## The weighting of bandwidth, against the data it was fitted to
+
+`validation_bandwidth_weighting.m` compares the implementation with Fig. 6 of [1], the relative tonality of bandpass noise against its bandwidth in Bark, normalised by a sine tone of the same frequency, which is the data the weighting w1 of eq. (7) was fitted to. The test signals follow [1]: ideal bandpass noise 30 Hz wide at ten centre frequencies from 150 Hz to 4.5 kHz, which covers bandwidths from 0.04 to 0.29 Bark, and a band 1 kHz wide at 4.2 kHz, 1.37 Bark, all at 14 sone, with three noise realisations each. The reference curve is eq. (7) itself; the points of Fig. 6 are shown as read off the figure.
+
+![](figs/tonality_validation_bandwidth_weighting_Aures_fig6.png)
+
+Over the ten bands of 30 Hz the model falls with the bandwidth and stays within 0.042 of eq. (7), with a root mean square distance of 0.025, so the weighting acts on the bandwidth the signal has. For the band 1 kHz wide the model reads zero where eq. (7) gives 0.087 and Fig. 6 reads 0.065 at 1.44 Bark: the extraction step of [1] counts a component wider than a critical band as noise, so the model as published cannot keep the small tonality the measurement shows beyond one Bark. The second point of [1] for 1 kHz bands, at 0.69 Bark, needs a centre frequency near 6.5 kHz, above the upper limit of the implementation, so it has no counterpart here.
 
 ## Dependence on the bandwidth of the component
 
@@ -49,4 +58,6 @@ The roll-off term is tracked in issue [#67](https://github.com/ggrecow/SQAT/issu
 
 - Sergio Aguirre, September 2026: `validation_internal_consistency.m` and `validation_bandwidth_dependence.m` added after corrections on the main code (see the log of `Tonality_Aures1985.m`). Unlike previous versions, test signals for `validation_signal_to_noise_ratio.m` are now generated locally by the script. The zenodo dataset (https://doi.org/10.5281/zenodo.7933206) has deliberately not been updated so that the SQAT v1.x record remains reproducible as published.
 
-- Sergio Aguirre, September 2026: both figures regenerated and the text of the bandwidth comparison rewritten after `Tonality_Aures1985.m` gained the extraction of narrow band components and the corrected noise term of the level excess.  
+- Sergio Aguirre, September 2026: both figures regenerated and the text of the bandwidth comparison rewritten after `Tonality_Aures1985.m` gained the extraction of narrow band components and the corrected noise term of the level excess.
+
+- Sergio Aguirre, September 2026: `validation_bandwidth_weighting.m` added, against Fig. 6 and eq. (7) of Aures.  
