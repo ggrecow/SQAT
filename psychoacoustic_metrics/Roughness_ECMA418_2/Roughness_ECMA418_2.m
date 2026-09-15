@@ -141,6 +141,7 @@ function OUT = Roughness_ECMA418_2(insig, fs, fieldtype, time_skip, show)
 % the RefMap project (www.refmap.eu), and is subject to GPL-3.0 license,
 % as detailed in the original code repository
 % (https://github.com/acoustics-code-salford/refmap-psychoacoustics). 
+% See also <licenses/gpl-3.0.txt> file in the SQAT repository root.
 %
 % As per the licensing information, please be aware that this code is
 % WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -150,7 +151,8 @@ function OUT = Roughness_ECMA418_2(insig, fs, fieldtype, time_skip, show)
 % the file includes a copy of data obtained from the repository 
 % https://github.com/BIDS/colormap, and is CC0 1.0 licensed for modified
 % use, see https://creativecommons.org/publicdomain/zero/1.0 for
-% information.
+% information. See also the <licenses/mpl-colormaps LICENCE.txt> file in the 
+% SQAT repository root.
 %
 % Checked by: Gil Felix Greco
 % Date last checked: 06.12.2025
