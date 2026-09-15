@@ -7,6 +7,17 @@ function B = create_a0_FIR(f,a0,N,fs)
 %
 % Author: Alejandro Osses
 % Date: 2014-2017
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Copyright statement: This file and code is part of the SQAT toolbox and
+% is subject to the MIT license in its entirety, as detailed in the license
+% text reproduced at the end of this file (see also <licenses/mit-license.txt> 
+% file in the SQAT repository root.
+%
+% As per the licensing information, please be aware that this code is
+% WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 f = [0 f fs/2];
 a0 = [a0(1) a0 a0(end)];

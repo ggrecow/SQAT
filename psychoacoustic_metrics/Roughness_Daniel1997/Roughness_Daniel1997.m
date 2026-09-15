@@ -99,9 +99,10 @@ function OUT = Roughness_Daniel1997(insig,fs,time_skip,show)
 %   the authors.
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Copyright statement: This file and code is subject to the MIT license in
-% its entirety, as detailed in the license text reproduced at the end of
-% this file.
+% Copyright statement: This file and code is part of the SQAT toolbox and
+% is subject to the MIT license in its entirety, as detailed in the license
+% text reproduced at the end of this file (see also <licenses/mit-license.txt> 
+% file in the SQAT repository root.
 %
 % As per the licensing information, please be aware that this code is
 % WITHOUT ANY WARRANTY; without even the implied warranty of
