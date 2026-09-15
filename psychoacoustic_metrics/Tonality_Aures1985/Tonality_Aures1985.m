@@ -203,7 +203,6 @@ for iFrame = 1:nFrames
         ymx = ToneL(i); % SPL of the i-th tone
         [~,idx] = min( abs(Freq-ToneF(i)) ); % index of the i-th tone 
         hafmax = ymx-3; % half power, three decibels below the peak
-        % hafmax = ymx-3; % target value (-3 dB decay)
         
         idxrng1 = find(SPL(1:idx)<hafmax, 1, 'last');
         
