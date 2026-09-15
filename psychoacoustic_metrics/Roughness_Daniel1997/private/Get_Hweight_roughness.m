@@ -9,13 +9,20 @@ function Hweight = Get_Hweight_roughness(N,fs)
 % assigned to the 47 half-Bark channels in groups, exactly as in the
 % original implementation.
 %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Log
 %
 % - Author: Dik Hermes (2000-2005); tables from Daniel & Weber (1997)
 % - Author: Alejandro Osses, HTI, TU/e, 2014. Standalone function for the
 %   fluctuation-strength-TUe project.
-% - Author: Sergio Aguirre, 31.08.2026 - adopted as a private function of
+% - Author: Sergio Aguirre and Gil Felix Greco, 31.08.2026 - 
+%   adopted as a private function of
 %   Roughness_Daniel1997 (tables and bin mapping unchanged, see issue #47)
+%
+%   AI disclosure: modifications performed in September 2026 were assisted 
+%   by Claude Fable 5.1 and Opus 5 (Anthropic). All codes were verified by 
+%   the authors.
+%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 DCbins	= 2;

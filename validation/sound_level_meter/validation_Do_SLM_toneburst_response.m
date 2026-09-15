@@ -31,7 +31,11 @@
 %   factor k moves every short burst by 10*log10(k) dB, which the
 %   acceptance limits of Table 4 detect at once.
 %
-% Author: Sergio Aguirre (& Claude code), 28.08.2026
+% Author: Sergio Aguirre and Gil Felix Greco, 28.08.2026
+%
+% AI disclosure: code development in August 2026 assisted 
+% by Claude Fable 5.1 and Opus 5 (Anthropic). All codes were verified by 
+% the authors.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 clc; clear all; close all;
 

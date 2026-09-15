@@ -14,15 +14,27 @@ function [ei,ei_f,freq,clamp] = TerhardtExcitationPatterns(insig,fs,dBFS)
 % slope was clamped to zero for any component (see Terhardt_filterbank.m);
 % when it is requested, no warning is raised here.
 %
-% Author: Alejandro Osses, extracted from FluctuationStrength_Osses2016.m on 12/05/2023
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Log
+%
+% Author: Alejandro Osses, extracted from FluctuationStrength_Osses2016.m 
+% on 12/05/2023
+% 
 % Modified: Mike Lotinga, May 2025 (parallelised code to omit loop over
 % whichL for improved performance)
-% Modified: Sergio Aguirre, September 2026 (masked both sides of the S2
-% assignment, which crashed above a component level of about 121 dB, and
+%
+% Modified: Sergio Aguirre and Gil Felix Greco, September 2026 
+% (masked both sides of the S2 assignment, which crashed above a component 
+% level of about 121 dB, and
 % report in <clamp> when the upper slope is clamped to zero, warning only
 % when that output is not requested); the filterbank core and its
 % parameter builder moved to the utilities folder, this file keeps the
 % calibration and the renormalisation. Results are bitwise identical
+%
+% AI disclosure: modifications performed in September 2026 were assisted 
+% by Claude Fable 5.1 and Opus 5 (Anthropic). All codes were verified by 
+% the authors.
+%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 if nargin < 3

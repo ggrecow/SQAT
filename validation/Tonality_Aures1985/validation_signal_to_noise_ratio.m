@@ -21,9 +21,14 @@
 %
 % Author: Gil Felix Greco, Braunschweig, 22.03.2023
 %
-% Modified: Sergio Aguirre, September 2026 - the test signals are generated
+% Modified: Sergio Aguirre and Gil Felix Greco, September 2026 - 
+% the test signals are generated
 % in the script now (unlike in v1.x), with the level of the noise 
 % referred to the critical band as in [1]
+%
+% AI disclosure: code development in September 2026 assisted 
+% by Claude Fable 5.1 and Opus 5 (Anthropic). All codes were verified by 
+% the authors.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 clear all; close all; clc;
 

@@ -28,6 +28,7 @@
 %   is corrected (i.e. now accounts for the silence at the start/end of the 
 %   signals, as given by the reference spreadsheets). Percentile values of the 
 %   old loudness code version (prior to v2.0) also updated.
+%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 clc; clear all; close all;
 

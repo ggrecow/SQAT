@@ -49,7 +49,11 @@
 %   low by 20*log10(0.9003*sqrt(d)) dB. That is the deviation this script
 %   detects, and it grows without bound as the signal becomes more impulsive.
 %
-% Author: Sergio Aguirre (& Claude code), 23.08.2026
+% Author: Sergio Aguirre and Gil Felix Greco, 23.08.2026
+%
+% AI disclosure: code development in August 2026 assisted 
+% by Claude Fable 5.1 and Opus 5 (Anthropic). All codes were verified by 
+% the authors.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 clc; clear all; close all;
 

@@ -94,6 +94,10 @@ function OUT = Roughness_Daniel1997(insig,fs,time_skip,show)
 %   Sec. 2) and sent to the SQAT team in 2025. Results change with respect 
 %   to SQAT v1.x.
 %
+%   AI disclosure: modifications performed in September 2026 were assisted 
+%   by Claude Fable 5.1 and Opus 5 (Anthropic). All codes were verified by 
+%   the authors.
+%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Copyright statement: This file and code is subject to the MIT license in
 % its entirety, as detailed in the license text reproduced at the end of

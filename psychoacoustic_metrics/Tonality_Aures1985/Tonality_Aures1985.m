@@ -50,22 +50,40 @@ function OUT = Tonality_Aures1985(insig,fs,LoudnessField,time_skip,show)
 %         ** Kmin : minimum of InstantaneousTonality (t.u.)
 %         ** Kx : Tonality value exceeded during x percent of the time (t.u.)
 %
-% Author: Gil Felix Greco, Braunschweig 13/07/2020 (updated 14.04.2023)
-% Author: Gil Felix Greco, Braunschweig 16.02.2025 - introduced get_statistics function
-% Author: Sergio Aguirre, September 2026 - the tones are removed from the
-%   windowed spectrum and the notch is at least one main lobe wide, so the
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   Log
+%
+% - Author: Gil Felix Greco, Braunschweig 13/07/2020 (updated 14.04.2023)
+%
+% - Author: Gil Felix Greco, Braunschweig 16.02.2025,
+%   introduced get_statistics function
+%
+% - Author: Sergio Aguirre and Gil Felix Greco, September 2026,
+%   the tones are removed from the windowed spectrum and the notch is at 
+%   least one main lobe wide, so the
 %   result no longer depends on where the tone falls between two FFT bins
-% Author: Sergio Aguirre, September 2026 - the sound pressure excess is now
+%
+% - Author: Sergio Aguirre and Gil Felix Greco, September 2026 - 
+%   the sound pressure excess is now
 %   stored per tonal component, and the bins that replace a tone keep the
 %   phase they already had, so the function is deterministic
-% Author: Sergio Aguirre, September 2026 - the regions of the spectrum that
+% 
+% - Author: Sergio Aguirre and Gil Felix Greco, September 2026 - 
+%   the regions of the spectrum that
 %   are narrower than a critical band are extracted as tonal components as
 %   well, as Aures asks in section 2.3.2, and the noise term of the level
 %   excess is summed over the spectrum those extractions leave behind
-% Author: Sergio Aguirre, September 2026 - Tonality_Aures1985('localfunctions')
+% 
+% - Author: Sergio Aguirre and Gil Felix Greco, September 2026 - 
+%   Tonality_Aures1985('localfunctions')
 %   returns the handles of the local functions, so that the verification
 %   scripts can run the extraction and the level excess on a published
 %   spectrum; the function does nothing else with that input
+%
+%   AI disclosure: modifications performed in September 2026 were assisted 
+%   by Claude Fable 5.1 and Opus 5 (Anthropic). All codes were verified by 
+%   the authors.
+%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 if nargin == 1 && ischar(insig) && strcmp(insig, 'localfunctions')

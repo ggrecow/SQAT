@@ -37,18 +37,23 @@ function [outsig_dB, dBFS] = Do_SLM(insig,fs,weight_freq,weight_time,dBFS)
 % 3. Additional info:
 %       Tested cross-platform: No
 %       See also: Get_Leq
-%
-% Author: Sergio Aguirre (& Claude code), 23.08.2026 - exponential time
-% weighting now follows IEC 61672-1: the signal is squared before the leaky
-% integrator and the level is taken as 10*log10 of the resulting mean
-% square. The empirical 0.93 dB calibration offset was removed, since it
-% only compensated the mean-absolute deficit of a sinusoid (see issue 43).
 % 
 % Programmed by Alejandro Osses, HTI, TU/e, the Netherlands, 2014-2016
 % Created on    : 12/07/2016
 % Last update on: 12/07/2016 
 %               : 22/03/2023, AO: Stylised output figure and independency 
 %                             of codes with respect to the LTFAT toolbox.
+%
+%
+% Author: Sergio Aguirre and Gil Felix, 23.08.2026 - exponential time
+% weighting now follows IEC 61672-1: the signal is squared before the leaky
+% integrator and the level is taken as 10*log10 of the resulting mean
+% square. The empirical 0.93 dB calibration offset was removed, since it
+% only compensated the mean-absolute deficit of a sinusoid (see issue 43).
+%
+% AI disclosure: code development in August 2026 assisted 
+% by Claude Fable 5.1 and Opus 5 (Anthropic). All codes were verified by 
+% the authors.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 if nargin < 3

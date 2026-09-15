@@ -74,6 +74,10 @@
 %   validation cases use either md = 1, where the two AM definitions are
 %   proportional and therefore identical after level calibration, or FM and
 %   noise signals, and remain valid as published.
+%
+%   AI disclosure: code development in September 2026 assisted 
+%   by Claude Opus 5 (Anthropic). All codes were verified by 
+%   the author.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 clc; clear; close all;
 

@@ -5,10 +5,20 @@ function [ei,ei_f,freq,clamp] = TerhardtExcitationPatterns_v3(insig,fs,dBFS)
 % slope was clamped to zero for any component (see below); when it is
 % requested, no warning is raised here.
 %
-% Author: Alejandro Osses, extracted from FluctuationStrength_Osses2016.m on 12/05/2023
-% Modified: Sergio Aguirre, September 2026 (report in <clamp> when the upper
-% slope is clamped to zero and warn only when that output is not requested,
-% as in the vectorised TerhardtExcitationPatterns.m)
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Log
+%
+% Author: Alejandro Osses, extracted from FluctuationStrength_Osses2016.m 
+% on 12/05/2023
+% 
+% Modified: Sergio Aguirre and Gil Felix Greco, September 2026 
+% (report in <clamp> when the upper slope is clamped to zero and warn only 
+% when that output is not requested, as in the vectorised 
+% TerhardtExcitationPatterns.m)
+%
+% AI disclosure: modifications performed in September 2026 were assisted 
+% by Claude Fable 5.1 and Opus 5 (Anthropic). All codes were verified by 
+% the authors.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 if nargin < 3

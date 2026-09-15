@@ -25,7 +25,11 @@
 %       beliebiger Schallsignale. Acta Acustica united with Acustica, 59(2),
 %       130-141.
 %
-% Author: Sergio Aguirre, September 2026
+% Author: Sergio Aguirre and Gil Felix Greco, September 2026
+%
+% AI disclosure: code development in September 2026 assisted 
+% by Claude Fable 5.1 and Opus 5 (Anthropic). All codes were verified by 
+% the authors.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 clear all; close all; clc; %#ok<CLALL>
 

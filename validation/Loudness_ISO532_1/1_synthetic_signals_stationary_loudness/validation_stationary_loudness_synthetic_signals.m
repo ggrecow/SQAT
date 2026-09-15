@@ -25,7 +25,8 @@
 %
 % - Author: Gil Felix Greco, 21.08.2026 - new version of Loudness_ISO532_1 
 %   is paired with C reference code (released in v2.0). Summary of 
-%   differences now include a comparison with results from prior implementation.  
+%   differences now include a comparison with results from prior implementation. 
+%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 clc; clear all; close all;
 

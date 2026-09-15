@@ -40,18 +40,30 @@ function [ei,info,ei_f] = Terhardt_filterbank(insig_f,params)
 %   ei_f : [Chno x N] level, in dB, of the excitation pattern of each
 %       channel in the frequency domain (for inspection only)
 %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Log
+%
 % Author: Dik Hermes, TU/e (2000-2005), original implementation of the
 %   Daniel & Weber model
+% 
 % Author: Alejandro Osses, HTI, TU/e, the Netherlands, 2014-2016; extracted
 %   from FluctuationStrength_Osses2016.m on 12/05/2023
+% 
 % Modified: Mike Lotinga, May 2025 (parallelised code to omit loop over
 %   whichL for improved performance)
-% Modified: Sergio Aguirre, September 2026 (masked both sides of the S2
+% 
+% Modified: Sergio Aguirre and Gil Felix Greco, September 2026 
+%   (masked both sides of the S2
 %   assignment, which crashed above a component level of about 121 dB;
 %   report the clamping in <info>); moved to the utilities folder as the
 %   filterbank shared by the two modulation metrics, with the spectrum as
 %   input. The arithmetic is unchanged: FluctuationStrength_Osses2016
 %   returns bitwise identical results
+%
+% AI disclosure: modifications performed in September 2026 were assisted 
+% by Claude Fable 5.1 and Opus 5 (Anthropic). All codes were verified by 
+% the authors.
+%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 N01   = params.N01;

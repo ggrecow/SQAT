@@ -19,11 +19,21 @@ function params = Terhardt_filterbank_params(N,fs)
 % TerhardtExcitationPatterns.m) and, from the rewrite discussed in issue 47
 % on, by Roughness_Daniel1997.
 %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Log
+%
 % Author: Alejandro Osses, HTI, TU/e, the Netherlands, 2014-2016, as the local
 %   functions il_calculate_params, il_calculate_MinExcdB and il_calculate_MinBf
 %   of TerhardtExcitationPatterns.m (FluctuationStrength_Osses2016)
-% Author: Sergio Aguirre, September 2026 - moved to the utilities folder
-%   unchanged, so that both modulation metrics build the same parameters
+%
+% Author: Sergio Aguirre and Gil Felix Greco, September 2026 - 
+% moved to the utilities folder unchanged, so that both modulation metrics 
+% build the same parameters
+%
+% AI disclosure: modifications performed in September 2026 were assisted 
+% by Claude Fable 5.1 and Opus 5 (Anthropic). All codes were verified by 
+% the authors.
+%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 params      = struct;

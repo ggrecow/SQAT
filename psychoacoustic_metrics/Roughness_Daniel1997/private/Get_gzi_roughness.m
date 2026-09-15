@@ -13,11 +13,17 @@ function gzi = Get_gzi_roughness(Chno)
 % specific roughness linearly, as in Hermes' formulation
 % g(z)*(mdept*ki)^2.
 %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Log
 %
 % - Author: Dik Hermes (2025), table of CalcGFactors.m
-% - Author: Sergio Aguirre, 31.08.2026 - private function for
-%   Roughness_Daniel1997
+% - Author: Sergio Aguirre and Gil Felix Greco, 31.08.2026 - 
+%   private function for Roughness_Daniel1997
+%
+%   AI disclosure: modifications performed in September 2026 were assisted 
+%   by Claude Fable 5.1 and Opus 5 (Anthropic). All codes were verified by 
+%   the authors.
+%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 gr = [ ...

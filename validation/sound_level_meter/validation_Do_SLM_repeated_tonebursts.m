@@ -33,7 +33,11 @@
 %   are far more impulsive than the signals a fixed calibration offset can
 %   accommodate.
 %
-% Author: Sergio Aguirre (& Claude code), 28.08.2026
+% Author: Sergio Aguirre and Gil Felix Greco, 28.08.2026
+%
+% AI disclosure: code development in August 2026 assisted 
+% by Claude Fable 5.1 and Opus 5 (Anthropic). All codes were verified by 
+% the authors.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 clc; clear all; close all;
 
