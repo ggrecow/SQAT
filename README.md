@@ -17,20 +17,20 @@ This is the repository of **SQAT**, an open-source **S**ound **Q**uality **A**na
 
 The implemented metrics available in the `psychoacoustic_metrics` folder are listed in the table below, including the release on which each metric was first introduced:
 
-| Metric  | Model | Implementation | Validation | Example | Release |
-| :---: | :---: |:---: |:---: |:---: |:---: |
-| Loudness  | ISO 532-1:2017 [1]  |  [link](psychoacoustic_metrics/Loudness_ISO532_1) | [link](validation/Loudness_ISO532_1) | [link](examples/Loudness_ISO532_1) | v1.0 |
-| Sharpness  |  DIN 45692:2009 [2]  |  [link](psychoacoustic_metrics/Sharpness_DIN45692) | [link](validation/Sharpness_DIN45692) | [link](examples/Sharpness_DIN45692) | v1.0 |
-| Roughness  | Daniel & Weber [3]  |  [link](psychoacoustic_metrics/Roughness_Daniel1997) |  [link](validation/Roughness_Daniel1997) | [link](examples/Roughness_Daniel1997) | v1.0 |
-| Fluctuation Strength  | Osses *et al.* [4]  |  [link](psychoacoustic_metrics/FluctuationStrength_Osses2016) |  [link](validation/FluctuationStrength_Osses2016) | [link](examples/FluctuationStrength_Osses2016) | v1.0 |
-| Tonality  | Aures [5]  |   [link](psychoacoustic_metrics/Tonality_Aures1985) |  [link](validation/Tonality_Aures1985) | [link](examples/Tonality_Aures1985) | v1.0 |
-| Psychoacoustic Annoyance  | Widmann [6] (commonly misattributed to Zwicker & Fastl [7])  |  [link](psychoacoustic_metrics/PsychoacousticAnnoyance_Widmann1992) / [link](psychoacoustic_metrics/PsychoacousticAnnoyance_Zwicker1999) | - | [link](examples/PsychoacousticAnnoyance_Widmann1992) / [link](examples/PsychoacousticAnnoyance_Zwicker1999) | v1.0 |
-| Psychoacoustic Annoyance  | More [8]  |  [link](psychoacoustic_metrics/PsychoacousticAnnoyance_More2010) | - | [link](examples/PsychoacousticAnnoyance_More2010) | v1.0 |
-| Psychoacoustic Annoyance  | Di *et al.* [9]  |  [link](psychoacoustic_metrics/PsychoacousticAnnoyance_Di2016) | - |  [link](examples/PsychoacousticAnnoyance_Di2016) | v1.0 |
-| EPNL  | FAR Part 36 [10]  |  [link](psychoacoustic_metrics/EPNL_FAR_Part36) | [link](validation/EPNL_FAR_Part36) |  [link](examples/EPNL_FAR_Part36) | v1.1 |
-| Loudness  | ECMA-418-2:2025 [11]  |  [link](psychoacoustic_metrics/Loudness_ECMA418_2) | [link](validation/Loudness_ECMA418_2) |  [link](examples/Loudness_ECMA418_2) | v1.3 |
-| Roughness  | ECMA-418-2:2025 [11]  |  [link](psychoacoustic_metrics/Roughness_ECMA418_2) | [link](validation/Roughness_ECMA418_2) |  [link](examples/Roughness_ECMA418_2) | v1.3 |
-| Tonality  | ECMA-418-2:2025 [11]  |  [link](psychoacoustic_metrics/Tonality_ECMA418_2) | [link](validation/Tonality_ECMA418_2) |  [link](examples/Tonality_ECMA418_2) | v1.3 |
+| Metric  | Model | Implementation | Validation | Example | Released in: | License |
+| :---: | :---: |:---: |:---: |:---: |:---: | :---: |
+| Loudness  | ISO 532-1:2017 [1]  |  [link](psychoacoustic_metrics/Loudness_ISO532_1) | [link](validation/Loudness_ISO532_1) | [link](examples/Loudness_ISO532_1) | v1.0 | BSD-3-Clause |
+| Sharpness  |  DIN 45692:2009 [2]  |  [link](psychoacoustic_metrics/Sharpness_DIN45692) | [link](validation/Sharpness_DIN45692) | [link](examples/Sharpness_DIN45692) | v1.0 | GPL-3.0 |
+| Roughness  | Daniel & Weber [3]  |  [link](psychoacoustic_metrics/Roughness_Daniel1997) |  [link](validation/Roughness_Daniel1997) | [link](examples/Roughness_Daniel1997) | v1.0 | MIT |
+| Fluctuation Strength  | Osses *et al.* [4]  |  [link](psychoacoustic_metrics/FluctuationStrength_Osses2016) |  [link](validation/FluctuationStrength_Osses2016) | [link](examples/FluctuationStrength_Osses2016) | v1.0 | GPL-3.0 |
+| Tonality  | Aures [5]  |   [link](psychoacoustic_metrics/Tonality_Aures1985) |  [link](validation/Tonality_Aures1985) | [link](examples/Tonality_Aures1985) | v1.0 | GPL-3.0 |
+| Psychoacoustic Annoyance  | Widmann [6] (commonly misattributed to Zwicker & Fastl [7])  |  [link](psychoacoustic_metrics/PsychoacousticAnnoyance_Widmann1992) / [link](psychoacoustic_metrics/PsychoacousticAnnoyance_Zwicker1999) | - | [link](examples/PsychoacousticAnnoyance_Widmann1992) / [link](examples/PsychoacousticAnnoyance_Zwicker1999) | v1.0 |GPL-3.0 |
+| Psychoacoustic Annoyance  | More [8]  |  [link](psychoacoustic_metrics/PsychoacousticAnnoyance_More2010) | - | [link](examples/PsychoacousticAnnoyance_More2010) | v1.0 | GPL-3.0 |
+| Psychoacoustic Annoyance  | Di *et al.* [9]  |  [link](psychoacoustic_metrics/PsychoacousticAnnoyance_Di2016) | - |  [link](examples/PsychoacousticAnnoyance_Di2016) | v1.0 | GPL-3.0 |
+| EPNL  | FAR Part 36 [10]  |  [link](psychoacoustic_metrics/EPNL_FAR_Part36) | [link](validation/EPNL_FAR_Part36) |  [link](examples/EPNL_FAR_Part36) | v1.1 | GPL-3.0 |
+| Loudness  | ECMA-418-2:2025 [11]  |  [link](psychoacoustic_metrics/Loudness_ECMA418_2) | [link](validation/Loudness_ECMA418_2) |  [link](examples/Loudness_ECMA418_2) | v1.3 | GPL-3.0 |
+| Roughness  | ECMA-418-2:2025 [11]  |  [link](psychoacoustic_metrics/Roughness_ECMA418_2) | [link](validation/Roughness_ECMA418_2) |  [link](examples/Roughness_ECMA418_2) | v1.3 | GPL-3.0|
+| Tonality  | ECMA-418-2:2025 [11]  |  [link](psychoacoustic_metrics/Tonality_ECMA418_2) | [link](validation/Tonality_ECMA418_2) |  [link](examples/Tonality_ECMA418_2) | v1.3 | GPL-3.0 |
 
 <details>
 <summary><b>References</summary>
