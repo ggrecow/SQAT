@@ -323,6 +323,6 @@ contributions.
 
 Some implementations in SQAT are licensed differently, because they derive from code released by their original authors under other terms. These files state their license in their own header and reproduce its text at the end of the file. Files under GPL-3.0 may depend on these; the resulting combined work is governed by the GPL-3.0. The permissively licensed files do not depend on any GPL-3.0 file and can be used standalone under their own terms. All license files can be found under [`licenses`](licenses).
 
-## Disclaimer
+# Disclaimer
 
 The SQAT toolbox and all files within it are provided "AS IS", WITHOUT WARRANTY OF ANY KIND, express or implied, including but not limited to the warranties of MERCHANTABILITY and FITNESS FOR A PARTICULAR PURPOSE. In no event shall the authors or copyright holders be liable for any claim, damages or other liability arising from the use of SQAT.
