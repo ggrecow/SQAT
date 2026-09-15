@@ -28,6 +28,17 @@ function [b, a] = Gen_weighting_filters(fs, weightingType)
 % Created on    : 14/07/2016
 % Modified by Mike Lotinga, University of Salford
 % Modified : 03/04/2025 (use MATLAB bilinear and precise frequencies)
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Copyright statement: This file is part of the SQAT toolbox and is subject
+% to the GPL-3.0 license, as detailed in <licenses/gpl-3.0.txt> in the SQAT
+% repository root. Some files in SQAT carry a different license, always
+% stated in their own header; where this file depends on them, the combined
+% work remains governed by the GPL-3.0.
+%
+% As per the licensing information, this file is provided "as is", WITHOUT
+% WARRANTY OF ANY KIND, express or implied, including but not limited to the
+% warranties of MERCHANTABILITY and FITNESS FOR A PARTICULAR PURPOSE.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 N = 16384; % arbitrary value
