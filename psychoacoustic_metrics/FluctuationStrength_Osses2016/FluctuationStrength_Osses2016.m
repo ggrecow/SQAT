@@ -68,32 +68,55 @@ function OUT = FluctuationStrength_Osses2016(insig,fs,method,time_skip,show,stru
 %         ** FSmin : minimum of InstantaneousFluctuationStrength (vacil)
 %         ** FSx : fluctuation strength value exceeded during x percent of the time (vacil)
 %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Log
+%
 % Original file name: FluctuationStrength_TUe.m from 
 %   https://github.com/aosses-tue/mb/tree/master/FluctuationStrength_TUe (accessed 04/03/2020)
 %
 % Author: Alejandro Osses, HTI, TU/e, the Netherlands, 2014-2016
+% 
 % Author: Rodrigo Garcia, HTI, TU/e, the Netherlands, 2014-2016
+% 
 % Author: Gil Felix Greco, Braunschweig 04.03.2020 - Modifications
 %     1) includes resampling to 44100 Hz, which is preferible because it 
 %        takes less time to compute than 48 kHz because of the filtering 
 %        process of IIR filters for modeling the Hweigth parameter
 %     2) include possibility to choose method (stationary or time-varying) 
 %        which affects the window size
+% 
 % Author: Alejandro Osses, 10/05/2023. Appropriate scaling for the specific 
 %            fluctuation strength.
+% 
 % Author: Alejandro Osses, 11/05/2023. Moving TerhardtExcitationPatterns_v3, 
 %            Get_Bark to the private folder (old il_* functions)
+% 
 % Author: Alejandro Osses, 13/11/2024. Included <struct_opt> input to allow
 %            for changing the a0 transmission factor. the a0 transmission
 %            factor were moved to the <utilities> folder of the toolbox as
 %            standalone functions
+% 
 % Author: Gil Felix Greco, Braunschweig 16.02.2025 - introduced get_statistics function
+% 
 % Modified: Mike Lotinga May 2025 - incorporated efficiency improvements in
 % TerhardtExcitationPatterns.m to speed up calculation.
+% 
 % Modified: Sergio Aguirre, September 2026 - a single warning per call when
 % the Terhardt upper slope is clamped to zero in any frame (component level
 % above 120 + 1150/f dB, see TerhardtExcitationPatterns.m)
+%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Copyright statement: This file is part of the SQAT toolbox and is subject
+% to the GPL-3.0 license, as detailed in <licenses/gpl-3.0.txt> in the SQAT
+% repository root. Some files in SQAT carry a different license, always
+% stated in their own header; where this file depends on them, the combined
+% work remains governed by the GPL-3.0.
+%
+% As per the licensing information, this file is provided "as is", WITHOUT
+% WARRANTY OF ANY KIND, express or implied, including but not limited to the
+% warranties of MERCHANTABILITY and FITNESS FOR A PARTICULAR PURPOSE.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 if nargin == 0
     help FluctuationStrength_Osses2016;
     return;
