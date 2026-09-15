@@ -71,6 +71,17 @@ function OUT = Sharpness_DIN45692(insig, fs, weight_type, LoudnessField, Loudnes
 % Author: Gil Felix Greco, Braunschweig 16.02.2025 - introduced get_statistics function
 % Modified: Mike Lotinga 29.05/2026 - vectorised for 95% reduction in
 % compute time
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Copyright statement: This file is part of the SQAT toolbox and is subject
+% to the GPL-3.0 license, as detailed in <licenses/gpl-3.0.txt> in the SQAT
+% repository root. Some files in SQAT carry a different license, always
+% stated in their own header; where this file depends on them, the combined
+% work remains governed by the GPL-3.0.
+%
+% As per the licensing information, this file is provided "as is", WITHOUT
+% WARRANTY OF ANY KIND, express or implied, including but not limited to the
+% warranties of MERCHANTABILITY and FITNESS FOR A PARTICULAR PURPOSE.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 if nargin == 0
     help Sharpness_DIN45692;
@@ -226,32 +237,3 @@ function g = il_sharpWeights(z, type, N)
             g = 0.078.*(exp(0.171.*z)./z ).*(N./log(0.05.*N + 1));
     end
 end % end of il_sharpWeights
-
-%**************************************************************************
-%
-% Redistribution and use in source and binary forms, with or without 
-% modification, are permitted provided that the following conditions are 
-% met:
-%
-%  * Redistributions of source code must retain the above copyright notice,
-%    this list of conditions and the following disclaimer.
-%  * Redistributions in binary form must reproduce the above copyright 
-%    notice, this list of conditions and the following disclaimer in the 
-%    documentation and/or other materials provided with the distribution.
-%  * Neither the name of the <ORGANISATION> nor the names of its contributors
-%    may be used to endorse or promote products derived from this software 
-%    without specific prior written permission.
-%
-% THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS 
-% "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
-% TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A 
-% PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER
-% OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-% EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-% PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-% PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-% LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING 
-% NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-% SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-%
-%**************************************************************************
