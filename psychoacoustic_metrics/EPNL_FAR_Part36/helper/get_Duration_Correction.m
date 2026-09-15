@@ -48,7 +48,18 @@ function [D, idx_t1, idx_t2] = get_Duration_Correction( PNLT, PNLTM, PNLTM_idx, 
 %       index in the PNLT(t) vector where t(2) occurs
 %
 % Function author: Gil Felix Greco, Braunschweig 27.10.2023
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Copyright statement: This file is part of the SQAT toolbox and is subject
+% to the GPL-3.0 license, as detailed in <licenses/gpl-3.0.txt> in the SQAT
+% repository root. Some files in SQAT carry a different license, always
+% stated in their own header; where this file depends on them, the combined
+% work remains governed by the GPL-3.0.
+%
+% As per the licensing information, this file is provided "as is", WITHOUT
+% WARRANTY OF ANY KIND, express or implied, including but not limited to the
+% warranties of MERCHANTABILITY and FITNESS FOR A PARTICULAR PURPOSE.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % Find the PNLTM-threshold down points (t1 and t2)
 Decay = PNLTM - threshold;
