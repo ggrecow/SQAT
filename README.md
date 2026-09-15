@@ -86,12 +86,21 @@ The toolbox has the following directories:
 
 # How to use the toolbox
 
-1. Download or clone this repository to your local computer. One way to do that is to press the button 'Code' -> Choose 'Download ZIP' and unzip somewhere).
+The `main` branch of this repository is where SQAT is actively developed. It may therefore contain new features or changes that have not yet been fully verified, documented, or released. **For regular use, we strongly recommend downloading an official SQAT release instead of the current state of the repository.** Each release is a frozen version of the toolbox in which the implementations have been verified (see [validation](validation)), the changes relative to previous versions are documented in the [release notes](https://github.com/ggrecow/SQAT/releases), and a dedicated DOI is available on Zenodo. Using a release ensures that your results are reproducible and that you can cite exactly the version you used (see **How to cite this repository** section below).
 
-2. After that, you need to add the relevant folders of the toolbox to the path of your MATLAB. Open and run the `startup_SQAT.m` script to automatically perform this task. In order to avoid conflicts, the `startup_SQAT.m` needs to be used every time MATLAB is (re)started. 
+1. Download the latest SQAT release from one of the following sources, and unzip it anywhere on your computer:
+   - **GitHub:** open the [latest release](https://github.com/ggrecow/SQAT/releases/latest) page and, under *Assets*, download `Source code (zip)`.
+   - **Zenodo:** open [10.5281/zenodo.7934709](https://doi.org/10.5281/zenodo.7934709), which always resolves to the latest release, and download the zip file. Previous releases can be accessed in the *Versions* panel of the Zenodo page.
+
+   If you use git, you can also clone a specific release directly, e.g.: `git clone --branch vX.Y --depth 1 https://github.com/ggrecow/SQAT.git` (replace `vX.Y` with the desired release tag).
+
+2. After that, you need to add the relevant folders of the toolbox to the path of your MATLAB. Open and run the `startup_SQAT.m` script to automatically perform this task. In order to avoid conflicts, the `startup_SQAT.m` needs to be used every time MATLAB is (re)started.
 
 > [!TIP]
 > **If you just want to use the metrics, you can add manually only the relevant folders to the MATLAB path (e.g., `psychoacoustic_metrics`, `sound_level_meter`, and `utilities`).**
+
+> [!NOTE]
+> **Development version:** if you would like to test features that are not yet released, or to contribute to SQAT, you can clone the `main` branch (`git clone https://github.com/ggrecow/SQAT.git`). Please be aware that the codes in the development version may change without notice, and we do not recommend using them to produce results intended for publication. If you find any issue, please let us know by opening an issue.
 
 # How to cite this repository
 If you use this toolbox in your research, we would be grateful if you help us to gain visibility by citing SQAT. This is the main citation if you need to cite the toolbox repository itself:
