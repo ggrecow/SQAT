@@ -14,7 +14,7 @@ The figure below compares the results obtained using the `Roughness_Daniel1997` 
 ![](figs/validation_FS_fmod_FM_tones.png)   
 
 # References
-[1] Daniel, P., & Weber, R. (1997). Psychoacoustical Roughness: Implementation of an Optimized Model. [Acta Acustica united with Acustica](https://www.ingentaconnect.com/content/dav/aaua/1997/00000083/00000001/art00020), 83(1), 113-123.
+[1] Daniel, P., & Weber, R. (1997). Psychoacoustical Roughness: Implementation of an Optimized Model. Acustica united with Acta Acustica, 83(1), 113–123. [(link)](https://dael.euracoustics.org/bin/EAA/v3.20/quickview?id=62139)
 
 [2] Fastl, H., & Zwicker, E. (2007). Psychoacoustics: facts and models, Third edition. [Springer-Verlag](https://doi.org/10.1007/978-3-540-68888-4).
 

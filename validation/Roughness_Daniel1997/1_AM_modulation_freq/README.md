@@ -31,7 +31,7 @@ Root mean square deviation from the reference data of Ref. [1], per carrier, in 
 Six of the seven carriers improve. The median relative deviation over the points above 0.1 asper falls from 13.7 % to 9.4 %, and the number of points outside the 17 % JND band falls from 42 to 30 out of 94. The 2 kHz carrier moves the other way: there the corrected model overshoots the listening-test data around its maximum, and the implementation of Hermes shows the same behaviour.
 
 # References
-[1] Daniel, P., & Weber, R. (1997). Psychoacoustical Roughness: Implementation of an Optimized Model. [Acta Acustica united with Acustica](https://www.ingentaconnect.com/content/dav/aaua/1997/00000083/00000001/art00020), 83(1), 113-123.
+[1] Daniel, P., & Weber, R. (1997). Psychoacoustical Roughness: Implementation of an Optimized Model. Acustica united with Acta Acustica, 83(1), 113–123. [(link)](https://dael.euracoustics.org/bin/EAA/v3.20/quickview?id=62139)
 
 [2] Fastl, H., & Zwicker, E. (2007). Psychoacoustics: facts and models, Third edition. [Springer-Verlag](https://doi.org/10.1007/978-3-540-68888-4).
 

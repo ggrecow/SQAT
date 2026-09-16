@@ -18,7 +18,7 @@ Test signal 1| Test signal 2
  
 
 # References
-[1] Daniel, P., & Weber, R. (1997). Psychoacoustical Roughness: Implementation of an Optimized Model. [Acta Acustica united with Acustica](https://www.ingentaconnect.com/content/dav/aaua/1997/00000083/00000001/art00020), 83(1), 113-123.
+[1] Daniel, P., & Weber, R. (1997). Psychoacoustical Roughness: Implementation of an Optimized Model. Acustica united with Acta Acustica, 83(1), 113–123. [(link)](https://dael.euracoustics.org/bin/EAA/v3.20/quickview?id=62139)
 
 # Log
 This code was released in SQAT v1.0, 14.05.2023
