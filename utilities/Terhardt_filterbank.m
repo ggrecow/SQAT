@@ -60,6 +60,12 @@ function [ei,info,ei_f] = Terhardt_filterbank(insig_f,params)
 %   input. The arithmetic is unchanged: FluctuationStrength_Osses2016
 %   returns bitwise identical results
 %
+% Modified: Sergio Aguirre and Gil Felix Greco, September 2026 (slopes
+%   evaluated on the Chno + 2 half-Bark positions that carry a hearing
+%   threshold, as in the scalar loops of TerhardtExcitationPatterns_v3.m,
+%   so that a component at or above 24 Bark no longer stops the function;
+%   results unchanged for every input that ran before)
+%
 % AI disclosure: modifications performed in September 2026 were assisted 
 % by Claude Fable 5.1 and Opus 5 (Anthropic). All codes were verified by 
 % the authors.
@@ -134,22 +140,30 @@ end
 % steep >= 0. With the right-hand side unmasked the assignment raised a size
 % mismatch error as soon as one component crossed that level.
 S2(steep < 0) = steep(steep < 0);
-S2 = repmat(S2, 1, params.Chno);
+
+% The slopes are evaluated on every half-Bark position that carries a
+% hearing threshold, 0.5 to 24.5 Bark (params.MinBf, Chno + 2 positions),
+% as in the scalar loops of TerhardtExcitationPatterns_v3.m. A component at
+% or above 24 Bark (15.5 kHz) has floor(2*Barkno) of 48 or 49, and the
+% last channel takes its lower slope from position 48; with the arrays
+% Chno wide the masks below did not match and the function stopped.
+nPos = numel(params.MinBf);
+S2 = repmat(S2, 1, nPos);
 
 whichZ = zeros(nL, 2);
 whichZ(:, 1)	= floor(2*params.Barkno(whichL + N01));
 whichZ(:, 2)	=  ceil(2*params.Barkno(whichL + N01));
 
 % Calculate slopes from steep values
-Slopes = zeros(nL, params.Chno);
+Slopes = zeros(nL, nPos);
 Stemp = Slopes;
 
-Li = repmat(LdB(whichL), 1, params.Chno);
+Li = repmat(LdB(whichL), 1, nPos);
 
-kk = zeros(nL, params.Chno);
+kk = zeros(nL, nPos);
 kk1 = kk;
 kk2 = kk;
-delta_z = zeros(nL, params.Chno);
+delta_z = zeros(nL, nPos);
 for l = nL:-1:1    
     for k = whichZ(l, 1):-1:1
         kk1(l, k) = k;
@@ -171,9 +185,8 @@ delta_z(kk1mask) = zi(kk1mask) - zk(kk1mask);
 delta_z(kk2mask) = zk(kk2mask) - zi(kk2mask);
 Stemp(kk1mask) = S1*delta_z(kk1mask) + Li(kk1mask);
 Stemp(kk2mask) = S2(kk2mask).*delta_z(kk2mask) + Li(kk2mask);
-maxk = max(kk, [], 'all');
-MinBfRep = repmat(params.MinBf(1:maxk), nL, 1);
-mask = Stemp > MinBfRep;
+MinBfRep = repmat(params.MinBf(1:nPos), nL, 1);
+mask = (kk1mask | kk2mask) & (Stemp > MinBfRep); % only the positions the slopes reach
 Slopes(mask) = 10.^(Stemp(mask)/20);
 
 % Excitation patterns:
@@ -190,10 +203,8 @@ for i = params.Chno:-1:1
         ExcAmp(whichL, i) = Slopes(:, i - 1)./Lg(whichL);
     end
 
-    if i ~= 47
-        mask1 = whichZ(:, 2) > i;
-        ExcAmp(whichL(mask1), i) = Slopes(mask1, i + 1)./Lg(whichL(mask1));
-    end
+    mask1 = whichZ(:, 2) > i;
+    ExcAmp(whichL(mask1), i) = Slopes(mask1, i + 1)./Lg(whichL(mask1));
 
     mask2 = whichZ(:, 2) == i;
     ExcAmp(whichL(mask2), i) = 1;
