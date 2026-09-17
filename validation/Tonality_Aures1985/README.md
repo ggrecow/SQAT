@@ -48,13 +48,31 @@ Over the ten bands of 30 Hz the model falls with the bandwidth and stays within 
 
 ## The weighting of frequency, against the data it describes
 
-`validation_frequency_weighting.m` compares the implementation with Fig. 5 of [1], the relative tonality against the critical band rate of sine tones, of bandpass noise 30 Hz and 1 kHz wide and of highpass noise above 2 kHz, all at 14 sone, with eq. (9) drawn in the figure for the sine tones. Fig. 5 reads 1.00 for the tone at 8.6 Bark, and [1] normalises its measured tonality to the 1 kHz tone at 14 sone (p. 137), so the implementation is normalised by its own value for that tone, 1.0047 t.u. The test signals are sine tones from 1 to 18 Bark, 100 Hz to 4.6 kHz; at the four positions of Fig. 5 below the upper limit of the implementation, 5.1, 8.6, 13 and 17 Bark, a sine tone and ideal bandpass noise 30 Hz and 1 kHz wide; and ideal highpass noise above 2 kHz, which Fig. 5 places at 24 Bark. Every noise is run with three realisations. The reference curves are eq. (9) for the sine tones and eq. (7) times eq. (9) for the 30 Hz bands; the points of Fig. 5 are shown as read off the figure.
+<!--`validation_frequency_weighting.m` compares the implementation with Fig. 5 of [1], the relative tonality against the critical band rate of sine tones, of bandpass noise 30 Hz and 1 kHz wide and of highpass noise above 2 kHz, all at 14 sone, with eq. (9) drawn in the figure for the sine tones. Fig. 5 reads 1.00 for the tone at 8.6 Bark, and [1] normalises its measured tonality to the 1 kHz tone at 14 sone (p. 137), so the implementation is normalised by its own value for that tone, 1.0047 t.u. The test signals are sine tones from 1 to 18 Bark, 100 Hz to 4.6 kHz; at the four positions of Fig. 5 below the upper limit of the implementation, 5.1, 8.6, 13 and 17 Bark, a sine tone and ideal bandpass noise 30 Hz and 1 kHz wide; and ideal highpass noise above 2 kHz, which Fig. 5 places at 24 Bark. Every noise is run with three realisations. The reference curves are eq. (9) for the sine tones and eq. (7) times eq. (9) for the 30 Hz bands; the points of Fig. 5 are shown as read off the figure. -->
 
+`validation_frequency_weighting.m` compares the implementation with Fig. 5 of [1]: relative tonality vs. critical band rate for sine tones, 30 Hz and 1 kHz-wide bandpass noise, and highpass noise above 2 kHz, all at 14 sone.
+
+**Test signals:**
+- Sine tones from 1 to 18 Bark (100 Hz to 4.6 kHz).
+- At the four Fig. 5 positions below the implementation's 5 kHz limit (5.1, 8.6, 13 and 17 Bark): a sine tone and ideal bandpass noise, 30 Hz and 1 kHz wide.
+- Ideal highpass noise above 2 kHz (plotted at 24 Bark in Fig. 5).
+
+All noise signals use three realisations.
+
+**Normalisation:** [1] normalises to the 1 kHz (8.6 Bark) tone at 14 sone (p. 137), so the results are divided by SQAT's value for that tone (1.0047 t.u.).
+
+**References:** eq. (9) for the sine tones, eq. (7) × eq. (9) for the 30 Hz bands, and the Fig. 5 data points as read from the figure.
 ![](figs/tonality_validation_frequency_weighting_Aures_fig5.png)
 
-The sine tones follow eq. (9) within 0.006, the largest distance at 101 Hz, with a root mean square distance of 0.001. The 30 Hz bands stay within 0.035 of eq. (7) times eq. (9), with a root mean square distance of 0.025, so the weighting of frequency and the weighting of bandwidth combine as the product the model defines. The distances to the points of Fig. 5 are then distances between the equations of [1] and its own data. At 13 and 17 Bark the tones of Fig. 5 lie 0.065 and 0.072 below eq. (9). The 30 Hz bands of Fig. 5 rise from 0.30 at 5.1 Bark to 0.47 at 8.6 Bark and stay between 0.44 and 0.47 above, while the model rises on to 0.55 at 13 Bark and 0.63 at 17 Bark, because the band narrows in Bark and eq. (7) grows faster than eq. (9) falls. Fig. 6 of [1] divides the same bands by the tone of the same frequency (p. 134), and at four of the five positions it agrees with the ratio of the points of Fig. 5 within 0.02; at 13 Bark Fig. 6 reads 0.605 where Fig. 5 gives 0.44/0.871 = 0.51, and at 17 Bark, which Fig. 6 places at 0.052 Bark, both figures give about 0.58, 0.13 below eq. (7).
+Pure tones follow eq. (9) within 0.006 (max. at 101 Hz; RMS 0.001). The 30 Hz bands follow eq. (7) × eq. (9) within 0.035 (RMS 0.025), confirming that the frequency and bandwidth weightings combine as the product defined by the model. The deviations from the Fig. 5 data listed below are therefore differences between the equations of [1] and its own measurements, not implementation errors.
 
-The bands 1 kHz wide and the highpass noise read zero, where Fig. 5 reads 0.03 to 0.04 for the bands below 21 Bark and 0.02 for the highpass noise. Each of these signals spans more than one critical band, the bands 1 kHz wide from 1.5 to 8.4 Bark, and as for the band 1 kHz wide in Fig. 6, the extraction step of [1] counts a component wider than a critical band as noise. The fifth position of Fig. 5, 21 Bark, is about 7.6 kHz, above the 5 kHz upper limit of the implementation, so it has no counterpart here.
+Deviations from Fig. 5 of [1]:
+
+- Tones at 13 and 17 Bark: the data lie 0.065 and 0.072 below eq. (9).
+
+- 30 Hz bands: the data rise from 0.30 (5.1 Bark) to 0.47 (8.6 Bark) and then stay flat (0.44–0.47). The model keeps rising (0.55 at 13 Bark, 0.63 at 17 Bark), because the band narrows in Bark and eq. (7) grows faster than eq. (9) decreases. Fig. 6 of [1], which normalizes the same bands by the tone at the same frequency, agrees with the Fig. 5 ratios within 0.02 at four of five positions, but not at 13 Bark (0.605 vs. 0.51), so the data in [1] are not fully self-consistent either.
+
+- 1 kHz-wide bands and highpass noise: SQAT gives 0, while Fig. 5 shows 0.03–0.04 (bands) and 0.02 (highpass). These signals span more than one critical band, and the extraction step of [1] treats such components as noise (the same limitation as for the 1 kHz band in Fig. 6). The fifth Fig. 5 position (21 Bark ≈ 7.6 kHz) is above the implementation's 5 kHz limit and is not evaluated.
 
 ## Dependence on the bandwidth of the component
 
