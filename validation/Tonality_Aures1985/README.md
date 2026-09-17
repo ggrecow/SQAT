@@ -69,15 +69,15 @@ The reason is a limit of the model, and these stimuli make it visible. With a ro
 The roll-off term is tracked in issue [#67](https://github.com/ggrecow/SQAT/issues/67).
 
 # References
-[1] Aures, W. (1985). Berechnungsverfahren für den sensorischen Wohlklang beliebiger Schallsignale (A model for calculating the sensory euphony of various sounds). [Acta Acustica united with Acustica](https://www.ingentaconnect.com/content/dav/aaua/1985/00000059/00000002/art00008), 59(2), 130-141.
+[1] Aures, W. (1985). Berechnungsverfahren für den sensorischen Wohlklang beliebiger Schallsignale (A model for calculating the sensory euphony of various sounds). Acustica, 59(2), 130–141. [(link)](https://dael.euracoustics.org/bin/EAA/v3.20/quickview?id=58433)
 
-[2] Hastings, A., Lee, K. H., Davies, P., & Surprenant, A. M. (2003). Measurement of the attributes of complex tonal components commonly found in product sound. [Noise Control Engineering Journal](https://doi.org/10.3397/1.2839715), 51(4), 195-209.  
+[2] Hastings, A., Lee, K. H., Davies, P., & Surprenant, A. M. (2003). Measurement of the attributes of complex tonal components commonly found in product sound. Noise Control Engineering Journal, 51(4), 195–209. DOI: [10.3397/1.2839715](https://doi.org/10.3397/1.2839715)
 
-[3] Hastings, A. L. (2004). Sound quality of diesel engines. PhD thesis, Purdue University, ProQuest 3154642. The tables of Appendix B carry the subjective scores of the experiments reported in [2].
+[3] Hastings, A. L. (2004). Sound quality of diesel engines. Doctoral thesis, Purdue University, ProQuest 3154642. The tables of Appendix B carry the subjective scores of the experiments reported in [2].
 
-[4] Terhardt, E., Stoll, G., & Seewann, M. (1982). Algorithm for extraction of pitch and pitch salience from complex tonal signals. [The Journal of the Acoustical Society of America](https://doi.org/10.1121/1.387544), 71(3), 679-688.
+[4] Terhardt, E., Stoll, G., & Seewann, M. (1982). Algorithm for extraction of pitch and pitch salience from complex tonal signals. The Journal of the Acoustical Society of America, 71(3), 679–688. DOI: [10.1121/1.387544](https://doi.org/10.1121/1.387544)
 
-[5] Zhang, Z., & Shrestha, M. (2003). Sound Quality User-defined Cursor Reading Control, Tonality Metric. Master thesis, IMM-Thesis-2003-22, Technical University of Denmark, with Bruel and Kjaer. [PDF at the IMM publication database](http://www2.imm.dtu.dk/pubdb/edoc/imm2385.pdf).
+[5] Zhang, Z., & Shrestha, M. (2003). Sound Quality User-defined Cursor Reading Control, Tonality Metric. Master thesis, IMM-Thesis-2003-22, Technical University of Denmark, with Brüel & Kjær. [(link)](http://www2.imm.dtu.dk/pubdb/edoc/imm2385.pdf)
 
 # Log
 

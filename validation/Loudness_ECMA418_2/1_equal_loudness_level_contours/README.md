@@ -9,9 +9,9 @@ The test signals are generated in the code. Therefore, no extra steps are requir
 <img src='figs/Loudness_ECMA418_2_equal_loudness_contours.png' width=500>
 
 # References
-[1] Ecma International. (2025). Psychoacoustic metrics for ITT equipment - Part 2 (methods for describing human perception based on the Sottek Hearing Model) (Standard No. 418-2, 4th Edition/June 2025). [https://ecma-international.org/wp-content/uploads/ECMA-418-2_4th_edition_june_2025.pdf](https://ecma-international.org/wp-content/uploads/ECMA-418-2_4th_edition_june_2025.pdf) (Last viewed 16 Nov 2025)
+[1] Ecma International. (2025). Psychoacoustic metrics for ITT equipment - Part 2 (methods for describing human perception based on the Sottek Hearing Model) (Standard No. 418-2, 4th Edition/June 2025). [(link)](https://ecma-international.org/wp-content/uploads/ECMA-418-2_4th_edition_june_2025.pdf) (last viewed November 16, 2025)
 
-[2] International Organization for Standardization. (2003). Acoustics - Normal equal-loudness-level contours (ISO Standard No. 226).
+[2] International Organization for Standardization. (2003). Acoustics - Normal equal-loudness-level contours (ISO Standard No. 226). 
 
 # Log
 Created by Gil Felix Greco (26.01.2025)

@@ -33,7 +33,7 @@ Six of the seven carriers improve. The median relative deviation over the points
 # References
 [1] Daniel, P., & Weber, R. (1997). Psychoacoustical Roughness: Implementation of an Optimized Model. Acustica united with Acta Acustica, 83(1), 113–123. [(link)](https://dael.euracoustics.org/bin/EAA/v3.20/quickview?id=62139)
 
-[2] Fastl, H., & Zwicker, E. (2007). Psychoacoustics: facts and models, Third edition. [Springer-Verlag](https://doi.org/10.1007/978-3-540-68888-4).
+[2] Fastl, H., & Zwicker, E. (2007). Psychoacoustics: facts and models, Third edition. Springer-Verlag. DOI: [10.1007/978-3-540-68888-4](https://doi.org/10.1007/978-3-540-68888-4)
 
 # Log
 This code was released in SQAT v1.0, 14.05.2023
