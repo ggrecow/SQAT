@@ -80,6 +80,7 @@ PA_Widmann_main    = [bp 'psychoacoustic_metrics' filesep 'PsychoacousticAnnoyan
 PA_Widmann_example = [bp 'examples'               filesep 'PsychoacousticAnnoyance_Widmann1992' filesep];
 
 SLM_example        = [bp 'examples'               filesep 'sound_level_meter' filesep];
+SLM_validation       = [bp 'validation'               filesep 'sound_level_meter' filesep];
 
 EPNL_main        = [bp 'psychoacoustic_metrics' filesep 'EPNL_FAR_Part36' filesep];
 EPNL_helper        = [bp 'psychoacoustic_metrics' filesep 'EPNL_FAR_Part36' filesep 'helper' filesep];
@@ -162,6 +163,7 @@ end
 bAdd = ~exist('ex_sound_level_meter.m','file');
 if bAdd
     addpath(SLM_example);
+    addpath(SLM_validation);
 end
 
 bAdd = ~exist('EPNL_FAR_Part36.m','file');
