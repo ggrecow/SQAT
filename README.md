@@ -31,6 +31,7 @@ The implemented metrics available in the `psychoacoustic_metrics` folder are lis
 | Loudness  | ECMA-418-2:2025 [11]  |  [link](psychoacoustic_metrics/Loudness_ECMA418_2) | [link](validation/Loudness_ECMA418_2) |  [link](examples/Loudness_ECMA418_2) | v1.3 | GPL-3.0 |
 | Roughness  | ECMA-418-2:2025 [11]  |  [link](psychoacoustic_metrics/Roughness_ECMA418_2) | [link](validation/Roughness_ECMA418_2) |  [link](examples/Roughness_ECMA418_2) | v1.3 | GPL-3.0|
 | Tonality  | ECMA-418-2:2025 [11]  |  [link](psychoacoustic_metrics/Tonality_ECMA418_2) | [link](validation/Tonality_ECMA418_2) |  [link](examples/Tonality_ECMA418_2) | v1.3 | GPL-3.0 |
+| Fluctuation Strength  | ECMA-418-2:2025 [11]  |  [link](psychoacoustic_metrics/FluctuationStrength_ECMA418_2) | [link](validation/FluctuationStrength_ECMA418_2) |  [link](examples/FluctuationStrength_ECMA418_2) | v2.0 | GPL-3.0 |
 
 <details>
 <summary><b>References</b></summary>
