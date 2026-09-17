@@ -3,19 +3,18 @@ The `validation_signal_to_noise_ratio.m` code is used to verify the implementati
 
 - Pure tone (center frequency $f_{\mathrm{c}}=1~\mathrm{kHz}$ and sound pressure level $L_{\mathrm{p}}=85~\mathrm{dB}~\mathrm{SPL}$) in broadband noise, as a function of the signal-to-noise ratio inside the critical band centered about the tone, following Fig. 1(a) of [2].
 
-Six scripts are provided. The first compares the metric with published data, the other five were added in September 2026: one states the internal consistency of the implementation against properties that follow from the definition of the model, one compares the extraction of components and the level excess with the intermediate values of an independent implementation, one compares the weighting of bandwidth with the data of Aures it was fitted to, one compares the weighting of frequency with the data of Aures it describes, and one compares the dependence of tonality on bandwidth with the subjective data of Hastings. None of them needs an external dataset: five generate the signals they use, and `validation_extraction_and_level_excess.m` reads two published spectra kept in `reference_values`.
+Five scripts are provided. The first compares the metric with published data, the other four were added in September 2026: one compares the extraction of components and the level excess with the intermediate values of an independent implementation, one compares the weighting of bandwidth with the data of Aures it was fitted to, one compares the weighting of frequency with the data of Aures it describes, and one compares the dependence of tonality on bandwidth with the subjective data of Hastings. None of them needs an external dataset: four generate the signals they use, and `validation_extraction_and_level_excess.m` reads two published spectra kept in `reference_values`.
 
 | script | reference | what it constrains |
 | --- | --- | --- |
 | [`validation_signal_to_noise_ratio.m`](validation_signal_to_noise_ratio.m) | Hastings *et al.* [2], Fig. 1(a) | the behaviour of the metric as a tone emerges from noise |
-| [`validation_internal_consistency.m`](validation_internal_consistency.m) | derived in the script itself | the definitional anchor of 1 t.u., determinism, the sum over the tonal components of eq. (11), and the independence from the position of a tone in the analysis grid |
 | [`validation_extraction_and_level_excess.m`](validation_extraction_and_level_excess.m) | Zhang and Shrestha [5], Appendix C and Tables 6.2 and 6.3 | the extraction of components and the level excess of Terhardt [4], code against an independent implementation |
 | [`validation_bandwidth_weighting.m`](validation_bandwidth_weighting.m) | Aures [1], Fig. 6 and eq. (7) | the weighting w1, on ideal bands of noise of known bandwidth in Bark |
 | [`validation_frequency_weighting.m`](validation_frequency_weighting.m) | Aures [1], Fig. 5 and eq. (9) | the weighting w2, on sine tones and bands of noise across the critical band rate |
 | [`validation_bandwidth_dependence.m`](validation_bandwidth_dependence.m) | Hastings [3], Table B.52 of the thesis | the fall of the tonality as a trapezoidal band of noise widens, against subjective scores |
 
 # How to use this code
-No external dataset is needed: five scripts generate the signals they use, and `validation_extraction_and_level_excess.m` reads the two spectra of [5] from `reference_values`.
+No external dataset is needed: four scripts generate the signals they use, and `validation_extraction_and_level_excess.m` reads the two spectra of [5] from `reference_values`.
 
 # Results
 
@@ -95,3 +94,5 @@ The roll-off term is tracked in issue [#67](https://github.com/ggrecow/SQAT/issu
 - Sergio Aguirre, September 2026: `validation_extraction_and_level_excess.m` added, against the spectra and tables of Zhang and Shrestha [5], with the two spectra kept in `reference_values`.  
 
 - Sergio Aguirre, September 2026: `validation_frequency_weighting.m` added, against Fig. 5 and eq. (9) of Aures.
+
+- Sergio Aguirre, September 2026: `validation_internal_consistency.m` removed, as planned in issue #67 once the corrections of the detection stage were merged; the reference signal of 1 t.u. is computed by `ex_Tonality_Aures1985.m`.
