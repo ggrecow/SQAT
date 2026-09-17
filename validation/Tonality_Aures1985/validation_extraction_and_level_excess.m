@@ -51,7 +51,11 @@
 %       Technical University of Denmark, with Bruel and Kjaer.
 %       http://www2.imm.dtu.dk/pubdb/edoc/imm2385.pdf
 %
-% Author: Sergio Aguirre, September 2026
+% Author: Sergio Aguirre and Gil Felix Greco, September 2026
+%
+% AI disclosure: code development in September 2026 assisted 
+% by Claude Fable 5.1 and Opus 5 (Anthropic). All codes were verified by 
+% the authors.
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Copyright statement: This file is part of the SQAT toolbox and is subject
