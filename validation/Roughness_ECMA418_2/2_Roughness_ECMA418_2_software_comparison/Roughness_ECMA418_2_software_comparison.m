@@ -16,6 +16,7 @@
 %
 % Author: Gil Felix Greco, Braunschweig 10.02.2025
 % Updated: 16.11.2025 Mike Lotinga
+% Updated: 18.09.2026 Sergio Aguirre
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Copyright statement: This file is part of the SQAT toolbox and is subject
@@ -52,7 +53,7 @@ OUT = Roughness_ECMA418_2(insig, fs, fieldtype, time_skip, show);
 %% load reference results 
 
 % referece results - main path
-ref_path = [pwd '\reference_results\'];
+ref_path = [fileparts(mfilename('fullpath')) filesep 'reference_results' filesep];
 
 % reference results - file name
 AvgSpec_fileName = [ wav_file '.Specific Roughness (Hearing Model).asc']; % channel 1 and 2
