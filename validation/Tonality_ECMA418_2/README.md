@@ -2,6 +2,7 @@
 
 In SQAT, an implementation of the tonality model according to ECMA-418-2:2025 [1] is provided. The implementation was developed within the RefMap project (www.refmap.eu), and is subject to GPL-3.0 license as detailed in the original code repository [(link)](https://github.com/acoustics-code-salford/refmap-psychoacoustics). The original implementation, called `acousticSHMTonality.m` was ported into SQAT, where it is renamed according to the SQAT convention as `Tonality_ECMA418_2.m` (see code [here](../../psychoacoustic_metrics/Tonality_ECMA418_2/Tonality_ECMA418_2.m)). The following verification studies are available for this implementation:
 
+- [Tonality of a 1 kHz tone in pink noise](1_tone_in_pink_noise)
 - [Comparison with commercial software](2_Tonality_ECMA418_2_software_comparison)
 
 # References
