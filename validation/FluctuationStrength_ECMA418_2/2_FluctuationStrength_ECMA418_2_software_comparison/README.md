@@ -5,7 +5,7 @@ The `FluctuationStrength_ECMA418_2_software_comparison.m` code compares fluctuat
 
 2) an ambisonic recording of a 'park' environment with unmanned aircraft system (UAS / drone) flight overhead (25 seconds, 2-channel binaural). The signal 'Park.3.wav' was extracted from the EigenScape database and trimmed between 00m02s and 00m27s. The auralised UAS superimposed on the recording and the binaural re-recording are described in the folder of [pub_Lotinga2025_Forum_Acusticum_ECMA418_2](../../../publications/pub_Lotinga2025_Forum_Acusticum_ECMA418_2).
 
-The reference results for both signals and for the three output channels (left ear, right ear and combined binaural) are stored in the `reference_results` folder.
+The reference results for both signals and for the three output channels (left ear, right ear and combined binaural) are stored in the `reference_results` folder. The ones of signal 2 are the fluctuation strength results of the verification dataset of Lotinga [4] (version 1.0.1, licensed under Creative Commons Attribution 4.0), renamed to the file names of this folder with their content unchanged. The ones of signal 1 were exported for this study: four of the six files are identical to the files of that dataset, and the two files of the time-dependent specific fluctuation strength carry it at half of the time resolution, each value being the larger of two consecutive values of the dataset.
 
 # How to use this code
 Signal 1, called `ExStereo_TrainStation7-0100-0130.wav`, is stored in the `sound_files/reference_signals` folder [(here)](../../../sound_files/reference_signals) and needs no download.
@@ -17,7 +17,7 @@ Results computed using SQAT correspond to the 90th percentile of the time-depend
 # Results
 The lower tile of each time-dependent figure carries the absolute difference between the implementation and the reference, in the layout of the figures of Lotinga *et al.* [3]. The difference is taken on the time samples of the reference, where the implementation is interpolated linearly, because the two are exported on different time steps.
 
-The two implementations agree where the fluctuation strength is large and part ways where it is small. Over the quiet passages the implementation in SQAT reads below the reference, and in the critical bands carrying little fluctuation strength it reads zero where the reference carries a finite value: none of the 53 bands of channel 1 and one band of channel 2 for the train station signal, and six bands of channel 1 for the park signal. Those zeros are produced by the threshold of Section 9.1.10, which sets the values of $A(l,z)$ below 5.2519 to zero. The single values and the difference of the time series are reported below.
+For the train station signal the implementation in SQAT reads below the reference, by 11.2 % and 5.1 % in the single values of channels 1 and 2, and for the park signal it reads above the reference, by 6.0 % and 16.2 %. In the four channels the rms difference relative to the reference is larger over the upper half of the reference values than over the lower half, so the two implementations part ways mostly where the fluctuation strength is large. The critical bands that read exactly zero largely coincide: of the 53 bands, the two implementations differ in three bands of channel 1 and two bands of channel 2 for the train station signal, and in two bands of channel 1 and none of channel 2 for the park signal. In SQAT those zeros come from the threshold of Section 9.1.10, which sets the values of $A(l,z)$ below 5.2519 to zero: without it, at most one band per channel stays at zero. The single values and the difference of the time series are reported below.
 
 | | Channel 1 | Channel 2 | Combined binaural |
 | --- | --- | --- | --- |
@@ -25,10 +25,10 @@ The two implementations agree where the fluctuation strength is large and part w
 | **Train station**, SQAT (vacil<sub>HMS</sub>) | 0.2406 | 0.2079 | 0.2166 |
 | **Train station**, rms difference (vacil<sub>HMS</sub>) | 0.0382 | 0.0177 | 0.0287 |
 | **Train station**, max absolute difference (vacil<sub>HMS</sub>) | 0.1343 | 0.0660 | 0.1045 |
-| **Park with UAS**, reference (vacil<sub>HMS</sub>) | 0.7932 | 0.6200 | 0.7074 |
+| **Park with UAS**, reference (vacil<sub>HMS</sub>) | 0.6906 | 0.5127 | 0.6045 |
 | **Park with UAS**, SQAT (vacil<sub>HMS</sub>) | 0.7319 | 0.5957 | 0.6567 |
-| **Park with UAS**, rms difference (vacil<sub>HMS</sub>) | 0.0751 | 0.0689 | 0.0703 |
-| **Park with UAS**, max absolute difference (vacil<sub>HMS</sub>) | 0.2286 | 0.1543 | 0.1646 |
+| **Park with UAS**, rms difference (vacil<sub>HMS</sub>) | 0.0578 | 0.0484 | 0.0501 |
+| **Park with UAS**, max absolute difference (vacil<sub>HMS</sub>) | 0.2016 | 0.1974 | 0.1973 |
 
 ## Signal 1: train station
 
@@ -92,6 +92,8 @@ The two implementations agree where the fluctuation strength is large and part w
 [2] Green, M. C., & Murphy, D. (2017). EigenScape: A Database of Spatial Acoustic Scene Recordings. Applied Sciences, 7(11), 1204. DOI: [10.3390/app7111204](https://doi.org/10.3390/app7111204)
 
 [3] Lotinga, M., Torjussen, M., & Felix Greco, G. (2025). Verified implementations of the Sottek psychoacoustic hearing model standardised sound quality metrics (ECMA-418-2 loudness, tonality and roughness). Forum Acusticum.
+
+[4] Lotinga, M. (2026). Dataset: Verification audio and processing results files for ECMA-418-2:2025 psychoacoustic sound quality metrics (version 1.0.1). Zenodo. DOI: [10.5281/zenodo.19090750](https://doi.org/10.5281/zenodo.19090750)
 
 # Log
 Created by Sergio Aguirre and Gil Felix Greco (18.09.2026)

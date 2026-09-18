@@ -19,6 +19,11 @@
 % see the README of this folder. The script reports the instructions and
 % moves on to the next signal when the file is absent.
 %
+% The reference results of signal 2 are the fluctuation strength results of
+% the verification dataset of M. Lotinga (DOI: 10.5281/zenodo.19090750,
+% version 1.0.1, Creative Commons Attribution 4.0), renamed to the file
+% names of the folder <reference_results> with their content unchanged.
+%
 % FUNCTION:
 %   OUT = FluctuationStrength_ECMA418_2(insig, fs, fieldtype, time_skip, show)
 %   type <help FluctuationStrength_ECMA418_2> for more info
