@@ -213,6 +213,14 @@ if bAdd
     end
 end
 
+bAdd = ~exist('pub_Lotinga2025_Forum_Acusticum_ECMA418_2.m','file');
+if bAdd
+    dir2add = [bp 'publications' filesep 'pub_Lotinga2025_Forum_Acusticum_ECMA418_2' filesep];
+    if exist(dir2add,'dir')
+        addpath(dir2add)
+    end
+end
+
 bAdd = ~exist('pub_Osses2023c_Forum_Acusticum_SQAT.m','file');
 if bAdd
     dir2add = [bp 'publications' filesep 'pub_Osses2023c_Forum_Acusticum_SQAT' filesep];
