@@ -10,7 +10,7 @@ The `validation_synthetic_signals_time_varying.m` code is used to verify the lou
 - Test signal 12 (500 ms tone pulse, $f_{\mathrm{c}}=1~\mathrm{kHz}$, $L_{\mathrm{p}}=70~\mathrm{dB~SPL}$)
 - Test signal 13 (Combined tone pulses, $f_{\mathrm{c}}=1~\mathrm{kHz}$)
 
-Here, the center frequency $f_{\mathrm{c}}$ and sound pressure level $L_{\mathrm{p}}$ are used to describe the signals.
+Here, the center frequency $f_{\mathrm{c}}$ and sound pressure level $L_{\mathrm{p}}$ are used to describe the signals. The loudness value exceeded 5% of the time, ${N_{5\\%}}$, is computed over the same time interval used by the reference spreadsheets of the ISO standard. For the test signals 6 to 9 this interval excludes the 100 ms of silence at the beginning and the 500 ms at the end of the signals. The test signals 10 to 13 are only 1 s long and their reference interval covers the complete record, so no interval is excluded in these cases.
 
 # How to use this code
 In order to run this code and reproduce the figures available in the `figs` folder, the user needs to download the dataset of sound files from zenodo <a href="https://doi.org/10.5281/zenodo.7933206" target="_blank">here</a>. The obtained folder called `validation_SQAT_v1_0` has to be included in the `sound_files` folder of the toolbox. 
@@ -50,19 +50,21 @@ The figures below compare the results obtained using the `Loudness_ISO532_1` imp
 | -------------- | -------------- |
 | ![](figs/validation_time_varying_loudness_signal_13.png)   | ![](figs/validation_time_varying_loudness_signal_13_specific_loudness.png)  |
 
+A summary presenting the differences (max. total loudness and loudness value exceed 5\% of the time) between calculated (SQAT) and reference values provided by ISO 532-1 is presented below for signals 06-13. With the reformulation of the code (released from v2.x), results computed using prior version (released in v1.x) are provided for comparison. Results of max. total loudness are close to zero with the new version of the code. Differences in the exceeded value are close to zero for the signals 6 to 11. The residual offsets of the signals 12 and 13 are inherited from the reference spreadsheet, in which the ${N_{5\\%}}$ of these two signals is obtained from the lower bound of the 5% tolerance band instead of from the loudness itself. Despite providing reference values, the ISO standard do not stipulates any tolerance values for technical time-varying signals in terms of those single-value indicators.
 
-A summary presenting the differences (max. total loudness and 5\% percentile loudness) between calculated (SQAT) and reference values provided by ISO 532-1 is presented below for signals 6-13. The differences are not bigger than $\pm0.5$ sone for any signal of metric. Despite providing reference values, the ISO standard do not stipulates any tolerance values for synthetic time-varying signals in terms of those single-value indicators.
+| Summary of loudness differences for signals 06-13 (Max. total loudness)   | Summary of loudness differences for signals 06-13 (loudness value exceed 5\% of the time)         |
+| -------------- | -------------- |
+| ![](figs/validation_time_varying_synthetic_signals_loudness_difference_Nmax.png)   | ![](figs/validation_time_varying_synthetic_signals_loudness_difference_N5.png) |
 
-
-Summary of loudness differences for signals 6-13  |  
-:-------------------------:| 
-| <img src='figs/validation_time_varying_synthetic_signals_loudness_difference.png' width=500>|
 
 # References
 [1] International Organization for Standardization. (2017). Acoustics - Methods for calculating loudness - Part 1: Zwicker method (ISO Standard No. 532-1).
 
 # Log
-This code was released in SQAT v1.0, 14.05.2023
+- This code was released in SQAT v1.0 (Gil Felix Greco, 14.05.2023)
 
-Summary of loudness differences included by Gil Felix Greco, 08.12.2024
+- Summary of loudness differences included (Gil Felix Greco, 08.12.2024)
 
+- Summary of loudness differences include now comparison between code versions (Gil Felix Greco, 21.08.2026)
+
+- Loudness value exceeded 5% of the time is now computed over the time interval used by the reference spreadsheets of the ISO standard (Gil Felix Greco, 26.08.2026)

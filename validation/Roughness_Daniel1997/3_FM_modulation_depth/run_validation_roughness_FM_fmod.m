@@ -21,6 +21,17 @@
 %  the `sound_files` folder of the toolbox. 
 %
 % Author: Gil Felix Greco, Braunschweig 02.03.2020 (updated 13.05.2023) 
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Copyright statement: This file is part of the SQAT toolbox and is subject
+% to the GPL-3.0 license, as detailed in <licenses/gpl-3.0.txt> in the SQAT
+% repository root. Some files in SQAT carry a different license, always
+% stated in their own header; where this file depends on them, the combined
+% work remains governed by the GPL-3.0.
+%
+% As per the licensing information, this file is provided "as is", WITHOUT
+% WARRANTY OF ANY KIND, express or implied, including but not limited to the
+% warranties of MERCHANTABILITY and FITNESS FOR A PARTICULAR PURPOSE.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 clc; clear all; close all;
 
@@ -44,14 +55,6 @@ dir_sounds = get_dir_validation_sounds('Roughness_Daniel1997',SQAT_version);
 
 load([dir_sounds 'FM_fmod_fc_1600hz.mat']); % load signals with varying fmod
 load([dir_sounds 'FM_fmod_fc_1600hz_reference_tone.mat']); % load ref signal (fmod=70Hz)
-
-%% generate signals to compute roughness (.mat variables in time [s] x sound pressure [Pa] (all with fs=48 kHz)
-
-% generate signals with varying fmod
-s=make_FM_fmod_fc_1600hz;
-
-% generate ref signal (fmod=70Hz)
-s_ref=make_FM_fmod_fc_1600hz_reference_tone;
 
 %% compute FS from signals
 

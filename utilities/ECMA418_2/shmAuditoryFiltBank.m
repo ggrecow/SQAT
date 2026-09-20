@@ -40,9 +40,10 @@ function signalFiltered = shmAuditoryFiltBank(signal, outPlot)
 % MATLAB version: 2023b
 %
 % Copyright statement: This file and code is part of work undertaken within
-% the RefMap project (www.refmap.eu), and is subject to licence as detailed
-% in the code repository
-% (https://github.com/acoustics-code-salford/refmap-psychoacoustics)
+% the RefMap project (www.refmap.eu), and is subject to GPL-3.0 license,
+% as detailed in the original code repository
+% (https://github.com/acoustics-code-salford/refmap-psychoacoustics). 
+% See also <licenses/gpl-3.0.txt> file in the SQAT repository root.
 %
 % As per the licensing information, please be aware that this code is
 % WITHOUT ANY WARRANTY; without even the implied warranty of

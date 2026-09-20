@@ -32,6 +32,18 @@ function [B, freqs, a0] = calculate_a0(fs,N,a0_type)
 % Date: 22 November 2024 (extension to contain the default Fastl2007 curve
 %       and its simplified version as used by Osses et al. 2016).
 % Date: 2014-2017 (Implementation)
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Copyright statement: This file and code is part of the SQAT toolbox and
+% is subject to the MIT license in its entirety, as detailed in the license
+% text reproduced at the end of this file (see also <licenses/mit-license.txt> 
+% file in the SQAT repository root.
+%
+% As per the licensing information, please be aware that this code is
+% WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 if nargin == 0
     clc

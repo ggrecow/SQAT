@@ -7,7 +7,6 @@ function OUT = Loudness_ISO532_1(insig, fs, field, method, time_skip, show)
 %  Reference signal: 40 dBSPL 1 kHz tone yields 1 sone
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%
 % INPUT ARGUMENTS
 %   insig : array
 %   for method = 0 [1xN] array, insig is an array containing N=28 third octave unweighted SPL from 25 Hz to 12500 Hz
@@ -25,7 +24,10 @@ function OUT = Loudness_ISO532_1(insig, fs, field, method, time_skip, show)
 %   2 = time varying (from audio file)
 %
 %   time_skip : integer
-%   skip start of the signal in <time_skip> seconds for level (stationary signals) and statistics (stationary and time-varying signals) calculations
+%   skip start of the signal in <time_skip> seconds for level (stationary
+%   signals) and statistics (stationary and time-varying signals)
+%   calculations. For method = 1 it must be shorter than the signal,
+%   otherwise an error is raised
 %
 %   show : logical(boolean)
 %   optional parameter for figures (results) display
@@ -36,7 +38,7 @@ function OUT = Loudness_ISO532_1(insig, fs, field, method, time_skip, show)
 %
 %       * time_insig - time vector of the audio input, in seconds
 %       * barkAxis - bark vector
-%       * SpecificLoudness - time-averaged specific loudness (sone/Bark)
+%       * SpecificLoudness - specific loudness (sone/Bark)
 %       * Loudness - loudness (sone)
 %       * LoudnessLevel - loudness level (phon)
 %       * TimeAveragedSPL - time-averaged overall SPL (1/3 octave bands, DBSPL)
@@ -50,7 +52,6 @@ function OUT = Loudness_ISO532_1(insig, fs, field, method, time_skip, show)
 %       * InstantaneousLoudness - instantaneous loudness (sone) vs time
 %       * InstantaneousSpecificLoudness - specific loudness (sone/Bark) vs time
 %       * InstantaneousLoudnessLevel - instantaneous loudness level (phon) vs time
-%       * SpecificLoudness - time-averaged specific loudness (sone/Bark)
 %       * InstantaneousSPL - overall SPL (1/3 octave bands) for each time step, in dBSPL
 %       * Several statistics based on the InstantaneousLoudness
 %         ** Nmean : mean value of InstantaneousLoudness (sone)
@@ -65,13 +66,41 @@ function OUT = Loudness_ISO532_1(insig, fs, field, method, time_skip, show)
 %                     due to transient effects in the beginning of the loudness calculations
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Source: C code is provided in the ISO532 Annex A (2014).
+% Log
+% 
+% - Source: C code is provided in the ISO532 Annex A (2014).
 %
-% Author: Ella Manor - MATLAB implementation for AARAE (2015)
-% Author: Gil Felix Greco, Braunschweig 22.02.2023 - adapted and validated
+% - Author: Ella Manor - MATLAB implementation for AARAE (2015)
+% 
+% - Author: Gil Felix Greco, Braunschweig 22.02.2023 - adapted and validated
 %                   for SQAT. The validation was based on the test signals
-%                   provided from ISO 532-1:2017
-% Author: Gil Felix Greco, Braunschweig 16.02.2025 - introduced get_statistics function
+%                   provided by ISO 532-1:2017
+% 
+% - Author: Gil Felix Greco, Braunschweig 16.02.2025 - introduced get_statistics 
+%   function
+% 
+% - Author: Sergio Aguirre and Gil Felix Greco, 21.08.2026 - several modifications
+%   to mirror C reference code given by ISO 532-1, and improve performance
+%   (see PR 48 and 49)
+% 
+% - Author: Gil Felix Greco, 25.08.2026 - removed time-averaged
+%   specific loudness from output of time-varying model results. This 
+%   quantity is not specified by ISO 532-1
+% 
+% - Author: Sergio Aguirre, 28.08.2026 - corrected the <time_skip> handling in
+%   the stationary level calculation (method = 1). Results change for
+%   method = 1 with time_skip > 0 only. An over-long <time_skip> now raises an
+%   error, as in the reference code (see PR #52)
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Copyright statement: This file and code is subject to the BSD-3 license in
+% its entirety, as detailed in the license text reproduced at the end of
+% this file.
+%
+% As per the licensing information, please be aware that this code is
+% WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 if nargin == 0
     help Loudness_ISO532_1;
@@ -183,17 +212,21 @@ switch method
                         Tau = 2/(3*1000.);
                     end
 
-                    % 3x smoothing 1st order low-pass filters in series
+                    % 3x smoothing 1st order low-pass filters in series.
+                    % Each pass consumes the OUTPUT of the previous one - the
+                    % C reference filters in place, f_lowpass(pInput,pInput,..)
+                    % - and each pass starts from a discharged state (Y1 is a
+                    % local in f_lowpass).
                     A1 = exp(-1 ./ (fs * Tau));
                     B0 = 1 - A1;
-                    Y1 = 0;
+                    % y(n) = B0*x(n) + A1*y(n-1), zero initial state - i.e.
+                    % exactly filter(B0,[1 -A1],x), applied three times in
+                    % series. Same recursion as the scalar loop it replaces.
+                    band = filteredaudio(:,i);
                     for k = 1:3
-                        for j = 1:length(filteredaudio)
-                            %                 smoothedaudio(j,i) = A1*temp(j,i) + B0*Y1;
-                            smoothedaudio(j,i)= (B0*filteredaudio(j,i))+(A1*Y1); % <----- modified from original by gfg
-                            Y1 = smoothedaudio(j,i);
-                        end
+                        band = filter(B0, [1 -A1], band);
                     end
+                    smoothedaudio(:,i) = band;
 
                     c=1;
                     for j = 1:NumSamplesLevel
@@ -202,17 +235,24 @@ switch method
                     end
 
                 case {1,'stationary'} % stationary from audio signal
+                    % Mean square of the band signal after discarding the
+                    % first <time_skip> seconds. The C reference sums
+                    % samples NumSkip .. NumSamples-1, zero based, which
+                    % are the samples NumSkip+1 .. len here, and divides
+                    % by the number of samples actually summed,
+                    % NumSamples-NumSkip (f_square_and_smooth). Dividing
+                    % by the full length instead under-reports the level
+                    % by 10*log10(len/(len-NumSkip)) dB: 0.97 dB for a
+                    % 0.2 s skip on a 1 s signal.
                     NumSkip = floor(time_skip * fs);
-                    smoothedaudio = zeros(len-NumSkip,28);
 
-                    if NumSkip > len/2
-                        warndlg('time signal too short');
+                    if NumSkip >= len
+                        error('%s: time_skip (%g s) is not shorter than the input signal (%g s).', ...
+                              mfilename, time_skip, len/fs);
                     end
 
-                    if NumSkip == 0; NumSkip = 1; end
-                    smoothedaudio(1:len-NumSkip,i) = filteredaudio(NumSkip:len-1,i);
-                    %         ThirdOctaveLevel(NumSamplesLevel,i) = 10*log10((sum(smoothedaudio(:,i))/len+TINY_VALUE)/I_REF);
-                    ThirdOctaveLevel(NumSamplesLevel,i) = 10*log10((sum(smoothedaudio(:,i)/len)+TINY_VALUE)/I_REF); % <----- modified from original by gfg
+                    meanSquare = sum(filteredaudio(NumSkip+1:len,i)) / (len - NumSkip);
+                    ThirdOctaveLevel(NumSamplesLevel,i) = 10*log10((meanSquare + TINY_VALUE)/I_REF);
 
             end
         end
@@ -262,16 +302,15 @@ for j = 1:NumSamplesLevel
     CBI(j,2) = sum(Intens(j,7:9)); % second critical band (sum of octaves (100Hz to 160Hz))
     CBI(j,3) = sum(Intens(j,10:11)); % third critical band (sum of octaves (200Hz to 250Hz))
 
-    FNGi = 10*log10(CBI);
-
-    for i = 1:3
-        if CBI(j,i)>0
-            LCB(j,i) = FNGi(j,i);
-        else
-            LCB(j,i) = 0;
-        end
-    end
 end
+
+% LCB is the level of each of the first three critical bands. This used to
+% sit inside the loop above, recomputing 10*log10 over the entire
+% NumSamplesLevel-by-3 matrix on every time sample - O(N^2) for one column
+% of results. LCB is preallocated to zero, which already covers the
+% CBI <= 0 case.
+FNGi = 10*log10(CBI);
+LCB(CBI > 0) = FNGi(CBI > 0);
 
 %% **********************************************************************
 % STEP 6 - Calculate core loudness for each critical band
@@ -365,106 +404,78 @@ if method == 2 % time-varying from audio signal
     NlLpB(5) = exp(-DeltaT / Tlong);
     NlLpB(6) = exp(-DeltaT / Tvar);
 
+    % Mirrors f_nl() of the C reference. Per level sample there are exactly
+    % NL_ITER calls to f_nl_lp: the first one produces the stored output, the
+    % remaining NL_ITER-1 only advance the filter state along the linear
+    % interpolation towards the next sample. The final sample is processed by
+    % a single trailing call.
+    B1 = NlLpB(1); B2 = NlLpB(2); B3 = NlLpB(3);
+    B4 = NlLpB(4); B5 = NlLpB(5); B6 = NlLpB(6);
+
     for i = 1:21
 
         NlLpUoLast = 0; % At beginning capacitors C1 and C2 are discharged
         NlLpU2Last = 0;
 
-        for j = 1:NumSamplesLevel-1
-            NextInput = CoreL(j+1,i);
-            % interpolation steps between current and next sample
-            Delta = (NextInput - CoreL(j,i)) / NL_ITER;
+        for j = 1:NumSamplesLevel
+
             Ui = CoreL(j,i);
 
-            % f_nl_lp FUNCTION STARTS
-            % case 1
-            if Ui < NlLpUoLast
-                if NlLpUoLast > NlLpU2Last
-                    % case 1.1
-                    U2 = NlLpUoLast*NlLpB(1) - NlLpU2Last*NlLpB(2);
-                    Uo = NlLpUoLast*NlLpB(3) - NlLpU2Last*NlLpB(4);
-                    if  Uo < Ui
-                        Uo  = Ui;
-                    end
-                    if U2 > Uo
-                        U2 = Uo;
-                    end
-                else
-                    % case 1.2
-                    Uo = NlLpUoLast*NlLpB(5);
-                    if  Uo < Ui
-                        Uo = Ui;
-                    end
-                    U2 = Uo;
-                end
-                % case 2
-            elseif Ui == NlLpUoLast
-                Uo = Ui;
-                % case 2.1
-                if Uo > NlLpUoLast
-                    U2 = (NlLpUoLast - Ui)*NlLpB(6) + Ui;
-                    % case 2.2
-                else
-                    U2 = Ui;
-                end
-                % case 3
+            if j < NumSamplesLevel
+                % interpolation steps between current and next sample
+                Delta  = (CoreL(j+1,i) - Ui) / NL_ITER;
+                nInner = NL_ITER - 1;
             else
-                Uo = Ui;
-                U2 = (NlLpU2Last - Ui)*NlLpB(6) + Ui;
+                Delta  = 0;
+                nInner = 0;
             end
 
-            NlLpUoLast = Uo;
-            NlLpU2Last = U2;
-
-            CoreL(j,i) = Uo;
-            % f_nl_lp FUNCTION ENDS
-
-            Ui = Ui + Delta;
-
-            % inner iteration
-            for k = 1:NL_ITER
+            for k = 0:nInner
                 % f_nl_lp FUNCTION STARTS
                 % case 1
                 if Ui < NlLpUoLast
                     if NlLpUoLast > NlLpU2Last
                         % case 1.1
-                        U2 = NlLpUoLast*NlLpB(1) - NlLpU2Last*NlLpB(2);
-                        Uo = NlLpUoLast*NlLpB(3) - NlLpU2Last*NlLpB(4);
-                        if Ui > Uo
-                            Uo  = Ui;
+                        U2 = NlLpUoLast*B1 - NlLpU2Last*B2;
+                        Uo = NlLpUoLast*B3 - NlLpU2Last*B4;
+                        if Uo < Ui       % Uo can't become lower than Ui
+                            Uo = Ui;
                         end
-                        if U2 > Uo
+                        if U2 > Uo       % U2 can't become higher than Uo
                             U2 = Uo;
                         end
                     else
                         % case 1.2
-                        Uo = NlLpUoLast*NlLpB(5);
-                        if Ui > Uo
+                        Uo = NlLpUoLast*B5;
+                        if Uo < Ui
                             Uo = Ui;
                         end
                         U2 = Uo;
                     end
                     % case 2
-                elseif Ui == NlLpUoLast
+                elseif abs(Ui - NlLpUoLast) < 1e-5
                     Uo = Ui;
-                    % case 2.1
-                    if Uo > NlLpUoLast
-                        U2 = (NlLpUoLast - Ui)*NlLpB(6) + Ui;
-                        % case 2.2
+                    if Uo > NlLpU2Last
+                        % case 2.1
+                        U2 = (NlLpU2Last - Ui)*B6 + Ui;
                     else
+                        % case 2.2
                         U2 = Ui;
                     end
                     % case 3
                 else
                     Uo = Ui;
-                    U2 = (NlLpU2Last - Ui)*NlLpB(6) + Ui;
+                    U2 = (NlLpU2Last - Ui)*B6 + Ui;
                 end
 
                 NlLpUoLast = Uo;
                 NlLpU2Last = U2;
-
-                CoreL(j,i) = Uo;
                 % f_nl_lp FUNCTION ENDS
+
+                if k == 0
+                    CoreL(j,i) = Uo;    % only the first call is stored
+                end
+
                 Ui = Ui + Delta;
             end
         end
@@ -507,7 +518,6 @@ USL = [13 8.2 6.3 5.5 5.5 5.5 5.5 5.5;
 
 LN = zeros(NumSamplesLevel,1);
 N_mat = zeros(NumSamplesLevel,1);
-Spec_N = zeros(1,240);
 ZUP = ZUP+0.0001; %<----- add constant factor to ZUP according to code provided by ISO 532-1 (see ISO 532-1 - Program etc\Annex A.4\ISO_532-1_LIB\src\ISO_532-1.c - line 862)
 ns = zeros(NumSamplesLevel,240);
 
@@ -538,7 +548,7 @@ for l = 1:NumSamplesLevel
                 if n1 < CoreL(l,i)
                     j=1;
 
-                    while (RNS(j) > CoreL(l,i)) && (j < 18) % the value of j is used below to build a slope
+                    while (RNS(j) >= CoreL(l,i)) && (j < 18) % the value of j is used below to build a slope
                         j = j+1; % j becomes the index at which Nm(i)                        % to the range of specific loudness
                     end
                 end
@@ -588,12 +598,8 @@ for l = 1:NumSamplesLevel
 
             end
 
-            if (n2 <= RNS(j)) && (j < 18)
+            while (n2 <= RNS(j)) && (j < 18)
                 j = j + 1;
-            end
-
-            if (n2 <= RNS(j)) && (j >= 18)
-                j = 18;
             end
 
             z1 = z2;     % N1 and Z1 for next loop
@@ -604,12 +610,6 @@ for l = 1:NumSamplesLevel
 
     if N < 0
         N = 0;
-    end
-
-    if N <= 16
-        N = (N*1000+.5)/1000;
-    else
-        N = (N*100+.5)/100;
     end
 
     LN(l) = 40*(N + .0005)^.35;
@@ -632,9 +632,11 @@ for l = 1:NumSamplesLevel
     N_mat(l) = N; % total loudness at current timeframe l
 end
 
-% specific Loudness as a function of Bark number
-for i = 1:240
-    Spec_N(i) = mean(ns(:,i));
+% Specific loudness as a function of Bark number. Only defined for the
+% stationary methods, where NumSamplesLevel == 1. ISO 532-1 specifies no
+% time-aggregated specific loudness for time-varying signals.
+if method == 0 || method == 1
+    Spec_N = ns(1,:);
 end
 
 %% **********************************************************************
@@ -658,9 +660,10 @@ if method == 2 % time-varying from audio signal
         Y1 = B0 * X0 + A1 * Y1;
         Loudness_t1(i) = Y1;
 
-        if i < NumSamplesLevel - 1
-            Xd = (N_mat(i) - X0) / DecFactorLevel;
-            for j = 1:DecFactorLevel
+        if i < NumSamplesLevel
+            % linear interpolation towards the next sample (C: f_lowpass_intp)
+            Xd = (N_mat(i+1) - X0) / DecFactorLevel;
+            for j = 1:DecFactorLevel-1
                 X0 = X0 + Xd;
                 Y1 = B0 * X0 + A1 * Y1;
             end
@@ -677,9 +680,10 @@ if method == 2 % time-varying from audio signal
         X0 = N_mat(i);
         Y1 = B0 * X0 + A1 * Y1;
         Loudness_t2(i) = Y1;
-        if i < NumSamplesLevel - 1
-            Xd = (N_mat(i) - X0) / DecFactorLevel;
-            for j = 1:DecFactorLevel
+        if i < NumSamplesLevel
+            % linear interpolation towards the next sample (C: f_lowpass_intp)
+            Xd = (N_mat(i+1) - X0) / DecFactorLevel;
+            for j = 1:DecFactorLevel-1
                 X0 = X0 + Xd;
                 Y1 = B0 * X0 + A1 * Y1;
             end
@@ -726,7 +730,6 @@ if method == 2 % time-varying from audio signal
     OUT.time=(0:length(Total_Loudness)-1)' * 2e-3; % time vector of the final loudness calculation, in seconds
     OUT.time_insig=(0 : length(insig)-1) ./ fs;  % time vector of the audio input, in seconds
     OUT.InstantaneousLoudness=Total_Loudness; % Time-varying Loudness, in sone
-    OUT.SpecificLoudness=Spec_N; % time-averaged specific loudness (sone/Bark)
     OUT.InstantaneousSpecificLoudness=ns_dec; % specific loudness (sone/Bark) vs time
     OUT.InstantaneousLoudnessLevel=LN ; % Time-varying Loudness level, in phon
     OUT.InstantaneousSPL=10.*log10(sum(10.^(ThirdOctaveLevel(:,1:end)./10),2)); % total SPL (1/3 octave bands) for each time step, in dBSPL
@@ -800,16 +803,8 @@ if method == 2 % time-varying from audio signal
         xlabel('Time, $t$ (s)','Interpreter','Latex');
         ylabel('Loudness, $N$ (sone)','Interpreter','Latex'); grid on;
 
-        % plot specific loudness (sone/bark)
-        subplot( 2, 6, [9,10])
-        plot( OUT.barkAxis, OUT.SpecificLoudness);
-        ax = axis; axis([0 24 ax(3) ax(4)*1.1]);
-        title('Time-averaged specific loudness','Interpreter','Latex');
-        xlabel('Critical band, $z$ (Bark)','Interpreter','Latex');
-        ylabel('Specific loudness, $N^{\prime}$ ($\mathrm{sone}/\mathrm{Bark}$)','Interpreter','Latex'); grid on;
-
         % plot instantaneous specific loudness (sone/bark)
-        subplot( 2, 6, [11,12])
+        subplot( 2, 6, [9,12])
         [xx,yy]=meshgrid(OUT.time,OUT.barkAxis);
         pcolor(xx,yy,OUT.InstantaneousSpecificLoudness');
         shading interp; colorbar; axis tight;
@@ -837,7 +832,7 @@ elseif method==0 || method==1
     end
 
     OUT.barkAxis=(1:240)/10; % bark vector
-    OUT.SpecificLoudness=Spec_N; % time-averaged specific loudness (sone/Bark)
+    OUT.SpecificLoudness=Spec_N;  % specific loudness (sone/Bark)
     OUT.Loudness=N; % loudness (sone)
     OUT.LoudnessLevel=LN ; % loudness level (phon)
     OUT.TimeAveragedSPL=10.*log10(sum(10.^(ThirdOctaveLevel(:,1:end)./10),2)); % total SPL (1/3 octave bands) for each time step, in dBSPL

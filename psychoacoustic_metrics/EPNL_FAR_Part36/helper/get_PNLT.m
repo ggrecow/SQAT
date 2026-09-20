@@ -10,8 +10,8 @@ function [PNLT, PNLTM, PNLTM_idx, OUT] = get_PNLT( input, freq_bands, PNL )
 %          corresponding PNL(k) values in order to determine the Tone-corrected
 %          perceived noise levels, PNLT(k) 
 %
-%       3) Bandsharing adjustment to PNLTM added in 20.06.2024, amended
-%          17.12.2025
+%       3) Bandsharing adjustment to PNLTM added in 20.06.2024 (amended
+%          17.12.2025, amended again 31/08/2026)
 %
 % A detailed definition and discussion about the tone-correction factor is
 % provided in:
@@ -51,7 +51,18 @@ function [PNLT, PNLTM, PNLTM_idx, OUT] = get_PNLT( input, freq_bands, PNL )
 %       Struct containing the S, diff, delS, SPLP, SP, SB, SPLPP, F, and C variables (only used for verifying the tone-correction factor implementation)
 %
 % Function author: Gil Felix Greco, Braunschweig 27.10.2023
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Copyright statement: This file is part of the SQAT toolbox and is subject
+% to the GPL-3.0 license, as detailed in <licenses/gpl-3.0.txt> in the SQAT
+% repository root. Some files in SQAT carry a different license, always
+% stated in their own header; where this file depends on them, the combined
+% work remains governed by the GPL-3.0.
+%
+% As per the licensing information, this file is provided "as is", WITHOUT
+% WARRANTY OF ANY KIND, express or implied, including but not limited to the
+% warranties of MERCHANTABILITY and FITNESS FOR A PARTICULAR PURPOSE.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % DEFINITIONS
 % i is index for the octave bands
@@ -224,7 +235,7 @@ if size(Cmax,1)~=1
     Cavg = mean(Cmax(validIndices));
 
     if Cavg > Cmax(PNLTM_idx)
-        DeltaB = Cavg*Cmax(PNLTM_idx);
+        DeltaB = Cavg - Cmax(PNLTM_idx);  % follows definition corrected in amended edition 14 (2024) of ICAO Annex 16 Vol 1 Appendix 2
     else
         DeltaB = 0;
     end

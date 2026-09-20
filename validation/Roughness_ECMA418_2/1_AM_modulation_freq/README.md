@@ -21,11 +21,11 @@ The figures below compare the results obtained using the `Roughness_ECMA418_2.m`
 <img src='figs/validation_roughness_fmod_8khz.png' width=500>
 
 # References
-[1] Ecma International. (2025). Psychoacoustic metrics for ITT equipment - Part 2 (methods for describing human perception based on the Sottek Hearing Model) (Standard No. 418-2, 4th Edition/June 2025). [https://ecma-international.org/wp-content/uploads/ECMA-418-2_4th_edition_june_2025.pdf](https://ecma-international.org/wp-content/uploads/ECMA-418-2_4th_edition_june_2025.pdf) (Last viewed 16 Nov 2025)
+[1] Ecma International. (2025). Psychoacoustic metrics for ITT equipment - Part 2 (methods for describing human perception based on the Sottek Hearing Model) (Standard No. 418-2, 4th Edition/June 2025). [(link)](https://ecma-international.org/wp-content/uploads/ECMA-418-2_4th_edition_june_2025.pdf) (last viewed November 16, 2025)
 
-[2] Fastl, H., & Zwicker, E. (2007). Psychoacoustics: facts and models, Third edition. [Springer-Verlag](https://doi.org/10.1007/978-3-540-68888-4).
+[2] Fastl, H., & Zwicker, E. (2007). Psychoacoustics: facts and models, Third edition. Springer-Verlag. DOI: [10.1007/978-3-540-68888-4](https://doi.org/10.1007/978-3-540-68888-4)
 
-[3] Daniel, P., & Weber, R. (1997). Psychoacoustical Roughness: Implementation of an Optimized Model. [Acta Acustica united with Acustica](https://www.ingentaconnect.com/content/dav/aaua/1997/00000083/00000001/art00020), 83(1), 113-123.
+[3] Daniel, P., & Weber, R. (1997). Psychoacoustical Roughness: Implementation of an Optimized Model. Acustica united with Acta Acustica, 83(1), 113–123. [(link)](https://dael.euracoustics.org/bin/EAA/v3.20/quickview?id=62139)
 
 # Log
 Created by Gil Felix Greco (22.01.2025)

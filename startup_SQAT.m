@@ -7,6 +7,17 @@ function startup_SQAT(bp)
 %   has started.
 %
 % Author: Alejandro Osses
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Copyright statement: This file is part of the SQAT toolbox and is subject
+% to the GPL-3.0 license, as detailed in <licenses/gpl-3.0.txt> in the SQAT
+% repository root. Some files in SQAT carry a different license, always
+% stated in their own header; where this file depends on them, the combined
+% work remains governed by the GPL-3.0.
+%
+% As per the licensing information, this file is provided "as is", WITHOUT
+% WARRANTY OF ANY KIND, express or implied, including but not limited to the
+% warranties of MERCHANTABILITY and FITNESS FOR A PARTICULAR PURPOSE.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 if nargin == 0
@@ -69,6 +80,7 @@ PA_Widmann_main    = [bp 'psychoacoustic_metrics' filesep 'PsychoacousticAnnoyan
 PA_Widmann_example = [bp 'examples'               filesep 'PsychoacousticAnnoyance_Widmann1992' filesep];
 
 SLM_example        = [bp 'examples'               filesep 'sound_level_meter' filesep];
+SLM_validation       = [bp 'validation'               filesep 'sound_level_meter' filesep];
 
 EPNL_main        = [bp 'psychoacoustic_metrics' filesep 'EPNL_FAR_Part36' filesep];
 EPNL_helper        = [bp 'psychoacoustic_metrics' filesep 'EPNL_FAR_Part36' filesep 'helper' filesep];
@@ -151,6 +163,7 @@ end
 bAdd = ~exist('ex_sound_level_meter.m','file');
 if bAdd
     addpath(SLM_example);
+    addpath(SLM_validation);
 end
 
 bAdd = ~exist('EPNL_FAR_Part36.m','file');
@@ -195,6 +208,14 @@ end
 bAdd = ~exist('pub_Greco2023_Internoise.m','file');
 if bAdd
     dir2add = [bp 'publications' filesep 'pub_Greco2023_Internoise' filesep];
+    if exist(dir2add,'dir')
+        addpath(dir2add)
+    end
+end
+
+bAdd = ~exist('pub_Lotinga2025_Forum_Acusticum_ECMA418_2.m','file');
+if bAdd
+    dir2add = [bp 'publications' filesep 'pub_Lotinga2025_Forum_Acusticum_ECMA418_2' filesep];
     if exist(dir2add,'dir')
         addpath(dir2add)
     end

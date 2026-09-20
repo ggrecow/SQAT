@@ -68,29 +68,55 @@ function OUT = FluctuationStrength_Osses2016(insig,fs,method,time_skip,show,stru
 %         ** FSmin : minimum of InstantaneousFluctuationStrength (vacil)
 %         ** FSx : fluctuation strength value exceeded during x percent of the time (vacil)
 %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Log
+%
 % Original file name: FluctuationStrength_TUe.m from 
 %   https://github.com/aosses-tue/mb/tree/master/FluctuationStrength_TUe (accessed 04/03/2020)
 %
 % Author: Alejandro Osses, HTI, TU/e, the Netherlands, 2014-2016
+% 
 % Author: Rodrigo Garcia, HTI, TU/e, the Netherlands, 2014-2016
+% 
 % Author: Gil Felix Greco, Braunschweig 04.03.2020 - Modifications
 %     1) includes resampling to 44100 Hz, which is preferible because it 
 %        takes less time to compute than 48 kHz because of the filtering 
 %        process of IIR filters for modeling the Hweigth parameter
 %     2) include possibility to choose method (stationary or time-varying) 
 %        which affects the window size
+% 
 % Author: Alejandro Osses, 10/05/2023. Appropriate scaling for the specific 
 %            fluctuation strength.
+% 
 % Author: Alejandro Osses, 11/05/2023. Moving TerhardtExcitationPatterns_v3, 
 %            Get_Bark to the private folder (old il_* functions)
+% 
 % Author: Alejandro Osses, 13/11/2024. Included <struct_opt> input to allow
 %            for changing the a0 transmission factor. the a0 transmission
 %            factor were moved to the <utilities> folder of the toolbox as
 %            standalone functions
+% 
 % Author: Gil Felix Greco, Braunschweig 16.02.2025 - introduced get_statistics function
+% 
 % Modified: Mike Lotinga May 2025 - incorporated efficiency improvements in
 % TerhardtExcitationPatterns.m to speed up calculation.
+% 
+% Modified: Sergio Aguirre, September 2026 - a single warning per call when
+% the Terhardt upper slope is clamped to zero in any frame (component level
+% above 120 + 1150/f dB, see TerhardtExcitationPatterns.m)
+%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Copyright statement: This file is part of the SQAT toolbox and is subject
+% to the GPL-3.0 license, as detailed in <licenses/gpl-3.0.txt> in the SQAT
+% repository root. Some files in SQAT carry a different license, always
+% stated in their own header; where this file depends on them, the combined
+% work remains governed by the GPL-3.0.
+%
+% As per the licensing information, this file is provided "as is", WITHOUT
+% WARRANTY OF ANY KIND, express or implied, including but not limited to the
+% warranties of MERCHANTABILITY and FITNESS FOR A PARTICULAR PURPOSE.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 if nargin == 0
     help FluctuationStrength_Osses2016;
     return;
@@ -155,6 +181,7 @@ insig = buffer(insig,N,overlap,'nodelay');
 t_b     = buffer(t_b,N,overlap,'nodelay');
 nFrames = size(insig,2);
 fluct   = zeros(1,nFrames); % Memory allocation
+clampFrames = 0; clampLdB = -Inf; clampFreq = NaN; % frames with a clamped Terhardt slope
 
 %% ei = peripheral_stage(insig,fs,N);
 % 1. Cosine window:
@@ -182,10 +209,16 @@ for iFrame = nFrames:-1:1
     % 2.2 Excitation patterns
     %     (see model_par.filterbank == 'terhardt', in _debug version):
     
-    dBFS = 94; % corresponds to 1 Pa (new default in SQAT)
-    % dBFS = 100; % unit amplitude corresponds to 100 dB (AMT Toolbox 
-                  % convention, default by the original authors)
-    ei   = TerhardtExcitationPatterns(signal,fs,dBFS);
+    dBFS = 94; % corresponds to 1 Pa (SQAT toolbox convention)
+
+    [ei, ~, ~, clamp] = TerhardtExcitationPatterns(signal,fs,dBFS); % <clamp> requested, so the filterbank does not warn per frame
+    if clamp.n > 0
+        clampFrames = clampFrames + 1;
+        if clamp.LdB > clampLdB
+            clampLdB  = clamp.LdB;
+            clampFreq = clamp.freq;
+        end
+    end
     dz   = 0.5; % Barks, frequency step
     z    = 0.5:dz:23.5; % Bark
     % fc   = bark2hz(z);  % unused variable
@@ -211,6 +244,17 @@ for iFrame = nFrames:-1:1
     fi(iFrame,:)  = model_par.cal * fi_;
     fluct(iFrame) = dz*sum(fi(iFrame,:)); % total fluct = integration of the specific fluct. strength pattern
     
+end
+
+% One warning per call, aggregated over the frames (the filterbank itself
+% stays silent because <clamp> is requested above)
+if clampFrames > 0
+    warning('SQAT:FluctuationStrength:TerhardtSlopeClamped', ...
+        ['Terhardt upper slope clamped to zero in %d of %d frame(s): at least one ' ...
+         'component exceeds 120 + 1150/f dB (highest: %.1f dB at %.0f Hz). The ' ...
+         'fluctuation strength of those frames is an extrapolation outside the range ' ...
+         'over which the metric was validated; check the dBFS calibration.'], ...
+        clampFrames, nFrames, clampLdB, clampFreq);
 end
 
 
@@ -497,32 +541,3 @@ g0 = transpose(g0);
 
 gzi = interp1(g0(:,1),g0(:,2),(1:Chno)*Chstep);
 gzi(isnan(gzi)) = g0(end,2); % 0
-   
-%**************************************************************************
-%
-% Redistribution and use in source and binary forms, with or without 
-% modification, are permitted provided that the following conditions are 
-% met:
-%
-%  * Redistributions of source code must retain the above copyright notice,
-%    this list of conditions and the following disclaimer.
-%  * Redistributions in binary form must reproduce the above copyright 
-%    notice, this list of conditions and the following disclaimer in the 
-%    documentation and/or other materials provided with the distribution.
-%  * Neither the name of the <ORGANISATION> nor the names of its contributors
-%    may be used to endorse or promote products derived from this software 
-%    without specific prior written permission.
-%
-% THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS 
-% "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
-% TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A 
-% PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER
-% OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-% EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-% PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-% PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-% LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING 
-% NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-% SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-%
-%**************************************************************************

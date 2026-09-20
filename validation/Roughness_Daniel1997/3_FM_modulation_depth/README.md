@@ -14,10 +14,12 @@ The figure below compares the results obtained using the `Roughness_Daniel1997` 
 ![](figs/validation_FS_fmod_FM_tones.png)   
 
 # References
-[1] Daniel, P., & Weber, R. (1997). Psychoacoustical Roughness: Implementation of an Optimized Model. [Acta Acustica united with Acustica](https://www.ingentaconnect.com/content/dav/aaua/1997/00000083/00000001/art00020), 83(1), 113-123.
+[1] Daniel, P., & Weber, R. (1997). Psychoacoustical Roughness: Implementation of an Optimized Model. Acustica united with Acta Acustica, 83(1), 113–123. [(link)](https://dael.euracoustics.org/bin/EAA/v3.20/quickview?id=62139)
 
-[2] Fastl, H., & Zwicker, E. (2007). Psychoacoustics: facts and models, Third edition. [Springer-Verlag](https://doi.org/10.1007/978-3-540-68888-4).
+[2] Fastl, H., & Zwicker, E. (2007). Psychoacoustics: facts and models, Third edition. Springer-Verlag. DOI: [10.1007/978-3-540-68888-4](https://doi.org/10.1007/978-3-540-68888-4)
 
 # Log
 This code was released in SQAT v1.0, 14.05.2023
+
+Figures recomputed in September 2026, after the correction of the model implementation (see the log of `Roughness_Daniel1997.m` and issue 47). The script was also repaired: it loaded the signals from the data set and then overwrote them with calls to `make_FM_fmod_fc_1600hz` and `make_FM_fmod_fc_1600hz_reference_tone`, names that stopped resolving when the local functions took the `il_` prefix in May 2023, so the script raised an error before reaching the calculation in every release from v1.1 on. The two calls are removed and the script uses the signals it loads, as `run_validation_roughness_FM_level.m` of the neighbouring folder does.
 

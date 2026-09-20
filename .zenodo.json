@@ -3,7 +3,7 @@
     "creators": [
         {
             "orcid": "0000-0002-9484-8955", 
-            "affiliation": "Institut für Akustik, Technische Universität Braunschweig, Braunschweig, Germany", 
+            "affiliation": "Institut für Akustik und Dynamik, Technische Universität Braunschweig, Braunschweig, Germany", 
             "name": "Gil Felix Greco"
         }, 
         {
@@ -22,6 +22,6 @@
             "name": "Michael J B Lotinga"
         }
     ],
-    "license": "cc-by-nc-4.0",
+    "license": "GPL-3.0-or-later",
     "keywords": ["Sound quality","Psychoacoustics","Auditory model","Acoustics","MATLAB"]
 }

@@ -36,15 +36,14 @@ Narrowband signals |  Broadband signals
 
 [2] International Organization for Standardization. (2017). Acoustics - Methods for calculating loudness - Part 1: Zwicker method (ISO Standard No. 532-1).
 
-[3] Widmann, U. (1993). Untersuchungen zur Schärfe und zur Lästigkeit von Rauschen unterschiedlicher Spektralverteilung, DAGA 93, S. 644-647.
+[3] Widmann, U. (1993). Untersuchungen zur Schärfe und zur Lästigkeit von Rauschen unterschiedlicher Spektralverteilung. Fortschritte der Akustik – DAGA 93, 644–647.
 
-[4] von Bismarck, G. (1974). Sharpness as an Attribute of the Timbre of Steady Sounds. [Acta Acustica united with Acustica](https://www.ingentaconnect.com/content/dav/aaua/1974/00000030/00000003/art00006), 30(3), 159-172.
+[4] von Bismarck, G. (1974). Sharpness as an Attribute of the Timbre of Steady Sounds. Acustica, 30(3), 159–172. [(link)](https://dael.euracoustics.org/bin/EAA/v3.20/quickview?id=54732)
 
-[5] Aures, W. (1985). Berechnungsverfahren für den sensorischen Wohlklang beliebiger Schallsignale (A model for calculating the sensory euphony of various sounds). [Acta Acustica united with Acustica](https://www.ingentaconnect.com/content/dav/aaua/1985/00000059/00000002/art00008), 59(2), 130-141.
+[5] Aures, W. (1985). Berechnungsverfahren für den sensorischen Wohlklang beliebiger Schallsignale (A model for calculating the sensory euphony of various sounds). Acustica, 59(2), 130–141. [(link)](https://dael.euracoustics.org/bin/EAA/v3.20/quickview?id=58433)
 
-[6] Head acoustics. (2018). Psychoacoustic analyses I, Application note. [https://cdn.head-acoustics.com/fileadmin/data/global/Application-Notes/SVP/Psychoacoustic-Analyses-I_e.pdf](https://cdn.head-acoustics.com/fileadmin/data/global/Application-Notes/SVP/Psychoacoustic-Analyses-I_e.pdf) (Last viewed: December 05, 2024)
+[6] HEAD acoustics. (2018). Psychoacoustic analyses I. Application note. [(link)](https://cdn.head-acoustics.com/fileadmin/data/global/Application-Notes/SVP/Psychoacoustic-Analyses-I_e.pdf) (last viewed December 5, 2024)
 
- 
 
 # Log
 This code was released in SQAT v1.0, 14.05.2023

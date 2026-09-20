@@ -3,6 +3,16 @@ function [Bark,Bark_raw] = Get_Bark(N,qb,freqs)
 %
 % Extracted from FluctuationStrength_Osses2016.m on 12/05/2023
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Copyright statement: This file and code is part of the SQAT toolbox and
+% is subject to the MIT license in its entirety, as detailed in the license
+% text reproduced at the end of this file (see also <licenses/mit-license.txt> 
+% file in the SQAT repository root.
+%
+% As per the licensing information, please be aware that this code is
+% WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 Bark_raw = [
     0   0       50      0.5

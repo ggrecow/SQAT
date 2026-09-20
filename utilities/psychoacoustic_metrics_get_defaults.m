@@ -1,8 +1,23 @@
 function params = psychoacoustic_metrics_get_defaults(model_name)
 % function params = psychoacoustic_metrics_get_defaults(model_name)
 %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Log
+%
 % Author: Alejandro Osses
+% 
 % Modified: Mike Lotinga, 12.06.2025 - updated to include Widmann PA
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Copyright statement: This file and code is part of the SQAT toolbox and
+% is subject to the MIT license in its entirety, as detailed in the license
+% text reproduced at the end of this file (see also <licenses/mit-license.txt> 
+% file in the SQAT repository root.
+%
+% As per the licensing information, please be aware that this code is
+% WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 switch model_name

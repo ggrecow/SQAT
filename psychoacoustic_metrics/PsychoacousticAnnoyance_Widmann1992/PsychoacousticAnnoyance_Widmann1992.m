@@ -112,6 +112,19 @@ function OUT = PsychoacousticAnnoyance_Widmann1992(insig,fs,LoudnessField,time_s
 % Author: Gil Felix Greco, Braunschweig 16.02.2025 - introduced get_statistics function
 % Modified: Mike Lotinga, 12.06.2025 - created from
 % PsychoacousticAnnoyance_Zwicker1999.m
+% Modified: Mike Lotinga, 29.05.2026 - fixed bug caused by axes swap in
+% sharpness following vectorisation
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Copyright statement: This file is part of the SQAT toolbox and is subject
+% to the GPL-3.0 license, as detailed in <licenses/gpl-3.0.txt> in the SQAT
+% repository root. Some files in SQAT carry a different license, always
+% stated in their own header; where this file depends on them, the combined
+% work remains governed by the GPL-3.0.
+%
+% As per the licensing information, this file is provided "as is", WITHOUT
+% WARRANTY OF ANY KIND, express or implied, including but not limited to the
+% warranties of MERCHANTABILITY and FITNESS FOR A PARTICULAR PURPOSE.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 if nargin == 0
     help PsychoacousticAnnoyance_Widmann1992;
@@ -235,7 +248,7 @@ else % for signals larger than 2 seconds
     idx_S=idx_L;    % indice is the same as the loudness
     
     S.time=S.time(1:idx_S);  % step 2)
-    S.InstantaneousSharpness=S.InstantaneousSharpness(1,1:idx_S);  % step 2)
+    S.InstantaneousSharpness=S.InstantaneousSharpness(1:idx_S,1);  % step 2)
     
     % roughness
     [~,idx_R] = min( abs(R.time-LastTime) ); % step 1) find idx
@@ -256,35 +269,23 @@ else % for signals larger than 2 seconds
     %% Time-varying psychoacoustic annoyance
     
     % declaring variables for pre allocating memory
-    PA=zeros(1,length(L.time));
-    ws=zeros(1,length(L.time));
-    wfr=zeros(1,length(L.time));
+    ws = zeros(length(L.time), 1);
     
-    for i=1:length(L.time)
+    % sharpness influence
+    % in Widmann (1992), log is used without specifying the base. In
+    % Fastl&Zwicker (2007), lg is used and subsequent literature also uses log10
+    ws(S.InstantaneousSharpness > 1.75) = (S.InstantaneousSharpness(S.InstantaneousSharpness > 1.75) - 1.75).*(log10(L.InstantaneousLoudness(S.InstantaneousSharpness > 1.75) + 10))/4;
+    ws(isinf(ws) | isnan(ws)) = 0;  % replace inf and NaN with zeros
         
-        % sharpness influence
-        if S.InstantaneousSharpness(i) > 1.75
-            % in Widmann (1992), log is used without specifying the base. In
-            % Fastl&Zwicker (2007), lg is used and subsequent literature also uses log10
-            ws(i) = (S.InstantaneousSharpness(i)-1.75).*(log10(L.InstantaneousLoudness(i)+10))./4;
-        else
-            ws(i) = 0;
-        end
+    % influence of roughness and fluctuation strength
+    wfr = ( 2.18./(L.InstantaneousLoudness.^(0.4)) ).*(0.4*fluctuation + 0.6.*roughness);
+    wfr(isinf(wfr) | isnan(wfr)) = 0;  % replace inf and NaN with zeros
         
-        ws(isinf(ws)|isnan(ws)) = 0;  % replace inf and NaN with zeros
-        
-        % influence of roughness and fluctuation strength
-        wfr(i) = ( 2.18./(L.InstantaneousLoudness(i).^(0.4)) ).*(0.4.*fluctuation(i)+0.6.*roughness(i));
-        
-        wfr(isinf(wfr)|isnan(wfr)) = 0;  % replace inf and NaN with zeros
-        
-        % psychoacoustic annoyance
-        PA(i) = L.InstantaneousLoudness(i).*(1 + sqrt (ws(i).^2 + wfr(i).^2));
-        
-    end
+    % psychoacoustic annoyance
+    PA = L.InstantaneousLoudness.*(1 + sqrt (ws.^2 + wfr.^2));
     
-    OUT.wfr=wfr;     % OUTPUT: fluctuation strength and sharpness weighting function (not squared)
-    OUT.ws=ws;       % OUTPUT: sharpness and loudness weighting function (not squared)
+    OUT.wfr = wfr;     % OUTPUT: fluctuation strength and sharpness weighting function (not squared)
+    OUT.ws = ws;       % OUTPUT: sharpness and loudness weighting function (not squared)
     
     %% (scalar) psychoacoustic annoyance - computed directly from percentile values
     
@@ -414,32 +415,3 @@ function il_plotter(time,Instantaneous,percentile,variable)
     set(gcf,'color','w');
 
 end % end plotter function
-
-%**************************************************************************
-%
-% Redistribution and use in source and binary forms, with or without
-% modification, are permitted provided that the following conditions are
-% met:
-%
-%  * Redistributions of source code must retain the above copyright notice,
-%    this list of conditions and the following disclaimer.
-%  * Redistributions in binary form must reproduce the above copyright
-%    notice, this list of conditions and the following disclaimer in the
-%    documentation and/or other materials provided with the distribution.
-%  * Neither the name of the <ORGANISATION> nor the names of its contributors
-%    may be used to endorse or promote products derived from this software
-%    without specific prior written permission.
-%
-% THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-% "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
-% TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
-% PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER
-% OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-% EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-% PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-% PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-% LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-% NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-% SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-%
-%**************************************************************************
