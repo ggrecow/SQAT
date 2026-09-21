@@ -52,7 +52,7 @@ OUT = Roughness_ECMA418_2(insig, fs, fieldtype, time_skip, show);
 %% load reference results 
 
 % referece results - main path
-ref_path = [fileparts(mfilename('fullpath')) filesep 'reference_results' filesep];
+ref_path = [pwd '\reference_results\'];
 
 % reference results - file name
 AvgSpec_fileName = [ wav_file '.Specific Roughness (Hearing Model).asc']; % channel 1 and 2

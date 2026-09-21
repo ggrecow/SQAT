@@ -9,11 +9,8 @@ function OUT = Loudness_ISO532_1(insig, fs, field, method, time_skip, show)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % INPUT ARGUMENTS
 %   insig : array
-%   for method = 0 [1xN] array, insig is an array containing N=28 third 
-%   octave unweighted SPL from 25 Hz to 12500 Hz
-%
-%   for method = 1 and method = 2 [Nx1] array, insig is a monophonic 
-%   calibrated audio signal (Pa), 1 channel only as specified by the standard
+%   for method = 0 [1xN] array, insig is an array containing N=28 third octave unweighted SPL from 25 Hz to 12500 Hz
+%   for method = 1 and method = 2 [Nx1] array, insig is a monophonic calibrated audio signal (Pa), 1 channel only as specified by the standard
 %
 %   fs : integer
 %   sampling frequency (Hz). For method = 0, provide a dummy scalar
@@ -94,10 +91,6 @@ function OUT = Loudness_ISO532_1(insig, fs, field, method, time_skip, show)
 %   the stationary level calculation (method = 1). Results change for
 %   method = 1 with time_skip > 0 only. An over-long <time_skip> now raises an
 %   error, as in the reference code (see PR #52)
-%
-%   AI disclosure: modifications performed in August 2026 were assisted 
-%   by Claude Fable 5.1 and Opus 5 (Anthropic). All codes were verified by 
-%   the authors.
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Copyright statement: This file and code is subject to the BSD-3 license in

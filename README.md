@@ -17,7 +17,7 @@ This is the repository of **SQAT**, an open-source **S**ound **Q**uality **A**na
 
 The implemented metrics available in the `psychoacoustic_metrics` folder are listed in the table below, including the release on which each metric was first introduced:
 
-| Sound quality  | Model | Implementation | Validation | Example | Released in: | License |
+| Metric  | Model | Implementation | Validation | Example | Released in: | License |
 | :---: | :---: |:---: |:---: |:---: |:---: | :---: |
 | Loudness  | ISO 532-1:2017 [1]  |  [link](psychoacoustic_metrics/Loudness_ISO532_1) | [link](validation/Loudness_ISO532_1) | [link](examples/Loudness_ISO532_1) | v1.0 | BSD-3-Clause |
 | Sharpness  |  DIN 45692:2009 [2]  |  [link](psychoacoustic_metrics/Sharpness_DIN45692) | [link](validation/Sharpness_DIN45692) | [link](examples/Sharpness_DIN45692) | v1.0 | GPL-3.0 |
