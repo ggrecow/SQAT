@@ -27,7 +27,7 @@ switch wav_file
     case  'TrainStation7-0100-0130'
     R_dir = [basepath_SQAT filesep 'validation' filesep 'Roughness_ECMA418_2' filesep '2_Roughness_ECMA418_2_software_comparison' filesep 'reference_results' filesep];
     L_dir = [basepath_SQAT filesep 'validation' filesep 'Loudness_ECMA418_2' filesep '2_Loudness_ECMA418_2_software_comparison' filesep 'reference_results' filesep];
-    T_dir = [basepath_SQAT filesep 'validation' filesep 'Tonality_ECMA418_2' filesep '2_Tonality_ECMA418_2_software_comparison' filesep 'reference_results' filesep];
+    T_dir = [basepath_SQAT filesep 'validation' filesep 'Tonality_ECMA418_2' filesep 'Tonality_ECMA418_2_software_comparison' filesep 'reference_results' filesep];
     case 'Park3-0002-0027_UAS'
     R_dir = [basepath_SQAT filesep 'publications' filesep 'pub_Lotinga2025_Forum_Acusticum_ECMA418_2' filesep 'data' filesep 'Roughness' filesep];
     L_dir = [basepath_SQAT filesep 'publications' filesep 'pub_Lotinga2025_Forum_Acusticum_ECMA418_2' filesep 'data' filesep 'Loudness' filesep];
