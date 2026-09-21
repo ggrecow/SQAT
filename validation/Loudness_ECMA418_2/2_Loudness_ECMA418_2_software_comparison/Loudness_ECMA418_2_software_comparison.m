@@ -52,7 +52,7 @@ OUT = Loudness_ECMA418_2(insig, fs, fieldtype, time_skip, show);
 %% load reference results 
 
 % referece results - main path
-ref_path = [pwd '\reference_results\'];
+ref_path = [fileparts(mfilename('fullpath')) filesep 'reference_results' filesep];
 
 % reference results - file name
 AvgSpec_fileName = [ wav_file '.Specific Loudness (Hearing Model).asc']; % channel 1 and 2
