@@ -40,6 +40,10 @@
 %
 % Authors: Sergio Aguirre & Gil Felix Greco, 18.09.2026
 %
+% AI disclosure: modifications performed in September 2026 were assisted 
+% by Claude Fable 5.1 and Opus 5 (Anthropic). All codes were verified by 
+% the authors.
+%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Copyright statement: This file is part of the SQAT toolbox and is subject
 % to the GPL-3.0 license, as detailed in <licenses/gpl-3.0.txt> in the SQAT
@@ -194,7 +198,7 @@ for i = 1:length(Ltone)
 
     legend([a b c], {'Listening test (mean $\pm$ 95 \% CI)', ...
         'ECMA-418-2:2025 (Fig. B.3)', 'SQAT'}, ...
-        'Location', 'SW', 'Interpreter', 'Latex');
+        'Location', 'Best', 'Interpreter', 'Latex');
     legend boxoff
 
     axis([38 82 0 4]);
