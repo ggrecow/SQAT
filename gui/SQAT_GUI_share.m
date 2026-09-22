@@ -31,6 +31,8 @@ function plan = SQAT_GUI_share(ids, params, n_samples, fs)
 %                  or '' for the whole output
 %          attach : {name, field} to add to the result taken, so that it
 %                   carries what the metric itself returns, or {}
+%          restat : time_skip (s) whose statistics the result taken needs,
+%                   or [] when the model already used this one
 %
 % Author: Sergio Aguirre and Gil Felix Greco, September 2026
 %
@@ -60,7 +62,7 @@ models = {'PsychoacousticAnnoyance_Widmann1992', 'PsychoacousticAnnoyance_Zwicke
 selected_models = models(ismember(models, ids));
 order = [selected_models, ids(~ismember(ids, models))];
 
-plan = struct('id', order, 'from', {''}, 'field', {''}, 'attach', {{}});
+plan = struct('id', order, 'from', {''}, 'field', {''}, 'attach', {{}}, 'restat', {[]});
 sources = selected_models;
 
 for k = 1:numel(plan)
@@ -70,12 +72,13 @@ for k = 1:numel(plan)
         if strcmp(src, id) || find(strcmp(order, src), 1) >= k
             continue   % a source has to have run before this metric is reached
         end
-        [field, attach] = il_shared_field(id, src, params, n_samples, fs);
+        [field, attach, restat] = il_shared_field(id, src, params, n_samples, fs);
         if isempty(field)
             continue
         end
         plan(k).from = src;
         plan(k).attach = attach;
+        plan(k).restat = restat;
         if ~strcmp(field, 'whole')
             plan(k).field = field;
         end
@@ -86,11 +89,20 @@ end
 end
 
 %% -------------------------------------------------------------------------
-function [field, attach] = il_shared_field(id, src, params, n_samples, fs)
+function [field, attach, restat] = il_shared_field(id, src, params, n_samples, fs)
 % Which field of the output of src holds the result of id, with the
 % parameters of this run. Empty when src does not hold it.
+%
+% In the metrics the models use, time_skip only picks where the statistics
+% start on the time series (see SQAT_GUI_restat), so a different time_skip
+% asks for the statistics again and nothing more.
 field = '';
 attach = {};
+restat = [];
+if isfield(params.(id), 'time_skip') && isfield(params.(src), 'time_skip') ...
+        && ~isequal(params.(id).time_skip, params.(src).time_skip)
+    restat = params.(id).time_skip;
+end
 p = params.(id);
 q = params.(src);
 models_with_tonality = {'PsychoacousticAnnoyance_More2010', 'PsychoacousticAnnoyance_Di2016'};
@@ -107,8 +119,7 @@ switch id
 
     case 'Loudness_ISO532_1'
         % Loudness_ISO532_1(insig, fs, LoudnessField, 2, time_skip, 0)
-        if isequal(p.field, q.field) && isequal(p.method, 2) ...
-                && isequal(p.time_skip, q.time_skip)
+        if isequal(p.field, q.field) && isequal(p.method, 2)
             field = 'L';
         end
 
@@ -116,7 +127,7 @@ switch id
         % Sharpness_DIN45692_from_loudness(specific loudness of the call
         % above, 'DIN45692', time, time_skip, 0)
         if isequal(p.field, q.field) && strcmp(p.weight_type, 'DIN45692') ...
-                && isequal(p.method, 2) && isequal(p.time_skip, q.time_skip)
+                && isequal(p.method, 2)
             field = 'S';
             % the metric returns the loudness it used; the model holds the
             % same one in OUT.L, from the same call
@@ -125,24 +136,25 @@ switch id
 
     case 'Roughness_Daniel1997'
         % Roughness_Daniel1997(insig, fs, time_skip, 0)
-        if isequal(p.time_skip, q.time_skip)
-            field = 'R';
-        end
+        field = 'R';
 
     case 'FluctuationStrength_Osses2016'
         % FluctuationStrength_Osses2016(insig, fs, method_FS, time_skip, 0),
         % with the stationary method for a signal shorter than 2 s
         method_FS = double((n_samples - 1)/fs >= 2);
-        if isequal(p.method, method_FS) && isequal(p.time_skip, q.time_skip)
+        if isequal(p.method, method_FS)
             field = 'FS';
         end
 
     case 'Tonality_Aures1985'
         % Tonality_Aures1985(insig, fs, LoudnessField, 0, 0), in the models
         % that use tonality
-        if ismember(src, models_with_tonality) && isequal(p.field, q.field) ...
-                && isequal(p.time_skip, 0)
+        if ismember(src, models_with_tonality) && isequal(p.field, q.field)
             field = 'K';
+            restat = [];
+            if ~isequal(p.time_skip, 0)   % the models call it with time_skip 0
+                restat = p.time_skip;
+            end
         end
 end
 end

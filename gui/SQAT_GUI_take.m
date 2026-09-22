@@ -45,4 +45,9 @@ end
 if ~isempty(step.attach) && isfield(src, step.attach{2})
     OUT.(step.attach{1}) = src.(step.attach{2});
 end
+if ~isempty(step.restat)
+    % the model computed this series with its own time_skip, which only
+    % moves the start of the statistics
+    OUT = SQAT_GUI_restat(OUT, step.id, step.restat);
+end
 end
