@@ -8,8 +8,9 @@ function varargout = SQAT_GUI(files, varargin)
 %   the heat colour scale of SQAT_GUI_colormap_heat), shows the waveform and the spectrogram in a
 %   player window, and exports the results to a spreadsheet. Every value
 %   and every figure comes from the SQAT function itself: the interface only
-%   builds the call (see SQAT_GUI_metrics). The analysis computes without
-%   figures; a figure is drawn when the graphs window asks for it.
+%   builds the call (see SQAT_GUI_metrics). The analysis draws the figure of
+%   the active file in the same call, so each metric runs once; the figure of
+%   another file is drawn when the graphs window asks for it.
 %
 % USAGE
 %   SQAT_GUI                          % opens the interface
@@ -79,6 +80,7 @@ ax_wave = [];
 ax_spec = [];
 btn_play = [];
 run_settings = struct('dBFS', 94, 'channel', 1, 'params', params);   % of the last analysis
+stop_requested = false;                                             % the Stop button
 cache = struct('file', {}, 'metric', {}, 'figs', {});               % SQAT figures, hidden
 cmap = SQAT_GUI_colormap_heat(256);
 
@@ -109,10 +111,10 @@ uilabel(top, 'Text', 'Plot metric:', 'HorizontalAlignment', 'right');
 dd_plot = uidropdown(top, 'Items', {}, 'Tag', 'plot_metric', 'ValueChangedFcn', @on_plot_changed);
 btn_theme = uibutton(top, 'Text', 'Light theme', 'Tag', 'theme', 'ButtonPushedFcn', @on_theme);
 
-left = uigridlayout(main, [7 1]);
+left = uigridlayout(main, [8 1]);
 left.Layout.Row = 2; left.Layout.Column = 1;
 left.Padding = [0 0 0 0];
-left.RowHeight = {20, '1x', 20, 44, 32, 32, 32};
+left.RowHeight = {20, '1x', 20, 44, 28, 32, 32, 32};
 uilabel(left, 'Text', 'METRICS TO ANALYZE (Ctrl or Cmd + click)', 'FontWeight', 'bold');
 lb_metrics = uilistbox(left, 'Items', {metrics.label}, 'ItemsData', {metrics.id}, ...
     'Multiselect', 'on', 'Value', {'Loudness_ISO532_1'}, 'Tag', 'metrics_list', ...
@@ -120,6 +122,8 @@ lb_metrics = uilistbox(left, 'Items', {metrics.label}, 'ItemsData', {metrics.id}
 uilabel(left, 'Text', 'ACTIONS', 'FontWeight', 'bold');
 uibutton(left, 'Text', 'Run Analysis', 'Tag', 'run', 'FontWeight', 'bold', ...
     'BackgroundColor', green, 'FontColor', [1 1 1], 'ButtonPushedFcn', @on_run);
+btn_stop = uibutton(left, 'Text', 'Stop', 'Tag', 'stop_run', 'Enable', 'off', ...
+    'Tooltip', 'Ends the run after the metric being computed', 'ButtonPushedFcn', @on_stop_run);
 uibutton(left, 'Text', 'Open Graphs Window', 'Tag', 'open_graphs', 'ButtonPushedFcn', @on_open_graphs);
 uibutton(left, 'Text', 'Waveform / Play', 'Tag', 'open_waveform', 'ButtonPushedFcn', @on_open_waveform);
 uibutton(left, 'Text', 'Export results...', 'Tag', 'export', 'ButtonPushedFcn', @on_export);
@@ -238,6 +242,15 @@ end
         end
     end
 
+    function on_stop_run(~, ~)
+        % a metric cannot be interrupted, so the run ends at the next step
+        if ~stop_requested
+            stop_requested = true;
+            write_log('Stop requested: the run ends when the metric being computed returns.');
+            lbl_status.Text = 'Stopping...';
+        end
+    end
+
     function on_theme(~, ~)
         if strcmp(theme_style, 'dark')
             theme_style = 'light';
@@ -265,6 +278,10 @@ end
             save_figs = false;
         end
         show = save_figs;                        % the SQAT functions draw the figures to save
+        active_path = '';                        % the graphs window plots the active
+        if ~isempty(loaded)                      % file, so its figures are drawn in
+            active_path = active_file().path;    % the analysis call and the metric
+        end                                      % runs once
         dBFS = ed_dbfs.Value;
         channel = str2double(dd_channel.Value);
         clear_cache();
@@ -276,8 +293,16 @@ end
         n_done = 0;
         n_errors = 0;
         set_progress(0);
+        stop_requested = false;
+        btn_stop.Enable = 'on';
+        stop_off = onCleanup(@() set(btn_stop, 'Enable', 'off')); %#ok<NASGU>
+        files_order = 1:numel(loaded);           % the file on screen is analysed first
+        k_active = find(strcmp({loaded.path}, active_path), 1);
+        if ~isempty(k_active)
+            files_order = [k_active, files_order(files_order ~= k_active)];
+        end
         t_start = tic;
-        for i = 1:numel(loaded)
+        for i = files_order
             f = loaded(i);
             ch = channel;
             if ch > f.nch
@@ -292,20 +317,28 @@ end
                 n_done = n_done + numel(sel);
                 continue
             end
-            for j = 1:numel(sel)
-                e = metrics(strcmp({metrics.id}, sel{j}));
+            plan = SQAT_GUI_share(sel, params, numel(x), fs);
+            done = struct();                     % outputs of this file, by metric id
+            rows = struct();                     % their rows of the results table
+            got = struct();                      % their time series
+            for j = 1:numel(plan)
+                drawnow                          % the Stop button gets its turn here
+                if stop_requested
+                    break
+                end
+                e = metrics(strcmp({metrics.id}, plan(j).id));
                 lbl_status.Text = sprintf('Running %s on %s (%d of %d)', e.label, f.name, n_done + 1, n_total);
-                write_log(sprintf('Running %s on %s ...', e.id, f.name));
                 try
-                    [OUT, new_figs] = run_metric(e, x, fs, params.(e.id), show);
+                    [OUT, new_figs] = run_step(e, plan(j), done, x, fs, f, ...
+                        show || strcmp(f.path, active_path));
+                    done.(e.id) = OUT;
                     T = SQAT_GUI_single_values(OUT);
                     n = height(T);
-                    T = [table(repmat({f.name}, n, 1), repmat({e.id}, n, 1), ...
-                        'VariableNames', {'File', 'Metric'}), T]; %#ok<AGROW>
-                    new_results = [new_results; T]; %#ok<AGROW>
+                    rows.(e.id) = [table(repmat({f.name}, n, 1), repmat({e.id}, n, 1), ...
+                        'VariableNames', {'File', 'Metric'}), T];
                     [ts, ys, name] = SQAT_GUI_series(OUT, e);
-                    new_series(end+1) = struct('file', f.path, 'metric', e.id, ...
-                        't', ts, 'y', ys, 'name', name); %#ok<AGROW>
+                    got.(e.id) = struct('file', f.path, 'metric', e.id, ...
+                        't', ts, 'y', ys, 'name', name);
                     if ~isempty(new_figs)
                         keep_figures(new_figs, f, e.id, save_figs, split, folder);
                     end
@@ -315,6 +348,15 @@ end
                 end
                 n_done = n_done + 1;
                 set_progress(100 * n_done / n_total);
+            end
+            for j = 1:numel(sel)                 % the table keeps the order of the list
+                if isfield(rows, sel{j})
+                    new_results = [new_results; rows.(sel{j})]; %#ok<AGROW>
+                    new_series(end+1) = got.(sel{j}); %#ok<AGROW>
+                end
+            end
+            if stop_requested
+                break                            % what ran so far is kept
             end
         end
 
@@ -328,9 +370,14 @@ end
         if il_is_member(previous, ran)
             dd_plot.Value = previous;
         end
-        set_progress(100);
-        msg = sprintf('Done: %d value(s) from %d file(s) and %d metric(s) in %.1f s', ...
-            height(results), numel(loaded), numel(sel), toc(t_start));
+        if stop_requested
+            msg = sprintf('Stopped: %d value(s) from %d of the %d analysis step(s) in %.1f s', ...
+                height(results), n_done, n_total, toc(t_start));
+        else
+            set_progress(100);
+            msg = sprintf('Done: %d value(s) from %d file(s) and %d metric(s) in %.1f s', ...
+                height(results), numel(loaded), numel(sel), toc(t_start));
+        end
         if n_errors > 0
             msg = sprintf('%s, %d error(s)', msg, n_errors);
         end
@@ -338,8 +385,8 @@ end
         write_log([msg '.']);
         if cb_show.Value && ~isempty(ran)
             on_open_graphs();
-        else
-            refresh_windows();
+        elseif il_is_open(win_graphs) && ~isempty(dd_plot.Items) && ~isempty(series)
+            draw_graphs();       % the signal is the one the player already shows
         end
     end
 
@@ -726,6 +773,24 @@ end
         t_now = (sample - 1) / player_fs;
         set(findobj(win_wave, 'Tag', 'playhead'), 'Value', t_now);
         set(findobj(win_wave, 'Tag', 'playhead_spectrogram'), 'Value', t_now);
+    end
+
+    function [OUT, new_figs] = run_step(e, step, done, x, fs, f, show)
+        % the result of one metric of the run: taken from another metric that
+        % computed it on the way to its own result (see SQAT_GUI_share), or
+        % computed here. A result taken this way carries no figure, so the
+        % graphs window draws it when it is asked for.
+        new_figs = [];
+        if ~isempty(step.from) && isfield(done, step.from)
+            OUT = SQAT_GUI_take(done.(step.from), step);
+            if ~isempty(OUT)
+                write_log(sprintf('%s on %s: taken from %s, the same computation.', ...
+                    e.id, f.name, step.from));
+                return
+            end
+        end
+        write_log(sprintf('Running %s on %s ...', e.id, f.name));
+        [OUT, new_figs] = run_metric(e, x, fs, params.(e.id), show);
     end
 
     function [OUT, new_figs] = run_metric(e, x, fs, p, show, fallback)
