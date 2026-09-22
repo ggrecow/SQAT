@@ -146,6 +146,8 @@ We would be very happy to know that you find SQAT useful and have used it in you
 
 ## Journal articles
 
+> Jeong, S., & Ko, J. (2026). Uncertainty quantification and sensitivity analysis of aircraft noise under probabilistic atmospheric conditions. Aerospace Science and Technology, 178, 113111. DOI: [10.1016/j.ast.2026.113111](https://doi.org/10.1016/j.ast.2026.113111)
+
 > Liu, F., Liu, L., Chen, K., Hou, B., Li, H., Zhang, J., & Gao, T. (2026). Inter-tool metrology of psychoacoustic metrics: Impact on post-processing consistency and sound quality models. Acoustics Australia. DOI: [10.1007/s40857-026-00393-3](https://doi.org/10.1007/s40857-026-00393-3)
 
 > Kim, J., Jeong, J., Ko, J., Lee, W., Yu, K., & Lee, S. (2026). Perceptually validated auralization of brushless direct current motor-propeller noise via torque ripple-induced rotational speed fluctuation modeling. The Journal of the Acoustical Society of America, 159(2), 1122–1136. DOI: [10.1121/10.0042382](https://doi.org/10.1121/10.0042382)
