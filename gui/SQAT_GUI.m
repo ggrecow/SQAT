@@ -87,7 +87,7 @@ cmap = SQAT_GUI_colormap_heat(256);
 %% Main window
 fig = uifigure('Name', 'SQAT: Sound Quality Analysis Toolbox', ...
     'Position', [100 100 1300 820], 'Visible', opts.Visible, 'Tag', 'SQAT_GUI', ...
-    'CloseRequestFcn', @on_close);
+    'CloseRequestFcn', @on_close, 'CreateFcn', '');   % skips a user default CreateFcn
 main = uigridlayout(fig, [3 2]);
 main.RowHeight = {44, '1x', 24};
 main.ColumnWidth = {280, '1x'};
@@ -416,7 +416,7 @@ end
         end
         if ~il_is_open(win_graphs)
             win_graphs = uifigure('Name', 'SQAT graphs', 'Position', [160 160 1100 700], ...
-                'Visible', fig.Visible, 'Tag', 'SQAT_GUI_graphs');
+                'Visible', fig.Visible, 'Tag', 'SQAT_GUI_graphs', 'CreateFcn', '');
             apply_theme();
         end
         draw_graphs();
@@ -432,7 +432,8 @@ end
         end
         if ~il_is_open(win_wave)
             win_wave = uifigure('Name', 'Waveform', 'Position', [140 140 1100 640], ...
-                'Visible', fig.Visible, 'Tag', 'SQAT_GUI_waveform', 'CloseRequestFcn', @on_close_waveform);
+                'Visible', fig.Visible, 'Tag', 'SQAT_GUI_waveform', 'CloseRequestFcn', @on_close_waveform, ...
+                'CreateFcn', '');
             gw = uigridlayout(win_wave, [3 1]);
             gw.RowHeight = {30, '1x', '1.2x'};
             hw = uigridlayout(gw, [1 3]);
