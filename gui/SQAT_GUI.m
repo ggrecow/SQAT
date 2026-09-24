@@ -2,15 +2,29 @@ function varargout = SQAT_GUI(files, varargin)
 % function fig = SQAT_GUI(files, varargin)
 %
 %   Graphical interface to the metrics of SQAT, laid out as the interface of
-%   pySQAT. It loads .wav files, calibrates them with a dBFS value, runs the
-%   selected metrics with the chosen parameters, lists their single values,
-%   shows in a graphs window the figure that each SQAT function draws (with
-%   the heat colour scale of SQAT_GUI_colormap_heat), shows the waveform and the spectrogram in a
-%   player window, and exports the results to a spreadsheet. Every value
-%   and every figure comes from the SQAT function itself: the interface only
-%   builds the call (see SQAT_GUI_metrics). The analysis draws the figure of
-%   the active file in the same call, so each metric runs once; the figure of
-%   another file is drawn when the graphs window asks for it.
+%   pySQAT. It loads .wav files into a list of signals (a tick marks a signal
+%   for use, the x removes it), calibrates them with a dBFS value, runs the
+%   selected metrics with the chosen parameters on the ticked signals, and
+%   lists their single values. The channel to analyse is one channel of each
+%   file or All: the ECMA-418-2 metrics take a stereo pair in one call and
+%   return the left, the right and (except the tonality) the combined
+%   binaural result, so a pair runs once.
+%
+%   A graphs window plots one metric of the ticked signals. The analysis is
+%   chosen in the window (a time series, a profile over the critical bands, a
+%   map of band against time, or the statistics): the signals are overlaid,
+%   and the maps sit side by side on one colour scale. For one signal the
+%   window also offers the figure that the SQAT function draws (with the
+%   heat colour scale of SQAT_GUI_colormap_heat) and all the analyses at once. Pin keeps a window
+%   with its signals, so that Open Graphs Window opens another one to compare
+%   with. A player window shows the waveform and the spectrogram, and the
+%   results go to a spreadsheet.
+%
+%   Every value and every plot comes from the output of the SQAT function:
+%   the interface builds the call (see SQAT_GUI_metrics) and reads the output
+%   (see SQAT_GUI_extract). The analysis draws the figure of the signal on
+%   screen in the same call, so each metric runs once; the figure of another
+%   signal is drawn when a graphs window asks for it.
 %
 % USAGE
 %   SQAT_GUI                          % opens the interface
@@ -67,19 +81,20 @@ for k = 1:numel(metrics)
     end
     params.(metrics(k).id) = p;
 end
-loaded = struct('path', {}, 'name', {}, 'nch', {}, 'fs', {});
+loaded = struct('path', {}, 'name', {}, 'nch', {}, 'fs', {}, 'marked', {});
+active_idx = 0;                                       % the signal on screen in the player
 results = il_empty_results();
-series = struct('file', {}, 'metric', {}, 't', {}, 'y', {}, 'name', {});
+store = il_empty_store();                             % analyses of each signal, metric and channel
 player = [];
 player_fs = [];
 theme_style = 'dark';
-win_graphs = [];
+graph_figs = gobjects(0);                              % the graphs windows
+last_metric = '';                                     % the metric the last graphs window showed
 win_wave = [];
-ax_graphs = [];
 ax_wave = [];
 ax_spec = [];
 btn_play = [];
-run_settings = struct('dBFS', 94, 'channel', 1, 'params', params);   % of the last analysis
+run_settings = struct('dBFS', 94, 'channel', '1', 'params', params);   % of the last analysis
 stop_requested = false;                                             % the Stop button
 cache = struct('file', {}, 'metric', {}, 'figs', {});               % SQAT figures, hidden
 cmap = SQAT_GUI_colormap_heat(256);
@@ -92,29 +107,32 @@ main = uigridlayout(fig, [3 2]);
 main.RowHeight = {44, '1x', 24};
 main.ColumnWidth = {280, '1x'};
 
-top = uigridlayout(main, [1 12]);
+top = uigridlayout(main, [1 9]);
 top.Layout.Row = 1; top.Layout.Column = [1 2];
 top.Padding = [0 0 0 0];
-top.ColumnWidth = {70, 110, 130, 75, '1x', 60, 50, 45, 55, 80, 230, 100};
+top.ColumnWidth = {70, 110, 130, '1x', 60, 70, 45, 55, 100};
 img_logo = uiimage(top, 'ImageSource', fullfile(dir_logos, 'logo_white.png'), 'Tag', 'logo');
 lbl_files = uilabel(top, 'Text', 'No files loaded', 'Tag', 'file_count', 'HorizontalAlignment', 'center');
 uibutton(top, 'Text', 'Open WAV files...', 'Tag', 'load_files', 'ButtonPushedFcn', @on_load_files);
-uilabel(top, 'Text', 'Active file:', 'HorizontalAlignment', 'right');
-dd_file = uidropdown(top, 'Items', {}, 'Tag', 'active_file', 'ValueChangedFcn', @on_active_file);
+uilabel(top, 'Text', '');
 uilabel(top, 'Text', 'Channel:', 'HorizontalAlignment', 'right');
-dd_channel = uidropdown(top, 'Items', {'1'}, 'Tag', 'channel', 'ValueChangedFcn', @on_signal_changed);
+dd_channel = uidropdown(top, 'Items', {'1'}, 'Tag', 'channel', 'ValueChangedFcn', @on_signal_changed, ...
+    'Tooltip', ['Channel to analyse. All: every channel of each file; the ECMA-418-2 ' ...
+                'metrics analyse a stereo file as a binaural pair, in one call']);
 uilabel(top, 'Text', 'dBFS:', 'HorizontalAlignment', 'right');
 ed_dbfs = uieditfield(top, 'numeric', 'Value', 94, 'Tag', 'dbfs', ...
     'Tooltip', 'dB SPL of a full-scale amplitude (94: full scale 1.0 is 1 Pa)', ...
     'ValueChangedFcn', @on_signal_changed);
-uilabel(top, 'Text', 'Plot metric:', 'HorizontalAlignment', 'right');
-dd_plot = uidropdown(top, 'Items', {}, 'Tag', 'plot_metric', 'ValueChangedFcn', @on_plot_changed);
 btn_theme = uibutton(top, 'Text', 'Light theme', 'Tag', 'theme', 'ButtonPushedFcn', @on_theme);
 
-left = uigridlayout(main, [8 1]);
+left = uigridlayout(main, [10 1]);
 left.Layout.Row = 2; left.Layout.Column = 1;
 left.Padding = [0 0 0 0];
-left.RowHeight = {20, '1x', 20, 44, 28, 32, 32, 32};
+left.RowHeight = {20, 150, 20, '1x', 20, 44, 28, 32, 32, 32};
+uilabel(left, 'Text', 'SIGNALS (tick to use, x to remove)', 'FontWeight', 'bold');
+tbl_signals = uitable(left, 'Tag', 'signals_table', 'RowName', {}, 'ColumnName', {'', 'Signal', ''}, ...
+    'ColumnWidth', {28, 'auto', 28}, 'ColumnEditable', [true false false], ...
+    'CellEditCallback', @on_signal_marked, 'CellSelectionCallback', @on_signal_selected);
 uilabel(left, 'Text', 'METRICS TO ANALYZE (Ctrl or Cmd + click)', 'FontWeight', 'bold');
 lb_metrics = uilistbox(left, 'Items', {metrics.label}, 'ItemsData', {metrics.id}, ...
     'Multiselect', 'on', 'Value', {'Loudness_ISO532_1'}, 'Tag', 'metrics_list', ...
@@ -134,15 +152,12 @@ right.Padding = [0 0 0 0];
 right.RowHeight = {56, 128, '1x'};
 
 opt_panel = uipanel(right, 'Title', 'OPTIONS');
-og = uigridlayout(opt_panel, [1 6]);
-og.ColumnWidth = {150, 105, 105, 105, '1x', 80};
+og = uigridlayout(opt_panel, [1 5]);
+og.ColumnWidth = {150, 105, 105, '1x', 80};
 og.Padding = [6 4 6 4];
 cb_show = uicheckbox(og, 'Text', 'Show plots after run', 'Tag', 'show_plots');
 cb_split = uicheckbox(og, 'Text', 'Split figures', 'Tag', 'split_figures', ...
     'Tooltip', 'One tab (and one saved file) per panel of a figure', ...
-    'ValueChangedFcn', @on_graph_option);
-cb_together = uicheckbox(og, 'Text', 'Plot together', 'Tag', 'plot_together', ...
-    'Tooltip', 'The graphs window overlays the selected metric for all analysed files', ...
     'ValueChangedFcn', @on_graph_option);
 cb_save = uicheckbox(og, 'Text', 'Save figures', 'Tag', 'save_figures');
 ed_folder = uieditfield(og, 'text', 'Value', pwd, 'Tag', 'figures_folder', ...
@@ -196,9 +211,26 @@ end
         add_files(fullfile(p, cellstr(f)));
     end
 
-    function on_active_file(~, ~)
-        update_channels();
+    function on_signal_marked(~, event)
+        k = event.Indices(1);
+        loaded(k).marked = logical(event.NewData);
         refresh_windows();
+    end
+
+    function on_signal_selected(~, event)
+        if isempty(event.Indices)
+            return
+        end
+        k = event.Indices(1, 1);
+        if event.Indices(1, 2) == 3
+            remove_signal(k);                % the x at the right of the name
+            return
+        end
+        if k ~= active_idx
+            active_idx = k;
+            show_active();
+            refresh_windows();
+        end
     end
 
     function on_signal_changed(~, ~)
@@ -208,14 +240,11 @@ end
     end
 
     function on_graph_option(~, ~)
-        if il_is_open(win_graphs) && ~isempty(series)
-            draw_graphs();
-        end
-    end
-
-    function on_plot_changed(~, ~)
-        if il_is_open(win_graphs)
-            draw_graphs();
+        % the split option changes how the SQAT figure is laid out
+        for w = open_graph_windows()
+            if strcmp(findobj(w, 'Tag', 'graph_analysis').Value, 'sqat')
+                draw_window(w);
+            end
         end
     end
 
@@ -265,6 +294,11 @@ end
             write_log('No files loaded. Open WAV files first.');
             return
         end
+        use = find([loaded.marked]);
+        if isempty(use)
+            write_log('No signals ticked. Tick the signals to analyse.');
+            return
+        end
         sel = lb_metrics.Value;
         if isempty(sel)
             write_log('No metrics selected.');
@@ -278,81 +312,134 @@ end
             save_figs = false;
         end
         show = save_figs;                        % the SQAT functions draw the figures to save
-        active_path = '';                        % the graphs window plots the active
-        if ~isempty(loaded)                      % file, so its figures are drawn in
-            active_path = active_file().path;    % the analysis call and the metric
-        end                                      % runs once
+        k_active = find(use == active_idx, 1);   % the signal on screen is analysed first,
+        if isempty(k_active)                     % and its figure is drawn in the analysis
+            k_active = 1;                        % call, so that the metric runs once
+        end
+        files_order = [use(k_active), use(use ~= use(k_active))];
+        active_path = loaded(files_order(1)).path;
         dBFS = ed_dbfs.Value;
-        channel = str2double(dd_channel.Value);
+        option = dd_channel.Value;               % a channel number or All
         clear_cache();
-        run_settings = struct('dBFS', dBFS, 'channel', channel, 'params', params);
+        run_settings = struct('dBFS', dBFS, 'channel', option, 'params', params);
 
         new_results = il_empty_results();
-        new_series = struct('file', {}, 'metric', {}, 't', {}, 'y', {}, 'name', {});
-        n_total = numel(loaded) * numel(sel);
+        new_store = il_empty_store();
+        stereo_sel = ismember(sel, {metrics([metrics.stereo]).id});
+        n_total = 0;
+        for i = files_order
+            n_ch = numel(channel_list(loaded(i), option));
+            joint = n_ch == 2;
+            n_total = n_total + nnz(~(stereo_sel & joint)) * n_ch + nnz(stereo_sel & joint);
+        end
         n_done = 0;
         n_errors = 0;
         set_progress(0);
         stop_requested = false;
         btn_stop.Enable = 'on';
         stop_off = onCleanup(@() set(btn_stop, 'Enable', 'off')); %#ok<NASGU>
-        files_order = 1:numel(loaded);           % the file on screen is analysed first
-        k_active = find(strcmp({loaded.path}, active_path), 1);
-        if ~isempty(k_active)
-            files_order = [k_active, files_order(files_order ~= k_active)];
-        end
         t_start = tic;
         for i = files_order
             f = loaded(i);
-            ch = channel;
-            if ch > f.nch
+            cl = channel_list(f, option);
+            if ~strcmp(option, 'All') && str2double(option) > f.nch
                 write_log(sprintf('%s has %d channel(s); channel 1 is used.', f.name, f.nch));
-                ch = 1;
             end
-            try
-                [x, fs] = SQAT_GUI_load(f.path, dBFS, ch);
-            catch err
-                write_log(sprintf('ERROR reading %s: %s', f.name, err.message));
-                n_errors = n_errors + numel(sel);
-                n_done = n_done + numel(sel);
-                continue
-            end
-            plan = SQAT_GUI_share(sel, params, numel(x), fs);
-            done = struct();                     % outputs of this file, by metric id
-            rows = struct();                     % their rows of the results table
-            got = struct();                      % their time series
-            for j = 1:numel(plan)
-                drawnow                          % the Stop button gets its turn here
-                if stop_requested
+            joint = numel(cl) == 2;              % a binaural pair goes in one call
+            ids_joint = sel(stereo_sel & joint);
+            ids_single = sel(~(stereo_sel & joint));
+            entries = il_empty_store();          % of this file, in the order of the calls
+            for c = cl
+                if isempty(ids_single) || stop_requested
                     break
                 end
-                e = metrics(strcmp({metrics.id}, plan(j).id));
-                lbl_status.Text = sprintf('Running %s on %s (%d of %d)', e.label, f.name, n_done + 1, n_total);
                 try
-                    [OUT, new_figs] = run_step(e, plan(j), done, x, fs, f, ...
-                        show || strcmp(f.path, active_path));
-                    done.(e.id) = OUT;
-                    T = SQAT_GUI_single_values(OUT);
-                    n = height(T);
-                    rows.(e.id) = [table(repmat({f.name}, n, 1), repmat({e.id}, n, 1), ...
-                        'VariableNames', {'File', 'Metric'}), T];
-                    [ts, ys, name] = SQAT_GUI_series(OUT, e);
-                    got.(e.id) = struct('file', f.path, 'metric', e.id, ...
-                        't', ts, 'y', ys, 'name', name);
-                    if ~isempty(new_figs)
-                        keep_figures(new_figs, f, e.id, save_figs, split, folder);
-                    end
+                    [x, fs] = SQAT_GUI_load(f.path, dBFS, c);
                 catch err
-                    write_log(sprintf('ERROR in %s (%s): %s', e.id, f.name, err.message));
-                    n_errors = n_errors + 1;
+                    write_log(sprintf('ERROR reading %s: %s', f.name, err.message));
+                    n_errors = n_errors + numel(ids_single);
+                    n_done = n_done + numel(ids_single);
+                    continue
                 end
-                n_done = n_done + 1;
-                set_progress(100 * n_done / n_total);
+                first = c == cl(1);              % the figure of a signal is drawn once
+                suffix = '';
+                if numel(cl) > 1
+                    suffix = sprintf('_ch%d', c);
+                end
+                plan = SQAT_GUI_share(ids_single, params, numel(x), fs);
+                done = struct();                 % outputs of this channel, by metric id
+                for j = 1:numel(plan)
+                    drawnow                      % the Stop button gets its turn here
+                    if stop_requested
+                        break
+                    end
+                    e = metrics(strcmp({metrics.id}, plan(j).id));
+                    lbl_status.Text = sprintf('Running %s on %s (%d of %d)', e.label, f.name, n_done + 1, n_total);
+                    try
+                        [OUT, new_figs] = run_step(e, plan(j), done, x, fs, f, ...
+                            show || (first && strcmp(f.path, active_path)));
+                        done.(e.id) = OUT;
+                        entries(end+1) = il_entry_of(f, e, OUT, num2str(c), 1, 1); %#ok<AGROW>
+                        if ~isempty(new_figs)
+                            keep_figures(new_figs, f, e.id, save_figs, split, folder, suffix, first);
+                        end
+                    catch err
+                        write_log(sprintf('ERROR in %s (%s): %s', e.id, f.name, err.message));
+                        n_errors = n_errors + 1;
+                    end
+                    n_done = n_done + 1;
+                    set_progress(100 * n_done / n_total);
+                end
+            end
+            if ~isempty(ids_joint) && ~stop_requested
+                X = [];
+                try
+                    [X, fs] = SQAT_GUI_load(f.path, dBFS, cl);
+                catch err
+                    write_log(sprintf('ERROR reading %s: %s', f.name, err.message));
+                    n_errors = n_errors + numel(ids_joint);
+                    n_done = n_done + numel(ids_joint);
+                end
+                for j = 1:numel(ids_joint)
+                    drawnow
+                    if isempty(X) || stop_requested
+                        break
+                    end
+                    e = metrics(strcmp({metrics.id}, ids_joint{j}));
+                    lbl_status.Text = sprintf('Running %s on %s (%d of %d)', e.label, f.name, n_done + 1, n_total);
+                    write_log(sprintf('Running %s on %s, both channels ...', e.id, f.name));
+                    try
+                        [OUT, new_figs] = run_metric(e, X, fs, params.(e.id), ...
+                            show || strcmp(f.path, active_path));
+                        for label = {'1', '2', 'Binaural'}
+                            c_out = label{1};
+                            if ~strcmp(c_out, 'Binaural')
+                                c_out = str2double(c_out);
+                            end
+                            entry = il_entry_of(f, e, OUT, label{1}, c_out, 2);
+                            if ~isempty(entry.analyses) || ~isempty(entry.values)
+                                entries(end+1) = entry; %#ok<AGROW>
+                            end
+                        end
+                        if ~isempty(new_figs)
+                            keep_figures(new_figs, f, e.id, save_figs, split, folder, '', true);
+                        end
+                    catch err
+                        write_log(sprintf('ERROR in %s (%s): %s', e.id, f.name, err.message));
+                        n_errors = n_errors + 1;
+                    end
+                    n_done = n_done + 1;
+                    set_progress(100 * n_done / n_total);
+                end
             end
             for j = 1:numel(sel)                 % the table keeps the order of the list
-                if isfield(rows, sel{j})
-                    new_results = [new_results; rows.(sel{j})]; %#ok<AGROW>
-                    new_series(end+1) = got.(sel{j}); %#ok<AGROW>
+                for k_e = find(strcmp({entries.metric}, sel{j}))
+                    en = entries(k_e);
+                    new_store(end+1) = en; %#ok<AGROW>
+                    n = height(en.values);
+                    new_results = [new_results; [table(repmat({f.name}, n, 1), ...
+                        repmat({en.metric}, n, 1), repmat({en.channel}, n, 1), ...
+                        'VariableNames', {'File', 'Metric', 'Channel'}), en.values]]; %#ok<AGROW>
                 end
             end
             if stop_requested
@@ -361,22 +448,16 @@ end
         end
 
         results = new_results;
-        series = new_series;
+        store = new_store;
         tbl.Data = results;
-        ran = sel(ismember(sel, {series.metric}));
-        [~, idx] = ismember(ran, {metrics.id});
-        previous = dd_plot.Value;
-        set(dd_plot, 'Items', {metrics(idx).label}, 'ItemsData', ran);
-        if il_is_member(previous, ran)
-            dd_plot.Value = previous;
-        end
+        ran = sel(ismember(sel, {store.metric}));
         if stop_requested
             msg = sprintf('Stopped: %d value(s) from %d of the %d analysis step(s) in %.1f s', ...
                 height(results), n_done, n_total, toc(t_start));
         else
             set_progress(100);
             msg = sprintf('Done: %d value(s) from %d file(s) and %d metric(s) in %.1f s', ...
-                height(results), numel(loaded), numel(sel), toc(t_start));
+                height(results), numel(use), numel(sel), toc(t_start));
         end
         if n_errors > 0
             msg = sprintf('%s, %d error(s)', msg, n_errors);
@@ -385,8 +466,8 @@ end
         write_log([msg '.']);
         if cb_show.Value && ~isempty(ran)
             on_open_graphs();
-        elseif il_is_open(win_graphs) && ~isempty(dd_plot.Items) && ~isempty(series)
-            draw_graphs();       % the signal is the one the player already shows
+        else
+            refresh_graph_windows();
         end
     end
 
@@ -410,18 +491,18 @@ end
     end
 
     function on_open_graphs(~, ~)
-        if isempty(series) || isempty(dd_plot.Items)
+        if isempty(store)
             write_log('No results to plot. Run an analysis first.');
             return
         end
-        if ~il_is_open(win_graphs)
-            win_graphs = uifigure('Name', 'SQAT graphs', 'Position', [160 160 1100 700], ...
-                'Visible', fig.Visible, 'Tag', 'SQAT_GUI_graphs', 'CreateFcn', '');
-            apply_theme();
+        % a window that follows the ticked signals is reused; a pinned one stays as it is
+        w = live_window();
+        if isempty(w)
+            w = new_graph_window();
         end
-        draw_graphs();
+        draw_window(w);
         if strcmp(fig.Visible, 'on')
-            figure(win_graphs);
+            figure(w);
         end
     end
 
@@ -452,6 +533,9 @@ end
     end
 
     function on_play(~, ~)
+        if isempty(loaded)
+            return
+        end
         if ~isempty(player) && isplaying(player)
             pause(player);
             btn_play.Text = 'Play';
@@ -467,7 +551,7 @@ end
         f = active_file();
         try
             [y, fs] = audioread(f.path);
-            ch = min(str2double(dd_channel.Value), size(y, 2));
+            ch = min(channel_of_active(), size(y, 2));
             player = audioplayer(y(:, ch), fs);
             player_fs = fs;
             player.TimerPeriod = 0.05;
@@ -513,7 +597,7 @@ end
         end
         clear_cache();
         if il_is_open(win_wave), delete(win_wave); end
-        if il_is_open(win_graphs), delete(win_graphs); end
+        delete(open_graph_windows());
         delete(fig);
     end
 
@@ -527,6 +611,7 @@ end
     end
 
     function add_files(paths)
+        n_before = numel(loaded);
         for k_file = 1:numel(paths)
             path = char(paths{k_file});
             if any(strcmp({loaded.path}, path))
@@ -540,36 +625,98 @@ end
             end
             [~, base, ext] = fileparts(path);
             loaded(end+1) = struct('path', path, 'name', [base ext], ...
-                'nch', info.NumChannels, 'fs', info.SampleRate); %#ok<AGROW>
+                'nch', info.NumChannels, 'fs', info.SampleRate, 'marked', true); %#ok<AGROW>
         end
         if isempty(loaded)
             return
         end
-        previous = dd_file.Value;
-        set(dd_file, 'Items', {loaded.name}, 'ItemsData', {loaded.path});
-        if il_is_member(previous, {loaded.path})
-            dd_file.Value = previous;
+        if active_idx == 0 || active_idx > numel(loaded)
+            active_idx = 1;
         end
-        if numel(loaded) == 1
-            lbl_files.Text = '1 file loaded';
-        else
-            lbl_files.Text = sprintf('%d files loaded', numel(loaded));
-        end
+        refresh_signals();
         write_log(sprintf('%d file(s) loaded.', numel(loaded)));
-        update_channels();
+        if numel(loaded) > n_before
+            refresh_windows();
+        end
+    end
+
+    function remove_signal(k)
+        % the signal leaves the list, the results and the drawn figures
+        f = loaded(k);
+        loaded(k) = [];
+        keep = ~strcmp({store.file}, f.path);
+        store = store(keep);
+        results = results(~strcmp(results.File, f.name), :);
+        tbl.Data = results;
+        drop = strcmp({cache.file}, f.path);
+        for k_c = find(drop)
+            delete(cache(k_c).figs(isvalid(cache(k_c).figs)));
+        end
+        cache = cache(~drop);
+        if k < active_idx
+            active_idx = active_idx - 1;
+        end
+        active_idx = min(active_idx, numel(loaded));   % 0 when the list is empty
+        write_log(sprintf('%s removed.', f.name));
+        refresh_signals();
         refresh_windows();
     end
 
+    function refresh_signals()
+        % the table of signals, the count and the channels on offer
+        n = numel(loaded);
+        if n == 0
+            tbl_signals.Data = table(false(0, 1), strings(0, 1), strings(0, 1));
+            lbl_files.Text = 'No files loaded';
+        else
+            tbl_signals.Data = table(logical([loaded.marked]'), string({loaded.name}'), ...
+                repmat("x", n, 1));
+            if n == 1
+                lbl_files.Text = '1 file loaded';
+            else
+                lbl_files.Text = sprintf('%d files loaded', n);
+            end
+        end
+        removeStyle(tbl_signals);
+        if active_idx > 0
+            addStyle(tbl_signals, uistyle('FontWeight', 'bold'), 'row', active_idx);
+        end
+        update_channels();
+    end
+
+    function show_active()
+        % the row on screen is shown in bold
+        removeStyle(tbl_signals);
+        if active_idx > 0
+            addStyle(tbl_signals, uistyle('FontWeight', 'bold'), 'row', active_idx);
+        end
+        if il_is_open(win_wave)
+            draw_waveform_window();
+        end
+    end
+
     function f = active_file()
-        f = loaded(strcmp({loaded.path}, dd_file.Value));
+        f = loaded(active_idx);
+    end
+
+    function ch = channel_of_active()
+        % the channel that the waveform and the player take
+        ch = str2double(dd_channel.Value);
+        if isnan(ch)
+            ch = 1;                          % All
+        end
+        ch = min(ch, active_file().nch);
     end
 
     function update_channels()
         if isempty(loaded)
             return
         end
-        f = active_file();
-        items = arrayfun(@num2str, 1:f.nch, 'UniformOutput', false);
+        n = max([loaded.nch]);
+        items = arrayfun(@num2str, 1:n, 'UniformOutput', false);
+        if n > 1
+            items{end+1} = 'All';
+        end
         previous = dd_channel.Value;
         dd_channel.Items = items;
         if il_is_member(previous, items)
@@ -578,11 +725,14 @@ end
     end
 
     function refresh_windows()
-        if il_is_open(win_graphs) && ~isempty(dd_plot.Items) && ~isempty(series)
-            draw_graphs();
-        end
+        refresh_graph_windows();
         if il_is_open(win_wave)
-            draw_waveform_window();
+            if isempty(loaded)
+                cla(ax_wave);
+                cla(ax_spec);
+            else
+                draw_waveform_window();
+            end
         end
     end
 
@@ -617,31 +767,185 @@ end
         params.(id).(name) = value;
     end
 
-    function draw_graphs()
-        id = dd_plot.Value;
-        if ~cb_together.Value && show_sqat_figure(id)
-            return
-        end
-        draw_series(id);
+    %% Graphs windows: signal, metric, analysis, plot
+
+    function ws = open_graph_windows()
+        graph_figs = graph_figs(isvalid(graph_figs));
+        ws = graph_figs;
     end
 
-    function ok = show_sqat_figure(id)
-        % the figure that the SQAT function draws, copied into the graphs window
-        f = active_file();
+    function w = live_window()
+        % the first window that follows the ticked signals
+        w = [];
+        for w_k = open_graph_windows()
+            if ~findobj(w_k, 'Tag', 'graph_pin').Value
+                w = w_k;
+                return
+            end
+        end
+    end
+
+    function refresh_graph_windows()
+        for w = open_graph_windows()
+            if ~findobj(w, 'Tag', 'graph_pin').Value
+                draw_window(w);
+            end
+        end
+    end
+
+    function w = new_graph_window()
+        n = numel(open_graph_windows());
+        w = uifigure('Name', 'SQAT graphs', 'Position', [160 160 1100 700] + [30 -30 0 0] * mod(n, 6), ...
+            'Visible', fig.Visible, 'Tag', 'SQAT_GUI_graphs', 'CreateFcn', '');
+        graph_figs(end+1) = w;
+        g = uigridlayout(w, [2 1]);
+        g.RowHeight = {30, '1x'};
+        g.Padding = [8 8 8 8];
+        bar = uigridlayout(g, [1 8]);
+        bar.Padding = [0 0 0 0];
+        bar.ColumnWidth = {50, 230, 60, 260, 60, 90, 70, '1x'};
+        uilabel(bar, 'Text', 'Metric:', 'HorizontalAlignment', 'right');
+        uidropdown(bar, 'Items', {}, 'Tag', 'graph_metric', 'ValueChangedFcn', @on_graph_control);
+        uilabel(bar, 'Text', 'Analysis:', 'HorizontalAlignment', 'right');
+        uidropdown(bar, 'Items', {}, 'Tag', 'graph_analysis', 'ValueChangedFcn', @on_graph_control, ...
+            'Tooltip', ['SQAT figure and All analyses need one signal; with several signals ' ...
+                        'the analyses that can be compared are on offer']);
+        uilabel(bar, 'Text', 'Channel:', 'HorizontalAlignment', 'right');
+        uidropdown(bar, 'Items', {'1'}, 'Tag', 'graph_channel', 'ValueChangedFcn', @on_graph_control);
+        uibutton(bar, 'state', 'Text', 'Pin', 'Tag', 'graph_pin', 'ValueChangedFcn', @on_graph_pin, ...
+            'Tooltip', ['Keeps this window with its signals; Open Graphs Window then opens ' ...
+                        'another one to compare with']);
+        uilabel(bar, 'Text', '');
+        uipanel(g, 'BorderType', 'none', 'Tag', 'graph_body');
+        apply_theme();
+    end
+
+    function on_graph_control(src, ~)
+        draw_window(ancestor(src, 'figure'));
+    end
+
+    function on_graph_pin(src, ~)
+        w = ancestor(src, 'figure');
+        if src.Value
+            src.UserData = {loaded([loaded.marked]).path};   % the signals of the window stay these
+            src.Text = 'Pinned';
+        else
+            src.UserData = {};
+            src.Text = 'Pin';
+        end
+        draw_window(w);
+    end
+
+    function paths = window_paths(w)
+        % the signals of a window: the ticked ones, or the ones it was pinned with
+        pin = findobj(w, 'Tag', 'graph_pin');
+        if pin.Value
+            paths = pin.UserData;
+        else
+            paths = {loaded([loaded.marked]).path};
+        end
+    end
+
+    function draw_window(w)
+        % refreshes the selectors of a window and draws what they ask for
+        paths = window_paths(w);
+        dm = findobj(w, 'Tag', 'graph_metric');
+        dc = findobj(w, 'Tag', 'graph_channel');
+        da = findobj(w, 'Tag', 'graph_analysis');
+        body = findobj(w, 'Tag', 'graph_body');
+        delete(body.Children);
+        in_window = ismember({store.file}, paths);
+        ids = {metrics(ismember({metrics.id}, {store(in_window).metric})).id};
+        if isempty(ids)
+            set([dm, dc, da], 'Items', {});
+            uilabel(uigridlayout(body, [1 1]), 'HorizontalAlignment', 'center', ...
+                'Text', 'No results for the signals of this window. Tick signals and run an analysis.');
+            w.Name = 'SQAT graphs';
+            return
+        end
+        [~, idx] = ismember(ids, {metrics.id});
+        wanted = dm.Value;
+        if ~il_is_member(wanted, ids)
+            wanted = last_metric;
+        end
+        set(dm, 'Items', {metrics(idx).label}, 'ItemsData', ids);
+        if il_is_member(wanted, ids)
+            dm.Value = wanted;
+        end
+        id = dm.Value;
+        last_metric = id;
+        label = metrics(strcmp({metrics.id}, id)).label;
+
+        in_metric = in_window & strcmp({store.metric}, id);
+        chans = unique({store(in_metric).channel}, 'stable');
+        chans = [sort(chans(~strcmp(chans, 'Binaural'))), chans(strcmp(chans, 'Binaural'))];
+        wanted = dc.Value;
+        dc.Items = chans;
+        if il_is_member(wanted, chans)
+            dc.Value = wanted;
+        end
+        chan = dc.Value;
+
+        entries = il_empty_store();
+        for k_p = 1:numel(paths)
+            k_e = find(in_metric & strcmp({store.file}, paths{k_p}) & strcmp({store.channel}, chan), 1);
+            if ~isempty(k_e)
+                entries(end+1) = store(k_e); %#ok<AGROW>
+            end
+        end
+        n_missing = nnz(ismember(paths, {store(in_metric).file})) - numel(entries);
+        if n_missing > 0
+            write_log(sprintf('%d signal(s) have no channel %s of %s and are left out.', n_missing, chan, label));
+        end
+
+        [items, data] = il_analysis_items(entries);
+        wanted = da.Value;
+        set(da, 'Items', items, 'ItemsData', data);
+        if ~il_is_member(wanted, data)
+            wanted = data{1};                 % the SQAT figure of one signal, else the first analysis
+        end
+        da.Value = wanted;
+        w.Name = sprintf('SQAT graphs: %s, %s', label, items{strcmp(data, da.Value)});
+
+        switch da.Value
+            case 'sqat'
+                if ~show_sqat_figure(body, id, entries(1).file)
+                    da.Value = data{3};      % the first analysis of the metric, or the statistics
+                    if strcmp(da.Value, 'stats')
+                        draw_stats(body, entries);
+                    else
+                        draw_analysis(body, entries, da.Value, chan);
+                    end
+                end
+            case 'all'
+                tg = uitabgroup(body, 'Units', 'normalized', 'Position', [0 0 1 1]);
+                for a = entries(1).analyses
+                    draw_analysis(uitab(tg, 'Title', a.label), entries, a.id, chan);
+                end
+                draw_stats(uitab(tg, 'Title', 'Statistics'), entries);
+            case 'stats'
+                draw_stats(body, entries);
+            otherwise
+                draw_analysis(body, entries, da.Value, chan);
+        end
+    end
+
+    function ok = show_sqat_figure(parent, id, path)
+        % the figure that the SQAT function draws, copied into the window
+        f = loaded(strcmp({loaded.path}, path));
         label = metrics(strcmp({metrics.id}, id)).label;
         k_c = find(strcmp({cache.file}, f.path) & strcmp({cache.metric}, id), 1);
         if isempty(k_c) || ~all(isvalid(cache(k_c).figs))
-            if ~any(strcmp({series.file}, f.path) & strcmp({series.metric}, id))
-                ok = false;                       % no result for this file
-                return
-            end
             write_log(sprintf('Drawing the SQAT figure of %s for %s ...', id, f.name));
             lbl_status.Text = sprintf('Drawing the SQAT figure of %s for %s', label, f.name);
             drawnow limitrate
             try
-                ch = min(run_settings.channel, f.nch);
-                [x, fs] = SQAT_GUI_load(f.path, run_settings.dBFS, ch);
+                cl = channel_list(f, run_settings.channel);
                 e = metrics(strcmp({metrics.id}, id));
+                if ~e.stereo
+                    cl = cl(1);                   % one figure per signal: the first channel
+                end
+                [x, fs] = SQAT_GUI_load(f.path, run_settings.dBFS, cl);
                 [~, new_figs] = run_metric(e, x, fs, run_settings.params.(id), true, false);
             catch err
                 write_log(sprintf('The SQAT figure of %s could not be drawn: %s', id, err.message));
@@ -653,8 +957,8 @@ end
             k_c = numel(cache);
             lbl_status.Text = 'Ready';
         end
-        delete(win_graphs.Children);
-        tg = uitabgroup(win_graphs, 'Units', 'normalized', 'Position', [0 0 1 1]);
+        delete(parent.Children);
+        tg = uitabgroup(parent, 'Units', 'normalized', 'Position', [0 0 1 1]);
         for k_f = 1:numel(cache(k_c).figs)
             src = cache(k_c).figs(k_f);
             if ~cb_split.Value
@@ -676,62 +980,96 @@ end
                 set_colormap(tab);
             end
         end
-        win_graphs.Name = sprintf('SQAT graphs: %s, %s', label, f.name);
         ok = true;
     end
 
-    function draw_series(id)
-        % the time series drawn by the interface: one file, or all of them
-        delete(win_graphs.Children);
-        ax_graphs = uiaxes(uigridlayout(win_graphs, [1 1]));
-        label = metrics(strcmp({metrics.id}, id)).label;
-        if cb_together.Value
-            s = series(strcmp({series.metric}, id) & ~cellfun(@isempty, {series.t}));
-            names = cell(1, numel(s));
-            hold(ax_graphs, 'on');
-            for k_s = 1:numel(s)
-                plot(ax_graphs, s(k_s).t, s(k_s).y);
-                names{k_s} = loaded(strcmp({loaded.path}, s(k_s).file)).name;
+    function draw_analysis(parent, entries, aid, chan)
+        % one analysis of the signals: their lines on one axes, or their maps side by side
+        A = arrayfun(@(e) e.analyses(strcmp({e.analyses.id}, aid)), entries);
+        names = {entries.name};
+        if strcmp(A(1).kind, 'map')
+            n = numel(A);
+            n_cols = min(n, 2);
+            gl = uigridlayout(parent, [ceil(n / n_cols), n_cols]);
+            lo = min(arrayfun(@(a) min(a.z(:), [], 'omitnan'), A));
+            hi = max(arrayfun(@(a) max(a.z(:), [], 'omitnan'), A));
+            for k = 1:n
+                ax = uiaxes(gl);
+                surface(ax, A(k).x, A(k).y, zeros(numel(A(k).y), numel(A(k).x)), A(k).z.', ...
+                    'EdgeColor', 'none');
+                view(ax, 2);
+                axis(ax, 'tight');
+                ax.Layer = 'top';
+                colormap(ax, cmap);
+                if isfinite(lo) && hi > lo
+                    clim(ax, [lo hi]);            % the same colour scale for every signal
+                end
+                if strcmp(A(k).bandscale, 'log')
+                    ax.YScale = 'log';
+                end
+                cb = colorbar(ax);
+                cb.Label.String = A(k).zlabel;
+                xlabel(ax, A(k).xlabel);
+                ylabel(ax, A(k).ylabel);
+                title(ax, sprintf('%s: %s, channel %s', A(k).label, names{k}, chan), 'Interpreter', 'none');
             end
-            hold(ax_graphs, 'off');
-            what = sprintf('all files (%d)', numel(s));
-        else
-            f = active_file();
-            s = series(strcmp({series.file}, f.path) & strcmp({series.metric}, id));
-            if isempty(s) || isempty(s.t)
-                title(ax_graphs, sprintf('%s, %s: no time series (stationary result or no result)', ...
-                    label, f.name), 'Interpreter', 'none');
-                return
-            end
-            plot(ax_graphs, s.t, s.y);
-            names = {};
-            what = f.name;
-        end
-        if isempty(s)
-            title(ax_graphs, sprintf('%s: no time series to overlay', label), 'Interpreter', 'none');
             return
         end
-        y_all = vertcat(s.y);
+        ax = uiaxes(uigridlayout(parent, [1 1]));
+        hold(ax, 'on');
+        for k = 1:numel(A)
+            plot(ax, A(k).x, A(k).y);
+        end
+        hold(ax, 'off');
+        y_all = vertcat(A.y);
         y_range = [min(y_all) max(y_all)];
         y_ref = max(abs(y_range));
         if all(isfinite(y_range)) && y_ref > 0 && diff(y_range) <= 1e-3 * y_ref
             % a constant result: show it at +/-5 %, away from its rounding noise
-            ylim(ax_graphs, mean(y_range) + [-0.05 0.05] * y_ref);
+            ylim(ax, mean(y_range) + [-0.05 0.05] * y_ref);
         end
-        xlabel(ax_graphs, 'Time (s)');
-        ylabel(ax_graphs, s(1).name);
-        title(ax_graphs, sprintf('%s, %s', label, what), 'Interpreter', 'none');
-        if ~isempty(names)
-            legend(ax_graphs, names, 'Interpreter', 'none', 'Location', 'best');
+        if strcmp(A(1).kind, 'profile') && strcmp(A(1).bandscale, 'log')
+            ax.XScale = 'log';
         end
-        win_graphs.Name = sprintf('SQAT graphs: %s', label);
+        xlabel(ax, A(1).xlabel);
+        ylabel(ax, A(1).ylabel);
+        if numel(A) == 1
+            what = names{1};
+        else
+            what = sprintf('%d signals', numel(A));
+        end
+        title(ax, sprintf('%s: %s, channel %s', A(1).label, what, chan), 'Interpreter', 'none');
+        if numel(A) > 1
+            legend(ax, names, 'Interpreter', 'none', 'Location', 'best');
+        end
+    end
+
+    function draw_stats(parent, entries)
+        % the single values of the signals, one column each
+        names = matlab.lang.makeUniqueStrings({entries.name});
+        q = {};
+        for k = 1:numel(entries)
+            q = union(q, entries(k).values.Quantity, 'stable');
+        end
+        data = cell(numel(q), 1 + numel(entries));
+        data(:, 1) = q(:);
+        for k = 1:numel(entries)
+            for r = 1:numel(q)
+                i_q = find(strcmp(entries(k).values.Quantity, q{r}), 1);
+                if ~isempty(i_q)
+                    data{r, k + 1} = entries(k).values.Value(i_q);
+                end
+            end
+        end
+        uitable(uigridlayout(parent, [1 1]), 'Data', data, 'Tag', 'graph_stats', 'RowName', {}, ...
+            'ColumnName', [{'Quantity'}, names], 'ColumnEditable', false);
     end
 
     function draw_waveform_window()
         cla(ax_wave);
         cla(ax_spec);
         f = active_file();
-        ch = min(str2double(dd_channel.Value), f.nch);
+        ch = channel_of_active();
         try
             [x, fs] = SQAT_GUI_load(f.path, ed_dbfs.Value, ch);
         catch err
@@ -820,8 +1158,26 @@ end
         new_figs = il_new_figures(figs_before);
     end
 
-    function keep_figures(new_figs, f, id, save_figs, split, folder)
+    function cl = channel_list(f, option)
+        % the channels of file f that the option of the run analyses
+        if strcmp(option, 'All')
+            cl = 1:f.nch;
+        else
+            cl = str2double(option);
+            if cl > f.nch
+                cl = 1;
+            end
+        end
+    end
+
+    function keep_figures(new_figs, f, id, save_figs, split, folder, suffix, cache_it)
         % heat colour scale, optional saving, then kept hidden for the graphs window
+        if nargin < 7
+            suffix = '';
+        end
+        if nargin < 8
+            cache_it = true;
+        end
         for k_fig = 1:numel(new_figs)
             set_colormap(new_figs(k_fig));
         end
@@ -833,17 +1189,22 @@ end
                     axs = findobj(new_figs(k_fig), 'Type', 'axes');
                     for k_ax = 1:numel(axs)
                         exportgraphics(axs(k_ax), fullfile(folder, ...
-                            sprintf('%s_%s_%d_%d.png', base, id, k_fig, k_ax)));
+                            sprintf('%s_%s%s_%d_%d.png', base, id, suffix, k_fig, k_ax)));
                         n_saved = n_saved + 1;
                     end
                 else
-                    exportgraphics(new_figs(k_fig), fullfile(folder, sprintf('%s_%s_%d.png', base, id, k_fig)));
+                    exportgraphics(new_figs(k_fig), fullfile(folder, ...
+                        sprintf('%s_%s%s_%d.png', base, id, suffix, k_fig)));
                     n_saved = n_saved + 1;
                 end
             end
             write_log(sprintf('%d figure(s) saved to %s', n_saved, folder));
         end
-        cache(end+1) = struct('file', f.path, 'metric', id, 'figs', new_figs);
+        if cache_it
+            cache(end+1) = struct('file', f.path, 'metric', id, 'figs', new_figs);
+        else
+            delete(new_figs(isvalid(new_figs)));
+        end
     end
 
     function clear_cache()
@@ -868,7 +1229,7 @@ end
             btn_theme.Text = 'Dark theme';
         end
         if exist('theme', 'file')                % R2025a or newer
-            for w = [fig, win_graphs, win_wave]
+            for w = [fig, open_graph_windows(), win_wave]
                 if il_is_open(w)
                     theme(w, theme_style);
                 end
@@ -974,6 +1335,38 @@ tf = (ischar(value) || isstring(value)) && strlength(string(value)) > 0 ...
 end
 
 function T = il_empty_results()
-T = table('Size', [0 4], 'VariableTypes', {'cell', 'cell', 'cell', 'double'}, ...
-    'VariableNames', {'File', 'Metric', 'Quantity', 'Value'});
+T = table('Size', [0 5], 'VariableTypes', {'cell', 'cell', 'cell', 'cell', 'double'}, ...
+    'VariableNames', {'File', 'Metric', 'Channel', 'Quantity', 'Value'});
+end
+
+function S = il_empty_store()
+S = struct('file', {}, 'name', {}, 'metric', {}, 'channel', {}, 'analyses', {}, 'values', {});
+end
+
+function en = il_entry_of(f, e, OUT, label, channel, n_channels)
+% the analyses and the single values that OUT holds for one channel
+en = struct('file', f.path, 'name', f.name, 'metric', e.id, 'channel', label, ...
+    'analyses', SQAT_GUI_extract(OUT, e.id, channel), ...
+    'values', SQAT_GUI_single_values(OUT, channel, n_channels));
+end
+
+function [items, data] = il_analysis_items(entries)
+% the analyses on offer for the signals of a window: the SQAT figure and all
+% the analyses for one signal, then the analyses that every signal holds
+% (they can be overlaid or set side by side), then the statistics
+items = {};
+data = {};
+if numel(entries) == 1
+    items = {'SQAT figure', 'All analyses'};
+    data = {'sqat', 'all'};
+end
+ids = {entries(1).analyses.id};
+labels = {entries(1).analyses.label};
+for k = 2:numel(entries)
+    keep = ismember(ids, {entries(k).analyses.id});
+    ids = ids(keep);
+    labels = labels(keep);
+end
+items = [items, labels, {'Statistics'}];
+data = [data, ids, {'stats'}];
 end
