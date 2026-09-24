@@ -37,7 +37,7 @@ if strcmp(type, 'Z')
     H_db = zeros(size(f));
     return
 end
-[b, a] = Gen_weighting_filters(fs, type);
+[b, a] = SQAT_GUI_weight_filter(fs, type);
 z = exp(-1j * 2*pi * f / fs);
 H = polyval(fliplr(b(:)'), z) ./ polyval(fliplr(a(:)'), z);
 H_db = 20*log10(abs(H));

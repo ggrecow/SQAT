@@ -2,8 +2,9 @@ function y = SQAT_GUI_weight(x, fs, type)
 % function y = SQAT_GUI_weight(x, fs, type)
 %
 %   Applies a frequency weighting to a signal with the filters of
-%   Gen_weighting_filters (IEC 61672-1), the same ones the sound level
-%   meter of SQAT uses. Z is flat and returns the signal as it is.
+%   SQAT_GUI_weight_filter (IEC 61672-1): the design of Gen_weighting_filters,
+%   the filters of the sound level meter of SQAT, written without a toolbox.
+%   Z is flat and returns the signal as it is.
 %
 % INPUT ARGUMENTS
 %   x : signal, one column per channel
@@ -38,6 +39,6 @@ if strcmp(type, 'Z')
     y = x;
     return
 end
-[b, a] = Gen_weighting_filters(fs, type);
+[b, a] = SQAT_GUI_weight_filter(fs, type);
 y = filter(b, a, x);
 end
