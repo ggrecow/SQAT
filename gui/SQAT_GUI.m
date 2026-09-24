@@ -95,7 +95,8 @@ ax_wave = [];
 ax_spec = [];
 btn_play = [];
 run_settings = struct('dBFS', 94, 'channel', '1', 'params', params);   % of the last analysis
-stop_requested = false;                                             % the Stop button
+stop_requested = false;                                             % the Stop button or the dialog
+dlg = [];                                                           % progress dialog of a run
 cache = struct('file', {}, 'metric', {}, 'figs', {});               % SQAT figures, hidden
 cmap = SQAT_GUI_colormap_heat(256);
 
@@ -131,7 +132,7 @@ left.Padding = [0 0 0 0];
 left.RowHeight = {20, 150, 20, '1x', 20, 44, 28, 32, 32, 32};
 uilabel(left, 'Text', 'SIGNALS (tick to use, x to remove)', 'FontWeight', 'bold');
 tbl_signals = uitable(left, 'Tag', 'signals_table', 'RowName', {}, 'ColumnName', {'', 'Signal', ''}, ...
-    'ColumnWidth', {28, 'auto', 28}, 'ColumnEditable', [true false false], ...
+    'ColumnWidth', {28, 190, 28}, 'ColumnEditable', [true false false], ...
     'CellEditCallback', @on_signal_marked, 'CellSelectionCallback', @on_signal_selected);
 uilabel(left, 'Text', 'METRICS TO ANALYZE (Ctrl or Cmd + click)', 'FontWeight', 'bold');
 lb_metrics = uilistbox(left, 'Items', {metrics.label}, 'ItemsData', {metrics.id}, ...
@@ -276,7 +277,7 @@ end
         if ~stop_requested
             stop_requested = true;
             write_log('Stop requested: the run ends when the metric being computed returns.');
-            lbl_status.Text = 'Stopping...';
+            set_status('Stopping...');
         end
     end
 
@@ -338,6 +339,17 @@ end
         stop_requested = false;
         btn_stop.Enable = 'on';
         stop_off = onCleanup(@() set(btn_stop, 'Enable', 'off')); %#ok<NASGU>
+        dlg = [];
+        if strcmp(fig.Visible, 'on')             % the dialog needs a visible window
+            try
+                dlg = uiprogressdlg(fig, 'Title', 'SQAT analysis', 'Message', 'Starting ...', ...
+                    'Cancelable', 'on', 'CancelText', 'Stop', 'Value', 0);
+                setappdata(fig, 'sqat_progress', dlg);   % the handle the tests read
+            catch err
+                write_log(['The progress dialog could not open: ' err.message]);
+            end
+        end
+        dlg_off = onCleanup(@() close_progress()); %#ok<NASGU>
         t_start = tic;
         for i = files_order
             f = loaded(i);
@@ -370,11 +382,12 @@ end
                 done = struct();                 % outputs of this channel, by metric id
                 for j = 1:numel(plan)
                     drawnow                      % the Stop button gets its turn here
+                    poll_cancel();
                     if stop_requested
                         break
                     end
                     e = metrics(strcmp({metrics.id}, plan(j).id));
-                    lbl_status.Text = sprintf('Running %s on %s (%d of %d)', e.label, f.name, n_done + 1, n_total);
+                    set_status(sprintf('Running %s on %s (%d of %d)', e.label, f.name, n_done + 1, n_total));
                     try
                         [OUT, new_figs] = run_step(e, plan(j), done, x, fs, f, ...
                             show || (first && strcmp(f.path, active_path)));
@@ -402,11 +415,12 @@ end
                 end
                 for j = 1:numel(ids_joint)
                     drawnow
+                    poll_cancel();
                     if isempty(X) || stop_requested
                         break
                     end
                     e = metrics(strcmp({metrics.id}, ids_joint{j}));
-                    lbl_status.Text = sprintf('Running %s on %s (%d of %d)', e.label, f.name, n_done + 1, n_total);
+                    set_status(sprintf('Running %s on %s (%d of %d)', e.label, f.name, n_done + 1, n_total));
                     write_log(sprintf('Running %s on %s, both channels ...', e.id, f.name));
                     try
                         [OUT, new_figs] = run_metric(e, X, fs, params.(e.id), ...
@@ -1237,7 +1251,34 @@ end
         end
     end
 
+    function set_status(text)
+        lbl_status.Text = text;
+        if il_is_open(dlg)
+            dlg.Message = text;
+        end
+    end
+
+    function poll_cancel()
+        % the Stop of the progress dialog ends the run like the Stop button
+        if il_is_open(dlg) && dlg.CancelRequested
+            on_stop_run();
+        end
+    end
+
+    function close_progress()
+        if il_is_open(dlg)
+            close(dlg);
+        end
+        dlg = [];
+        if isvalid(fig) && isappdata(fig, 'sqat_progress')
+            rmappdata(fig, 'sqat_progress');
+        end
+    end
+
     function set_progress(value)
+        if il_is_open(dlg)
+            dlg.Value = min(max(value / 100, 0), 1);
+        end
         gauge.Value = value;
         if value > 0
             gauge.ScaleColors = green;
