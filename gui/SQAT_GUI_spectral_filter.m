@@ -1,17 +1,20 @@
-function y = SQAT_GUI_spectral_filter(x, fs, boxes)
-% function y = SQAT_GUI_spectral_filter(x, fs, boxes)
+function y = SQAT_GUI_spectral_filter(x, fs, boxes, mode)
+% function y = SQAT_GUI_spectral_filter(x, fs, boxes, mode)
 %
-%   Removes rectangles of the time-frequency plane from a signal: the
-%   spectrum of the frames whose centre falls in a box's time span is set
-%   to zero between the box's frequencies, and the signal is rebuilt by
-%   overlap-add (Hann analysis and synthesis windows, 2048 points, hop of a
-%   quarter). Frames outside every box pass unchanged, and a signal with no
-%   box comes back as it was.
+%   Removes rectangles of the time-frequency plane from a signal, or keeps
+%   only them: the spectrum of the frames whose centre falls in a box's time
+%   span is set to zero between the box's frequencies (mode 'remove'), or
+%   everywhere but there (mode 'keep', with silence in the frames outside
+%   every box). The signal is rebuilt by overlap-add (Hann analysis and
+%   synthesis windows, 2048 points, hop of a quarter). In 'remove' the
+%   frames outside every box pass unchanged, and a signal with no box comes
+%   back as it was in both modes.
 %
 % INPUT ARGUMENTS
 %   x : signal
 %   fs : sampling frequency (Hz)
 %   boxes : [Bx4] matrix, one row [t1 t2 f1 f2] per box (s and Hz)
+%   mode : (optional) 'remove' (default) or 'keep'
 %
 % OUTPUTS
 %   y : [Nx1] filtered signal
@@ -34,6 +37,12 @@ function y = SQAT_GUI_spectral_filter(x, fs, boxes)
 % warranties of MERCHANTABILITY and FITNESS FOR A PARTICULAR PURPOSE.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+if nargin < 4
+    mode = 'remove';
+end
+if ~ismember(mode, {'remove', 'keep'})
+    error('SQAT_GUI:filter', 'Unknown mode %s: use remove or keep.', mode);
+end
 x = x(:);
 if isempty(boxes)
     y = x;
@@ -51,11 +60,16 @@ f_bin = min(f_bin, fs - f_bin);                       % frequency of each bin, t
 for k = 1:n_frames
     seg = (k-1)*hop + (1:n);
     t_c = ((k-1)*hop + n/2 - n) / fs;                 % time of the centre of the frame in the signal
-    drop = false(n, 1);
+    hit = false(n, 1);                                % bins inside the boxes that cover this frame
     for b = 1:size(boxes, 1)
         if t_c >= boxes(b, 1) && t_c <= boxes(b, 2)
-            drop = drop | (f_bin >= boxes(b, 3) & f_bin <= boxes(b, 4));
+            hit = hit | (f_bin >= boxes(b, 3) & f_bin <= boxes(b, 4));
         end
+    end
+    if strcmp(mode, 'keep')
+        drop = ~hit;
+    else
+        drop = hit;
     end
     fr = xp(seg) .* w;
     if any(drop)
