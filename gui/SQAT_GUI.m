@@ -87,10 +87,13 @@ results = il_empty_results();
 store = il_empty_store();                             % analyses of each signal, metric and channel
 player = [];
 player_fs = [];
-play_start = 1;                                       % sample where the next play starts
+play_start = 0;                                       % sample where the next play starts, 0 for the start of the region
 playing = false;                                      % the interface's own state: the audio device answers late
 play_t0 = tic;                                        % start of the last play, and the time it should last
 play_span = 0;
+play_y = [];                                          % the sound that plays (filter and weighting applied), until they change
+play_map = struct('sample', 1, 'n_first', 0, 'loop_from', 1, 'n_rep', 0);   % where the buffer of the play comes from
+box_loop = false;                                     % the play that runs is inside the filter box
 toggle_clock = tic;                                   % time of the last play or pause, to drop a key event that comes twice
 last_toggle = -1;
 wave_x = [];                                          % the signal of the waveform window, in pascals
@@ -99,6 +102,7 @@ wave_fs = [];
 wave_key = '';                                        % file and channel on screen
 boxes = zeros(0, 4);                                  % [t1 t2 f1 f2] removed from what plays
 box_corner = [];                                      % first corner of a box being drawn
+drag_active = false;                                  % the mouse is being followed to size a box
 spec_custom = [];                                     % window read from a file
 theme_style = 'dark';
 graph_figs = gobjects(0);                              % the graphs windows
@@ -546,17 +550,20 @@ end
             gw.RowHeight = {30, 30, '1x', '1.2x'};
             hw = uigridlayout(gw, [1 9]);
             hw.Padding = [0 0 0 0];
-            hw.ColumnWidth = {80, 80, 60, 90, 100, 90, 80, 60, '1x'};
+            hw.ColumnWidth = {80, 80, 60, 100, 110, 140, 80, 60, '1x'};
             btn_play = uibutton(hw, 'Text', 'Play', 'Tag', 'play', 'ButtonPushedFcn', @on_play, ...
                 'Tooltip', 'Space plays and pauses; a click on the waveform or the spectrogram moves the playhead');
             uibutton(hw, 'Text', 'Stop', 'Tag', 'stop', 'ButtonPushedFcn', @on_stop);
-            uicheckbox(hw, 'Text', 'Loop', 'Value', true, 'Tag', 'loop', ...
-                'Tooltip', 'Starts again at the end of the file');
-            uibutton(hw, 'state', 'Text', 'Draw box', 'Tag', 'draw_box', 'ValueChangedFcn', @on_draw_box, ...
-                'Tooltip', 'Click two opposite corners on the spectrogram: what is inside is removed from the sound');
-            uibutton(hw, 'Text', 'Clear boxes', 'Tag', 'clear_boxes', 'ButtonPushedFcn', @on_clear_boxes);
-            uicheckbox(hw, 'Text', 'Filter on', 'Value', true, 'Tag', 'filter_on', ...
-                'ValueChangedFcn', @on_processing_changed, 'Tooltip', 'Plays the sound with the boxes removed');
+            uicheckbox(hw, 'Text', 'Loop', 'Value', true, 'Tag', 'loop', 'ValueChangedFcn', @on_loop_changed, ...
+                'Tooltip', 'Starts again at the end of the file, or of the filter box when there is one');
+            uibutton(hw, 'state', 'Text', 'Draw filter', 'Tag', 'draw_box', 'ValueChangedFcn', @on_draw_box, ...
+                'Tooltip', 'Drag a box on the spectrogram, or click two opposite corners');
+            uibutton(hw, 'Text', 'Clear filters', 'Tag', 'clear_boxes', 'ButtonPushedFcn', @on_clear_boxes);
+            uidropdown(hw, 'Items', {'Filter: loop only', 'Filter: isolate', 'Filter: remove'}, ...
+                'ItemsData', {'loop', 'isolate', 'remove'}, 'Value', 'loop', 'Tag', 'box_mode', ...
+                'ValueChangedFcn', @on_processing_changed, ...
+                'Tooltip', ['Loop only: the sound is not changed, and the loop runs inside the box. ' ...
+                            'Isolate: only what is inside the box plays. Remove: what is inside the box is taken out.']);
             uilabel(hw, 'Text', 'Weighting:', 'HorizontalAlignment', 'right');
             uidropdown(hw, 'Items', {'Z', 'A', 'C'}, 'Value', 'Z', 'Tag', 'wave_weighting', ...
                 'ValueChangedFcn', @on_weighting_changed, ...
@@ -564,7 +571,7 @@ end
             uilabel(hw, 'Text', '');
             sw = uigridlayout(gw, [1 8]);
             sw.Padding = [0 0 0 0];
-            sw.ColumnWidth = {60, 150, 140, 80, 50, 80, 50, '1x'};
+            sw.ColumnWidth = {60, 150, 140, 80, 70, 80, 50, '1x'};
             uilabel(sw, 'Text', 'Window:', 'HorizontalAlignment', 'right');
             uidropdown(sw, 'Items', {'Hann', 'Hamming', 'Rectangular', 'Blackman-Harris'}, ...
                 'ItemsData', {'hann', 'hamming', 'rect', 'blackmanharris'}, 'Value', 'hann', ...
@@ -572,8 +579,9 @@ end
             uibutton(sw, 'Text', 'Import window...', 'Tag', 'import_window', 'ButtonPushedFcn', @on_import_window, ...
                 'Tooltip', 'A .txt, .csv, .dat or .mat file with the samples of the window');
             uilabel(sw, 'Text', 'FFT degree:', 'HorizontalAlignment', 'right');
-            uieditfield(sw, 'numeric', 'Value', 10, 'Tag', 'spec_degree', 'RoundFractionalValues', 'on', ...
-                'ValueChangedFcn', @on_spec_option, 'Tooltip', 'The FFT has 2^degree points (6 to 16)');
+            uispinner(sw, 'Value', 10, 'Limits', [6 16], 'Step', 1, 'Tag', 'spec_degree', ...
+                'RoundFractionalValues', 'on', 'ValueChangedFcn', @on_spec_option, ...
+                'Tooltip', 'The FFT has 2^degree points (6 to 16); use the arrows');
             uilabel(sw, 'Text', 'Overlap (%):', 'HorizontalAlignment', 'right');
             uieditfield(sw, 'numeric', 'Value', 50, 'Tag', 'spec_overlap', ...
                 'ValueChangedFcn', @on_spec_option, 'Tooltip', 'Overlap of the frames (0 to 95)');
@@ -581,6 +589,7 @@ end
             ax_wave = uiaxes(gw, 'Tag', 'waveform_axes', 'ButtonDownFcn', @on_wave_click);
             ax_spec = uiaxes(gw, 'Tag', 'spectrogram', 'ButtonDownFcn', @on_wave_click);
             setappdata(win_wave, 'sqat_audio', @process_audio);   % what plays, for the tests
+            setappdata(win_wave, 'sqat_play', @play_info);
             apply_theme();
         end
         draw_waveform_window();
@@ -610,7 +619,7 @@ end
             return
         end
         if is_playing()
-            play_start = player.CurrentSample;
+            play_start = file_position(player.CurrentSample);
             stop_player();
             btn_play.Text = 'Play';
             write_log('Paused.');
@@ -625,7 +634,7 @@ end
     end
 
     function stop_player()
-        % stops the sound; the state goes first, so that the stop is not taken for the end of the file
+        % stops the sound; the state goes first, so that the stop is not taken for the end of the buffer
         was = playing;
         playing = false;
         if was && ~isempty(player) && isvalid(player)
@@ -633,27 +642,61 @@ end
         end
     end
 
+    function y = play_audio()
+        % the sound that plays: the file with the filter and the weighting, kept until they change
+        if isempty(play_y)
+            y = process_audio();
+            peak = max(abs(y), [], 'all');
+            if peak > 1                      % a weighting can lift the level above full scale
+                y = y / peak;
+                write_log(sprintf('The sound was lowered by %.1f dB so that it does not clip.', 20*log10(peak)));
+            end
+            play_y = single(y);
+        end
+        y = play_y;
+    end
+
     function start_playback(sample, quiet)
+        % plays from a sample of the file (0 for the start of the box, or of the file). With the
+        % loop on, the buffer holds the rest of the play and then the loop repeated for about two
+        % minutes, so that the loop has no restart, and so no gap, between two turns
         f = active_file();
         try
-            if isempty(player) || ~isvalid(player)
-                y = process_audio();
-                peak = max(abs(y), [], 'all');
-                if peak > 1                  % a weighting can lift the level above full scale
-                    y = y / peak;
-                    write_log(sprintf('The sound was lowered by %.1f dB so that it does not clip.', 20*log10(peak)));
-                end
-                player = audioplayer(y, wave_fs);
-                player_fs = wave_fs;
-                player.TimerPeriod = 0.05;
-                player.TimerFcn = @(~, ~) move_playhead(player.CurrentSample);
-                player.StopFcn = @(~, ~) on_player_stopped();
+            y = play_audio();
+            n = numel(y);
+            [r1, r2] = play_region();
+            if sample == 0
+                sample = r1;
             end
-            sample = min(max(round(sample), 1), player.TotalSamples);
-            play(player, [sample player.TotalSamples]);
+            sample = min(max(round(sample), 1), n);
+            box_loop = ~isempty(boxes) && sample >= r1 && sample <= r2;   % inside the box: the box is the loop
+            if box_loop
+                last = r2;
+                rep = y(r1:r2);
+                loop_from = r1;
+            else
+                last = n;
+                rep = y;
+                loop_from = 1;
+            end
+            first = y(sample:last);
+            if findobj(win_wave, 'Tag', 'loop').Value
+                buf = [first; repmat(rep, max(1, ceil(120 * wave_fs / numel(rep))), 1)];
+            else
+                buf = first;
+                rep = zeros(0, 1, 'single');
+            end
+            play_map = struct('sample', sample, 'n_first', numel(first), 'loop_from', loop_from, ...
+                'n_rep', numel(rep));
+            player = audioplayer(buf, wave_fs);
+            player_fs = wave_fs;
+            player.TimerPeriod = 0.05;
+            player.TimerFcn = @(~, ~) on_player_tick();
+            player.StopFcn = @(~, ~) on_player_stopped();
+            play(player);
             playing = true;
             play_t0 = tic;
-            play_span = (player.TotalSamples - sample + 1) / wave_fs;
+            play_span = numel(buf) / wave_fs;
             btn_play.Text = 'Pause';
             if ~quiet
                 write_log(sprintf('Playing %s, channel %d.', f.name, channel_of_active()));
@@ -665,36 +708,71 @@ end
         end
     end
 
+    function pos = file_position(i)
+        % the sample of the file that sample i of the buffer being played holds
+        i = max(i, 1);
+        m = play_map;
+        if i <= m.n_first || m.n_rep == 0
+            pos = m.sample + min(i, m.n_first) - 1;
+        else
+            pos = m.loop_from + mod(i - m.n_first - 1, m.n_rep);
+        end
+    end
+
+    function info = play_info()
+        % the state of the play, for the tests
+        info = struct('playing', playing, 'box_loop', box_loop, 'sample', play_map.sample);
+    end
+
+    function [r1, r2] = play_region()
+        % the samples of the filter boxes' time, or of the whole file
+        n = numel(wave_y);
+        r1 = 1;
+        r2 = n;
+        if ~isempty(boxes)
+            r1 = min(max(floor(min(boxes(:, 1)) * wave_fs) + 1, 1), n);
+            r2 = min(max(ceil(max(boxes(:, 2)) * wave_fs), r1), n);
+        end
+    end
+
     function on_stop(~, ~)
         if ~isempty(player)
             stop_player();
             write_log('Stopped.');
         end
-        play_start = 1;
+        play_start = 0;
         move_playhead(1);
         if il_is_open(win_wave)
             btn_play.Text = 'Play';
         end
     end
 
+    function on_loop_changed(~, ~)
+        if is_playing()
+            rebuild_audio(false);            % the buffer holds the loop, or not
+        end
+    end
+
+    function on_player_tick()
+        if ~playing || isempty(player) || ~isvalid(player)
+            return
+        end
+        move_playhead(file_position(player.CurrentSample));
+    end
+
     function on_player_stopped()
-        % called on every stop. The end of the file is a stop that comes while the
-        % interface thinks it plays and after the time the play was to last; a stop the
-        % interface asked for comes with playing false, or too soon (an old one, after a jump)
+        % called on every stop. The end of the buffer is a stop that comes while the interface
+        % thinks it plays and after the time the play was to last; a stop the interface asked for
+        % comes with playing false, or too soon (an old one, after a jump)
         if ~playing || toc(play_t0) < 0.9 * play_span
             return
         end
-        play_start = 1;
         if il_is_open(win_wave) && findobj(win_wave, 'Tag', 'loop').Value
-            try
-                play(player, [1 player.TotalSamples]);
-                play_t0 = tic;
-                play_span = player.TotalSamples / wave_fs;
-                return
-            catch
-            end
+            start_playback(play_map.loop_from, true);     % after two minutes of loop: once more
+            return
         end
         playing = false;
+        play_start = 0;
         if il_is_open(win_wave)
             btn_play.Text = 'Play';
             move_playhead(1);
@@ -725,24 +803,36 @@ end
         move_playhead(sample);
     end
 
-    function rebuild_audio()
-        % what plays changed: the sound is made again from the same position
+    function rebuild_audio(jump)
+        % what plays changed: the sound is made again, from the same position, or from the
+        % start of the box when jump is true
+        if nargin < 1
+            jump = false;
+        end
         was_playing = is_playing();
         if was_playing
-            play_start = player.CurrentSample;
+            play_start = file_position(player.CurrentSample);
             stop_player();
         end
-        player = [];
+        play_y = [];
+        if jump
+            play_start = 0;
+        end
         if was_playing
             start_playback(play_start, true);
         end
     end
 
     function y = process_audio()
-        % the file with the boxes removed and the frequency weighting applied
+        % the file with the boxes isolated or removed, and the frequency weighting applied
         y = wave_y;
-        if ~isempty(boxes) && findobj(win_wave, 'Tag', 'filter_on').Value
-            y = SQAT_GUI_spectral_filter(y, wave_fs, boxes);
+        mode = findobj(win_wave, 'Tag', 'box_mode').Value;
+        if ~isempty(boxes) && ~strcmp(mode, 'loop')
+            if strcmp(mode, 'isolate')
+                y = SQAT_GUI_spectral_filter(y, wave_fs, boxes, 'keep');
+            else
+                y = SQAT_GUI_spectral_filter(y, wave_fs, boxes, 'remove');
+            end
         end
         y = SQAT_GUI_weight(y, wave_fs, findobj(win_wave, 'Tag', 'wave_weighting').Value);
     end
@@ -757,10 +847,11 @@ end
     end
 
     function on_draw_box(src, ~)
+        end_drag();
         box_corner = [];
         delete(findobj(ax_spec, 'Tag', 'box_corner'));
         if src.Value
-            write_log('Draw box: click two opposite corners on the spectrogram.');
+            write_log('Draw filter: drag a box on the spectrogram, or click two opposite corners.');
         end
     end
 
@@ -769,20 +860,89 @@ end
             box_corner = pt(1:2);
             line(ax_spec, pt(1), pt(2), 1, 'Marker', '+', 'MarkerSize', 12, 'Color', [1 1 1], ...
                 'Tag', 'box_corner', 'PickableParts', 'none');
+            drag_active = true;              % the mouse may now be dragged to the other corner
+            win_wave.WindowButtonMotionFcn = @on_box_motion;
+            win_wave.WindowButtonUpFcn = @on_box_release;
             return
         end
-        c = [box_corner; pt(1:2)];
+        add_box(box_corner, pt(1:2));
+    end
+
+    function on_box_motion(~, event)
+        if ~drag_active || isempty(box_corner)
+            return
+        end
+        pt = pointer_point(event);
+        if isempty(pt)
+            return
+        end
+        delete(findobj(ax_spec, 'Tag', 'box_preview'));
+        patch(ax_spec, 'XData', [box_corner(1) pt(1) pt(1) box_corner(1)], ...
+            'YData', [box_corner(2) box_corner(2) pt(2) pt(2)], 'ZData', 0.5 * ones(1, 4), ...
+            'FaceColor', [1 1 1], 'FaceAlpha', 0.1, 'EdgeColor', [1 1 1], 'LineStyle', ':', ...
+            'Tag', 'box_preview', 'PickableParts', 'none');
+        drawnow limitrate
+    end
+
+    function on_box_release(~, event)
+        if ~drag_active
+            return
+        end
+        pt = pointer_point(event);
+        end_drag();
+        if isempty(pt) || isempty(box_corner)
+            return
+        end
+        d_time = abs(pt(1) - box_corner(1)) / (numel(wave_y) / wave_fs);
+        d_freq = abs(log10(max(pt(2), 1) / max(box_corner(2), 1)));
+        if d_time > 0.01 || d_freq > 0.05
+            add_box(box_corner, pt);         % dragged: the box is done
+        end                                  % pressed and released on one spot: the first click
+    end
+
+    function end_drag()
+        drag_active = false;
+        if il_is_open(win_wave)
+            win_wave.WindowButtonMotionFcn = '';
+            win_wave.WindowButtonUpFcn = '';
+            delete(findobj(ax_spec, 'Tag', 'box_preview'));
+        end
+    end
+
+    function pt = pointer_point(event)
+        % where the mouse is on the spectrogram (time, frequency), or [] when it is not known
+        pt = [];
+        has_point = (isstruct(event) && isfield(event, 'IntersectionPoint')) || ...
+            (isobject(event) && isprop(event, 'IntersectionPoint'));
+        on_axes = true;                       % the point of an event holds for the object under the mouse
+        if isobject(event) && isprop(event, 'HitObject') && ~isempty(event.HitObject)
+            on_axes = isequal(event.HitObject, ax_spec);
+        end
+        if has_point && on_axes && numel(event.IntersectionPoint) >= 2 && all(isfinite(event.IntersectionPoint(1:2)))
+            pt = event.IntersectionPoint(1:2);
+        else
+            cp = ax_spec.CurrentPoint;
+            if all(isfinite(cp(1, 1:2)))
+                pt = cp(1, 1:2);
+            end
+        end
+    end
+
+    function add_box(c1, c2)
+        % the box of two corners, kept inside the spectrogram
+        end_drag();
         box_corner = [];
         delete(findobj(ax_spec, 'Tag', 'box_corner'));
         t_lim = [0 numel(wave_y) / wave_fs];
         f_lim = [20 wave_fs / 2];
+        c = [c1(1:2); c2(1:2)];
         t12 = sort(min(max(c(:, 1), t_lim(1)), t_lim(2)))';
         f12 = sort(min(max(c(:, 2), f_lim(1)), f_lim(2)))';
         boxes(end+1, :) = [t12 f12];
         set(findobj(win_wave, 'Tag', 'draw_box'), 'Value', false);
         draw_boxes();
-        rebuild_audio();
-        write_log(sprintf('Box added: %.2f to %.2f s, %.0f to %.0f Hz.', t12, f12));
+        rebuild_audio(findobj(win_wave, 'Tag', 'loop').Value);   % with the loop on, the box takes the play
+        write_log(sprintf('Filter box added: %.2f to %.2f s, %.0f to %.0f Hz.', t12, f12));
     end
 
     function on_clear_boxes(~, ~)
@@ -791,7 +951,7 @@ end
         delete(findobj(ax_spec, 'Tag', 'box_corner'));
         draw_boxes();
         rebuild_audio();
-        write_log('Boxes cleared.');
+        write_log('Filters cleared.');
     end
 
     function draw_boxes()
@@ -1334,7 +1494,8 @@ end
         if ~strcmp(key, wave_key)               % another signal: what belonged to the last one goes
             stop_player();
             player = [];
-            play_start = 1;
+            play_y = [];
+            play_start = 0;
             boxes = zeros(0, 4);
             box_corner = [];
             set(findobj(win_wave, 'Tag', 'draw_box'), 'Value', false);
@@ -1352,7 +1513,7 @@ end
         xlim(ax_wave, [0 t_end]);
         ylabel(ax_wave, 'Sound pressure (Pa)');
         title(ax_wave, 'Waveform');
-        xline(ax_wave, (play_start - 1) / fs, 'Color', [0.85 0.2 0.2], 'LineWidth', 1.5, ...
+        xline(ax_wave, (max(play_start, 1) - 1) / fs, 'Color', [0.85 0.2 0.2], 'LineWidth', 1.5, ...
             'Tag', 'playhead', 'PickableParts', 'none');
         draw_spectrogram();
     end
@@ -1395,7 +1556,7 @@ end
         ylabel(ax_spec, 'Frequency (Hz)');
         title(ax_spec, sprintf('Spectrogram (%s window, %d points, %.0f %% overlap)', ...
             dd.Items{strcmp(dd.ItemsData, dd.Value)}, info.n_fft, info.overlap), 'Interpreter', 'none');
-        xline(ax_spec, (play_start - 1) / wave_fs, 'Color', [1 1 1], 'LineWidth', 1.5, ...
+        xline(ax_spec, (max(play_start, 1) - 1) / wave_fs, 'Color', [1 1 1], 'LineWidth', 1.5, ...
             'Tag', 'playhead_spectrogram', 'PickableParts', 'none');
         draw_boxes();
     end
