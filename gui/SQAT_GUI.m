@@ -93,6 +93,7 @@ play_t0 = tic;                                        % start of the last play, 
 play_span = 0;
 play_y = [];                                          % the sound that plays (filter and weighting applied), until they change
 play_map = struct('sample', 1, 'n_first', 0, 'loop_from', 1, 'n_rep', 0);   % where the buffer of the play comes from
+play_peak = 0;                                        % peak of the buffer that went to the player
 box_loop = false;                                     % the play that runs is inside the filter box
 toggle_clock = tic;                                   % time of the last play or pause, to drop a key event that comes twice
 last_toggle = -1;
@@ -571,7 +572,7 @@ end
             uilabel(hw, 'Text', '');
             sw = uigridlayout(gw, [1 8]);
             sw.Padding = [0 0 0 0];
-            sw.ColumnWidth = {60, 150, 140, 80, 70, 80, 50, '1x'};
+            sw.ColumnWidth = {60, 150, 140, 80, 70, 80, 70, '1x'};
             uilabel(sw, 'Text', 'Window:', 'HorizontalAlignment', 'right');
             uidropdown(sw, 'Items', {'Hann', 'Hamming', 'Rectangular', 'Blackman-Harris'}, ...
                 'ItemsData', {'hann', 'hamming', 'rect', 'blackmanharris'}, 'Value', 'hann', ...
@@ -583,8 +584,8 @@ end
                 'RoundFractionalValues', 'on', 'ValueChangedFcn', @on_spec_option, ...
                 'Tooltip', 'The FFT has 2^degree points (6 to 16); use the arrows');
             uilabel(sw, 'Text', 'Overlap (%):', 'HorizontalAlignment', 'right');
-            uieditfield(sw, 'numeric', 'Value', 50, 'Tag', 'spec_overlap', ...
-                'ValueChangedFcn', @on_spec_option, 'Tooltip', 'Overlap of the frames (0 to 95)');
+            uispinner(sw, 'Value', 50, 'Limits', [0 95], 'Step', 5, 'Tag', 'spec_overlap', ...
+                'ValueChangedFcn', @on_spec_option, 'Tooltip', 'Overlap of the frames (0 to 95); use the arrows');
             uilabel(sw, 'Text', '');
             ax_wave = uiaxes(gw, 'Tag', 'waveform_axes', 'ButtonDownFcn', @on_wave_click);
             ax_spec = uiaxes(gw, 'Tag', 'spectrogram', 'ButtonDownFcn', @on_wave_click);
@@ -688,6 +689,10 @@ end
             end
             play_map = struct('sample', sample, 'n_first', numel(first), 'loop_from', loop_from, ...
                 'n_rep', numel(rep));
+            if isappdata(groot, 'sqat_gui_mute')       % the tests play in silence
+                buf = zeros(size(buf), 'like', buf);
+            end
+            play_peak = max(abs(buf), [], 'all');
             player = audioplayer(buf, wave_fs);
             player_fs = wave_fs;
             player.TimerPeriod = 0.05;
@@ -698,6 +703,7 @@ end
             play_t0 = tic;
             play_span = numel(buf) / wave_fs;
             btn_play.Text = 'Pause';
+            move_playhead(sample);            % now, not at the first tick: the device may start seconds late
             if ~quiet
                 write_log(sprintf('Playing %s, channel %d.', f.name, channel_of_active()));
             end
@@ -721,7 +727,8 @@ end
 
     function info = play_info()
         % the state of the play, for the tests
-        info = struct('playing', playing, 'box_loop', box_loop, 'sample', play_map.sample);
+        info = struct('playing', playing, 'box_loop', box_loop, 'sample', play_map.sample, ...
+            'buffer_peak', play_peak);
     end
 
     function [r1, r2] = play_region()
