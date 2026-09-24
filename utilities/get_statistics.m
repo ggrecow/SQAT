@@ -46,6 +46,8 @@ switch metric
         var_string = 'T';
     case 'Roughness_ECMA418_2'
         var_string = 'R';         
+    case 'FluctuationStrength_ECMA418_2'
+        var_string = 'FS';
 end
 
 string_vector = { 'max'; 'min'; 'mean'; 'std'; ...
