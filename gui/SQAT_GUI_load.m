@@ -1,17 +1,17 @@
 function [insig, fs, nch] = SQAT_GUI_load(wavfilename, dBFS, channel)
 % function [insig, fs, nch] = SQAT_GUI_load(wavfilename, dBFS, channel)
 %
-%   Reads one channel of a .wav file and calibrates it to pascals with the
+%   Reads one or more channels of a .wav file and calibrates them to pascals with the
 %   convention of the SQAT <_from_wavfile> functions: a full-scale amplitude
 %   of 1 corresponds to dBFS dB SPL, gain_factor = 10^((dBFS-94)/20).
 %
 % INPUT ARGUMENTS
 %   wavfilename : char or string, path of the .wav file
 %   dBFS : number, dB SPL of a full-scale amplitude (94 means 1 = 1 Pa)
-%   channel : integer, channel to read (1 for mono files)
+%   channel : integer or vector of integers, channels to read (1 for mono files)
 %
 % OUTPUTS
-%   insig : [Nx1] calibrated signal (Pa)
+%   insig : [Nx1] calibrated signal (Pa), or [Nxk] for k channels
 %   fs : sampling frequency (Hz)
 %   nch : number of channels in the file
 %
@@ -35,9 +35,9 @@ function [insig, fs, nch] = SQAT_GUI_load(wavfilename, dBFS, channel)
 
 [y, fs] = audioread(wavfilename);
 nch = size(y, 2);
-if ~isscalar(channel) || channel ~= round(channel) || channel < 1 || channel > nch
-    error('SQAT_GUI:channel', 'Channel %g requested, but %s has %d channel(s).', ...
-          channel, wavfilename, nch);
+if isempty(channel) || any(channel ~= round(channel)) || any(channel < 1) || any(channel > nch)
+    error('SQAT_GUI:channel', 'Channel %s requested, but %s has %d channel(s).', ...
+          mat2str(channel), wavfilename, nch);
 end
 gain_factor = 10^((dBFS-94)/20);
 insig = y(:, channel) * gain_factor;

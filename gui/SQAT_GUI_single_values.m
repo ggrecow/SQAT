@@ -1,12 +1,22 @@
-function T = SQAT_GUI_single_values(OUT)
-% function T = SQAT_GUI_single_values(OUT)
+function T = SQAT_GUI_single_values(OUT, channel, n_channels)
+% function T = SQAT_GUI_single_values(OUT, channel, n_channels)
 %
 %   Collects the single values of a SQAT output struct: its top-level real
 %   numeric scalar fields, in field order. Nested structs (results of
 %   sub-metrics), vectors, strings and the Bark step <dz> are left out.
 %
+%   An output of two channels (ECMA-418-2 with a binaural input) holds its
+%   statistics as a row with one value per channel, [left right] or
+%   [left right binaural], and the scalar values of the binaural result in
+%   fields that end in Bin. With <channel> and <n_channels> the values of
+%   one channel are returned, under the name of the quantity without the
+%   ending Bin.
+%
 % INPUT ARGUMENTS
 %   OUT : output struct of a SQAT metric
+%   channel : (optional) 1, 2 or 'Binaural': the channel to collect
+%   n_channels : (optional) number of channels of the input of the metric;
+%                with 1 or no value the scalars are taken as they are
 %
 % OUTPUTS
 %   T : table with the variables Quantity (cell array of char) and Value
@@ -29,15 +39,46 @@ function T = SQAT_GUI_single_values(OUT)
 % warranties of MERCHANTABILITY and FITNESS FOR A PARTICULAR PURPOSE.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+if nargin < 3 || isempty(n_channels)
+    n_channels = 1;
+end
+if nargin < 2 || isempty(channel)
+    channel = 1;
+end
+binaural = ischar(channel) || isstring(channel);
 names = fieldnames(OUT);
+labels = names;
 keep = false(size(names));
 values = nan(size(names));
 for i = 1:numel(names)
     v = OUT.(names{i});
-    if isnumeric(v) && isscalar(v) && isreal(v) && ~strcmp(names{i}, 'dz')
-        keep(i) = true;
-        values(i) = double(v);
+    if ~isnumeric(v) || ~isreal(v) || strcmp(names{i}, 'dz')
+        continue
+    end
+    if n_channels <= 1
+        if isscalar(v)
+            keep(i) = true;
+            values(i) = double(v);
+        end
+    elseif isscalar(v)
+        is_bin = endsWith(names{i}, 'Bin');
+        if is_bin == binaural                    % the value of the channel asked for
+            if is_bin
+                labels{i} = names{i}(1:end-3);
+            end
+            keep(i) = true;
+            values(i) = double(v);
+        end
+    elseif isrow(v) && ismember(numel(v), [2 3]) && ~ismember(names{i}, {'time', 'timeOut'})
+        c = channel;
+        if binaural
+            c = 3;
+        end
+        if c <= numel(v)
+            keep(i) = true;
+            values(i) = double(v(c));
+        end
     end
 end
-T = table(names(keep), values(keep), 'VariableNames', {'Quantity', 'Value'});
+T = table(labels(keep), values(keep), 'VariableNames', {'Quantity', 'Value'});
 end
