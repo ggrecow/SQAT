@@ -15,8 +15,11 @@ function varargout = SQAT_GUI(files, varargin)
 %   map of band against time, or the statistics): the signals are overlaid,
 %   and the maps sit side by side on one colour scale. For one signal the
 %   window also offers the figure that the SQAT function draws (with the
-%   heat colour scale of SQAT_GUI_colormap_heat) and all the analyses at once. Pin keeps a window
-%   with its signals, so that Open Graphs Window opens another one to compare
+%   heat colour scale of SQAT_GUI_colormap_heat) and all the analyses at once. Each signal of the list
+%   has a number, and the plots tag a curve as Signal #1, ch1. The channel All
+%   plots every channel of every signal, to compare a mono with a stereo signal.
+%   Pin keeps a window with its signals and its results, so that a later run
+%   leaves it as it is and Open Graphs Window opens another one to compare
 %   with. A player window shows the waveform and the spectrogram, and the
 %   results go to a spreadsheet.
 %
@@ -81,7 +84,8 @@ for k = 1:numel(metrics)
     end
     params.(metrics(k).id) = p;
 end
-loaded = struct('path', {}, 'name', {}, 'nch', {}, 'fs', {}, 'marked', {});
+loaded = struct('path', {}, 'name', {}, 'nch', {}, 'fs', {}, 'marked', {}, 'id', {});
+next_id = 1;                                          % the number of the next signal loaded
 active_idx = 0;                                       % the signal on screen in the player
 results = il_empty_results();
 store = il_empty_store();                             % analyses of each signal, metric and channel
@@ -150,7 +154,7 @@ left.Padding = [0 0 0 0];
 left.RowHeight = {20, 150, 20, '1x', 20, 44, 28, 32, 32, 32};
 uilabel(left, 'Text', 'SIGNALS (tick to use, x to remove)', 'FontWeight', 'bold');
 tbl_signals = uitable(left, 'Tag', 'signals_table', 'RowName', {}, 'ColumnName', {'', 'Signal', ''}, ...
-    'ColumnWidth', {28, 190, 28}, 'ColumnEditable', [true false false], ...
+    'ColumnWidth', {28, 170, 28}, 'ColumnEditable', [true false false], ...
     'CellEditCallback', @on_signal_marked, 'CellSelectionCallback', @on_signal_selected);
 uilabel(left, 'Text', 'METRICS TO ANALYZE (Ctrl or Cmd + click)', 'FontWeight', 'bold');
 lb_metrics = uilistbox(left, 'Items', {metrics.label}, 'ItemsData', {metrics.id}, ...
@@ -1045,7 +1049,8 @@ end
             end
             [~, base, ext] = fileparts(path);
             loaded(end+1) = struct('path', path, 'name', [base ext], ...
-                'nch', info.NumChannels, 'fs', info.SampleRate, 'marked', true); %#ok<AGROW>
+                'nch', info.NumChannels, 'fs', info.SampleRate, 'marked', true, 'id', next_id); %#ok<AGROW>
+            next_id = next_id + 1;
         end
         if isempty(loaded)
             return
@@ -1087,10 +1092,12 @@ end
         n = numel(loaded);
         if n == 0
             tbl_signals.Data = table(false(0, 1), strings(0, 1), strings(0, 1));
+            tbl_signals.RowName = {};
             lbl_files.Text = 'No files loaded';
         else
             tbl_signals.Data = table(logical([loaded.marked]'), string({loaded.name}'), ...
                 repmat("x", n, 1));
+            tbl_signals.RowName = arrayfun(@(k) sprintf('#%d', k), [loaded.id], 'UniformOutput', false);
             if n == 1
                 lbl_files.Text = '1 file loaded';
             else
@@ -1233,8 +1240,8 @@ end
         uilabel(bar, 'Text', 'Channel:', 'HorizontalAlignment', 'right');
         uidropdown(bar, 'Items', {'1'}, 'Tag', 'graph_channel', 'ValueChangedFcn', @on_graph_control);
         uibutton(bar, 'state', 'Text', 'Pin', 'Tag', 'graph_pin', 'ValueChangedFcn', @on_graph_pin, ...
-            'Tooltip', ['Keeps this window with its signals; Open Graphs Window then opens ' ...
-                        'another one to compare with']);
+            'Tooltip', ['Keeps this window with its signals and results, whatever runs next; ' ...
+                        'Open Graphs Window then opens another one to compare with']);
         uilabel(bar, 'Text', '');
         uipanel(g, 'BorderType', 'none', 'Tag', 'graph_body');
         apply_theme();
@@ -1247,10 +1254,12 @@ end
     function on_graph_pin(src, ~)
         w = ancestor(src, 'figure');
         if src.Value
-            src.UserData = {loaded([loaded.marked]).path};   % the signals of the window stay these
+            paths = {loaded([loaded.marked]).path};
+            % the signals and the results of the window stay these, whatever runs next
+            src.UserData = struct('paths', {paths}, 'store', store(ismember({store.file}, paths)));
             src.Text = 'Pinned';
         else
-            src.UserData = {};
+            src.UserData = [];
             src.Text = 'Pin';
         end
         draw_window(w);
@@ -1260,22 +1269,34 @@ end
         % the signals of a window: the ticked ones, or the ones it was pinned with
         pin = findobj(w, 'Tag', 'graph_pin');
         if pin.Value
-            paths = pin.UserData;
+            paths = pin.UserData.paths;
         else
             paths = {loaded([loaded.marked]).path};
+        end
+    end
+
+    function s = window_store(w)
+        % the results of a window: the last run, or the ones it was pinned with
+        pin = findobj(w, 'Tag', 'graph_pin');
+        if pin.Value
+            s = pin.UserData.store;
+        else
+            s = store;
         end
     end
 
     function draw_window(w)
         % refreshes the selectors of a window and draws what they ask for
         paths = window_paths(w);
+        ws = window_store(w);
+        pinned = findobj(w, 'Tag', 'graph_pin').Value;
         dm = findobj(w, 'Tag', 'graph_metric');
         dc = findobj(w, 'Tag', 'graph_channel');
         da = findobj(w, 'Tag', 'graph_analysis');
         body = findobj(w, 'Tag', 'graph_body');
         delete(body.Children);
-        in_window = ismember({store.file}, paths);
-        ids = {metrics(ismember({metrics.id}, {store(in_window).metric})).id};
+        in_window = ismember({ws.file}, paths);
+        ids = {metrics(ismember({metrics.id}, {ws(in_window).metric})).id};
         if isempty(ids)
             set([dm, dc, da], 'Items', {});
             uilabel(uigridlayout(body, [1 1]), 'HorizontalAlignment', 'center', ...
@@ -1296,25 +1317,33 @@ end
         last_metric = id;
         label = metrics(strcmp({metrics.id}, id)).label;
 
-        in_metric = in_window & strcmp({store.metric}, id);
-        chans = unique({store(in_metric).channel}, 'stable');
+        in_metric = in_window & strcmp({ws.metric}, id);
+        chans = unique({ws(in_metric).channel}, 'stable');
         chans = [sort(chans(~strcmp(chans, 'Binaural'))), chans(strcmp(chans, 'Binaural'))];
         wanted = dc.Value;
-        dc.Items = chans;
-        if il_is_member(wanted, chans)
+        if numel(chans) > 1
+            dc.Items = [chans, {'All'}];       % every channel of every signal, to compare them
+        else
+            dc.Items = chans;
+        end
+        if il_is_member(wanted, dc.Items)
             dc.Value = wanted;
         end
         chan = dc.Value;
 
         entries = il_empty_store();
         for k_p = 1:numel(paths)
-            k_e = find(in_metric & strcmp({store.file}, paths{k_p}) & strcmp({store.channel}, chan), 1);
+            if strcmp(chan, 'All')
+                k_e = find(in_metric & strcmp({ws.file}, paths{k_p}));
+            else
+                k_e = find(in_metric & strcmp({ws.file}, paths{k_p}) & strcmp({ws.channel}, chan), 1);
+            end
             if ~isempty(k_e)
-                entries(end+1) = store(k_e); %#ok<AGROW>
+                entries = [entries, ws(k_e)]; %#ok<AGROW>
             end
         end
-        n_missing = nnz(ismember(paths, {store(in_metric).file})) - numel(entries);
-        if n_missing > 0
+        n_missing = nnz(ismember(paths, {ws(in_metric).file})) - numel(entries);
+        if ~strcmp(chan, 'All') && n_missing > 0
             write_log(sprintf('%d signal(s) have no channel %s of %s and are left out.', n_missing, chan, label));
         end
 
@@ -1329,7 +1358,7 @@ end
 
         switch da.Value
             case 'sqat'
-                if ~show_sqat_figure(body, id, entries(1).file)
+                if ~show_sqat_figure(body, id, entries(1).file, ~pinned)
                     da.Value = data{3};      % the first analysis of the metric, or the statistics
                     if strcmp(da.Value, 'stats')
                         draw_stats(body, entries);
@@ -1350,12 +1379,19 @@ end
         end
     end
 
-    function ok = show_sqat_figure(parent, id, path)
-        % the figure that the SQAT function draws, copied into the window
+    function ok = show_sqat_figure(parent, id, path, may_run)
+        % the figure that the SQAT function draws, copied into the window; a pinned
+        % window does not run the metric again, since the settings may have changed
         f = loaded(strcmp({loaded.path}, path));
         label = metrics(strcmp({metrics.id}, id)).label;
         k_c = find(strcmp({cache.file}, f.path) & strcmp({cache.metric}, id), 1);
         if isempty(k_c) || ~all(isvalid(cache(k_c).figs))
+            if ~may_run
+                write_log(sprintf(['The SQAT figure of %s for %s is gone after a new run; ' ...
+                    'the window shows the first analysis.'], id, f.name));
+                ok = false;
+                return
+            end
             write_log(sprintf('Drawing the SQAT figure of %s for %s ...', id, f.name));
             lbl_status.Text = sprintf('Drawing the SQAT figure of %s for %s', label, f.name);
             drawnow limitrate
@@ -1406,7 +1442,11 @@ end
     function draw_analysis(parent, entries, aid, chan)
         % one analysis of the signals: their lines on one axes, or their maps side by side
         A = arrayfun(@(e) e.analyses(strcmp({e.analyses.id}, aid)), entries);
-        names = {entries.name};
+        if numel(entries) > 1
+            names = arrayfun(@il_tag, entries, 'UniformOutput', false);   % Signal #1, ch1
+        else
+            names = {entries.name};
+        end
         if strcmp(A(1).kind, 'map')
             n = numel(A);
             n_cols = min(n, 2);
@@ -1431,7 +1471,11 @@ end
                 cb.Label.String = A(k).zlabel;
                 xlabel(ax, A(k).xlabel);
                 ylabel(ax, A(k).ylabel);
-                title(ax, sprintf('%s: %s, channel %s', A(k).label, names{k}, chan), 'Interpreter', 'none');
+                if numel(entries) > 1
+                    title(ax, sprintf('%s: %s', A(k).label, names{k}), 'Interpreter', 'none');
+                else
+                    title(ax, sprintf('%s: %s, channel %s', A(k).label, names{k}, chan), 'Interpreter', 'none');
+                end
             end
             return
         end
@@ -1455,8 +1499,10 @@ end
         ylabel(ax, A(1).ylabel);
         if numel(A) == 1
             what = names{1};
+        elseif numel(unique({entries.file})) == 1
+            what = entries(1).name;               % the channels of one signal
         else
-            what = sprintf('%d signals', numel(A));
+            what = sprintf('%d signals', numel(unique({entries.file})));
         end
         title(ax, sprintf('%s: %s, channel %s', A(1).label, what, chan), 'Interpreter', 'none');
         if numel(A) > 1
@@ -1466,7 +1512,11 @@ end
 
     function draw_stats(parent, entries)
         % the single values of the signals, one column each
-        names = matlab.lang.makeUniqueStrings({entries.name});
+        if numel(entries) > 1
+            names = arrayfun(@il_tag, entries, 'UniformOutput', false);   % Signal #1, ch1
+        else
+            names = {entries.name};
+        end
         q = {};
         for k = 1:numel(entries)
             q = union(q, entries(k).values.Quantity, 'stable');
@@ -1810,14 +1860,24 @@ T = table('Size', [0 5], 'VariableTypes', {'cell', 'cell', 'cell', 'cell', 'doub
 end
 
 function S = il_empty_store()
-S = struct('file', {}, 'name', {}, 'metric', {}, 'channel', {}, 'analyses', {}, 'values', {});
+S = struct('file', {}, 'name', {}, 'id', {}, 'metric', {}, 'channel', {}, 'analyses', {}, 'values', {});
 end
 
 function en = il_entry_of(f, e, OUT, label, channel, n_channels)
 % the analyses and the single values that OUT holds for one channel
-en = struct('file', f.path, 'name', f.name, 'metric', e.id, 'channel', label, ...
+en = struct('file', f.path, 'name', f.name, 'id', f.id, 'metric', e.id, 'channel', label, ...
     'analyses', SQAT_GUI_extract(OUT, e.id, channel), ...
     'values', SQAT_GUI_single_values(OUT, channel, n_channels));
+end
+
+function t = il_tag(en)
+% the short name of a signal and channel in the plots: Signal #1, ch1
+if strcmp(en.channel, 'Binaural')
+    c = 'binaural';
+else
+    c = ['ch' en.channel];
+end
+t = sprintf('Signal #%d, %s', en.id, c);
 end
 
 function [items, data] = il_analysis_items(entries)
