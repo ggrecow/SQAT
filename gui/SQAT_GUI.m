@@ -574,9 +574,9 @@ end
                 'ValueChangedFcn', @on_weighting_changed, ...
                 'Tooltip', 'Frequency weighting of the sound and of the spectrogram (IEC 61672-1)');
             uilabel(hw, 'Text', '');
-            sw = uigridlayout(gw, [1 10]);
+            sw = uigridlayout(gw, [1 11]);
             sw.Padding = [0 0 0 0];
-            sw.ColumnWidth = {60, 150, 140, 80, 70, 80, 70, 110, 60, '1x'};
+            sw.ColumnWidth = {60, 150, 140, 80, 70, 80, 70, 110, 60, 100, '1x'};
             uilabel(sw, 'Text', 'Window:', 'HorizontalAlignment', 'right');
             uidropdown(sw, 'Items', {'Hann', 'Hamming', 'Rectangular', 'Blackman-Harris'}, ...
                 'ItemsData', {'hann', 'hamming', 'rect', 'blackmanharris'}, 'Value', 'hann', ...
@@ -593,8 +593,11 @@ end
             uilabel(sw, 'Text', 'Enhanced STFT:', 'HorizontalAlignment', 'right');
             uiswitch(sw, 'slider', 'Items', {'Off', 'On'}, 'Value', 'Off', 'Tag', 'spec_enhanced', ...
                 'ValueChangedFcn', @on_spec_enhanced, ...
-                'Tooltip', ['Enhanced STFT (consensus): five Gaussian windows of 16 to 256 ms, reassigned and combined, ' ...
+                'Tooltip', ['Enhanced STFT (consensus): nine windows of 8 to 512 ms, reassigned and combined, ' ...
                             'so that no window has to be chosen. It replaces the window, the FFT degree and the overlap.']);
+            uidropdown(sw, 'Items', {'Readable', 'Sharp'}, 'ItemsData', {'readable', 'sharp'}, 'Value', 'readable', ...
+                'Tag', 'spec_enhanced_mode', 'Enable', 'off', 'ValueChangedFcn', @on_spec_enhanced, ...
+                'Tooltip', 'Readable: smoothing of 4 ms and 1.45 % of the frequency, continuous lines. Sharp: 1 ms and 1 Hz, the thinnest lines.');
             uilabel(sw, 'Text', '');
             ax_wave = uiaxes(gw, 'Tag', 'waveform_axes', 'ButtonDownFcn', @on_wave_click);
             ax_spec = uiaxes(gw, 'Tag', 'spectrogram', 'ButtonDownFcn', @on_wave_click);
@@ -996,6 +999,7 @@ end
         set(findobj(win_wave, 'Tag', 'import_window'), 'Enable', state);
         set(findobj(win_wave, 'Tag', 'spec_degree'), 'Enable', state);
         set(findobj(win_wave, 'Tag', 'spec_overlap'), 'Enable', state);
+        set(findobj(win_wave, 'Tag', 'spec_enhanced_mode'), 'Enable', matlab.lang.OnOffSwitchState(on));
         draw_spectrogram();
     end
 
@@ -1605,7 +1609,8 @@ end
         end
         enhanced = strcmp(findobj(win_wave, 'Tag', 'spec_enhanced').Value, 'On');
         if enhanced
-            [t_spec, f_spec, L, info] = SQAT_GUI_enhanced_stft(wave_x, wave_fs);
+            mode = findobj(win_wave, 'Tag', 'spec_enhanced_mode').Value;
+            [t_spec, f_spec, L, info] = SQAT_GUI_enhanced_stft(wave_x, wave_fs, mode);
         else
             [t_spec, f_spec, L, info] = SQAT_GUI_spectrogram(wave_x, wave_fs, win, degree, overlap);
             if info.limited
@@ -1637,7 +1642,7 @@ end
         xlabel(ax_spec, 'Time (s)');
         ylabel(ax_spec, 'Frequency (Hz)');
         if enhanced
-            title(ax_spec, 'Enhanced STFT (consensus of 16 to 256 ms windows, relative colour scale)', 'Interpreter', 'none');
+            title(ax_spec, sprintf('Enhanced STFT (consensus of 8 to 512 ms windows, %s, relative colour scale)', mode), 'Interpreter', 'none');
         else
             title(ax_spec, sprintf('Spectrogram (%s window, %d points, %.0f %% overlap)', ...
                 dd.Items{strcmp(dd.ItemsData, dd.Value)}, info.n_fft, info.overlap), 'Interpreter', 'none');

@@ -1,27 +1,32 @@
-function [t, f, L, info] = SQAT_GUI_enhanced_stft(x, fs, n_frames, f_min, bins_per_octave)
-% function [t, f, L, info] = SQAT_GUI_enhanced_stft(x, fs, n_frames, f_min, bins_per_octave)
+function [t, f, L, info] = SQAT_GUI_enhanced_stft(x, fs, smoothing, n_frames, f_min, bins_per_octave)
+% function [t, f, L, info] = SQAT_GUI_enhanced_stft(x, fs, smoothing, n_frames, f_min, bins_per_octave)
 %
-%   Enhanced spectrogram with no window to choose: five Gaussian windows of
-%   16, 32, 64, 128 and 256 ms are reassigned (Auger and Flandrin, 1995),
-%   each reassigned map is smoothed with a Gaussian (2 cells in time and in
-%   frequency) and normalised, and the maps are combined by geometric mean,
-%   so that only the energy that all the windows place at the same point of
-%   the time-frequency plane remains (the idea of Cheung and Lim, 1991,
-%   applied to reassigned maps). Only base MATLAB is used.
+%   Enhanced spectrogram with no window to choose: nine Blackman-Harris
+%   windows from 8 to 512 ms (geometric spacing) are reassigned (Auger and
+%   Flandrin, 1995), each reassigned map is smoothed in time over half its
+%   own frame step and then with the chosen smoothing, normalised, and
+%   the maps are combined by geometric mean, so that only the energy that
+%   all the windows place at the same point of the time-frequency plane
+%   remains (the idea of Cheung and Lim, 1991, applied to reassigned maps).
+%   Only base MATLAB is used.
 %
 % INPUT ARGUMENTS
 %   x : signal (Pa)
 %   fs : sampling frequency (Hz)
-%   n_frames : largest number of time columns of the output (default 6000; the step is 2 ms or more)
+%   smoothing : 'readable' (default): Gaussian smoothing of 4 ms in time
+%               and 1.45 % of the frequency, for continuous lines;
+%               'sharp': 1 ms and 1 Hz, for the thinnest lines
+%   n_frames : largest number of time columns of the output (default 2000,
+%              about the width of the screen; the time step is 1 ms or more)
 %   f_min : lowest frequency of the output (Hz, default 20)
-%   bins_per_octave : frequency resolution of the output grid (default 96)
+%   bins_per_octave : frequency resolution of the output grid (default 192)
 %
 % OUTPUTS
 %   t : [1xN] time of each column (s)
 %   f : [Mx1] frequencies (Hz), on a logarithmic grid
 %   L : [MxN] level (dB); the maximum is aligned with the maximum of the
 %       level of the 64 ms window (dB SPL), so the colour scale is relative
-%   info : struct with the windows (ms) and the time step (s)
+%   info : struct with the windows (ms), the time step (s) and the smoothing
 %
 % Author: Sergio Aguirre and Gil Felix Greco, September 2026
 %
@@ -41,25 +46,44 @@ function [t, f, L, info] = SQAT_GUI_enhanced_stft(x, fs, n_frames, f_min, bins_p
 % warranties of MERCHANTABILITY and FITNESS FOR A PARTICULAR PURPOSE.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-if nargin < 3 || isempty(n_frames), n_frames = 6000; end
-if nargin < 4 || isempty(f_min), f_min = 20; end
-if nargin < 5 || isempty(bins_per_octave), bins_per_octave = 96; end
+if nargin < 3 || isempty(smoothing), smoothing = 'readable'; end
+if nargin < 4 || isempty(n_frames), n_frames = 2000; end
+if nargin < 5 || isempty(f_min), f_min = 20; end
+if nargin < 6 || isempty(bins_per_octave), bins_per_octave = 192; end
 x = x(:);
 n_x = numel(x);
-durations = [16 32 64 128 256] * 1e-3;
+durations = 8e-3 * 64 .^ ((0:8) / 8);                 % nine windows, 8 to 512 ms
 Ns = 2 * round(durations * fs / 2);                    % even window lengths (samples)
-hop_out = max([1, round(0.002 * fs), ceil(n_x / n_frames)]);   % output time step (samples): 2 ms or more
+hop_out = max([1, round(0.001 * fs), ceil(n_x / n_frames)]);   % output time step (samples): 1 ms or more
 M = numel(0:hop_out:n_x-1);
 n_oct = log2((fs/2) / f_min);
 F = ceil(n_oct * bins_per_octave) + 1;
-sigma = 2;                                             % smoothing (cells)
-k = ceil(3 * sigma);
-b = exp(-(-k:k).^2 / (2 * sigma^2));
-b = b / sum(b);
+f = f_min * 2 .^ ((0:F-1)' / bins_per_octave);
+cell_f = f * (2^(1/bins_per_octave) - 1);              % width of each frequency cell (Hz)
+switch smoothing
+    case 'readable'
+        sig_t = 0.004 * fs / hop_out;                  % 4 ms, in cells
+        sig_f = 2 * (2^(1/96) - 1) * f ./ cell_f;      % 1.45 % of the frequency, in cells of each row
+    case 'sharp'
+        sig_t = 0.001 * fs / hop_out;                  % 1 ms
+        sig_f = 1 ./ cell_f;                           % 1 Hz
+    otherwise
+        error('SQAT_GUI_enhanced_stft:smoothing', 'smoothing must be ''readable'' or ''sharp''');
+end
+sig_t = max(sig_t, 0.3);
+sig_f = max(sig_f, 0.3);
+kt = ceil(3 * sig_t);
+gt = exp(-(-kt:kt)' .^ 2 / (2 * sig_t^2));
+gt = gt / sum(gt);
 log_sum = 0;
 for w_i = 1:numel(Ns)
     R = il_reassigned(x, fs, Ns(w_i), hop_out, M, F, f_min, bins_per_octave);
-    R = conv2(b(:), b(:)', R, 'same');
+    % each window steps by N/8: its map is smoothed in time over half that step, so that the long windows leave no gaps
+    sig_w = max(0.5 * max(1, round(Ns(w_i) / 8)) / hop_out, 0.3);
+    kw = ceil(3 * sig_w);
+    gw = exp(-(-kw:kw)' .^ 2 / (2 * sig_w^2));
+    R = conv2(gw / sum(gw), 1, R, 'same');
+    R = il_smooth(conv2(gt, 1, R, 'same'), sig_f);
     R = R / sum(R(:));
     log_sum = log_sum + log(R + 1e-6 * max(R(:)));
 end
@@ -69,23 +93,44 @@ C = C / sum(C(:));
 [~, ~, L_ref] = SQAT_GUI_spectrogram(x, fs, 'hann', max(6, min(16, round(log2(0.064 * fs)))), 50);
 L = (10*log10(C / max(C(:)) + 1e-12))' + max(L_ref, [], 'all');
 t = (0:M-1) * hop_out / fs;
-f = f_min * 2 .^ ((0:F-1)' / bins_per_octave);
-info = struct('windows_ms', 1e3 * Ns / fs, 'hop', hop_out / fs);
+info = struct('windows_ms', 1e3 * Ns / fs, 'hop', hop_out / fs, 'smoothing', smoothing);
+end
+
+function R = il_smooth(R, sig_f)
+% Gaussian smoothing along the frequency (columns) with a width that changes with the row of the output grid
+lev = round(log(sig_f) / log(1.25));                   % geometric levels of the width, one kernel per level
+out = R;
+n_f = size(R, 2);
+for l = unique(lev)'
+    cols = find(lev == l);
+    s = 1.25^l;
+    k = ceil(3 * s);
+    g = exp(-(-k:k).^2 / (2 * s^2));
+    g = g / sum(g);
+    c1 = max(1, cols(1) - k);
+    c2 = min(n_f, cols(end) + k);
+    sm = conv2(1, g, R(:, c1:c2), 'same');
+    out(:, cols) = sm(:, cols - c1 + 1);
+end
+R = out;
 end
 
 function R = il_reassigned(x, fs, N, hop_out, M, F, f_min, bpo)
-% reassigned spectrogram of one Gaussian window (sigma = N/8 samples, unit energy) accumulated on the output grid
+% reassigned spectrogram of one Blackman-Harris window (N samples, unit energy) accumulated on the output grid
 n_x = numel(x);
-hop = max(1, round(N/16));
+hop = max(1, round(N/8));
 pad = N/2;
 xp = [zeros(pad, 1); x; zeros(pad + N, 1)];
 n = (-N/2:N/2-1)';
-s = N/8;
-w = exp(-n.^2 / (2*s^2));
-w = w / norm(w);
-wt = n .* w;
-wd = -(n / s^2) .* w;
 h = N/2;
+kk = n + h;
+a = [0.35875 0.48829 0.14128 0.01168];                 % 4-term Blackman-Harris
+w = a(1) - a(2)*cos(2*pi*kk/N) + a(3)*cos(4*pi*kk/N) - a(4)*cos(6*pi*kk/N);
+wd = a(2)*(2*pi/N)*sin(2*pi*kk/N) - a(3)*(4*pi/N)*sin(4*pi*kk/N) + a(4)*(6*pi/N)*sin(6*pi*kk/N);
+c = 1 / norm(w);
+w = w * c;
+wd = wd * c;
+wt = n .* w;
 Fk = N/2 + 1;
 fbin = (0:Fk-1)' * fs / N;
 starts = 0:hop:n_x-1;
