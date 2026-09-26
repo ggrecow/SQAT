@@ -3,8 +3,9 @@ function [t, f, L, info] = SQAT_GUI_enhanced_stft(x, fs, smoothing, n_frames, f_
 %
 %   Enhanced spectrogram with no window to choose: nine Blackman-Harris
 %   windows from 8 to 512 ms (geometric spacing) are reassigned (Auger and
-%   Flandrin, 1995), each reassigned map is smoothed in time over half its
-%   own frame step and then with the chosen smoothing, normalised, and
+%   Flandrin, 1995), the energy of each frame is held over the frame step
+%   of its window, each map is smoothed with the chosen smoothing and
+%   normalised, and
 %   the maps are combined by geometric mean, so that only the energy that
 %   all the windows place at the same point of the time-frequency plane
 %   remains (the idea of Cheung and Lim, 1991, applied to reassigned maps).
@@ -78,11 +79,11 @@ gt = gt / sum(gt);
 log_sum = 0;
 for w_i = 1:numel(Ns)
     R = il_reassigned(x, fs, Ns(w_i), hop_out, M, F, f_min, bins_per_octave);
-    % each window steps by N/8: its map is smoothed in time over half that step, so that the long windows leave no gaps
-    sig_w = max(0.5 * max(1, round(Ns(w_i) / 8)) / hop_out, 0.3);
-    kw = ceil(3 * sig_w);
-    gw = exp(-(-kw:kw)' .^ 2 / (2 * sig_w^2));
-    R = conv2(gw / sum(gw), 1, R, 'same');
+    % each window steps by N/8: the energy of a frame is held over its own step, so that the long windows leave no gaps
+    n_hold = 2 * floor(max(1, round(Ns(w_i) / 8)) / hop_out / 2) + 1;
+    if n_hold > 1
+        R = conv2(ones(n_hold, 1) / n_hold, 1, R, 'same');
+    end
     R = il_smooth(conv2(gt, 1, R, 'same'), sig_f);
     R = R / sum(R(:));
     log_sum = log_sum + log(R + 1e-6 * max(R(:)));
