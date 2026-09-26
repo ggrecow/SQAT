@@ -109,6 +109,9 @@ boxes = zeros(0, 4);                                  % [t1 t2 f1 f2] removed fr
 box_corner = [];                                      % first corner of a box being drawn
 drag_active = false;                                  % the mouse is being followed to size a box
 spec_custom = [];                                     % window read from a file
+spec_view = [];                                       % full-file enhanced map, kept to redraw a zoomed excerpt
+spec_busy = false;                                    % the spectrogram limits are being set by the code
+spec_timer = [];                                      % waits for the zoom to settle before recomputing
 theme_style = 'dark';
 graph_figs = gobjects(0);                              % the graphs windows
 last_metric = '';                                     % the metric the last graphs window showed
@@ -601,6 +604,8 @@ end
             uilabel(sw, 'Text', '');
             ax_wave = uiaxes(gw, 'Tag', 'waveform_axes', 'ButtonDownFcn', @on_wave_click);
             ax_spec = uiaxes(gw, 'Tag', 'spectrogram', 'ButtonDownFcn', @on_wave_click);
+            ax_spec.XAxis.LimitsChangedFcn = @on_spec_limits;
+            setappdata(win_wave, 'sqat_spec_zoom', @apply_spec_zoom);   % the recomputation, for the tests
             setappdata(win_wave, 'sqat_audio', @process_audio);   % what plays, for the tests
             setappdata(win_wave, 'sqat_play', @play_info);
             apply_theme();
@@ -1032,6 +1037,7 @@ end
 
     function on_close_waveform(~, ~)
         on_stop();
+        stop_spec_timer();
         delete(win_wave);
     end
 
@@ -1040,6 +1046,7 @@ end
             stop(player);
         end
         clear_cache();
+        stop_spec_timer();
         if il_is_open(win_wave), delete(win_wave); end
         delete(open_graph_windows());
         delete(fig);
@@ -1620,6 +1627,13 @@ end
         end
         keep = f_spec >= 20;
         L = L(keep, :) + SQAT_GUI_weight_curve(f_spec(keep), wave_fs, weighting);
+        if enhanced
+            spec_view = struct('t', t_spec, 'f', f_spec(keep), 'L', L, 'hop', info.hop, ...
+                'mode', mode, 'weighting', weighting, 'zoomed', false);
+        else
+            spec_view = [];
+        end
+        spec_busy = true;
         cla(ax_spec);
         surface(ax_spec, t_spec, f_spec(keep), zeros(nnz(keep), numel(t_spec)), L, ...
             'EdgeColor', 'none', 'PickableParts', 'none');
@@ -1650,6 +1664,59 @@ end
         xline(ax_spec, (max(play_start, 1) - 1) / wave_fs, 'Color', [1 1 1], 'LineWidth', 1.5, ...
             'Tag', 'playhead_spectrogram', 'PickableParts', 'none');
         draw_boxes();
+        spec_busy = false;
+    end
+
+    function on_spec_limits(~, ~)
+        % a zoom or a pan of the spectrogram: the enhanced map of the excerpt is
+        % recomputed once the limits settle, since the full map has at most
+        % 2000 columns and a zoom only stretches them
+        if spec_busy || isempty(spec_view)
+            return
+        end
+        stop_spec_timer();
+        spec_timer = timer('StartDelay', 0.3, 'ExecutionMode', 'singleShot', ...
+            'TimerFcn', @(~, ~) apply_spec_zoom(), 'ObjectVisibility', 'off');
+        start(spec_timer);
+    end
+
+    function stop_spec_timer()
+        if ~isempty(spec_timer) && isvalid(spec_timer)
+            stop(spec_timer);
+            delete(spec_timer);
+        end
+        spec_timer = [];
+    end
+
+    function apply_spec_zoom()
+        if isempty(spec_view) || ~il_is_open(win_wave)
+            return
+        end
+        srf = findobj(ax_spec, 'Type', 'surface');
+        if isempty(srf)
+            return
+        end
+        lim = ax_spec.XLim;
+        dur = numel(wave_x) / wave_fs;
+        span = diff(lim);
+        if span >= 0.95 * dur || span / 2000 >= 0.999 * spec_view.hop
+            if spec_view.zoomed                                 % back to the full map
+                set(srf(1), 'XData', spec_view.t, 'YData', spec_view.f, ...
+                    'ZData', zeros(numel(spec_view.f), numel(spec_view.t)), 'CData', spec_view.L);
+                spec_view.zoomed = false;
+            end
+            return
+        end
+        pad = 0.3;                                             % the longest window reaches 256 ms around each instant
+        i1 = max(1, floor((lim(1) - pad) * wave_fs) + 1);
+        i2 = min(numel(wave_x), ceil((lim(2) + pad) * wave_fs));
+        n_frames = ceil((i2 - i1 + 1) / max(1, round(max(0.001, span / 2000) * wave_fs)));
+        [t_z, f_z, L_z] = SQAT_GUI_enhanced_stft(wave_x(i1:i2), wave_fs, spec_view.mode, n_frames);
+        keep = f_z >= 20;
+        L_z = L_z(keep, :) + SQAT_GUI_weight_curve(f_z(keep), wave_fs, spec_view.weighting);
+        t_z = t_z + (i1 - 1) / wave_fs;
+        set(srf(1), 'XData', t_z, 'YData', f_z(keep), 'ZData', zeros(nnz(keep), numel(t_z)), 'CData', L_z);
+        spec_view.zoomed = true;
     end
 
     function move_playhead(sample)
