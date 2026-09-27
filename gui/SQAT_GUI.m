@@ -15,7 +15,7 @@ function varargout = SQAT_GUI(files, varargin)
 %   map of band against time, or the statistics): the signals are overlaid,
 %   and the maps sit side by side on one colour scale. For one signal the
 %   window also offers the figure that the SQAT function draws (with the
-%   heat colour scale of SQAT_GUI_colormap_heat) and all the analyses at once. Each signal of the list
+%   inferno colour scale of the toolbox, cmap_inferno.txt) and all the analyses at once. Each signal of the list
 %   has a number, and the plots tag a curve as Signal #1, ch1. The channel All
 %   plots every channel of every signal, to compare a mono with a stereo signal.
 %   Pin keeps a window with its signals and its results, so that a later run
@@ -119,7 +119,7 @@ run_settings = struct('signals', loaded, 'analyses', analyses);      % of the la
 stop_requested = false;                                             % the Stop button or the dialog
 dlg = [];                                                           % progress dialog of a run
 cache = struct('file', {}, 'metric', {}, 'figs', {});               % SQAT figures, hidden
-cmap = SQAT_GUI_colormap_heat(256);
+cmap = load('cmap_inferno.txt');                                    % the colour scale of the toolbox (utilities/ECMA418_2)
 
 %% Main window
 fig = uifigure('Name', 'SQAT: Sound Quality Analysis Toolbox', ...
@@ -1746,7 +1746,7 @@ end
         ax_spec.Layer = 'top';
         xlim(ax_spec, [0 numel(wave_x) / wave_fs]);
         ylim(ax_spec, [20 wave_fs/2]);
-        colormap(ax_spec, SQAT_GUI_colormap_heat(256));
+        colormap(ax_spec, cmap);
         if enhanced
             clim(ax_spec, max(L, [], 'all') + [-45 0]);
         else
@@ -1903,7 +1903,7 @@ end
     end
 
     function keep_figures(new_figs, f, id, save_figs, split, folder, suffix, cache_it)
-        % heat colour scale, optional saving, then kept hidden for the graphs window
+        % inferno colour scale, optional saving, then kept hidden for the graphs window
         if nargin < 7
             suffix = '';
         end
