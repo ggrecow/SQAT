@@ -160,8 +160,8 @@ ah.ColumnWidth = {'1x', 130};
 uilabel(ah, 'Text', 'ANALYSES (gear: parameters)', 'FontWeight', 'bold');
 uibutton(ah, 'Text', '+ Add', 'Tag', 'add_analysis', 'ButtonPushedFcn', @on_add_analysis, ...
     'Tooltip', 'Adds a copy of the last analysis, to compare the same metric with other parameters');
-analysis_list = uigridlayout(left, [1 4], 'Scrollable', 'on', 'Tag', 'analysis_list');
-analysis_list.ColumnWidth = {30, '1x', 36, 28};
+analysis_list = uigridlayout(left, [1 5], 'Scrollable', 'on', 'Tag', 'analysis_list');
+analysis_list.ColumnWidth = {30, 175, '1x', 36, 28};
 analysis_list.Padding = [0 0 0 0];
 
 right = uigridlayout(main, [3 1]);
@@ -289,18 +289,18 @@ end
     %% The list of analyses
 
     function refresh_analyses()
-        % one row per analysis: its number, the metric, the gear of its parameters and the x
+        % one row per analysis: its number, the metric, its parameters in short, the gear and the x
         delete(analysis_list.Children);
         close_params();
         n = numel(analyses);
         analysis_list.RowHeight = repmat({26}, 1, max(n, 1));
         for k = 1:n
             a = analyses(k);
-            [~, suffix] = il_split_key(a.key);
-            uilabel(analysis_list, 'Text', suffix, 'Tag', sprintf('analysis_number_%d', k));
+            uilabel(analysis_list, 'Text', sprintf('#%d', k), 'Tag', sprintf('analysis_number_%d', k));
             uidropdown(analysis_list, 'Items', {metrics.label}, 'ItemsData', {metrics.id}, ...
                 'Value', a.id, 'Tag', sprintf('analysis_metric_%d', k), ...
                 'ValueChangedFcn', @(src, ~) on_analysis_metric(k, src.Value));
+            uilabel(analysis_list, 'Text', il_param_summary(metrics, a), 'Tag', sprintf('analysis_summary_%d', k));
             uibutton(analysis_list, 'Text', char(9881), 'FontSize', 16, 'Tag', sprintf('analysis_params_%d', k), ...
                 'Tooltip', 'Parameters of this analysis', 'ButtonPushedFcn', @(~, ~) on_analysis_params(k));
             uibutton(analysis_list, 'Text', 'x', 'Tag', sprintf('analysis_remove_%d', k), ...
@@ -362,7 +362,7 @@ end
         a = analyses(k);
         e = metrics(strcmp({metrics.id}, a.id));
         n = numel(e.params);
-        w = uifigure('Name', ['Parameters: ' il_analysis_label(metrics, a.key)], ...
+        w = uifigure('Name', sprintf('Parameters: #%d %s', k, e.label), ...
             'Position', [fig.Position(1) + 440, fig.Position(2) + 300, 420, 60 + 34 * max(n, 1)], ...
             'Visible', fig.Visible, 'Tag', 'SQAT_GUI_params', 'CreateFcn', '');
         g = uigridlayout(w, [max(n, 1) + 1, 2]);
@@ -395,6 +395,8 @@ end
         k = find(strcmp({analyses.key}, key), 1);
         if ~isempty(k)
             analyses(k).p.(name) = value;
+            set(findobj(analysis_list, 'Tag', sprintf('analysis_summary_%d', k)), ...
+                'Text', il_param_summary(metrics, analyses(k)));
         end
     end
 
@@ -404,10 +406,12 @@ end
 
     function e = run_entry(key)
         % the metric of an analysis of the last run, with its key, its label and its parameters
-        a = run_settings.analyses(strcmp({run_settings.analyses.key}, key));
+        k = find(strcmp({run_settings.analyses.key}, key), 1);
+        a = run_settings.analyses(k);
         e = metrics(strcmp({metrics.id}, a.id));
         e.key = a.key;
-        e.label = il_analysis_label(metrics, a.key);
+        e.number = sprintf('#%d', k);             % the row of the analysis in the list
+        e.label = sprintf('#%d %s', k, e.label);
         e.p = a.p;
     end
 
@@ -610,9 +614,9 @@ end
                     en = entries(k_e);
                     new_store(end+1) = en; %#ok<AGROW>
                     n = height(en.values);
-                    new_results = [new_results; [table(repmat({f.name}, n, 1), ...
-                        repmat({en.metric}, n, 1), repmat({en.channel}, n, 1), ...
-                        'VariableNames', {'File', 'Metric', 'Channel'}), en.values]]; %#ok<AGROW>
+                    new_results = [new_results; [table(repmat({f.name}, n, 1), repmat({en.number}, n, 1), ...
+                        repmat({il_split_key(en.metric)}, n, 1), repmat({en.channel}, n, 1), ...
+                        'VariableNames', {'File', 'Analysis', 'Metric', 'Channel'}), en.values]]; %#ok<AGROW>
                 end
             end
             if stop_requested
@@ -1423,13 +1427,13 @@ end
         if ~il_is_member(wanted, ids)
             wanted = last_metric;
         end
-        set(dm, 'Items', cellfun(@(k) il_analysis_label(metrics, k), ids, 'UniformOutput', false), 'ItemsData', ids);
+        set(dm, 'Items', cellfun(@(k) il_key_label(ws, k), ids, 'UniformOutput', false), 'ItemsData', ids);
         if il_is_member(wanted, ids)
             dm.Value = wanted;
         end
         id = dm.Value;
         last_metric = id;
-        label = il_analysis_label(metrics, id);
+        label = il_key_label(ws, id);
 
         in_metric = in_window & strcmp({ws.metric}, id);
         chans = unique({ws(in_metric).channel}, 'stable');
@@ -1497,7 +1501,7 @@ end
         % the figure that the SQAT function draws, copied into the window; a pinned
         % window does not run the metric again, since the settings may have changed
         f = loaded(strcmp({loaded.path}, path));
-        label = il_analysis_label(metrics, id);
+        label = il_key_label(store, id);
         k_c = find(strcmp({cache.file}, f.path) & strcmp({cache.metric}, id), 1);
         if isempty(k_c) || ~all(isvalid(cache(k_c).figs))
             if ~may_run
@@ -2081,12 +2085,54 @@ else
 end
 end
 
-function label = il_analysis_label(metrics, key)
-% the name of an analysis: the label of its metric, and #2 for the second one
-[id, suffix] = il_split_key(key);
-label = metrics(strcmp({metrics.id}, id)).label;
-if ~isempty(suffix)
-    label = [label ' ' suffix];
+function label = il_key_label(S, key)
+% the name of an analysis (#2 Loudness (ISO 532-1)), as the results of the run carry it
+k = find(strcmp({S.metric}, key), 1);
+label = key;
+if ~isempty(k)
+    label = S(k).label;
+end
+end
+
+function txt = il_param_summary(metrics, a)
+% the parameters of analysis a in short, e.g. FF tv t 0.5s
+e = metrics(strcmp({metrics.id}, a.id));
+parts = {};
+for q = e.params
+    v = a.p.(q.name);
+    if strcmp(q.type, 'choice')
+        k = find(cellfun(@(o) isequal(o, v), q.options(:, 2)), 1);
+        parts{end+1} = il_short(q.options{k, 1}); %#ok<AGROW>
+    else
+        unit = regexp(q.label, '\((\w+)\)', 'tokens', 'once');   % Time skip (s) -> s
+        if isempty(unit)
+            unit = {''};
+        end
+        prefix = struct('time_skip', 't', 'dt', 'dt', 'threshold', 'thr');
+        if isfield(prefix, q.name)
+            name = prefix.(q.name);
+        else
+            name = q.name;
+        end
+        u = unit{1};
+        if ~strcmp(u, 's')
+            u = [' ' u];
+        end
+        parts{end+1} = sprintf('%s %g%s', name, v, u); %#ok<AGROW>
+    end
+end
+txt = strjoin(parts, ' ');
+end
+
+function s = il_short(option)
+% the short name of an option in the summary of the parameters
+names = {'Free field', 'FF'; 'Diffuse field', 'DF'; 'Free-frontal', 'FFront'; 'Diffuse', 'Diff'; ...
+         'Stationary', 'stat'; 'Time-varying', 'tv'; 'DIN 45692', 'DIN'; 'Aures', 'Aures'; ...
+         'von Bismarck', 'Bism'};
+k = find(strcmp(names(:, 1), option), 1);
+s = option;
+if ~isempty(k)
+    s = names{k, 2};
 end
 end
 
@@ -2107,17 +2153,18 @@ end
 end
 
 function T = il_empty_results()
-T = table('Size', [0 5], 'VariableTypes', {'cell', 'cell', 'cell', 'cell', 'double'}, ...
-    'VariableNames', {'File', 'Metric', 'Channel', 'Quantity', 'Value'});
+T = table('Size', [0 6], 'VariableTypes', {'cell', 'cell', 'cell', 'cell', 'cell', 'double'}, ...
+    'VariableNames', {'File', 'Analysis', 'Metric', 'Channel', 'Quantity', 'Value'});
 end
 
 function S = il_empty_store()
-S = struct('file', {}, 'name', {}, 'id', {}, 'metric', {}, 'channel', {}, 'analyses', {}, 'values', {});
+S = struct('file', {}, 'name', {}, 'id', {}, 'metric', {}, 'number', {}, 'label', {}, 'channel', {}, 'analyses', {}, 'values', {});
 end
 
 function en = il_entry_of(f, e, OUT, label, channel, n_channels)
 % the analyses and the single values that OUT holds for one channel
-en = struct('file', f.path, 'name', f.name, 'id', f.id, 'metric', e.key, 'channel', label, ...
+en = struct('file', f.path, 'name', f.name, 'id', f.id, 'metric', e.key, 'number', e.number, ...
+    'label', e.label, 'channel', label, ...
     'analyses', SQAT_GUI_extract(OUT, e.id, channel), ...
     'values', SQAT_GUI_single_values(OUT, channel, n_channels));
 end
