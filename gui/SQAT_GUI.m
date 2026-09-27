@@ -76,10 +76,12 @@ green = [0.13 0.55 0.37];
 
 %% State
 metrics = SQAT_GUI_metrics;
-% the analyses of the list: a metric and its parameters; the same metric can
-% be there more than once, and its second entry is keyed Metric_id#2
-analyses = struct('key', 'Loudness_ISO532_1', 'id', 'Loudness_ISO532_1', ...
+% the analyses of the list: a number that is never given again, a metric and
+% its parameters; the same metric can be there more than once, and a later
+% entry of a metric is keyed Metric_id#n (n its number)
+analyses = struct('key', 'Loudness_ISO532_1', 'id', 'Loudness_ISO532_1', 'n', 1, ...
     'p', il_default_params(metrics(strcmp({metrics.id}, 'Loudness_ISO532_1'))));
+next_analysis = 2;                                    % the number of the next analysis
 loaded = struct('path', {}, 'name', {}, 'nch', {}, 'fs', {}, 'marked', {}, 'id', {}, 'channel', {}, 'dBFS', {}, 'cal_set', {});
 next_id = 1;                                          % the number of the next signal loaded
 active_idx = 0;                                       % the signal on screen in the player
@@ -288,12 +290,15 @@ end
     function refresh_analyses()
         % one row per analysis: its number, the metric, its parameters in short, the gear and the x
         delete(analysis_list.Children);
-        close_params();
+        w = findall(groot, 'Type', 'figure', 'Tag', 'SQAT_GUI_params');
+        if ~isempty(w) && ~ismember(w(1).UserData, [analyses.n])
+            close_params();                  % its analysis is gone
+        end
         n = numel(analyses);
         analysis_list.RowHeight = repmat({26}, 1, max(n, 1));
         for k = 1:n
             a = analyses(k);
-            uilabel(analysis_list, 'Text', sprintf('#%d', k), 'Tag', sprintf('analysis_number_%d', k));
+            uilabel(analysis_list, 'Text', sprintf('#%d', a.n), 'Tag', sprintf('analysis_number_%d', k));
             uidropdown(analysis_list, 'Items', {metrics.label}, 'ItemsData', {metrics.id}, ...
                 'Value', a.id, 'Tag', sprintf('analysis_metric_%d', k), ...
                 'ValueChangedFcn', @(src, ~) on_analysis_metric(k, src.Value));
@@ -306,23 +311,24 @@ end
     end
 
     function set_analyses(ids)
-        % the list holds these metrics, with their default parameters
+        % the list holds these metrics, numbered from 1, with their default parameters
         analyses = analyses([]);
         for k = 1:numel(ids)
             e = metrics(strcmp({metrics.id}, ids{k}));
-            analyses(k) = struct('key', '', 'id', e.id, 'p', il_default_params(e));
+            analyses(k) = struct('key', '', 'id', e.id, 'n', k, 'p', il_default_params(e));
         end
+        next_analysis = numel(ids) + 1;
         assign_keys();
         refresh_analyses();
     end
 
     function assign_keys()
-        % the first analysis of a metric is keyed by its id, the next ones id#2, id#3, ...
+        % the first analysis of a metric in the list is keyed by its id (it can
+        % share computations), a later one by id#n
         for k = 1:numel(analyses)
-            n = nnz(strcmp({analyses(1:k).id}, analyses(k).id));
             analyses(k).key = analyses(k).id;
-            if n > 1
-                analyses(k).key = sprintf('%s#%d', analyses(k).id, n);
+            if nnz(strcmp({analyses(1:k).id}, analyses(k).id)) > 1
+                analyses(k).key = sprintf('%s#%d', analyses(k).id, analyses(k).n);
             end
         end
     end
@@ -331,17 +337,23 @@ end
         % a copy of the last analysis, whose parameters are then changed to compare
         if isempty(analyses)
             e = metrics(strcmp({metrics.id}, 'Loudness_ISO532_1'));
-            analyses = struct('key', '', 'id', e.id, 'p', il_default_params(e));
+            analyses = struct('key', '', 'id', e.id, 'n', next_analysis, 'p', il_default_params(e));
         else
             analyses(end+1) = analyses(end);
+            analyses(end).n = next_analysis;
         end
+        next_analysis = next_analysis + 1;
         assign_keys();
         refresh_analyses();
     end
 
     function on_analysis_metric(k, id)
+        % another metric is another analysis: a new number, and the defaults of the metric
         e = metrics(strcmp({metrics.id}, id));
+        write_log(sprintf('#%d became #%d, %s, with its default parameters.', analyses(k).n, next_analysis, e.label));
         analyses(k).id = id;
+        analyses(k).n = next_analysis;
+        next_analysis = next_analysis + 1;
         analyses(k).p = il_default_params(e);
         assign_keys();
         refresh_analyses();
@@ -354,42 +366,62 @@ end
     end
 
     function on_analysis_params(k)
-        % a small window with the parameters of analysis k; a change applies at once
+        % a small window with the parameters of analysis k: name, value and unit; a change applies at once
         close_params();
         a = analyses(k);
         e = metrics(strcmp({metrics.id}, a.id));
         n = numel(e.params);
-        w = uifigure('Name', sprintf('Parameters: #%d %s', k, e.label), ...
-            'Position', [fig.Position(1) + 440, fig.Position(2) + 300, 420, 60 + 34 * max(n, 1)], ...
-            'Visible', fig.Visible, 'Tag', 'SQAT_GUI_params', 'CreateFcn', '');
-        g = uigridlayout(w, [max(n, 1) + 1, 2]);
-        g.ColumnWidth = {'1x', 200};
+        w = uifigure('Name', sprintf('Parameters: #%d %s', a.n, e.label), ...
+            'Position', [fig.Position(1) + 440, fig.Position(2) + 300, 440, 60 + 34 * max(n, 1)], ...
+            'Visible', fig.Visible, 'Tag', 'SQAT_GUI_params', 'UserData', a.n, 'CreateFcn', '');
+        g = uigridlayout(w, [max(n, 1) + 1, 3]);
+        g.ColumnWidth = {'1x', 170, 60};
         g.RowHeight = [repmat({26}, 1, max(n, 1)), {28}];
         if n == 0
             uilabel(g, 'Text', 'This metric has no parameters.');
             uilabel(g, 'Text', '');
+            uilabel(g, 'Text', '');
         end
         for k_par = 1:n
             q = e.params(k_par);
-            uilabel(g, 'Text', q.label);
+            [name, unit] = il_label_unit(q.label);
+            uilabel(g, 'Text', name);
             current = a.p.(q.name);
             if strcmp(q.type, 'choice')
                 c = uidropdown(g, 'Items', q.options(:, 1)', 'ItemsData', q.options(:, 2)', 'Value', current);
             else
-                c = uieditfield(g, 'numeric', 'Value', current);
+                c = uieditfield(g, 'numeric', 'Value', current, 'Limits', [0 Inf], ...
+                    'Tooltip', 'Zero or more');
+                if strcmp(q.name, 'dt')
+                    c.LowerLimitInclusive = 'off';
+                    c.Tooltip = 'More than zero';
+                end
             end
             c.Tag = ['param_' q.name];
-            c.ValueChangedFcn = @(src, ~) set_param(a.key, q.name, src.Value);
+            c.ValueChangedFcn = @(src, ~) set_param(a.n, q.name, src.Value);
+            uilabel(g, 'Text', unit, 'Tag', ['unit_' q.name]);
         end
-        uilabel(g, 'Text', '');
+        uibutton(g, 'Text', 'Reset to defaults', 'Tag', 'params_reset', ...
+            'ButtonPushedFcn', @(~, ~) reset_params(a.n, w));
         uibutton(g, 'Text', 'Close', 'Tag', 'params_close', 'ButtonPushedFcn', @(~, ~) delete(w));
+        uilabel(g, 'Text', '');
         if exist('theme', 'file')
             theme(w, theme_style);
         end
     end
 
-    function set_param(key, name, value)
-        k = find(strcmp({analyses.key}, key), 1);
+    function reset_params(num, w)
+        k = find([analyses.n] == num, 1);
+        e = metrics(strcmp({metrics.id}, analyses(k).id));
+        for q = e.params
+            c = findobj(w, 'Tag', ['param_' q.name]);
+            c.Value = q.value;
+            set_param(num, q.name, q.value);
+        end
+    end
+
+    function set_param(num, name, value)
+        k = find([analyses.n] == num, 1);
         if ~isempty(k)
             analyses(k).p.(name) = value;
             set(findobj(analysis_list, 'Tag', sprintf('analysis_summary_%d', k)), ...
@@ -407,8 +439,8 @@ end
         a = run_settings.analyses(k);
         e = metrics(strcmp({metrics.id}, a.id));
         e.key = a.key;
-        e.number = sprintf('#%d', k);             % the row of the analysis in the list
-        e.label = sprintf('#%d %s', k, e.label);
+        e.number = sprintf('#%d', a.n);           % the number of the analysis, never given again
+        e.label = sprintf('#%d %s', a.n, e.label);
         e.p = a.p;
     end
 
@@ -2168,6 +2200,18 @@ k = find(strcmp(names(:, 1), option), 1);
 s = option;
 if ~isempty(k)
     s = names{k, 2};
+end
+end
+
+function [name, unit] = il_label_unit(label)
+% Time skip (s) -> 'Time skip' and 's'
+tok = regexp(label, '^(.*?)\s*\(([^)]*)\)$', 'tokens', 'once');
+if isempty(tok)
+    name = label;
+    unit = '';
+else
+    name = tok{1};
+    unit = tok{2};
 end
 end
 
