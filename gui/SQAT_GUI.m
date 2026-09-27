@@ -3,10 +3,10 @@ function varargout = SQAT_GUI(files, varargin)
 %
 %   Graphical interface to the metrics of SQAT, laid out as the interface of
 %   pySQAT. It loads .wav files into a list of signals (a tick marks a signal
-%   for use, the x removes it), calibrates them with a dBFS value, runs the
-%   ticked metrics with the chosen parameters on the ticked signals, and
-%   lists their single values. The channel to analyse is one channel of each
-%   file or All: the ECMA-418-2 metrics take a stereo pair in one call and
+%   for use, the x removes it; each signal has its own channel and dBFS),
+%   runs the ticked metrics with the chosen parameters on the ticked signals,
+%   and lists their single values. The channel to analyse is one channel of
+%   the file or All (the default for a stereo file): the ECMA-418-2 metrics take a stereo pair in one call and
 %   return the left, the right and (except the tonality) the combined
 %   binaural result, so a pair runs once.
 %
@@ -84,7 +84,7 @@ for k = 1:numel(metrics)
     end
     params.(metrics(k).id) = p;
 end
-loaded = struct('path', {}, 'name', {}, 'nch', {}, 'fs', {}, 'marked', {}, 'id', {});
+loaded = struct('path', {}, 'name', {}, 'nch', {}, 'fs', {}, 'marked', {}, 'id', {}, 'channel', {}, 'dBFS', {});
 next_id = 1;                                          % the number of the next signal loaded
 active_idx = 0;                                       % the signal on screen in the player
 results = il_empty_results();
@@ -119,7 +119,7 @@ win_wave = [];
 ax_wave = [];
 ax_spec = [];
 btn_play = [];
-run_settings = struct('dBFS', 94, 'channel', '1', 'params', params);   % of the last analysis
+run_settings = struct('signals', loaded, 'params', params);          % of the last analysis
 stop_requested = false;                                             % the Stop button or the dialog
 dlg = [];                                                           % progress dialog of a run
 cache = struct('file', {}, 'metric', {}, 'figs', {});               % SQAT figures, hidden
@@ -127,55 +127,46 @@ cmap = SQAT_GUI_colormap_heat(256);
 
 %% Main window
 fig = uifigure('Name', 'SQAT: Sound Quality Analysis Toolbox', ...
-    'Position', [60 60 1420 880], 'Visible', opts.Visible, 'Tag', 'SQAT_GUI', ...
+    'Position', [40 30 1460 900], 'Visible', opts.Visible, 'Tag', 'SQAT_GUI', ...
     'CloseRequestFcn', @on_close, 'CreateFcn', '');   % skips a user default CreateFcn
 main = uigridlayout(fig, [3 2]);
-main.RowHeight = {44, '1x', 24};
-main.ColumnWidth = {280, '1x'};
+main.RowHeight = {44, '1x', 30};
+main.ColumnWidth = {430, '1x'};
 
-top = uigridlayout(main, [1 9]);
+top = uigridlayout(main, [1 3]);
 top.Layout.Row = 1; top.Layout.Column = [1 2];
 top.Padding = [0 0 0 0];
-top.ColumnWidth = {70, 110, 130, '1x', 60, 70, 45, 55, 100};
+top.ColumnWidth = {70, 320, '1x'};
 img_logo = uiimage(top, 'ImageSource', fullfile(dir_logos, 'logo_white.png'), 'Tag', 'logo');
-lbl_files = uilabel(top, 'Text', 'No files loaded', 'Tag', 'file_count', 'HorizontalAlignment', 'center');
-uibutton(top, 'Text', 'Open WAV files...', 'Tag', 'load_files', 'ButtonPushedFcn', @on_load_files);
+uilabel(top, 'Text', 'Sound Quality Analysis Toolbox', 'FontSize', 16, 'FontWeight', 'bold');
 uilabel(top, 'Text', '');
-uilabel(top, 'Text', 'Channel:', 'HorizontalAlignment', 'right');
-dd_channel = uidropdown(top, 'Items', {'1'}, 'Tag', 'channel', 'ValueChangedFcn', @on_signal_changed, ...
-    'Tooltip', ['Channel to analyse. All: every channel of each file; the ECMA-418-2 ' ...
-                'metrics analyse a stereo file as a binaural pair, in one call']);
-uilabel(top, 'Text', 'dBFS:', 'HorizontalAlignment', 'right');
-ed_dbfs = uieditfield(top, 'numeric', 'Value', 94, 'Tag', 'dbfs', ...
-    'Tooltip', 'dB SPL of a full-scale amplitude (94: full scale 1.0 is 1 Pa)', ...
-    'ValueChangedFcn', @on_signal_changed);
-btn_theme = uibutton(top, 'Text', 'Light theme', 'Tag', 'theme', 'ButtonPushedFcn', @on_theme);
 
-left = uigridlayout(main, [10 1]);
+left = uigridlayout(main, [4 1]);
 left.Layout.Row = 2; left.Layout.Column = 1;
 left.Padding = [0 0 0 0];
-left.RowHeight = {20, 150, 20, '1x', 20, 44, 28, 32, 32, 32};
-uilabel(left, 'Text', 'SIGNALS (tick to use, x to remove)', 'FontWeight', 'bold');
-tbl_signals = uitable(left, 'Tag', 'signals_table', 'RowName', {}, 'ColumnName', {'', 'Signal', ''}, ...
-    'ColumnWidth', {28, 170, 28}, 'ColumnEditable', [true false false], ...
-    'CellEditCallback', @on_signal_marked, 'CellSelectionCallback', @on_signal_selected);
+left.RowHeight = {28, 170, 20, '1x'};
+sh = uigridlayout(left, [1 3]);
+sh.Padding = [0 0 0 0];
+sh.ColumnWidth = {'1x', 100, 130};
+uilabel(sh, 'Text', 'SIGNALS (tick to use, x to remove)', 'FontWeight', 'bold');
+lbl_files = uilabel(sh, 'Text', 'No files loaded', 'Tag', 'file_count', 'HorizontalAlignment', 'right');
+uibutton(sh, 'Text', 'Open WAV files...', 'Tag', 'load_files', 'ButtonPushedFcn', @on_load_files);
+tbl_signals = uitable(left, 'Tag', 'signals_table', 'RowName', {}, ...
+    'ColumnName', {'', 'Signal', 'Channel', 'dBFS', ''}, ...
+    'ColumnWidth', {28, 180, 70, 60, 28}, 'ColumnEditable', [true false true true false], ...
+    'Tooltip', ['Channel: the one to analyse, or All (the ECMA-418-2 metrics take a stereo file ' ...
+                'as a binaural pair, in one call). dBFS: dB SPL of a full-scale amplitude ' ...
+                '(94: full scale 1.0 is 1 Pa)'], ...
+    'CellEditCallback', @on_signal_edited, 'CellSelectionCallback', @on_signal_selected);
 uilabel(left, 'Text', 'METRICS TO ANALYZE (tick to use)', 'FontWeight', 'bold');
 tbl_metrics = uitable(left, 'Tag', 'metrics_list', 'RowName', {}, 'ColumnName', {'', 'Metric'}, ...
     'Data', table(strcmp({metrics.id}', 'Loudness_ISO532_1'), string({metrics.label}')), ...
     'ColumnWidth', {28, 'auto'}, 'ColumnEditable', [true false], 'CellEditCallback', @on_metrics);
-uilabel(left, 'Text', 'ACTIONS', 'FontWeight', 'bold');
-uibutton(left, 'Text', 'Run Analysis', 'Tag', 'run', 'FontWeight', 'bold', ...
-    'BackgroundColor', green, 'FontColor', [1 1 1], 'ButtonPushedFcn', @on_run);
-btn_stop = uibutton(left, 'Text', 'Stop', 'Tag', 'stop_run', 'Enable', 'off', ...
-    'Tooltip', 'Ends the run after the metric being computed', 'ButtonPushedFcn', @on_stop_run);
-uibutton(left, 'Text', 'Open Graphs Window', 'Tag', 'open_graphs', 'ButtonPushedFcn', @on_open_graphs);
-uibutton(left, 'Text', 'Waveform / Play', 'Tag', 'open_waveform', 'ButtonPushedFcn', @on_open_waveform);
-uibutton(left, 'Text', 'Export results...', 'Tag', 'export', 'ButtonPushedFcn', @on_export);
 
-right = uigridlayout(main, [3 1]);
+right = uigridlayout(main, [4 1]);
 right.Layout.Row = 2; right.Layout.Column = 2;
 right.Padding = [0 0 0 0];
-right.RowHeight = {56, 128, '1x'};
+right.RowHeight = {56, 128, 64, '1x'};
 
 opt_panel = uipanel(right, 'Title', 'OPTIONS');
 og = uigridlayout(opt_panel, [1 5]);
@@ -202,6 +193,20 @@ dd_param = uidropdown(ph, 'Items', {}, 'Tag', 'param_metric', 'ValueChangedFcn',
 param_grid = uigridlayout(pg, [2 1]);
 param_grid.Padding = [0 0 0 0];
 
+act_panel = uipanel(right, 'Title', 'ACTIONS');
+ag = uigridlayout(act_panel, [1 6]);
+ag.ColumnWidth = {'1.4x', '1x', '1x', '1x', '1x', 36};
+ag.Padding = [6 4 6 4];
+uibutton(ag, 'Text', 'Run Analysis', 'Tag', 'run', 'FontWeight', 'bold', ...
+    'BackgroundColor', green, 'FontColor', [1 1 1], 'ButtonPushedFcn', @on_run);
+btn_stop = uibutton(ag, 'Text', 'Stop', 'Tag', 'stop_run', 'Enable', 'off', ...
+    'Tooltip', 'Ends the run after the metric being computed', 'ButtonPushedFcn', @on_stop_run);
+uibutton(ag, 'Text', 'Open Graphs Window', 'Tag', 'open_graphs', 'ButtonPushedFcn', @on_open_graphs);
+uibutton(ag, 'Text', 'Waveform / Play', 'Tag', 'open_waveform', 'ButtonPushedFcn', @on_open_waveform);
+uibutton(ag, 'Text', 'Export results...', 'Tag', 'export', 'ButtonPushedFcn', @on_export);
+btn_theme = uibutton(ag, 'Text', char(9788), 'FontSize', 18, 'Tag', 'theme', ...
+    'Tooltip', 'Light theme', 'ButtonPushedFcn', @on_theme);   % a sun, or a moon in the light theme
+
 tabs = uitabgroup(right);
 tab_console = uitab(tabs, 'Title', 'Console output');
 console = uitextarea(uigridlayout(tab_console, [1 1]), 'Value', {''}, 'Editable', 'off', ...
@@ -212,10 +217,10 @@ tbl = uitable(uigridlayout(tab_results, [1 1]), 'Data', results, 'Tag', 'results
 status_bar = uigridlayout(main, [1 2]);
 status_bar.Layout.Row = 3; status_bar.Layout.Column = [1 2];
 status_bar.Padding = [0 0 0 0];
-status_bar.ColumnWidth = {280, '1x'};
+status_bar.ColumnWidth = {'1x', 300};
+lbl_status = uilabel(status_bar, 'Text', 'Ready', 'Tag', 'status');
 gauge = uigauge(status_bar, 'linear', 'Tag', 'progress', 'Limits', [0 100], 'Value', 0, ...
     'MajorTicks', [], 'MinorTicks', []);
-lbl_status = uilabel(status_bar, 'Text', 'Ready', 'Tag', 'status', 'HorizontalAlignment', 'right');
 
 %% Start
 apply_theme();
@@ -237,10 +242,33 @@ end
         add_files(fullfile(p, cellstr(f)));
     end
 
-    function on_signal_marked(~, event)
+    function on_signal_edited(~, event)
+        % the tick, the channel or the dBFS of a signal
         k = event.Indices(1);
-        loaded(k).marked = logical(event.NewData);
-        refresh_windows();
+        switch event.Indices(2)
+            case 1
+                loaded(k).marked = logical(event.NewData);
+                refresh_windows();
+                return
+            case 3
+                c = char(event.NewData);
+                if ~il_is_member(c, il_channel_items(loaded(k).nch))
+                    write_log(sprintf('%s has %d channel(s); channel %s is not there.', loaded(k).name, loaded(k).nch, c));
+                    refresh_signals();
+                    return
+                end
+                loaded(k).channel = c;
+            case 4
+                if ~isfinite(event.NewData)
+                    refresh_signals();
+                    return
+                end
+                loaded(k).dBFS = event.NewData;
+        end
+        refresh_signals();                   % the table shows what the signal holds
+        if k == active_idx && il_is_open(win_wave)
+            draw_waveform_window();
+        end
     end
 
     function on_signal_selected(~, event)
@@ -248,20 +276,14 @@ end
             return
         end
         k = event.Indices(1, 1);
-        if event.Indices(1, 2) == 3
-            remove_signal(k);                % the x at the right of the name
+        if event.Indices(1, 2) == 5
+            remove_signal(k);                % the x at the right of the row
             return
         end
         if k ~= active_idx
             active_idx = k;
             show_active();
             refresh_windows();
-        end
-    end
-
-    function on_signal_changed(~, ~)
-        if il_is_open(win_wave)
-            draw_waveform_window();
         end
     end
 
@@ -362,17 +384,15 @@ end
         end
         files_order = [use(k_active), use(use ~= use(k_active))];
         active_path = loaded(files_order(1)).path;
-        dBFS = ed_dbfs.Value;
-        option = dd_channel.Value;               % a channel number or All
         clear_cache();
-        run_settings = struct('dBFS', dBFS, 'channel', option, 'params', params);
+        run_settings = struct('signals', loaded(use), 'params', params);
 
         new_results = il_empty_results();
         new_store = il_empty_store();
         stereo_sel = ismember(sel, {metrics([metrics.stereo]).id});
         n_total = 0;
         for i = files_order
-            n_ch = numel(channel_list(loaded(i), option));
+            n_ch = numel(channel_list(loaded(i)));
             joint = n_ch == 2;
             n_total = n_total + nnz(~(stereo_sel & joint)) * n_ch + nnz(stereo_sel & joint);
         end
@@ -396,10 +416,8 @@ end
         t_start = tic;
         for i = files_order
             f = loaded(i);
-            cl = channel_list(f, option);
-            if ~strcmp(option, 'All') && str2double(option) > f.nch
-                write_log(sprintf('%s has %d channel(s); channel 1 is used.', f.name, f.nch));
-            end
+            cl = channel_list(f);
+            dBFS = f.dBFS;
             joint = numel(cl) == 2;              % a binaural pair goes in one call
             ids_joint = sel(stereo_sel & joint);
             ids_single = sel(~(stereo_sel & joint));
@@ -1094,7 +1112,8 @@ end
             end
             [~, base, ext] = fileparts(path);
             loaded(end+1) = struct('path', path, 'name', [base ext], ...
-                'nch', info.NumChannels, 'fs', info.SampleRate, 'marked', true, 'id', next_id); %#ok<AGROW>
+                'nch', info.NumChannels, 'fs', info.SampleRate, 'marked', true, 'id', next_id, ...
+                'channel', il_default_channel(info.NumChannels), 'dBFS', 94); %#ok<AGROW>
             next_id = next_id + 1;
         end
         if isempty(loaded)
@@ -1136,12 +1155,13 @@ end
         % the table of signals, the count and the channels on offer
         n = numel(loaded);
         if n == 0
-            tbl_signals.Data = table(false(0, 1), strings(0, 1), strings(0, 1));
+            tbl_signals.Data = table(false(0, 1), strings(0, 1), categorical(strings(0, 1)), zeros(0, 1), strings(0, 1));
             tbl_signals.RowName = {};
             lbl_files.Text = 'No files loaded';
         else
             tbl_signals.Data = table(logical([loaded.marked]'), string({loaded.name}'), ...
-                repmat("x", n, 1));
+                categorical({loaded.channel}', il_channel_items(max([loaded.nch]))), ...
+                [loaded.dBFS]', repmat("x", n, 1));
             tbl_signals.RowName = arrayfun(@(k) sprintf('#%d', k), [loaded.id], 'UniformOutput', false);
             if n == 1
                 lbl_files.Text = '1 file loaded';
@@ -1153,7 +1173,6 @@ end
         if active_idx > 0
             addStyle(tbl_signals, uistyle('FontWeight', 'bold'), 'row', active_idx);
         end
-        update_channels();
     end
 
     function show_active()
@@ -1173,30 +1192,11 @@ end
 
     function ch = channel_of_active()
         % the channel that the waveform and the player take
-        ch = str2double(dd_channel.Value);
+        ch = str2double(active_file().channel);
         if isnan(ch)
             ch = 1;                          % All
         end
         ch = min(ch, active_file().nch);
-    end
-
-    function update_channels()
-        if isempty(loaded)
-            return
-        end
-        n = max([loaded.nch]);
-        items = arrayfun(@num2str, 1:n, 'UniformOutput', false);
-        if n > 1
-            items{end+1} = 'All';
-        end
-        previous = dd_channel.Value;
-        had_all = il_is_member('All', dd_channel.Items);
-        dd_channel.Items = items;
-        if n > 1 && ~had_all
-            dd_channel.Value = 'All';        % the first stereo file: every channel by default
-        elseif il_is_member(previous, items)
-            dd_channel.Value = previous;
-        end
     end
 
     function refresh_windows()
@@ -1444,12 +1444,16 @@ end
             lbl_status.Text = sprintf('Drawing the SQAT figure of %s for %s', label, f.name);
             drawnow limitrate
             try
-                cl = channel_list(f, run_settings.channel);
+                k_r = find(strcmp({run_settings.signals.path}, f.path), 1);
+                if ~isempty(k_r)
+                    f = run_settings.signals(k_r);   % the channel and dBFS of the run
+                end
+                cl = channel_list(f);
                 e = metrics(strcmp({metrics.id}, id));
                 if ~e.stereo
                     cl = cl(1);                   % one figure per signal: the first channel
                 end
-                [x, fs] = SQAT_GUI_load(f.path, run_settings.dBFS, cl);
+                [x, fs] = SQAT_GUI_load(f.path, f.dBFS, cl);
                 [~, new_figs] = run_metric(e, x, fs, run_settings.params.(id), true, false);
             catch err
                 write_log(sprintf('The SQAT figure of %s could not be drawn: %s', id, err.message));
@@ -1588,7 +1592,7 @@ end
         f = active_file();
         ch = channel_of_active();
         try
-            [x, fs] = SQAT_GUI_load(f.path, ed_dbfs.Value, ch);
+            [x, fs] = SQAT_GUI_load(f.path, f.dBFS, ch);
             y = audioread(f.path);
             y = y(:, min(ch, size(y, 2)));
         catch err
@@ -1793,15 +1797,12 @@ end
         new_figs = il_new_figures(figs_before);
     end
 
-    function cl = channel_list(f, option)
-        % the channels of file f that the option of the run analyses
-        if strcmp(option, 'All')
+    function cl = channel_list(f)
+        % the channels of file f that its Channel in the list asks for
+        if strcmp(f.channel, 'All')
             cl = 1:f.nch;
         else
-            cl = str2double(option);
-            if cl > f.nch
-                cl = 1;
-            end
+            cl = min(str2double(f.channel), f.nch);
         end
     end
 
@@ -1858,10 +1859,12 @@ end
     function apply_theme()
         if strcmp(theme_style, 'dark')
             img_logo.ImageSource = fullfile(dir_logos, 'logo_white.png');
-            btn_theme.Text = 'Light theme';
+            btn_theme.Text = char(9788);         % a sun: the light theme is one click away
+            btn_theme.Tooltip = 'Light theme';
         else
             img_logo.ImageSource = fullfile(dir_logos, 'logo.png');
-            btn_theme.Text = 'Dark theme';
+            btn_theme.Text = char(9790);         % a moon
+            btn_theme.Tooltip = 'Dark theme';
         end
         if exist('theme', 'file')                % R2025a or newer
             for w = [fig, open_graph_windows(), win_wave]
@@ -1974,6 +1977,22 @@ function tf = il_is_member(value, list)
 % true when value is a non-empty text found in the cell array list
 tf = (ischar(value) || isstring(value)) && strlength(string(value)) > 0 ...
     && any(strcmp(list, value));
+end
+
+function items = il_channel_items(n)
+% the channels a file of n channels offers: each one, and All when there are several
+items = arrayfun(@num2str, 1:n, 'UniformOutput', false);
+if n > 1
+    items{end+1} = 'All';
+end
+end
+
+function c = il_default_channel(n)
+% a stereo file is analysed in all its channels, a mono one in its only channel
+c = '1';
+if n > 1
+    c = 'All';
+end
 end
 
 function T = il_empty_results()
