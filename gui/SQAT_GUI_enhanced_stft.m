@@ -55,6 +55,14 @@ x = x(:);
 n_x = numel(x);
 durations = 8e-3 * 64 .^ ((0:8) / 8);                 % nine windows, 8 to 512 ms
 Ns = 2 * round(durations * fs / 2);                    % even window lengths (samples)
+% Each window steps by N/step_div, and the energy of each frame is held over
+% that step. 16 is the default. Any value from 8 up is accepted: N/8 takes
+% about half the time, but its longer hold widens clicks and onsets (about
+% 6 ms instead of 5) and separates close tones less; N/32 narrows clicks
+% further (about 4 ms) at about 3.3 times the time of N/8 and leaves more
+% spurious points in broadband noise. Below 8 the frames are too sparse for
+% the hold to be short.
+step_div = 16;
 hop_out = max([1, round(0.001 * fs), ceil(n_x / n_frames)]);   % output time step (samples): 1 ms or more
 M = numel(0:hop_out:n_x-1);
 n_oct = log2((fs/2) / f_min);
@@ -78,9 +86,9 @@ gt = exp(-(-kt:kt)' .^ 2 / (2 * sig_t^2));
 gt = gt / sum(gt);
 log_sum = 0;
 for w_i = 1:numel(Ns)
-    R = il_reassigned(x, fs, Ns(w_i), hop_out, M, F, f_min, bins_per_octave);
-    % each window steps by N/8: the energy of a frame is held over its own step, so that the long windows leave no gaps
-    n_hold = 2 * floor(max(1, round(Ns(w_i) / 8)) / hop_out / 2) + 1;
+    R = il_reassigned(x, fs, Ns(w_i), step_div, hop_out, M, F, f_min, bins_per_octave);
+    % the energy of a frame is held over its own step, so that the long windows leave no gaps
+    n_hold = 2 * floor(max(1, round(Ns(w_i) / step_div)) / hop_out / 2) + 1;
     if n_hold > 1
         R = conv2(ones(n_hold, 1) / n_hold, 1, R, 'same');
     end
@@ -116,10 +124,10 @@ end
 R = out;
 end
 
-function R = il_reassigned(x, fs, N, hop_out, M, F, f_min, bpo)
+function R = il_reassigned(x, fs, N, step_div, hop_out, M, F, f_min, bpo)
 % reassigned spectrogram of one Blackman-Harris window (N samples, unit energy) accumulated on the output grid
 n_x = numel(x);
-hop = max(1, round(N/8));
+hop = max(1, round(N/step_div));
 pad = N/2;
 xp = [zeros(pad, 1); x; zeros(pad + N, 1)];
 n = (-N/2:N/2-1)';
