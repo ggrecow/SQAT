@@ -610,14 +610,19 @@ end
                 end
             end
             for j = 1:numel(sel)                 % the table keeps the order of the list
-                for k_e = find(strcmp({entries.metric}, sel{j}))
-                    en = entries(k_e);
-                    new_store(end+1) = en; %#ok<AGROW>
+                k_e = find(strcmp({entries.metric}, sel{j}));
+                new_store = [new_store, entries(k_e)]; %#ok<AGROW>
+                rows = il_empty_results();
+                for en = entries(k_e)
                     n = height(en.values);
-                    new_results = [new_results; [table(repmat({f.name}, n, 1), repmat({en.number}, n, 1), ...
+                    rows = [rows; [table(repmat({f.name}, n, 1), repmat({en.number}, n, 1), ...
                         repmat({il_split_key(en.metric)}, n, 1), repmat({en.channel}, n, 1), ...
                         'VariableNames', {'File', 'Analysis', 'Metric', 'Channel'}), en.values]]; %#ok<AGROW>
                 end
+                % the channels interleaved: each quantity of channel 1, then of channel 2 (and binaural)
+                [~, ~, q] = unique(rows.Quantity, 'stable');
+                [~, order] = sortrows([q, (1:height(rows))']);
+                new_results = [new_results; rows(order, :)]; %#ok<AGROW>
             end
             if stop_requested
                 break                            % what ran so far is kept
