@@ -1,12 +1,16 @@
-function SQAT_GUI_export(T, filename)
-% function SQAT_GUI_export(T, filename)
+function SQAT_GUI_export(T, filename, S)
+% function SQAT_GUI_export(T, filename, S)
 %
 %   Writes the results table of SQAT_GUI to a spreadsheet (.xlsx) or a text
-%   file (.csv), replacing any file of the same name.
+%   file (.csv), replacing any file of the same name. The settings of the
+%   run, when given, go to a second sheet named Settings (.xlsx) or to a
+%   second file, name_settings.csv (.csv).
 %
 % INPUT ARGUMENTS
-%   T : results table (File, Metric, Quantity, Value)
+%   T : results table (Signal, File, Analysis, Metric, Channel, Quantity,
+%       Value, Unit, Cal_dB_SPL, Parameters, Path)
 %   filename : char or string, path of the file to write
+%   S : optional table (Item, Value) with the settings of the run
 %
 % Author: Sergio Aguirre and Gil Felix Greco, September 2026
 %
@@ -26,5 +30,20 @@ function SQAT_GUI_export(T, filename)
 % warranties of MERCHANTABILITY and FITNESS FOR A PARTICULAR PURPOSE.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-writetable(T, filename, 'WriteMode', 'replacefile');
+if nargin < 3
+    S = [];
+end
+filename = char(filename);
+[folder, base, ext] = fileparts(filename);
+if strcmpi(ext, '.xlsx')
+    writetable(T, filename, 'Sheet', 'Results', 'WriteMode', 'replacefile');
+    if ~isempty(S)
+        writetable(S, filename, 'Sheet', 'Settings');
+    end
+else
+    writetable(T, filename, 'WriteMode', 'overwrite');
+    if ~isempty(S)
+        writetable(S, fullfile(folder, [base '_settings' ext]), 'WriteMode', 'overwrite');
+    end
+end
 end

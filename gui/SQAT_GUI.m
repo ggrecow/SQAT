@@ -215,6 +215,7 @@ apply_theme();
 add_files(files);
 refresh_analyses();
 setappdata(fig, 'sqat_set_analyses', @set_analyses);   % the list from metric ids, for the tests
+setappdata(fig, 'sqat_run_description', @run_description);   % the Settings sheet, for the tests
 write_log('Ready. Open WAV files, choose metrics and parameters, then press Run Analysis.');
 if nargout > 0
     varargout{1} = fig;   % fig itself stays: the callbacks share it
@@ -245,6 +246,9 @@ end
     end
 
     function signal_changed(k)
+        if any(strcmp(results.Path, loaded(k).path))
+            mark_stale();
+        end
         if k == active_idx && il_is_open(win_wave)
             draw_waveform_window();
         end
@@ -355,6 +359,7 @@ end
         analyses(k).n = next_analysis;
         next_analysis = next_analysis + 1;
         analyses(k).p = il_default_params(e);
+        mark_stale();
         assign_keys();
         refresh_analyses();
     end
@@ -424,6 +429,7 @@ end
         k = find([analyses.n] == num, 1);
         if ~isempty(k)
             analyses(k).p.(name) = value;
+            mark_stale();
             set(findobj(analysis_list, 'Tag', sprintf('analysis_summary_%d', k)), ...
                 'Text', il_param_summary(metrics, analyses(k)));
         end
@@ -444,15 +450,28 @@ end
         e.p = a.p;
     end
 
+    function mark_stale()
+        % a setting changed after the run: the results on screen no longer follow the settings
+        if height(results) == 0 || contains(tab_results.Title, 'changed')
+            return
+        end
+        tab_results.Title = 'Results (settings changed: run again)';
+        lbl_status.Text = 'Settings changed since the last run: the results are those of the run.';
+        write_log('Settings changed since the last run; the results on screen are those of the run.');
+    end
+
     function show_results()
         % the results as one list, and one tab per signal (Results #1, #2, ...) with its own rows
+        tab_results.Title = 'Results';
         tbl.Data = results;
         delete(findobj(tabs, 'Tag', 'results_signal'));
         for f = loaded
-            rows = strcmp(results.File, f.name);
+            rows = strcmp(results.Path, f.path);        % two files may share a name
             if any(rows)
                 t = uitab(tabs, 'Title', sprintf('Results #%d', f.id), 'Tag', 'results_signal');
-                uitable(uigridlayout(t, [1 1]), 'Data', results(rows, 2:end), 'RowName', {});
+                uitable(uigridlayout(t, [1 1]), 'Data', ...
+                    results(rows, {'Analysis', 'Metric', 'Channel', 'Quantity', 'Value', 'Unit', 'Parameters'}), ...
+                    'RowName', {});
             end
         end
     end
@@ -642,11 +661,16 @@ end
                 k_e = find(strcmp({entries.metric}, sel{j}));
                 new_store = [new_store, entries(k_e)]; %#ok<AGROW>
                 rows = il_empty_results();
+                a = run_settings.analyses(strcmp({run_settings.analyses.key}, sel{j}));
+                e_j = metrics(strcmp({metrics.id}, a.id));
                 for en = entries(k_e)
                     n = height(en.values);
-                    rows = [rows; [table(repmat({f.name}, n, 1), repmat({en.number}, n, 1), ...
-                        repmat({il_split_key(en.metric)}, n, 1), repmat({en.channel}, n, 1), ...
-                        'VariableNames', {'File', 'Analysis', 'Metric', 'Channel'}), en.values]]; %#ok<AGROW>
+                    unit = cellfun(@(q) il_unit(a.id, q), en.values.Quantity, 'UniformOutput', false);
+                    rows = [rows; table(repmat({sprintf('#%d', f.id)}, n, 1), repmat({f.name}, n, 1), ...
+                        repmat({en.number}, n, 1), repmat({a.id}, n, 1), repmat({en.channel}, n, 1), ...
+                        en.values.Quantity, en.values.Value, unit(:), repmat(f.dBFS, n, 1), ...
+                        repmat({il_param_text(e_j, a.p)}, n, 1), repmat({f.path}, n, 1), ...
+                        'VariableNames', il_empty_results().Properties.VariableNames)]; %#ok<AGROW>
                 end
                 % the channels interleaved: each quantity of channel 1, then of channel 2 (and binaural)
                 [~, ~, q] = unique(rows.Quantity, 'stable');
@@ -699,11 +723,27 @@ end
             return
         end
         try
-            SQAT_GUI_export(results, fullfile(p, f));
+            SQAT_GUI_export(results, fullfile(p, f), run_description());
             write_log(['Results exported to ' fullfile(p, f)]);
         catch err
             write_log(['ERROR exporting the results: ' err.message]);
         end
+    end
+
+    function S = run_description()
+        % what the run used, for the Settings sheet of the export
+        items = {'Exported', char(datetime('now', 'Format', 'yyyy-MM-dd HH:mm:ss'));
+                 'SQAT version', il_sqat_version();
+                 'MATLAB', version};
+        for f = run_settings.signals
+            items(end+1, :) = {sprintf('Signal #%d', f.id), sprintf('%s | fs %g Hz | %d channel(s) | channel %s | cal. %g dB SPL at full scale%s', ...
+                f.path, f.fs, f.nch, f.channel, f.dBFS, il_if(f.cal_set, '', ' (default)'))}; %#ok<AGROW>
+        end
+        for a = run_settings.analyses
+            e = metrics(strcmp({metrics.id}, a.id));
+            items(end+1, :) = {sprintf('Analysis #%d', a.n), sprintf('%s | %s', a.id, il_param_text(e, a.p))}; %#ok<AGROW>
+        end
+        S = cell2table(items, 'VariableNames', {'Item', 'Value'});
     end
 
     function on_open_graphs(~, ~)
@@ -1276,7 +1316,7 @@ end
         loaded(k) = [];
         keep = ~strcmp({store.file}, f.path);
         store = store(keep);
-        results = results(~strcmp(results.File, f.name), :);
+        results = results(~strcmp(results.Path, f.path), :);
         show_results();
         drop = strcmp({cache.file}, f.path);
         for k_c = find(drop)
@@ -1972,18 +2012,21 @@ end
         end
         if save_figs
             [~, base] = fileparts(f.name);
+            [m_id, ~] = il_split_key(id);
+            a = run_settings.analyses(strcmp({run_settings.analyses.key}, id));
+            base = sprintf('%s_s%d_%s_a%d', base, f.id, m_id, a.n);   % signal and analysis numbers
             n_saved = 0;
             for k_fig = 1:numel(new_figs)
                 if split
                     axs = findobj(new_figs(k_fig), 'Type', 'axes');
                     for k_ax = 1:numel(axs)
-                        exportgraphics(axs(k_ax), fullfile(folder, ...
-                            sprintf('%s_%s%s_%d_%d.png', base, id, suffix, k_fig, k_ax)));
+                        exportgraphics(axs(k_ax), il_free_path(fullfile(folder, ...
+                            sprintf('%s%s_%d_%d.png', base, suffix, k_fig, k_ax))));
                         n_saved = n_saved + 1;
                     end
                 else
-                    exportgraphics(new_figs(k_fig), fullfile(folder, ...
-                        sprintf('%s_%s%s_%d.png', base, id, suffix, k_fig)));
+                    exportgraphics(new_figs(k_fig), il_free_path(fullfile(folder, ...
+                        sprintf('%s%s_%d.png', base, suffix, k_fig))));
                     n_saved = n_saved + 1;
                 end
             end
@@ -2203,6 +2246,72 @@ if ~isempty(k)
 end
 end
 
+function u = il_unit(id, q)
+% the unit of quantity q of metric id, as the header of the metric states it
+switch q
+    case 'EPNL',  u = 'EPNdB'; return
+    case 'PNLM',  u = 'PNdB';  return
+    case 'PNLTM', u = 'TPNdB'; return
+    case 'time',  u = 's';     return
+    case {'N_ratio', 'ScalarPA'}, u = '-'; return
+end
+if contains(q, 'Level')
+    u = 'phon';
+    return
+end
+units = struct('Loudness_ISO532_1', 'sone', 'Loudness_ECMA418_2', 'sone_HMS', ...
+    'Sharpness_DIN45692', 'acum', 'Roughness_Daniel1997', 'asper', 'Roughness_ECMA418_2', 'asper', ...
+    'FluctuationStrength_Osses2016', 'vacil', 'Tonality_Aures1985', 't.u.', 'Tonality_ECMA418_2', 'tu_HMS');
+u = '-';
+if isfield(units, id)
+    u = units.(id);
+end
+end
+
+function txt = il_param_text(e, p)
+% the parameters in full: Sound field: Free field; Method: Time-varying; Time skip: 0.5 s
+parts = {};
+for q = e.params
+    [name, unit] = il_label_unit(q.label);
+    v = p.(q.name);
+    if strcmp(q.type, 'choice')
+        k = find(cellfun(@(o) isequal(o, v), q.options(:, 2)), 1);
+        parts{end+1} = sprintf('%s: %s', name, q.options{k, 1}); %#ok<AGROW>
+    else
+        parts{end+1} = strtrim(sprintf('%s: %g %s', name, v, unit)); %#ok<AGROW>
+    end
+end
+txt = strjoin(parts, '; ');
+end
+
+function path = il_free_path(path)
+% the path, or path_2, path_3, ... when a file of that name is already there
+[folder, base, ext] = fileparts(path);
+k = 1;
+while isfile(path)
+    k = k + 1;
+    path = fullfile(folder, sprintf('%s_%d%s', base, k, ext));
+end
+end
+
+function v = il_sqat_version()
+% the commit of the SQAT repository, when it is a git checkout
+root = fileparts(fileparts(mfilename('fullpath')));
+[status, out] = system(sprintf('git -C "%s" rev-parse --short HEAD', root));
+v = 'unknown (not a git checkout)';
+if status == 0
+    v = ['commit ' strtrim(out)];
+end
+end
+
+function out = il_if(cond, a, b)
+if cond
+    out = a;
+else
+    out = b;
+end
+end
+
 function [name, unit] = il_label_unit(label)
 % Time skip (s) -> 'Time skip' and 's'
 tok = regexp(label, '^(.*?)\s*\(([^)]*)\)$', 'tokens', 'once');
@@ -2232,8 +2341,12 @@ end
 end
 
 function T = il_empty_results()
-T = table('Size', [0 6], 'VariableTypes', {'cell', 'cell', 'cell', 'cell', 'cell', 'double'}, ...
-    'VariableNames', {'File', 'Analysis', 'Metric', 'Channel', 'Quantity', 'Value'});
+% one row per value, with what is needed to reproduce it: the signal, the
+% analysis, the unit, the calibration (dB SPL of full scale), the parameters and the path
+T = table('Size', [0 11], 'VariableTypes', {'cell', 'cell', 'cell', 'cell', 'cell', 'cell', 'double', ...
+    'cell', 'double', 'cell', 'cell'}, ...
+    'VariableNames', {'Signal', 'File', 'Analysis', 'Metric', 'Channel', 'Quantity', 'Value', ...
+    'Unit', 'Cal_dB_SPL', 'Parameters', 'Path'});
 end
 
 function S = il_empty_store()
