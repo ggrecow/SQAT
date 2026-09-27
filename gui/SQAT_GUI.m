@@ -76,14 +76,10 @@ green = [0.13 0.55 0.37];
 
 %% State
 metrics = SQAT_GUI_metrics;
-params = struct();
-for k = 1:numel(metrics)
-    p = struct();
-    for q = metrics(k).params
-        p.(q.name) = q.value;
-    end
-    params.(metrics(k).id) = p;
-end
+% the analyses of the list: a metric and its parameters; the same metric can
+% be there more than once, and its second entry is keyed Metric_id#2
+analyses = struct('key', 'Loudness_ISO532_1', 'id', 'Loudness_ISO532_1', ...
+    'p', il_default_params(metrics(strcmp({metrics.id}, 'Loudness_ISO532_1'))));
 loaded = struct('path', {}, 'name', {}, 'nch', {}, 'fs', {}, 'marked', {}, 'id', {}, 'channel', {}, 'dBFS', {});
 next_id = 1;                                          % the number of the next signal loaded
 active_idx = 0;                                       % the signal on screen in the player
@@ -119,7 +115,7 @@ win_wave = [];
 ax_wave = [];
 ax_spec = [];
 btn_play = [];
-run_settings = struct('signals', loaded, 'params', params);          % of the last analysis
+run_settings = struct('signals', loaded, 'analyses', analyses);      % of the last run
 stop_requested = false;                                             % the Stop button or the dialog
 dlg = [];                                                           % progress dialog of a run
 cache = struct('file', {}, 'metric', {}, 'figs', {});               % SQAT figures, hidden
@@ -144,7 +140,7 @@ uilabel(top, 'Text', '');
 left = uigridlayout(main, [4 1]);
 left.Layout.Row = 2; left.Layout.Column = 1;
 left.Padding = [0 0 0 0];
-left.RowHeight = {28, 170, 20, '1x'};
+left.RowHeight = {28, 170, 28, '1x'};
 sh = uigridlayout(left, [1 3]);
 sh.Padding = [0 0 0 0];
 sh.ColumnWidth = {'1x', 100, 130};
@@ -158,15 +154,20 @@ tbl_signals = uitable(left, 'Tag', 'signals_table', 'RowName', {}, ...
                 'as a binaural pair, in one call). dBFS: dB SPL of a full-scale amplitude ' ...
                 '(94: full scale 1.0 is 1 Pa)'], ...
     'CellEditCallback', @on_signal_edited, 'CellSelectionCallback', @on_signal_selected);
-uilabel(left, 'Text', 'METRICS TO ANALYZE (tick to use)', 'FontWeight', 'bold');
-tbl_metrics = uitable(left, 'Tag', 'metrics_list', 'RowName', {}, 'ColumnName', {'', 'Metric'}, ...
-    'Data', table(strcmp({metrics.id}', 'Loudness_ISO532_1'), string({metrics.label}')), ...
-    'ColumnWidth', {28, 'auto'}, 'ColumnEditable', [true false], 'CellEditCallback', @on_metrics);
+ah = uigridlayout(left, [1 2]);
+ah.Padding = [0 0 0 0];
+ah.ColumnWidth = {'1x', 130};
+uilabel(ah, 'Text', 'ANALYSES (gear: parameters)', 'FontWeight', 'bold');
+uibutton(ah, 'Text', '+ Add', 'Tag', 'add_analysis', 'ButtonPushedFcn', @on_add_analysis, ...
+    'Tooltip', 'Adds a copy of the last analysis, to compare the same metric with other parameters');
+analysis_list = uigridlayout(left, [1 4], 'Scrollable', 'on', 'Tag', 'analysis_list');
+analysis_list.ColumnWidth = {30, '1x', 36, 28};
+analysis_list.Padding = [0 0 0 0];
 
-right = uigridlayout(main, [4 1]);
+right = uigridlayout(main, [3 1]);
 right.Layout.Row = 2; right.Layout.Column = 2;
 right.Padding = [0 0 0 0];
-right.RowHeight = {56, 128, 64, '1x'};
+right.RowHeight = {56, 64, '1x'};
 
 opt_panel = uipanel(right, 'Title', 'OPTIONS');
 og = uigridlayout(opt_panel, [1 5]);
@@ -180,18 +181,6 @@ cb_save = uicheckbox(og, 'Text', 'Save figures', 'Tag', 'save_figures');
 ed_folder = uieditfield(og, 'text', 'Value', pwd, 'Tag', 'figures_folder', ...
     'Tooltip', 'Folder for the saved figures');
 uibutton(og, 'Text', 'Browse...', 'ButtonPushedFcn', @on_browse);
-
-par_panel = uipanel(right, 'Title', 'PARAMETERS');
-pg = uigridlayout(par_panel, [2 1]);
-pg.RowHeight = {22, '1x'};
-pg.Padding = [6 4 6 4];
-ph = uigridlayout(pg, [1 2]);
-ph.Padding = [0 0 0 0];
-ph.ColumnWidth = {130, 280};
-uilabel(ph, 'Text', 'Edit parameters for:');
-dd_param = uidropdown(ph, 'Items', {}, 'Tag', 'param_metric', 'ValueChangedFcn', @on_param_metric);
-param_grid = uigridlayout(pg, [2 1]);
-param_grid.Padding = [0 0 0 0];
 
 act_panel = uipanel(right, 'Title', 'ACTIONS');
 ag = uigridlayout(act_panel, [1 6]);
@@ -225,7 +214,8 @@ gauge = uigauge(status_bar, 'linear', 'Tag', 'progress', 'Limits', [0 100], 'Val
 %% Start
 apply_theme();
 add_files(files);
-on_metrics();
+refresh_analyses();
+setappdata(fig, 'sqat_set_analyses', @set_analyses);   % the list from metric ids, for the tests
 write_log('Ready. Open WAV files, choose metrics and parameters, then press Run Analysis.');
 if nargout > 0
     varargout{1} = fig;   % fig itself stays: the callbacks share it
@@ -296,20 +286,129 @@ end
         end
     end
 
-    function on_metrics(~, ~)
-        sel = ticked_metrics();
-        [~, idx] = ismember(sel, {metrics.id});
-        previous = dd_param.Value;
-        set(dd_param, 'Items', {metrics(idx).label}, 'ItemsData', sel);
-        if il_is_member(previous, sel)
-            dd_param.Value = previous;
+    %% The list of analyses
+
+    function refresh_analyses()
+        % one row per analysis: its number, the metric, the gear of its parameters and the x
+        delete(analysis_list.Children);
+        close_params();
+        n = numel(analyses);
+        analysis_list.RowHeight = repmat({26}, 1, max(n, 1));
+        for k = 1:n
+            a = analyses(k);
+            [~, suffix] = il_split_key(a.key);
+            uilabel(analysis_list, 'Text', suffix, 'Tag', sprintf('analysis_number_%d', k));
+            uidropdown(analysis_list, 'Items', {metrics.label}, 'ItemsData', {metrics.id}, ...
+                'Value', a.id, 'Tag', sprintf('analysis_metric_%d', k), ...
+                'ValueChangedFcn', @(src, ~) on_analysis_metric(k, src.Value));
+            uibutton(analysis_list, 'Text', char(9881), 'FontSize', 16, 'Tag', sprintf('analysis_params_%d', k), ...
+                'Tooltip', 'Parameters of this analysis', 'ButtonPushedFcn', @(~, ~) on_analysis_params(k));
+            uibutton(analysis_list, 'Text', 'x', 'Tag', sprintf('analysis_remove_%d', k), ...
+                'Tooltip', 'Removes this analysis', 'ButtonPushedFcn', @(~, ~) on_remove_analysis(k));
         end
-        build_params();
     end
 
-    function sel = ticked_metrics()
-        % the ids of the ticked metrics, in the order of the table
-        sel = {metrics(tbl_metrics.Data{:, 1}).id};
+    function set_analyses(ids)
+        % the list holds these metrics, with their default parameters
+        analyses = analyses([]);
+        for k = 1:numel(ids)
+            e = metrics(strcmp({metrics.id}, ids{k}));
+            analyses(k) = struct('key', '', 'id', e.id, 'p', il_default_params(e));
+        end
+        assign_keys();
+        refresh_analyses();
+    end
+
+    function assign_keys()
+        % the first analysis of a metric is keyed by its id, the next ones id#2, id#3, ...
+        for k = 1:numel(analyses)
+            n = nnz(strcmp({analyses(1:k).id}, analyses(k).id));
+            analyses(k).key = analyses(k).id;
+            if n > 1
+                analyses(k).key = sprintf('%s#%d', analyses(k).id, n);
+            end
+        end
+    end
+
+    function on_add_analysis(~, ~)
+        % a copy of the last analysis, whose parameters are then changed to compare
+        if isempty(analyses)
+            e = metrics(strcmp({metrics.id}, 'Loudness_ISO532_1'));
+            analyses = struct('key', '', 'id', e.id, 'p', il_default_params(e));
+        else
+            analyses(end+1) = analyses(end);
+        end
+        assign_keys();
+        refresh_analyses();
+    end
+
+    function on_analysis_metric(k, id)
+        e = metrics(strcmp({metrics.id}, id));
+        analyses(k).id = id;
+        analyses(k).p = il_default_params(e);
+        assign_keys();
+        refresh_analyses();
+    end
+
+    function on_remove_analysis(k)
+        analyses(k) = [];
+        assign_keys();
+        refresh_analyses();
+    end
+
+    function on_analysis_params(k)
+        % a small window with the parameters of analysis k; a change applies at once
+        close_params();
+        a = analyses(k);
+        e = metrics(strcmp({metrics.id}, a.id));
+        n = numel(e.params);
+        w = uifigure('Name', ['Parameters: ' il_analysis_label(metrics, a.key)], ...
+            'Position', [fig.Position(1) + 440, fig.Position(2) + 300, 420, 60 + 34 * max(n, 1)], ...
+            'Visible', fig.Visible, 'Tag', 'SQAT_GUI_params', 'CreateFcn', '');
+        g = uigridlayout(w, [max(n, 1) + 1, 2]);
+        g.ColumnWidth = {'1x', 200};
+        g.RowHeight = [repmat({26}, 1, max(n, 1)), {28}];
+        if n == 0
+            uilabel(g, 'Text', 'This metric has no parameters.');
+            uilabel(g, 'Text', '');
+        end
+        for k_par = 1:n
+            q = e.params(k_par);
+            uilabel(g, 'Text', q.label);
+            current = a.p.(q.name);
+            if strcmp(q.type, 'choice')
+                c = uidropdown(g, 'Items', q.options(:, 1)', 'ItemsData', q.options(:, 2)', 'Value', current);
+            else
+                c = uieditfield(g, 'numeric', 'Value', current);
+            end
+            c.Tag = ['param_' q.name];
+            c.ValueChangedFcn = @(src, ~) set_param(a.key, q.name, src.Value);
+        end
+        uilabel(g, 'Text', '');
+        uibutton(g, 'Text', 'Close', 'Tag', 'params_close', 'ButtonPushedFcn', @(~, ~) delete(w));
+        if exist('theme', 'file')
+            theme(w, theme_style);
+        end
+    end
+
+    function set_param(key, name, value)
+        k = find(strcmp({analyses.key}, key), 1);
+        if ~isempty(k)
+            analyses(k).p.(name) = value;
+        end
+    end
+
+    function close_params()
+        delete(findall(groot, 'Type', 'figure', 'Tag', 'SQAT_GUI_params'));
+    end
+
+    function e = run_entry(key)
+        % the metric of an analysis of the last run, with its key, its label and its parameters
+        a = run_settings.analyses(strcmp({run_settings.analyses.key}, key));
+        e = metrics(strcmp({metrics.id}, a.id));
+        e.key = a.key;
+        e.label = il_analysis_label(metrics, a.key);
+        e.p = a.p;
     end
 
     function show_results()
@@ -323,10 +422,6 @@ end
                 uitable(uigridlayout(t, [1 1]), 'Data', results(rows, 2:end), 'RowName', {});
             end
         end
-    end
-
-    function on_param_metric(~, ~)
-        build_params();
     end
 
     function on_browse(~, ~)
@@ -365,11 +460,11 @@ end
             write_log('No signals ticked. Tick the signals to analyse.');
             return
         end
-        sel = ticked_metrics();
-        if isempty(sel)
-            write_log('No metrics selected.');
+        if isempty(analyses)
+            write_log('No metrics in the list of analyses. Add one with + Add.');
             return
         end
+        sel = {analyses.key};
         save_figs = cb_save.Value;
         split = cb_split.Value;
         folder = strtrim(ed_folder.Value);
@@ -385,11 +480,12 @@ end
         files_order = [use(k_active), use(use ~= use(k_active))];
         active_path = loaded(files_order(1)).path;
         clear_cache();
-        run_settings = struct('signals', loaded(use), 'params', params);
+        run_settings = struct('signals', loaded(use), 'analyses', analyses);
+        close_params();
 
         new_results = il_empty_results();
         new_store = il_empty_store();
-        stereo_sel = ismember(sel, {metrics([metrics.stereo]).id});
+        stereo_sel = ismember({analyses.id}, {metrics([metrics.stereo]).id});
         n_total = 0;
         for i = files_order
             n_ch = numel(channel_list(loaded(i)));
@@ -439,7 +535,7 @@ end
                 if numel(cl) > 1
                     suffix = sprintf('_ch%d', c);
                 end
-                plan = SQAT_GUI_share(ids_single, params, numel(x), fs);
+                plan = share_plan(ids_single, numel(x), fs);
                 done = struct();                 % outputs of this channel, by metric id
                 for j = 1:numel(plan)
                     drawnow                      % the Stop button gets its turn here
@@ -447,18 +543,20 @@ end
                     if stop_requested
                         break
                     end
-                    e = metrics(strcmp({metrics.id}, plan(j).id));
+                    e = run_entry(plan(j).id);
                     set_status(sprintf('Running %s on %s (%d of %d)', e.label, f.name, n_done + 1, n_total));
                     try
                         [OUT, new_figs] = run_step(e, plan(j), done, x, fs, f, ...
                             show || (first && strcmp(f.path, active_path)));
-                        done.(e.id) = OUT;
+                        if strcmp(e.key, e.id)       % a source for the metrics that share its computation
+                            done.(e.id) = OUT;
+                        end
                         entries(end+1) = il_entry_of(f, e, OUT, num2str(c), 1, 1); %#ok<AGROW>
                         if ~isempty(new_figs)
-                            keep_figures(new_figs, f, e.id, save_figs, split, folder, suffix, first);
+                            keep_figures(new_figs, f, e.key, save_figs, split, folder, suffix, first);
                         end
                     catch err
-                        write_log(sprintf('ERROR in %s (%s): %s', e.id, f.name, err.message));
+                        write_log(sprintf('ERROR in %s (%s): %s', e.key, f.name, err.message));
                         n_errors = n_errors + 1;
                     end
                     n_done = n_done + 1;
@@ -480,11 +578,11 @@ end
                     if isempty(X) || stop_requested
                         break
                     end
-                    e = metrics(strcmp({metrics.id}, ids_joint{j}));
+                    e = run_entry(ids_joint{j});
                     set_status(sprintf('Running %s on %s (%d of %d)', e.label, f.name, n_done + 1, n_total));
-                    write_log(sprintf('Running %s on %s, both channels ...', e.id, f.name));
+                    write_log(sprintf('Running %s on %s, both channels ...', e.key, f.name));
                     try
-                        [OUT, new_figs] = run_metric(e, X, fs, params.(e.id), ...
+                        [OUT, new_figs] = run_metric(e, X, fs, e.p, ...
                             show || strcmp(f.path, active_path));
                         for label = {'1', '2', 'Binaural'}
                             c_out = label{1};
@@ -497,10 +595,10 @@ end
                             end
                         end
                         if ~isempty(new_figs)
-                            keep_figures(new_figs, f, e.id, save_figs, split, folder, '', true);
+                            keep_figures(new_figs, f, e.key, save_figs, split, folder, '', true);
                         end
                     catch err
-                        write_log(sprintf('ERROR in %s (%s): %s', e.id, f.name, err.message));
+                        write_log(sprintf('ERROR in %s (%s): %s', e.key, f.name, err.message));
                         n_errors = n_errors + 1;
                     end
                     n_done = n_done + 1;
@@ -1211,37 +1309,6 @@ end
         end
     end
 
-    function build_params()
-        delete(param_grid.Children);
-        if isempty(dd_param.Items)
-            return
-        end
-        id = dd_param.Value;
-        e = metrics(strcmp({metrics.id}, id));
-        n = numel(e.params);
-        param_grid.RowHeight = {18, 24};
-        param_grid.ColumnWidth = repmat({'1x'}, 1, max(n, 3));
-        for k_par = 1:n
-            q = e.params(k_par);
-            lbl = uilabel(param_grid, 'Text', q.label);
-            lbl.Layout.Row = 1; lbl.Layout.Column = k_par;
-            current = params.(id).(q.name);
-            if strcmp(q.type, 'choice')
-                c = uidropdown(param_grid, 'Items', q.options(:, 1)', ...
-                    'ItemsData', q.options(:, 2)', 'Value', current);
-            else
-                c = uieditfield(param_grid, 'numeric', 'Value', current);
-            end
-            c.Tag = ['param_' q.name];
-            c.Layout.Row = 2; c.Layout.Column = k_par;
-            c.ValueChangedFcn = @(src, ~) set_param(id, q.name, src.Value);
-        end
-    end
-
-    function set_param(id, name, value)
-        params.(id).(name) = value;
-    end
-
     %% Graphs windows: signal, metric, analysis, plot
 
     function ws = open_graph_windows()
@@ -1344,7 +1411,7 @@ end
         body = findobj(w, 'Tag', 'graph_body');
         delete(body.Children);
         in_window = ismember({ws.file}, paths);
-        ids = {metrics(ismember({metrics.id}, {ws(in_window).metric})).id};
+        ids = unique({ws(in_window).metric}, 'stable');   % the keys of the analyses, in the order of the run
         if isempty(ids)
             set([dm, dc, da], 'Items', {});
             uilabel(uigridlayout(body, [1 1]), 'HorizontalAlignment', 'center', ...
@@ -1352,18 +1419,17 @@ end
             w.Name = 'SQAT graphs';
             return
         end
-        [~, idx] = ismember(ids, {metrics.id});
         wanted = dm.Value;
         if ~il_is_member(wanted, ids)
             wanted = last_metric;
         end
-        set(dm, 'Items', {metrics(idx).label}, 'ItemsData', ids);
+        set(dm, 'Items', cellfun(@(k) il_analysis_label(metrics, k), ids, 'UniformOutput', false), 'ItemsData', ids);
         if il_is_member(wanted, ids)
             dm.Value = wanted;
         end
         id = dm.Value;
         last_metric = id;
-        label = metrics(strcmp({metrics.id}, id)).label;
+        label = il_analysis_label(metrics, id);
 
         in_metric = in_window & strcmp({ws.metric}, id);
         chans = unique({ws(in_metric).channel}, 'stable');
@@ -1431,7 +1497,7 @@ end
         % the figure that the SQAT function draws, copied into the window; a pinned
         % window does not run the metric again, since the settings may have changed
         f = loaded(strcmp({loaded.path}, path));
-        label = metrics(strcmp({metrics.id}, id)).label;
+        label = il_analysis_label(metrics, id);
         k_c = find(strcmp({cache.file}, f.path) & strcmp({cache.metric}, id), 1);
         if isempty(k_c) || ~all(isvalid(cache(k_c).figs))
             if ~may_run
@@ -1449,12 +1515,12 @@ end
                     f = run_settings.signals(k_r);   % the channel and dBFS of the run
                 end
                 cl = channel_list(f);
-                e = metrics(strcmp({metrics.id}, id));
+                e = run_entry(id);
                 if ~e.stereo
                     cl = cl(1);                   % one figure per signal: the first channel
                 end
                 [x, fs] = SQAT_GUI_load(f.path, f.dBFS, cl);
-                [~, new_figs] = run_metric(e, x, fs, run_settings.params.(id), true, false);
+                [~, new_figs] = run_metric(e, x, fs, e.p, true, false);
             catch err
                 write_log(sprintf('The SQAT figure of %s could not be drawn: %s', id, err.message));
                 lbl_status.Text = 'Ready';
@@ -1763,12 +1829,28 @@ end
             OUT = SQAT_GUI_take(done.(step.from), step);
             if ~isempty(OUT)
                 write_log(sprintf('%s on %s: taken from %s, the same computation.', ...
-                    e.id, f.name, step.from));
+                    e.key, f.name, step.from));
                 return
             end
         end
-        write_log(sprintf('Running %s on %s ...', e.id, f.name));
-        [OUT, new_figs] = run_metric(e, x, fs, params.(e.id), show);
+        write_log(sprintf('Running %s on %s ...', e.key, f.name));
+        [OUT, new_figs] = run_metric(e, x, fs, e.p, show);
+    end
+
+    function plan = share_plan(keys, n_samples, fs)
+        % the first analysis of each metric shares computations (SQAT_GUI_share);
+        % a second one of the same metric runs on its own
+        first = keys(~contains(keys, '#'));
+        P = struct();
+        for a = run_settings.analyses
+            if ismember(a.key, first)
+                P.(a.key) = a.p;
+            end
+        end
+        plan = SQAT_GUI_share(first, P, n_samples, fs);
+        for key = keys(contains(keys, '#'))
+            plan(end+1) = struct('id', key{1}, 'from', '', 'field', '', 'attach', {{}}, 'restat', []); %#ok<AGROW>
+        end
     end
 
     function [OUT, new_figs] = run_metric(e, x, fs, p, show, fallback)
@@ -1790,7 +1872,7 @@ end
                 rethrow(err);
             end
             write_log(sprintf('The SQAT figure of %s could not be drawn (%s); values computed without it.', ...
-                e.id, err.message));
+                e.key, err.message));
             [txt, OUT] = evalc('e.run(x, fs, p, false)');
         end
         write_block(txt);
@@ -1979,6 +2061,35 @@ tf = (ischar(value) || isstring(value)) && strlength(string(value)) > 0 ...
     && any(strcmp(list, value));
 end
 
+function p = il_default_params(e)
+% the default parameters of metric e
+p = struct();
+for q = e.params
+    p.(q.name) = q.value;
+end
+end
+
+function [id, suffix] = il_split_key(key)
+% Metric_id#2 -> Metric_id and '#2'; the first analysis of a metric has no suffix
+k = strfind(key, '#');
+if isempty(k)
+    id = key;
+    suffix = '';
+else
+    id = key(1:k-1);
+    suffix = key(k:end);
+end
+end
+
+function label = il_analysis_label(metrics, key)
+% the name of an analysis: the label of its metric, and #2 for the second one
+[id, suffix] = il_split_key(key);
+label = metrics(strcmp({metrics.id}, id)).label;
+if ~isempty(suffix)
+    label = [label ' ' suffix];
+end
+end
+
 function items = il_channel_items(n)
 % the channels a file of n channels offers: each one, and All when there are several
 items = arrayfun(@num2str, 1:n, 'UniformOutput', false);
@@ -2006,7 +2117,7 @@ end
 
 function en = il_entry_of(f, e, OUT, label, channel, n_channels)
 % the analyses and the single values that OUT holds for one channel
-en = struct('file', f.path, 'name', f.name, 'id', f.id, 'metric', e.id, 'channel', label, ...
+en = struct('file', f.path, 'name', f.name, 'id', f.id, 'metric', e.key, 'channel', label, ...
     'analyses', SQAT_GUI_extract(OUT, e.id, channel), ...
     'values', SQAT_GUI_single_values(OUT, channel, n_channels));
 end
