@@ -4,7 +4,7 @@ function varargout = SQAT_GUI(files, varargin)
 %   Graphical interface to the metrics of SQAT, laid out as the interface of
 %   pySQAT. It loads .wav files into a list of signals (a tick marks a signal
 %   for use, the x removes it), calibrates them with a dBFS value, runs the
-%   selected metrics with the chosen parameters on the ticked signals, and
+%   ticked metrics with the chosen parameters on the ticked signals, and
 %   lists their single values. The channel to analyse is one channel of each
 %   file or All: the ECMA-418-2 metrics take a stereo pair in one call and
 %   return the left, the right and (except the tonality) the combined
@@ -127,7 +127,7 @@ cmap = SQAT_GUI_colormap_heat(256);
 
 %% Main window
 fig = uifigure('Name', 'SQAT: Sound Quality Analysis Toolbox', ...
-    'Position', [100 100 1300 820], 'Visible', opts.Visible, 'Tag', 'SQAT_GUI', ...
+    'Position', [60 60 1420 880], 'Visible', opts.Visible, 'Tag', 'SQAT_GUI', ...
     'CloseRequestFcn', @on_close, 'CreateFcn', '');   % skips a user default CreateFcn
 main = uigridlayout(fig, [3 2]);
 main.RowHeight = {44, '1x', 24};
@@ -159,10 +159,10 @@ uilabel(left, 'Text', 'SIGNALS (tick to use, x to remove)', 'FontWeight', 'bold'
 tbl_signals = uitable(left, 'Tag', 'signals_table', 'RowName', {}, 'ColumnName', {'', 'Signal', ''}, ...
     'ColumnWidth', {28, 170, 28}, 'ColumnEditable', [true false false], ...
     'CellEditCallback', @on_signal_marked, 'CellSelectionCallback', @on_signal_selected);
-uilabel(left, 'Text', 'METRICS TO ANALYZE (Ctrl or Cmd + click)', 'FontWeight', 'bold');
-lb_metrics = uilistbox(left, 'Items', {metrics.label}, 'ItemsData', {metrics.id}, ...
-    'Multiselect', 'on', 'Value', {'Loudness_ISO532_1'}, 'Tag', 'metrics_list', ...
-    'ValueChangedFcn', @on_metrics);
+uilabel(left, 'Text', 'METRICS TO ANALYZE (tick to use)', 'FontWeight', 'bold');
+tbl_metrics = uitable(left, 'Tag', 'metrics_list', 'RowName', {}, 'ColumnName', {'', 'Metric'}, ...
+    'Data', table(strcmp({metrics.id}', 'Loudness_ISO532_1'), string({metrics.label}')), ...
+    'ColumnWidth', {28, 'auto'}, 'ColumnEditable', [true false], 'CellEditCallback', @on_metrics);
 uilabel(left, 'Text', 'ACTIONS', 'FontWeight', 'bold');
 uibutton(left, 'Text', 'Run Analysis', 'Tag', 'run', 'FontWeight', 'bold', ...
     'BackgroundColor', green, 'FontColor', [1 1 1], 'ButtonPushedFcn', @on_run);
@@ -275,7 +275,7 @@ end
     end
 
     function on_metrics(~, ~)
-        sel = lb_metrics.Value;
+        sel = ticked_metrics();
         [~, idx] = ismember(sel, {metrics.id});
         previous = dd_param.Value;
         set(dd_param, 'Items', {metrics(idx).label}, 'ItemsData', sel);
@@ -283,6 +283,24 @@ end
             dd_param.Value = previous;
         end
         build_params();
+    end
+
+    function sel = ticked_metrics()
+        % the ids of the ticked metrics, in the order of the table
+        sel = {metrics(tbl_metrics.Data{:, 1}).id};
+    end
+
+    function show_results()
+        % the results as one list, and one tab per signal (Results #1, #2, ...) with its own rows
+        tbl.Data = results;
+        delete(findobj(tabs, 'Tag', 'results_signal'));
+        for f = loaded
+            rows = strcmp(results.File, f.name);
+            if any(rows)
+                t = uitab(tabs, 'Title', sprintf('Results #%d', f.id), 'Tag', 'results_signal');
+                uitable(uigridlayout(t, [1 1]), 'Data', results(rows, 2:end), 'RowName', {});
+            end
+        end
     end
 
     function on_param_metric(~, ~)
@@ -325,7 +343,7 @@ end
             write_log('No signals ticked. Tick the signals to analyse.');
             return
         end
-        sel = lb_metrics.Value;
+        sel = ticked_metrics();
         if isempty(sel)
             write_log('No metrics selected.');
             return
@@ -488,7 +506,7 @@ end
 
         results = new_results;
         store = new_store;
-        tbl.Data = results;
+        show_results();
         ran = sel(ismember(sel, {store.metric}));
         if stop_requested
             msg = sprintf('Stopped: %d value(s) from %d of the %d analysis step(s) in %.1f s', ...
@@ -1099,7 +1117,7 @@ end
         keep = ~strcmp({store.file}, f.path);
         store = store(keep);
         results = results(~strcmp(results.File, f.name), :);
-        tbl.Data = results;
+        show_results();
         drop = strcmp({cache.file}, f.path);
         for k_c = find(drop)
             delete(cache(k_c).figs(isvalid(cache(k_c).figs)));
@@ -1172,8 +1190,11 @@ end
             items{end+1} = 'All';
         end
         previous = dd_channel.Value;
+        had_all = il_is_member('All', dd_channel.Items);
         dd_channel.Items = items;
-        if il_is_member(previous, items)
+        if n > 1 && ~had_all
+            dd_channel.Value = 'All';        % the first stereo file: every channel by default
+        elseif il_is_member(previous, items)
             dd_channel.Value = previous;
         end
     end
@@ -1394,7 +1415,7 @@ end
                     end
                 end
             case 'all'
-                tg = uitabgroup(body, 'Units', 'normalized', 'Position', [0 0 1 1]);
+                tg = uitabgroup(uigridlayout(body, [1 1], 'Padding', 0));   % the grid sizes it on screen
                 for a = entries(1).analyses
                     draw_analysis(uitab(tg, 'Title', a.label), entries, a.id, chan);
                 end
@@ -1441,7 +1462,7 @@ end
             lbl_status.Text = 'Ready';
         end
         delete(parent.Children);
-        tg = uitabgroup(parent, 'Units', 'normalized', 'Position', [0 0 1 1]);
+        tg = uitabgroup(uigridlayout(parent, [1 1], 'Padding', 0));   % the grid sizes it on screen
         for k_f = 1:numel(cache(k_c).figs)
             src = cache(k_c).figs(k_f);
             if ~cb_split.Value
