@@ -80,7 +80,7 @@ metrics = SQAT_GUI_metrics;
 % be there more than once, and its second entry is keyed Metric_id#2
 analyses = struct('key', 'Loudness_ISO532_1', 'id', 'Loudness_ISO532_1', ...
     'p', il_default_params(metrics(strcmp({metrics.id}, 'Loudness_ISO532_1'))));
-loaded = struct('path', {}, 'name', {}, 'nch', {}, 'fs', {}, 'marked', {}, 'id', {}, 'channel', {}, 'dBFS', {});
+loaded = struct('path', {}, 'name', {}, 'nch', {}, 'fs', {}, 'marked', {}, 'id', {}, 'channel', {}, 'dBFS', {}, 'cal_set', {});
 next_id = 1;                                          % the number of the next signal loaded
 active_idx = 0;                                       % the signal on screen in the player
 results = il_empty_results();
@@ -144,16 +144,13 @@ left.RowHeight = {28, 170, 28, '1x'};
 sh = uigridlayout(left, [1 3]);
 sh.Padding = [0 0 0 0];
 sh.ColumnWidth = {'1x', 100, 130};
-uilabel(sh, 'Text', 'SIGNALS (tick to use, x to remove)', 'FontWeight', 'bold');
+uilabel(sh, 'Text', 'SIGNALS', 'FontWeight', 'bold');
 lbl_files = uilabel(sh, 'Text', 'No files loaded', 'Tag', 'file_count', 'HorizontalAlignment', 'right');
 uibutton(sh, 'Text', 'Open WAV files...', 'Tag', 'load_files', 'ButtonPushedFcn', @on_load_files);
-tbl_signals = uitable(left, 'Tag', 'signals_table', 'RowName', {}, ...
-    'ColumnName', {'', 'Signal', 'Channel', 'dBFS', ''}, ...
-    'ColumnWidth', {28, 180, 70, 60, 28}, 'ColumnEditable', [true false true true false], ...
-    'Tooltip', ['Channel: the one to analyse, or All (the ECMA-418-2 metrics take a stereo file ' ...
-                'as a binaural pair, in one call). dBFS: dB SPL of a full-scale amplitude ' ...
-                '(94: full scale 1.0 is 1 Pa)'], ...
-    'CellEditCallback', @on_signal_edited, 'CellSelectionCallback', @on_signal_selected);
+signal_list = uigridlayout(left, [1 6], 'Scrollable', 'on', 'Tag', 'signals_list');
+signal_list.ColumnWidth = {30, 22, '1x', 62, 58, 26};
+signal_list.Padding = [0 0 0 0];
+signal_list.RowSpacing = 4;
 ah = uigridlayout(left, [1 2]);
 ah.Padding = [0 0 0 0];
 ah.ColumnWidth = {'1x', 130};
@@ -232,49 +229,49 @@ end
         add_files(fullfile(p, cellstr(f)));
     end
 
-    function on_signal_edited(~, event)
-        % the tick, the channel or the dBFS of a signal
-        k = event.Indices(1);
-        switch event.Indices(2)
-            case 1
-                loaded(k).marked = logical(event.NewData);
-                refresh_windows();
-                return
-            case 3
-                c = char(event.NewData);
-                if ~il_is_member(c, il_channel_items(loaded(k).nch))
-                    write_log(sprintf('%s has %d channel(s); channel %s is not there.', loaded(k).name, loaded(k).nch, c));
-                    refresh_signals();
-                    return
-                end
-                loaded(k).channel = c;
-            case 4
-                if ~isfinite(event.NewData)
-                    refresh_signals();
-                    return
-                end
-                loaded(k).dBFS = event.NewData;
-        end
-        refresh_signals();                   % the table shows what the signal holds
+    function on_signal_channel(k, c)
+        loaded(k).channel = c;
+        signal_changed(k);
+    end
+
+    function on_signal_cal(k, src)
+        % the level of a full-scale amplitude; set by hand, it is no longer shown as the default
+        loaded(k).dBFS = src.Value;
+        loaded(k).cal_set = true;
+        src.FontAngle = 'normal';
+        signal_changed(k);
+    end
+
+    function signal_changed(k)
         if k == active_idx && il_is_open(win_wave)
             draw_waveform_window();
         end
     end
 
-    function on_signal_selected(~, event)
-        if isempty(event.Indices)
-            return
-        end
-        k = event.Indices(1, 1);
-        if event.Indices(1, 2) == 5
-            remove_signal(k);                % the x at the right of the row
-            return
-        end
+    function on_signal_ticked(k, tf)
+        loaded(k).marked = tf;
+        refresh_windows();
+    end
+
+    function on_signal_name(k)
+        % the name makes the signal the one of the player and the waveform window
         if k ~= active_idx
             active_idx = k;
             show_active();
             refresh_windows();
         end
+    end
+
+    function on_signal_remove(k)
+        % the x asks first: the results and the figures of the signal go with it
+        if strcmp(fig.Visible, 'on')
+            answer = uiconfirm(fig, sprintf('Remove %s and its results?', loaded(k).name), ...
+                'Remove signal', 'Options', {'Remove', 'Cancel'}, 'DefaultOption', 2, 'CancelOption', 2);
+            if ~strcmp(answer, 'Remove')
+                return
+            end
+        end
+        remove_signal(k);
     end
 
     function on_graph_option(~, ~)
@@ -1225,7 +1222,7 @@ end
             [~, base, ext] = fileparts(path);
             loaded(end+1) = struct('path', path, 'name', [base ext], ...
                 'nch', info.NumChannels, 'fs', info.SampleRate, 'marked', true, 'id', next_id, ...
-                'channel', il_default_channel(info.NumChannels), 'dBFS', 94); %#ok<AGROW>
+                'channel', il_default_channel(info.NumChannels), 'dBFS', 94, 'cal_set', false); %#ok<AGROW>
             next_id = next_id + 1;
         end
         if isempty(loaded)
@@ -1264,35 +1261,63 @@ end
     end
 
     function refresh_signals()
-        % the table of signals, the count and the channels on offer
+        % one row per signal: number, tick, name (click: player), channel, calibration and x
+        delete(signal_list.Children);
         n = numel(loaded);
-        if n == 0
-            tbl_signals.Data = table(false(0, 1), strings(0, 1), categorical(strings(0, 1)), zeros(0, 1), strings(0, 1));
-            tbl_signals.RowName = {};
-            lbl_files.Text = 'No files loaded';
-        else
-            tbl_signals.Data = table(logical([loaded.marked]'), string({loaded.name}'), ...
-                categorical({loaded.channel}', il_channel_items(max([loaded.nch]))), ...
-                [loaded.dBFS]', repmat("x", n, 1));
-            tbl_signals.RowName = arrayfun(@(k) sprintf('#%d', k), [loaded.id], 'UniformOutput', false);
-            if n == 1
-                lbl_files.Text = '1 file loaded';
-            else
-                lbl_files.Text = sprintf('%d files loaded', n);
-            end
+        signal_list.RowHeight = repmat({24}, 1, n + 1);
+        heads = {'', '', 'Signal', 'Channel', 'Cal. (dB)', ''};
+        for c = 1:6
+            uilabel(signal_list, 'Text', heads{c}, 'FontWeight', 'bold');
         end
-        removeStyle(tbl_signals);
-        if active_idx > 0
-            addStyle(tbl_signals, uistyle('FontWeight', 'bold'), 'row', active_idx);
+        for k = 1:n
+            f = loaded(k);
+            uilabel(signal_list, 'Text', sprintf('#%d', f.id), 'Tag', sprintf('signal_number_%d', k));
+            uicheckbox(signal_list, 'Text', '', 'Value', f.marked, 'Tag', sprintf('signal_tick_%d', k), ...
+                'Tooltip', 'Use this signal in the run and the plots', ...
+                'ValueChangedFcn', @(src, ~) on_signal_ticked(k, src.Value));
+            uibutton(signal_list, 'Text', f.name, 'HorizontalAlignment', 'left', ...
+                'Tag', sprintf('signal_name_%d', k), 'Tooltip', [f.path newline 'Click: show it in the waveform window'], ...
+                'ButtonPushedFcn', @(~, ~) on_signal_name(k));
+            uidropdown(signal_list, 'Items', il_channel_items(f.nch), 'Value', f.channel, ...
+                'Tag', sprintf('signal_channel_%d', k), ...
+                'Tooltip', ['Channel to analyse, or All (the ECMA-418-2 metrics take a stereo ' ...
+                            'file as a binaural pair, in one call)'], ...
+                'ValueChangedFcn', @(src, ~) on_signal_channel(k, src.Value));
+            angle = 'italic';
+            if f.cal_set
+                angle = 'normal';
+            end
+            uieditfield(signal_list, 'numeric', 'Value', f.dBFS, 'Tag', sprintf('signal_cal_%d', k), ...
+                'FontAngle', angle, ...
+                'Tooltip', ['Calibration: dB SPL of a full-scale amplitude (94: full scale 1.0 is 1 Pa). ' ...
+                            'In italics while it is the default'], ...
+                'ValueChangedFcn', @(src, ~) on_signal_cal(k, src));
+            uibutton(signal_list, 'Text', 'x', 'Tag', sprintf('signal_remove_%d', k), ...
+                'Tooltip', 'Removes this signal and its results', 'ButtonPushedFcn', @(~, ~) on_signal_remove(k));
+        end
+        if n == 0
+            lbl_files.Text = 'No files loaded';
+        elseif n == 1
+            lbl_files.Text = '1 file loaded';
+        else
+            lbl_files.Text = sprintf('%d files loaded', n);
+        end
+        mark_active();
+    end
+
+    function mark_active()
+        % the name of the signal on screen is shown in bold
+        for k = 1:numel(loaded)
+            b = findobj(signal_list, 'Tag', sprintf('signal_name_%d', k));
+            b.FontWeight = 'normal';
+            if k == active_idx
+                b.FontWeight = 'bold';
+            end
         end
     end
 
     function show_active()
-        % the row on screen is shown in bold
-        removeStyle(tbl_signals);
-        if active_idx > 0
-            addStyle(tbl_signals, uistyle('FontWeight', 'bold'), 'row', active_idx);
-        end
+        mark_active();
         if il_is_open(win_wave)
             draw_waveform_window();
         end
