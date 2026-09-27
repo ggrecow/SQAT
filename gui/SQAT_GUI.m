@@ -629,7 +629,12 @@ end
             end
         end
 
-        results = new_results;
+        % the list goes analysis by analysis and quantity by quantity, with the
+        % signals and their channels side by side (the tab of a signal keeps its own rows)
+        a_num = str2double(erase(new_results.Analysis, '#'));
+        [~, ~, q] = unique(strcat(new_results.Analysis, '|', new_results.Quantity), 'stable');
+        [~, order] = sortrows([a_num, q, (1:height(new_results))']);
+        results = new_results(order, :);
         store = new_store;
         show_results();
         ran = sel(ismember(sel, {store.metric}));
