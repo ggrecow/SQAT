@@ -648,7 +648,7 @@ tc.addTeardown(@() delete(fig));
 tc.verifyClass(fig, 'matlab.ui.Figure');
 for tag = {'logo','file_count','load_files','signals_list','theme', ...
            'add_analysis','analysis_list','run','stop_run','open_graphs','open_waveform','export', ...
-           'show_plots','save_figures','split_figures','figures_folder', ...
+           'show_plots','save_figures','split_figures', ...
            'console','results_table','status','progress'}
     tc.verifyNotEmpty(findobj(fig, 'Tag', tag{1}), ['missing control: ' tag{1}]);
 end
@@ -1149,40 +1149,69 @@ il_press(fig, 'add_analysis');                       % a number is not given twi
 tc.verifyEqual(findobj(fig, 'Tag', 'analysis_number_2').Text, '#3');
 end
 
-function test_gui_saves_the_figures_of_the_metrics(tc)
-fig = SQAT_GUI({tc.TestData.wav_mono}, 'Visible', 'off');
+function test_gui_save_dialog_saves_the_chosen_figures(tc)
+% Save figures opens a dialog: the signals, and per metric the SQAT figure, the
+% analyses (the signals overlaid, as in the graphs window) and the statistics (CSV)
+fig = SQAT_GUI({tc.TestData.wav_mono, tc.TestData.wav_tone}, 'Visible', 'off');
 tc.addTeardown(@() delete(fig));
-il_select_metrics(fig, {'Roughness_Daniel1997'});
-out_dir = fullfile(tc.TestData.dir_tmp, 'figs'); mkdir(out_dir);
-h = findobj(fig, 'Tag', 'save_figures');   h.Value = true;
-h = findobj(fig, 'Tag', 'figures_folder'); h.Value = out_dir;
+il_select_metrics(fig, {'Loudness_ISO532_1'});
 il_press(fig, 'run');
-png = dir(fullfile(out_dir, '*.png'));
-tc.verifyNotEmpty(png);
-tc.verifyTrue(all(startsWith({png.name}, 'tone_mono_s1_Roughness_Daniel1997_a1')));
-tc.verifyEmpty(il_sqat_figures());                % saved, then closed
-il_press(fig, 'run');                             % a second run keeps the first files
-tc.verifyNumElements(dir(fullfile(out_dir, '*.png')), 2 * numel(png));
+il_press(fig, 'save_figures');
+d = il_window('SQAT_GUI_save');
+tc.assertNumElements(d, 1);
+sig = findobj(d, 'Tag', 'save_signals');
+tc.verifyEqual(sort({sig.CheckedNodes.Text}), {'#1 tone_mono.wav', '#2 tone_1k_60dB.wav'});
+items = findobj(d, 'Tag', 'save_items');
+kids = items.Children(1).Children;
+tc.verifyEqual(kids(1).Text, 'SQAT figure');
+tc.verifyEqual(kids(end).Text, 'Statistics');
+tc.verifyEqual({items.CheckedNodes.Text}, {'SQAT figure'});   % the default
+aids = arrayfun(@(n) n.NodeData.aid, kids, 'UniformOutput', false);
+items.CheckedNodes = kids(ismember(aids, {'sqat', 'loudness', 'stats'}));
+out_dir = fullfile(tc.TestData.dir_tmp, 'saved'); mkdir(out_dir);
+h = findobj(d, 'Tag', 'save_folder'); h.Value = out_dir;
+il_press(d, 'save_do');
+tc.verifyEmpty(il_window('SQAT_GUI_save'));                 % the dialog closes
+names = {dir(out_dir).name};
+tc.verifyTrue(any(startsWith(names, 'tone_mono_s1_Loudness_ISO532_1_')));
+tc.verifyTrue(any(startsWith(names, 'tone_1k_60dB_s2_Loudness_ISO532_1_')));
+tc.verifyTrue(ismember('Loudness_ISO532_1_loudness_s1-s2.png', names));
+tc.verifyTrue(ismember('Loudness_ISO532_1_statistics_s1-s2.csv', names));
+c = readcell(fullfile(out_dir, 'Loudness_ISO532_1_statistics_s1-s2.csv'));
+tc.verifyEqual(c(1, :), {'Quantity', 'Signal #1, ch1', 'Signal #2, ch1'});
+tc.verifySubstring(strjoin(findobj(fig, 'Tag', 'console').Value, newline), ['saved to ' out_dir]);
 end
 
-function test_gui_split_figures_saves_one_file_per_axes(tc)
+function test_gui_save_dialog_saves_one_file_per_panel(tc)
 fig = SQAT_GUI({tc.TestData.wav_mono}, 'Visible', 'off');
 tc.addTeardown(@() delete(fig));
 il_select_metrics(fig, {'Roughness_Daniel1997'});
-out_dir = fullfile(tc.TestData.dir_tmp, 'figs_split'); mkdir(out_dir);
-h = findobj(fig, 'Tag', 'save_figures');   h.Value = true;
-h = findobj(fig, 'Tag', 'split_figures');  h.Value = true;
-h = findobj(fig, 'Tag', 'figures_folder'); h.Value = out_dir;
 il_press(fig, 'run');
-figs = il_all_sqat_figures();                      % drawn to be saved, kept hidden
+il_press(fig, 'save_figures');
+d = il_window('SQAT_GUI_save');
+out_dir = fullfile(tc.TestData.dir_tmp, 'saved_split'); mkdir(out_dir);
+h = findobj(d, 'Tag', 'save_folder'); h.Value = out_dir;
+h = findobj(d, 'Tag', 'save_split'); h.Value = true;
+il_press(d, 'save_do');
+figs = il_all_sqat_figures();                              % drawn to be saved, kept hidden
 tc.assertNotEmpty(figs);
 n_axes = numel(findobj(figs, 'Type', 'axes'));
-png = dir(fullfile(out_dir, '*.png'));
-tc.verifyEqual(numel(png), n_axes);
+tc.verifyNumElements(dir(fullfile(out_dir, '*.png')), n_axes);
 tc.verifyGreaterThanOrEqual(n_axes, numel(figs));
 for ax = findobj(figs, 'Type', 'axes')'
     tc.verifyEqual(ax.Colormap, load('cmap_inferno.txt'));
 end
+end
+
+function test_gui_run_saves_no_figure(tc)
+% saving is its own step, after the run: a run draws only the figure of the signal on screen
+fig = SQAT_GUI({tc.TestData.wav_mono, tc.TestData.wav_tone}, 'Visible', 'off');
+tc.addTeardown(@() delete(fig));
+before = dir(pwd);
+il_select_metrics(fig, {'Roughness_Daniel1997'});
+il_press(fig, 'run');
+tc.verifyEqual({dir(pwd).name}, {before.name});
+tc.verifyEmpty(findobj(fig, 'Tag', 'figures_folder'));
 end
 
 %% Graphs windows ----------------------------------------------------------
@@ -1564,6 +1593,30 @@ row = findobj(g, 'Tag', 'graph_channels');
 tc.verifyEqual(row.Parent.RowHeight{2}, 0);
 il_set(g, 'graph_analysis', 'loudness');
 tc.verifyEqual(findobj(g, 'Type', 'legend').String, {'Signal #1, ch1', 'Signal #2, ch1'});
+end
+
+function test_gui_graphs_window_saves_what_it_shows(tc)
+% Save in a graphs window opens the dialog set to its signals, metric and analysis
+fig = SQAT_GUI({tc.TestData.wav_mono, tc.TestData.wav_tone}, 'Visible', 'off');
+tc.addTeardown(@() delete(fig));
+il_select_metrics(fig, {'Loudness_ISO532_1'});
+il_press(fig, 'run');
+il_press(fig, 'open_graphs');
+g = il_window('SQAT_GUI_graphs');
+il_set(g, 'graph_analysis', 'loudness');
+il_press(g, 'graph_save');
+d = il_window('SQAT_GUI_save');
+tc.assertNumElements(d, 1);
+items = findobj(d, 'Tag', 'save_items');
+checked = items.CheckedNodes;
+tc.verifyEqual(arrayfun(@(n) n.NodeData.aid, checked, 'UniformOutput', false), {'loudness'});
+tc.verifyEqual(checked.NodeData.key, 'Loudness_ISO532_1');
+tc.verifyNumElements(findobj(d, 'Tag', 'save_signals').CheckedNodes, 2);
+out_dir = fullfile(tc.TestData.dir_tmp, 'saved_graphs'); mkdir(out_dir);
+h = findobj(d, 'Tag', 'save_folder'); h.Value = out_dir;
+h = findobj(d, 'Tag', 'save_format'); h.Value = 'pdf';
+il_press(d, 'save_do');
+tc.verifyEqual({dir(fullfile(out_dir, '*.pdf')).name}, {'Loudness_ISO532_1_loudness_s1-s2.pdf'});
 end
 
 function test_gui_graphs_window_needs_results(tc)
