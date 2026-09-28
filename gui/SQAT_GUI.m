@@ -2073,6 +2073,10 @@ end
             closer = [];
             return
         end
+        closer = [];
+        if ~strcmp(win_wave.Visible, 'on')                     % the dialog needs a visible window
+            return
+        end
         spec_dlg = uiprogressdlg(win_wave, 'Title', 'Enhanced STFT', 'Message', msg, 'Indeterminate', 'on');
         drawnow
         d = spec_dlg;
@@ -2243,7 +2247,8 @@ end
     end
 
     function cancel_jobs(keep)
-        % drops the queued maps of other signals (all of them without keep): the pool has one worker
+        % drops the queued maps of other signals (all of them without keep); the pool may have a
+        % single worker (R2024a without the Parallel Computing Toolbox), and then the maps queue
         for k = numel(spec_jobs):-1:1
             if nargin == 0 || ~startsWith(spec_jobs(k).key, [keep '|'])
                 cancel(spec_jobs(k).job);
