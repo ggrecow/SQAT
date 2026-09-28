@@ -624,6 +624,17 @@ tc.verifyLessThan(w(2), w(1));
 tc.verifyError(@() SQAT_GUI_enhanced_stft(x, fs, 'other'), 'SQAT_GUI_enhanced_stft:smoothing');
 end
 
+function test_enhanced_stft_gives_both_smoothings_in_one_call(tc)
+% the reassignment is shared: both maps at once equal the two calls
+[x, fs] = audioread(tc.TestData.wav_two);
+[t, f, L, info] = SQAT_GUI_enhanced_stft(x, fs, {'readable', 'sharp'});
+tc.verifyEqual(info.smoothing, {'readable', 'sharp'});
+[t1, f1, L1] = SQAT_GUI_enhanced_stft(x, fs, 'readable');
+[~, ~, L2] = SQAT_GUI_enhanced_stft(x, fs, 'sharp');
+tc.verifyEqual({t, f}, {t1, f1});
+tc.verifyEqual(L, {L1, L2});
+end
+
 function test_enhanced_stft_preview_steps_by_one_column(tc)
 % the preview of a long signal: frames step by up to one output column; with 1 ms columns nothing changes
 [x, fs] = audioread(tc.TestData.wav_tone);
@@ -2334,6 +2345,10 @@ tc.verifyEmpty(findobj(ax, 'Tag', 'spec_wait'));
 keep = f >= 20;
 tc.verifyEqual(surf().CData, double(single(L(keep, :))) + SQAT_GUI_weight_curve(f(keep), fs, 'Z'));
 tc.verifyEmpty(strfind(strjoin(findobj(fig, 'Tag', 'console').Value, newline), 'ERROR'));
+il_set(w, 'spec_enhanced_mode', 'sharp');                  % the same job brought the sharp map
+tc.verifyEmpty(findobj(ax, 'Tag', 'spec_wait'));
+[~, ~, L] = SQAT_GUI_enhanced_stft(x, fs, 'sharp');
+tc.verifyEqual(surf().CData, double(single(L(keep, :))) + SQAT_GUI_weight_curve(f(keep), fs, 'Z'));
 end
 
 function test_enhanced_stft_of_a_long_signal_shows_a_preview_first(tc)

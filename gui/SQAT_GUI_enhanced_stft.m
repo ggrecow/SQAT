@@ -16,7 +16,9 @@ function [t, f, L, info] = SQAT_GUI_enhanced_stft(x, fs, smoothing, n_frames, f_
 %   fs : sampling frequency (Hz)
 %   smoothing : 'readable' (default): Gaussian smoothing of 4 ms in time
 %               and 1.45 % of the frequency, for continuous lines;
-%               'sharp': 1 ms and 1 Hz, for the thinnest lines
+%               'sharp': 1 ms and 1 Hz, for the thinnest lines; a cell
+%               array of both gives both maps for the time of one, since
+%               the reassignment does not depend on the smoothing
 %   n_frames : largest number of time columns of the output (default 2000,
 %              about the width of the screen; the time step is 1 ms or more)
 %   f_min : lowest frequency of the output (Hz, default 20)
@@ -32,7 +34,8 @@ function [t, f, L, info] = SQAT_GUI_enhanced_stft(x, fs, smoothing, n_frames, f_
 %   t : [1xN] time of each column (s)
 %   f : [Mx1] frequencies (Hz), on a logarithmic grid
 %   L : [MxN] level (dB); the maximum is aligned with the maximum of the
-%       level of the 64 ms window (dB SPL), so the colour scale is relative
+%       level of the 64 ms window (dB SPL), so the colour scale is relative.
+%       With a cell array of smoothings, a cell array of maps in that order
 %   info : struct with the windows (ms), the time step (s) and the smoothing
 %
 % Author: Sergio Aguirre and Gil Felix Greco, September 2026
@@ -79,22 +82,27 @@ n_oct = log2((fs/2) / f_min);
 F = ceil(n_oct * bins_per_octave) + 1;
 f = f_min * 2 .^ ((0:F-1)' / bins_per_octave);
 cell_f = f * (2^(1/bins_per_octave) - 1);              % width of each frequency cell (Hz)
-switch smoothing
-    case 'readable'
-        sig_t = 0.004 * fs / hop_out;                  % 4 ms, in cells
-        sig_f = 2 * (2^(1/96) - 1) * f ./ cell_f;      % 1.45 % of the frequency, in cells of each row
-    case 'sharp'
-        sig_t = 0.001 * fs / hop_out;                  % 1 ms
-        sig_f = 1 ./ cell_f;                           % 1 Hz
-    otherwise
-        error('SQAT_GUI_enhanced_stft:smoothing', 'smoothing must be ''readable'' or ''sharp''');
+modes = cellstr(smoothing);
+gts = cell(size(modes));
+sig_fs = cell(size(modes));
+for k = 1:numel(modes)
+    switch modes{k}
+        case 'readable'
+            sig_t = 0.004 * fs / hop_out;              % 4 ms, in cells
+            sig_f = 2 * (2^(1/96) - 1) * f ./ cell_f;  % 1.45 % of the frequency, in cells of each row
+        case 'sharp'
+            sig_t = 0.001 * fs / hop_out;              % 1 ms
+            sig_f = 1 ./ cell_f;                       % 1 Hz
+        otherwise
+            error('SQAT_GUI_enhanced_stft:smoothing', 'smoothing must be ''readable'' or ''sharp''');
+    end
+    sig_t = max(sig_t, 0.3);
+    sig_fs{k} = max(sig_f, 0.3);
+    kt = ceil(3 * sig_t);
+    gt = exp(-(-kt:kt)' .^ 2 / (2 * sig_t^2));
+    gts{k} = gt / sum(gt);
 end
-sig_t = max(sig_t, 0.3);
-sig_f = max(sig_f, 0.3);
-kt = ceil(3 * sig_t);
-gt = exp(-(-kt:kt)' .^ 2 / (2 * sig_t^2));
-gt = gt / sum(gt);
-log_sum = 0;
+log_sum = num2cell(zeros(1, numel(modes)));      % one geometric mean per smoothing
 for w_i = 1:numel(Ns)
     R = il_reassigned(x, fs, Ns(w_i), steps(w_i), hop_out, M, F, f_min, bins_per_octave);
     % the energy of a frame is held over its own step, so that the long windows leave no gaps
@@ -102,17 +110,25 @@ for w_i = 1:numel(Ns)
     if n_hold > 1
         R = conv2(ones(n_hold, 1) / n_hold, 1, R, 'same');
     end
-    R = il_smooth(conv2(gt, 1, R, 'same'), sig_f);
-    R = R / sum(R(:));
-    log_sum = log_sum + log(R + 1e-6 * max(R(:)));
+    for k = 1:numel(modes)
+        Rk = il_smooth(conv2(gts{k}, 1, R, 'same'), sig_fs{k});
+        Rk = Rk / sum(Rk(:));
+        log_sum{k} = log_sum{k} + log(Rk + 1e-6 * max(Rk(:)));
+    end
 end
-C = exp(log_sum / numel(Ns));
-C = C / sum(C(:));
 % level: 10 log10 of the energy density, its peak aligned with the peak of the 64 ms spectrogram (relative colour scale)
 [~, ~, L_ref] = SQAT_GUI_spectrogram(x, fs, 'hann', max(6, min(16, round(log2(0.064 * fs)))), 50);
-L = (10*log10(C / max(C(:)) + 1e-12))' + max(L_ref, [], 'all');
+L = cell(size(modes));
+for k = 1:numel(modes)
+    C = exp(log_sum{k} / numel(Ns));
+    C = C / sum(C(:));
+    L{k} = (10*log10(C / max(C(:)) + 1e-12))' + max(L_ref, [], 'all');
+end
+if ~iscell(smoothing)
+    L = L{1};
+end
 t = (0:M-1) * hop_out / fs;
-info = struct('windows_ms', 1e3 * Ns / fs, 'hop', hop_out / fs, 'smoothing', smoothing, 'preview', preview);
+info = struct('windows_ms', 1e3 * Ns / fs, 'hop', hop_out / fs, 'smoothing', {smoothing}, 'preview', preview);
 end
 
 function R = il_smooth(R, sig_f)

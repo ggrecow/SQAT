@@ -118,7 +118,7 @@ spec_signal = '';                                     % file, channel and calibr
 spec_cache = struct('key', {}, 'map', {});            % full enhanced maps already computed, not weighted
 spec_dlg = [];                                        % the wait message of the spectrogram
 spec_computing = false;                               % an enhanced map is being computed
-spec_jobs = struct('key', {}, 'job', {}, 'args', {}); % full maps queued on the background pool
+spec_jobs = struct('key', {}, 'job', {});             % full maps queued on the background pool
 spec_preview = struct('key', {}, 'map', {});          % quick full maps of a long signal, until the exact ones come
 preview_min = 60;                                     % a signal longer than this (s) gets a preview first
 spec_pool = [];                                       % the background pool, when MATLAB has one
@@ -2188,13 +2188,10 @@ end
     end
 
     function prefetch_maps()
-        % both enhanced maps of the signal on screen, the chosen mode first
-        if ~il_is_open(win_wave)
-            return
+        % both enhanced maps of the signal on screen, computed in one job
+        if il_is_open(win_wave)
+            request_maps();
         end
-        mode = findobj(win_wave, 'Tag', 'spec_enhanced_mode').Value;
-        request_map(mode);
-        request_map(il_if(strcmp(mode, 'readable'), 'sharp', 'readable'));
     end
 
     function draw_spectrogram(keep_view)
@@ -2221,7 +2218,7 @@ end
             full = full_map(mode, false);
             preview = false;
             if isempty(full) && has_pool()
-                prioritize(mode);                       % drawn when it arrives; the window stays usable
+                request_maps();                         % drawn when it arrives; the window stays usable
                 full = preview_map(mode);               % meanwhile the preview of a long signal, if it came
                 preview = ~isempty(full);
                 if ~preview && ~zoomed
@@ -2367,7 +2364,7 @@ end
                 if isempty(spec_view.full)                      % the mode changed during the zoom
                     spec_view.full = full_map(spec_view.mode, ~has_pool());
                     if isempty(spec_view.full)                  % on its way from the background pool
-                        prioritize(spec_view.mode);
+                        request_maps();
                         spec_view.full = preview_map(spec_view.mode);
                         spec_view.preview = ~isempty(spec_view.full);
                         if ~spec_view.preview
@@ -2429,8 +2426,10 @@ end
         m = [];
         if compute
             busy = spec_loading('Computing the enhanced spectrogram...');   %#ok<NASGU> closes on return
-            m = enhanced_map(wave_x, mode, []);
-            store_map(key, m);
+            ms = enhanced_map(wave_x, {'readable', 'sharp'}, []);   % both modes for the time of one
+            store_map([spec_signal '|readable'], ms(1));
+            store_map([spec_signal '|sharp'], ms(2));
+            m = ms(1 + strcmp(mode, 'sharp'));
         end
     end
 
@@ -2458,17 +2457,18 @@ end
         tf = ~isempty(spec_pool);
     end
 
-    function request_map(mode)
-        % queues the full map of the signal on screen, unless it is kept or already
-        % queued; a long signal gets a preview first (see SQAT_GUI_enhanced_stft)
-        key = [spec_signal '|' mode];
-        if isempty(wave_x) || ~has_pool() || any(strcmp({spec_cache.key}, key))
+    function request_maps()
+        % queues both full maps of the signal on screen in one job, unless they are
+        % kept or already queued; a long signal gets a preview first (see
+        % SQAT_GUI_enhanced_stft)
+        key = [spec_signal '|both'];
+        if isempty(wave_x) || ~has_pool() || all(ismember(strcat(spec_signal, {'|readable', '|sharp'}), {spec_cache.key}))
             return
         end
-        if numel(wave_x) > preview_min * wave_fs && ~any(strcmp({spec_preview.key}, key))
-            queue_job([key '|preview'], {wave_x, wave_fs, mode, [], [], [], true});
+        if numel(wave_x) > preview_min * wave_fs && ~any(startsWith({spec_preview.key}, [spec_signal '|']))
+            queue_job([key '|preview'], {wave_x, wave_fs, {'readable', 'sharp'}, [], [], [], true});
         end
-        queue_job(key, {wave_x, wave_fs, mode});
+        queue_job(key, {wave_x, wave_fs, {'readable', 'sharp'}});
     end
 
     function queue_job(key, args)
@@ -2477,31 +2477,7 @@ end
         end
         job = parfeval(spec_pool, @SQAT_GUI_enhanced_stft, 3, args{:});
         afterEach(job, @(done) on_map_done(key, done), 0, 'PassFuture', true);
-        spec_jobs(end+1) = struct('key', key, 'job', job, 'args', {args});
-    end
-
-    function prioritize(mode)
-        % the maps of the mode just chosen go ahead of the queued maps of the other
-        % mode, which are queued again behind them; a map being computed goes on
-        mine = [spec_signal '|' mode];
-        if ~has_pool()
-            return
-        end
-        later = spec_jobs([]);
-        for k = 1:numel(spec_jobs)
-            entry = spec_jobs(k);
-            if strcmp(entry.job.State, 'queued') && ~strcmp(entry.key, mine) && ~strcmp(entry.key, [mine '|preview'])
-                later(end+1) = entry; %#ok<AGROW>
-            end
-        end
-        for k = 1:numel(later)
-            cancel(later(k).job);
-            spec_jobs(strcmp({spec_jobs.key}, later(k).key)) = [];
-        end
-        request_map(mode);
-        for k = 1:numel(later)
-            queue_job(later(k).key, later(k).args);
-        end
+        spec_jobs(end+1) = struct('key', key, 'job', job);
     end
 
     function cancel_jobs(keep)
@@ -2532,18 +2508,21 @@ end
         end
         [t, f, L] = fetchOutputs(job);
         keep = f >= 20;
-        m = struct('t', t, 'f', f(keep), 'L', single(L(keep, :)));
-        if endsWith(key, '|preview')
-            key = key(1:end-8);
-            if any(strcmp({spec_cache.key}, key))               % the exact map came first
-                return
+        preview = endsWith(key, '|preview');
+        base = extractBefore(key, '|both');
+        for mode = {'readable', 'sharp'}
+            k_m = [base '|' mode{1}];
+            m = struct('t', t, 'f', f(keep), 'L', single(L{1 + strcmp(mode{1}, 'sharp')}(keep, :)));
+            if preview
+                if ~any(strcmp({spec_cache.key}, k_m))          % unless the exact map came first
+                    spec_preview(end+1) = struct('key', k_m, 'map', m); %#ok<AGROW>
+                end
+            else
+                store_map(k_m, m);
+                spec_preview(strcmp({spec_preview.key}, k_m)) = [];
             end
-            spec_preview(end+1) = struct('key', key, 'map', m);
-        else
-            store_map(key, m);
-            spec_preview(strcmp({spec_preview.key}, key)) = [];
+            show_ready_map(k_m);
         end
-        show_ready_map(key);
     end
 
     function m = preview_map(mode)
@@ -2626,9 +2605,15 @@ end
     end
 
     function m = enhanced_map(x, mode, n_frames)
+        % the map of one mode, or a map per mode when mode is a cell array
         [t, f, L] = SQAT_GUI_enhanced_stft(x, wave_fs, mode, n_frames);
         keep = f >= 20;
-        m = struct('t', t, 'f', f(keep), 'L', single(L(keep, :)));   % single: levels in dB, half the memory
+        if ~iscell(L)
+            L = {L};
+        end
+        for k = numel(L):-1:1
+            m(k) = struct('t', t, 'f', f(keep), 'L', single(L{k}(keep, :)));   % single: dB, half the memory
+        end
     end
 
     function L = weighted(m)
