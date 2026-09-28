@@ -787,8 +787,9 @@ end
             win_wave = uifigure('Name', 'Waveform', 'Position', [140 140 1100 700], ...
                 'Visible', fig.Visible, 'Tag', 'SQAT_GUI_waveform', 'CloseRequestFcn', @on_close_waveform, ...
                 'CreateFcn', '', 'KeyPressFcn', @on_wave_key);
-            gw = uigridlayout(win_wave, [3 1]);
-            gw.RowHeight = {30, 30, '1x'};
+            gw = uigridlayout(win_wave, [4 1]);
+            gw.RowHeight = {26, 30, 30, '1x'};
+            uitabgroup(gw, 'Tag', 'wave_tabs', 'SelectionChangedFcn', @on_wave_tab);   % a tab per signal
             hw = uigridlayout(gw, [1 9]);
             hw.Padding = [0 0 0 0];
             hw.ColumnWidth = {80, 80, 60, 100, 110, 140, 80, 60, '1x'};
@@ -866,6 +867,29 @@ end
         draw_waveform_window();
         if strcmp(fig.Visible, 'on')
             figure(win_wave);
+        end
+    end
+
+    function on_wave_tab(~, event)
+        % a tab makes its signal the one of the window, as its name in the list does
+        k = find([loaded.id] == event.NewValue.UserData, 1);
+        if ~isempty(k)
+            on_signal_name(k);
+        end
+    end
+
+    function sync_wave_tabs()
+        % one tab per signal of the list, the active one selected
+        tg = findobj(win_wave, 'Tag', 'wave_tabs');
+        titles = arrayfun(@(f) sprintf('#%d %s', f.id, f.name), loaded(:)', 'UniformOutput', false);
+        if ~isequal(arrayfun(@(t) t.Title, tg.Children(:)', 'UniformOutput', false), titles)
+            delete(tg.Children);
+            for k = 1:numel(loaded)
+                uitab(tg, 'Title', titles{k}, 'UserData', loaded(k).id);
+            end
+        end
+        if active_idx > 0
+            tg.SelectedTab = tg.Children(active_idx);
         end
     end
 
@@ -1533,6 +1557,7 @@ end
         refresh_graph_windows();
         if il_is_open(win_wave)
             if isempty(loaded)
+                sync_wave_tabs();
                 cla(ax_wave);
                 cla(ax_spec);
             else
@@ -1916,6 +1941,7 @@ end
     end
 
     function draw_waveform_window()
+        sync_wave_tabs();
         cla(ax_wave);
         f = active_file();
         ch = channel_of_active();
@@ -2064,9 +2090,9 @@ end
         apply_black();
         cb = colorbar(ax_spec);
         if strcmp(weighting, 'Z')
-            cb.Label.String = 'Level (dB SPL)';
+            cb.Label.String = 'Sound pressure level (dB SPL)';
         else
-            cb.Label.String = sprintf('Level (dB(%s))', weighting);
+            cb.Label.String = sprintf('%s-weighted sound pressure level (dB(%s))', weighting, weighting);
         end
         xlabel(ax_spec, 'Time (s)');
         ylabel(ax_spec, 'Frequency (Hz)');

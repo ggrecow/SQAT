@@ -1607,6 +1607,7 @@ while ph.Value == 0 && toc(t_wait) < 3
     pause(0.05);
 end
 tc.verifyGreaterThan(ph.Value, 0);
+pause(0.2);                                        % a second press within 0.15 s is taken for a repeated key
 il_press(w, 'play');                               % pause
 tc.verifyEqual(b.Text, 'Play');
 il_press(w, 'stop');
@@ -1628,8 +1629,31 @@ tc.assertNumElements(sf, 1);
 tc.verifyEqual(max(sf.CData(:)), 60, 'AbsTol', 1.5);
 [~, i_max] = max(max(sf.CData, [], 2));
 tc.verifyEqual(sf.YData(i_max), 1000, 'AbsTol', 48000/1024);
-tc.verifySubstring(ax.Colorbar.Label.String, 'dB');
+tc.verifyEqual(ax.Colorbar.Label.String, 'Sound pressure level (dB SPL)');
 tc.verifyNotEmpty(findobj(w, 'Tag', 'playhead_spectrogram'));
+end
+
+function test_waveform_has_a_tab_per_signal(tc)
+% the tabs choose the signal of the waveform window, and follow the list of signals
+fig = SQAT_GUI({tc.TestData.wav_tone, tc.TestData.wav_two, tc.TestData.wav_mono}, 'Visible', 'off');
+tc.addTeardown(@() delete(fig));
+il_press(fig, 'open_waveform');
+w = il_window('SQAT_GUI_waveform');
+tg = findobj(w, 'Tag', 'wave_tabs');
+tc.assertNumElements(tg, 1);
+tc.verifyEqual({tg.Children.Title}, {'#1 tone_1k_60dB.wav', '#2 two_tones.wav', '#3 tone_mono.wav'});
+tc.verifyEqual(tg.SelectedTab, tg.Children(1));
+old = tg.SelectedTab;
+tg.SelectedTab = tg.Children(2);                           % a click on the second tab
+tg.SelectionChangedFcn(tg, struct('NewValue', tg.Children(2), 'OldValue', old));
+tc.verifySubstring(w.Name, 'two_tones');
+tc.verifyEqual(char(findobj(fig, 'Tag', 'signal_name_2').FontWeight), 'bold');   % the list follows
+il_activate_signal(fig, 3);                                % and the tabs follow the list
+tc.verifyEqual(tg.SelectedTab.Title, '#3 tone_mono.wav');
+tc.verifySubstring(w.Name, 'tone_mono');
+il_remove_signal(fig, 1);
+tc.verifyEqual({tg.Children.Title}, {'#2 two_tones.wav', '#3 tone_mono.wav'});
+tc.verifyEqual(tg.SelectedTab.Title, '#3 tone_mono.wav');
 end
 
 function test_waveform_space_starts_and_pauses_playback(tc)
@@ -1950,10 +1974,10 @@ tc.verifyEqual(audio(), SQAT_GUI_weight(ref, fs, 'A'), 'AbsTol', 1e-12);
 sf = findobj(findobj(w, 'Tag', 'spectrogram'), 'Type', 'surface');
 tc.verifyEqual(max(sf.CData(abs(sf.YData - 500) < 30, :), [], 'all') - level_z, ...
     SQAT_GUI_weight_curve(500, fs, 'A'), 'AbsTol', 0.6);      % the bin nearest 500 Hz is within 1/2 bin
-tc.verifySubstring(findobj(w, 'Tag', 'spectrogram').Colorbar.Label.String, 'dB(A)');
+tc.verifyEqual(findobj(w, 'Tag', 'spectrogram').Colorbar.Label.String, 'A-weighted sound pressure level (dB(A))');
 il_set(w, 'wave_weighting', 'C');
 tc.verifyEqual(audio(), SQAT_GUI_weight(ref, fs, 'C'), 'AbsTol', 1e-12);
-tc.verifySubstring(findobj(w, 'Tag', 'spectrogram').Colorbar.Label.String, 'dB(C)');
+tc.verifyEqual(findobj(w, 'Tag', 'spectrogram').Colorbar.Label.String, 'C-weighted sound pressure level (dB(C))');
 il_set(w, 'wave_weighting', 'Z');
 tc.verifyEqual(audio(), ref);
 end
