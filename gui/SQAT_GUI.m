@@ -110,7 +110,7 @@ spec_custom = [];                                     % window read from a file
 spec_view = [];                                       % full-file enhanced map, kept to redraw a zoomed excerpt
 spec_busy = false;                                    % the spectrogram limits are being set by the code
 spec_timer = [];                                      % waits for the zoom to settle before recomputing
-theme_style = 'dark';
+theme_style = il_if(il_has_theme(), 'dark', 'light');   % no themes before R2025a: the default light look
 graph_figs = gobjects(0);                              % the graphs windows
 last_metric = '';                                     % the metric the last graphs window showed
 win_wave = [];
@@ -410,7 +410,7 @@ end
             'ButtonPushedFcn', @(~, ~) reset_params(a.n, w));
         uibutton(g, 'Text', 'Close', 'Tag', 'params_close', 'ButtonPushedFcn', @(~, ~) delete(w));
         uilabel(g, 'Text', '');
-        if exist('theme', 'file')
+        if il_has_theme()
             theme(w, theme_style);
         end
     end
@@ -2062,7 +2062,10 @@ end
             btn_theme.Text = char(9790);         % a moon
             btn_theme.Tooltip = 'Dark theme';
         end
-        if exist('theme', 'file')                % R2025a or newer
+        if ~il_has_theme()
+            btn_theme.Enable = 'off';
+            btn_theme.Tooltip = 'Dark theme requires MATLAB R2025a or newer';
+        else
             for w = [fig, open_graph_windows(), win_wave]
                 if il_is_open(w)
                     theme(w, theme_style);
@@ -2167,6 +2170,11 @@ end
 
 function tf = il_is_open(h)
 tf = ~isempty(h) && isvalid(h);
+end
+
+function tf = il_has_theme()
+% the theme function, and with it the dark theme, came in R2025a
+tf = exist('theme', 'file') > 0;
 end
 
 function tf = il_is_member(value, list)
