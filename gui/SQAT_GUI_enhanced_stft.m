@@ -1,5 +1,5 @@
-function [t, f, L, info] = SQAT_GUI_enhanced_stft(x, fs, smoothing, n_frames, f_min, bins_per_octave)
-% function [t, f, L, info] = SQAT_GUI_enhanced_stft(x, fs, smoothing, n_frames, f_min, bins_per_octave)
+function [t, f, L, info] = SQAT_GUI_enhanced_stft(x, fs, smoothing, n_frames, f_min, bins_per_octave, preview)
+% function [t, f, L, info] = SQAT_GUI_enhanced_stft(x, fs, smoothing, n_frames, f_min, bins_per_octave, preview)
 %
 %   Enhanced spectrogram with no window to choose: nine Blackman-Harris
 %   windows from 8 to 512 ms (geometric spacing) are reassigned (Auger and
@@ -21,6 +21,12 @@ function [t, f, L, info] = SQAT_GUI_enhanced_stft(x, fs, smoothing, n_frames, f_
 %              about the width of the screen; the time step is 1 ms or more)
 %   f_min : lowest frequency of the output (Hz, default 20)
 %   bins_per_octave : frequency resolution of the output grid (default 192)
+%   preview : true lets each window step by up to one output column (at most
+%             half its length) instead of an eighth of its length: on a long
+%             signal, whose columns are long, the short windows compute far
+%             fewer frames, and each column gets fewer of them, so the map is
+%             an approximation (clicks come out weaker). When the columns are
+%             1 ms, as in a zoomed excerpt, nothing changes. Default false.
 %
 % OUTPUTS
 %   t : [1xN] time of each column (s)
@@ -51,6 +57,7 @@ if nargin < 3 || isempty(smoothing), smoothing = 'readable'; end
 if nargin < 4 || isempty(n_frames), n_frames = 2000; end
 if nargin < 5 || isempty(f_min), f_min = 20; end
 if nargin < 6 || isempty(bins_per_octave), bins_per_octave = 192; end
+if nargin < 7 || isempty(preview), preview = false; end
 x = x(:);
 n_x = numel(x);
 durations = 8e-3 * 64 .^ ((0:8) / 8);                 % nine windows, 8 to 512 ms
@@ -63,6 +70,10 @@ Ns = 2 * round(durations * fs / 2);                    % even window lengths (sa
 % are too sparse for the hold to be short.
 step_div = 8;
 hop_out = max([1, round(0.001 * fs), ceil(n_x / n_frames)]);   % output time step (samples): 1 ms or more
+steps = max(1, round(Ns / step_div));                 % frame step of each window (samples)
+if preview
+    steps = max(steps, min(round(Ns / 2), hop_out));   % up to one output column, at most N/2
+end
 M = numel(0:hop_out:n_x-1);
 n_oct = log2((fs/2) / f_min);
 F = ceil(n_oct * bins_per_octave) + 1;
@@ -85,9 +96,9 @@ gt = exp(-(-kt:kt)' .^ 2 / (2 * sig_t^2));
 gt = gt / sum(gt);
 log_sum = 0;
 for w_i = 1:numel(Ns)
-    R = il_reassigned(x, fs, Ns(w_i), step_div, hop_out, M, F, f_min, bins_per_octave);
+    R = il_reassigned(x, fs, Ns(w_i), steps(w_i), hop_out, M, F, f_min, bins_per_octave);
     % the energy of a frame is held over its own step, so that the long windows leave no gaps
-    n_hold = 2 * floor(max(1, round(Ns(w_i) / step_div)) / hop_out / 2) + 1;
+    n_hold = 2 * floor(steps(w_i) / hop_out / 2) + 1;
     if n_hold > 1
         R = conv2(ones(n_hold, 1) / n_hold, 1, R, 'same');
     end
@@ -101,7 +112,7 @@ C = C / sum(C(:));
 [~, ~, L_ref] = SQAT_GUI_spectrogram(x, fs, 'hann', max(6, min(16, round(log2(0.064 * fs)))), 50);
 L = (10*log10(C / max(C(:)) + 1e-12))' + max(L_ref, [], 'all');
 t = (0:M-1) * hop_out / fs;
-info = struct('windows_ms', 1e3 * Ns / fs, 'hop', hop_out / fs, 'smoothing', smoothing);
+info = struct('windows_ms', 1e3 * Ns / fs, 'hop', hop_out / fs, 'smoothing', smoothing, 'preview', preview);
 end
 
 function R = il_smooth(R, sig_f)
@@ -123,10 +134,10 @@ end
 R = out;
 end
 
-function R = il_reassigned(x, fs, N, step_div, hop_out, M, F, f_min, bpo)
-% reassigned spectrogram of one Blackman-Harris window (N samples, unit energy) accumulated on the output grid
+function R = il_reassigned(x, fs, N, hop, hop_out, M, F, f_min, bpo)
+% reassigned spectrogram of one Blackman-Harris window (N samples, unit energy,
+% frame step hop) accumulated on the output grid
 n_x = numel(x);
-hop = max(1, round(N/step_div));
 pad = N/2;
 xp = [zeros(pad, 1); x; zeros(pad + N, 1)];
 n = (-N/2:N/2-1)';

@@ -112,6 +112,12 @@ spec_signal = '';                                     % file, channel and calibr
 spec_cache = struct('key', {}, 'map', {});            % full enhanced maps already computed, not weighted
 spec_dlg = [];                                        % the wait message of the spectrogram
 spec_computing = false;                               % an enhanced map is being computed
+spec_jobs = struct('key', {}, 'job', {}, 'args', {}); % full maps queued on the background pool
+spec_preview = struct('key', {}, 'map', {});          % quick full maps of a long signal, until the exact ones come
+preview_min = 60;                                     % a signal longer than this (s) gets a preview first
+spec_pool = [];                                       % the background pool, when MATLAB has one
+spec_pool_tried = false;
+prefetch_timer = [];                                  % starts the background maps of a new signal
 spec_busy = false;                                    % the spectrogram limits are being set by the code
 spec_timer = [];                                      % waits for the zoom to settle before recomputing
 spec_top = [];                                        % top of the colour scale of the spectrogram (dB)
@@ -1363,6 +1369,8 @@ end
         on_stop();
         stop_spec_timer();
         il_delete_timer(align_timer);
+        il_delete_timer(prefetch_timer);
+        cancel_jobs();
         delete(win_wave);
     end
 
@@ -1373,6 +1381,8 @@ end
         clear_cache();
         stop_spec_timer();
         il_delete_timer(align_timer);
+        il_delete_timer(prefetch_timer);
+        cancel_jobs();
         if il_is_open(win_wave), delete(win_wave); end
         delete(open_graph_windows());
         delete(fig);
@@ -1901,6 +1911,7 @@ end
         wave_y = y;
         wave_fs = fs;
         spec_signal = sprintf('%s|%g', key, f.dBFS);
+        cancel_jobs(spec_signal);
         win_wave.Name = sprintf('Waveform: %s, channel %d', f.name, ch);
         t_end = numel(x) / fs;
         step = max(1, ceil(numel(x) / 2e6));   % display only: at most 2e6 points
@@ -1912,6 +1923,20 @@ end
         xline(ax_wave, (max(play_start, 1) - 1) / fs, 'Color', [0.85 0.2 0.2], 'LineWidth', 1.5, ...
             'Tag', 'playhead', 'PickableParts', 'none');
         draw_spectrogram();
+        il_delete_timer(prefetch_timer);            % the pool starts once the window is drawn, not while
+        prefetch_timer = timer('StartDelay', 1, 'ExecutionMode', 'singleShot', ...
+            'TimerFcn', @(~, ~) prefetch_maps(), 'ObjectVisibility', 'off');
+        start(prefetch_timer);
+    end
+
+    function prefetch_maps()
+        % both enhanced maps of the signal on screen, the chosen mode first
+        if ~il_is_open(win_wave)
+            return
+        end
+        mode = findobj(win_wave, 'Tag', 'spec_enhanced_mode').Value;
+        request_map(mode);
+        request_map(il_if(strcmp(mode, 'readable'), 'sharp', 'readable'));
     end
 
     function draw_spectrogram(keep_view)
@@ -1935,11 +1960,25 @@ end
         enhanced = strcmp(findobj(win_wave, 'Tag', 'spec_enhanced').Value, 'On');
         if enhanced
             mode = findobj(win_wave, 'Tag', 'spec_enhanced_mode').Value;
+            full = full_map(mode, false);
+            preview = false;
+            if isempty(full) && has_pool()
+                prioritize(mode);                       % drawn when it arrives; the window stays usable
+                full = preview_map(mode);               % meanwhile the preview of a long signal, if it came
+                preview = ~isempty(full);
+                if ~preview && ~zoomed
+                    draw_waiting(mode, weighting);
+                    return
+                end
+            end
             computing = spec_guard();   %#ok<NASGU>
             busy = spec_loading('Drawing the enhanced spectrogram...');   %#ok<NASGU> closes when the map is drawn
+            if isempty(full) && ~zoomed
+                full = full_map(mode, true);            % no background pool: computed here
+            end
             prev = spec_view;
-            spec_view = struct('full', full_map(mode, ~zoomed), 'mode', mode, 'weighting', weighting, ...
-                'zoomed', zoomed, 'zoom', []);
+            spec_view = struct('full', full, 'mode', mode, 'weighting', weighting, ...
+                'zoomed', zoomed, 'zoom', [], 'preview', preview);
             if zoomed && ~isempty(prev) && ~isempty(prev.zoom) && strcmp(prev.mode, mode)
                 spec_view.zoom = prev.zoom;             % the same excerpt, only weighted otherwise
             end
@@ -2000,7 +2039,7 @@ end
         xlabel(ax_spec, 'Time (s)');
         ylabel(ax_spec, 'Frequency (Hz)');
         if enhanced
-            title(ax_spec, sprintf('Enhanced STFT (consensus of 8 to 512 ms windows, %s, relative colour scale)', mode), 'Interpreter', 'none');
+            spec_title();
         else
             title(ax_spec, sprintf('Spectrogram (%s window, %d points, %.0f %% overlap)', ...
                 dd.Items{strcmp(dd.ItemsData, dd.Value)}, info.n_fft, info.overlap), 'Interpreter', 'none');
@@ -2063,20 +2102,40 @@ end
         hop = max(round(0.001 * wave_fs), ceil(numel(wave_x) / 2000)) / wave_fs;   % time step of the full map
         if span >= 0.95 * numel(wave_x) / wave_fs || span / 2000 >= 0.999 * hop
             if spec_view.zoomed                                 % back to the full map
-                busy = spec_loading('Drawing the enhanced spectrogram...');   %#ok<NASGU>
                 if isempty(spec_view.full)                      % the mode changed during the zoom
-                    spec_view.full = full_map(spec_view.mode, true);
+                    spec_view.full = full_map(spec_view.mode, ~has_pool());
+                    if isempty(spec_view.full)                  % on its way from the background pool
+                        prioritize(spec_view.mode);
+                        spec_view.full = preview_map(spec_view.mode);
+                        spec_view.preview = ~isempty(spec_view.full);
+                        if ~spec_view.preview
+                            note_waiting('Computing the whole file in the background...');
+                            return
+                        end
+                    end
                     spec_top = max(weighted(spec_view.full), [], 'all');
                     apply_black();
                 end
+                busy = spec_loading('Drawing the enhanced spectrogram...');   %#ok<NASGU>
                 show_map(srf(1), spec_view.full);
                 spec_view.zoomed = false;
+                spec_title();
             end
             return
         end
         busy = spec_loading('Drawing the enhanced spectrogram...');   %#ok<NASGU>
         show_map(srf(1), zoom_map(lim));
         spec_view.zoomed = true;
+        spec_title();
+    end
+
+    function spec_title()
+        % the title of the enhanced map, which says when the map on screen is the preview
+        s = sprintf('Enhanced STFT (consensus of 8 to 512 ms windows, %s, relative colour scale)', spec_view.mode);
+        if spec_view.preview && ~spec_view.zoomed
+            s = [s ': preview, the exact map follows'];
+        end
+        title(ax_spec, s, 'Interpreter', 'none');
     end
 
     function guard = spec_guard()
@@ -2109,11 +2168,179 @@ end
         if compute
             busy = spec_loading('Computing the enhanced spectrogram...');   %#ok<NASGU> closes on return
             m = enhanced_map(wave_x, mode, []);
-            spec_cache(end+1) = struct('key', key, 'map', m);
-            if numel(spec_cache) > 6                            % about 15 MB each
-                spec_cache(1) = [];
+            store_map(key, m);
+        end
+    end
+
+    function store_map(key, m)
+        spec_cache(strcmp({spec_cache.key}, key)) = [];
+        spec_cache(end+1) = struct('key', key, 'map', m);
+        if numel(spec_cache) > 6                                % about 15 MB each
+            spec_cache(1) = [];
+        end
+    end
+
+    function tf = has_pool()
+        % the background pool of MATLAB (R2021b or newer, no toolbox needed): the
+        % full maps are computed there while the window stays usable
+        if ~spec_pool_tried
+            spec_pool_tried = true;
+            if ~isappdata(fig, 'sqat_no_background')           % the tests of the foreground path
+                try
+                    spec_pool = backgroundPool;
+                catch
+                    spec_pool = [];
+                end
             end
         end
+        tf = ~isempty(spec_pool);
+    end
+
+    function request_map(mode)
+        % queues the full map of the signal on screen, unless it is kept or already
+        % queued; a long signal gets a preview first (see SQAT_GUI_enhanced_stft)
+        key = [spec_signal '|' mode];
+        if isempty(wave_x) || ~has_pool() || any(strcmp({spec_cache.key}, key))
+            return
+        end
+        if numel(wave_x) > preview_min * wave_fs && ~any(strcmp({spec_preview.key}, key))
+            queue_job([key '|preview'], {wave_x, wave_fs, mode, [], [], [], true});
+        end
+        queue_job(key, {wave_x, wave_fs, mode});
+    end
+
+    function queue_job(key, args)
+        if any(strcmp({spec_jobs.key}, key))
+            return
+        end
+        job = parfeval(spec_pool, @SQAT_GUI_enhanced_stft, 3, args{:});
+        afterEach(job, @(done) on_map_done(key, done), 0, 'PassFuture', true);
+        spec_jobs(end+1) = struct('key', key, 'job', job, 'args', {args});
+    end
+
+    function prioritize(mode)
+        % the maps of the mode just chosen go ahead of the queued maps of the other
+        % mode, which are queued again behind them; a map being computed goes on
+        mine = [spec_signal '|' mode];
+        if ~has_pool()
+            return
+        end
+        later = spec_jobs([]);
+        for k = 1:numel(spec_jobs)
+            entry = spec_jobs(k);
+            if strcmp(entry.job.State, 'queued') && ~strcmp(entry.key, mine) && ~strcmp(entry.key, [mine '|preview'])
+                later(end+1) = entry; %#ok<AGROW>
+            end
+        end
+        for k = 1:numel(later)
+            cancel(later(k).job);
+            spec_jobs(strcmp({spec_jobs.key}, later(k).key)) = [];
+        end
+        request_map(mode);
+        for k = 1:numel(later)
+            queue_job(later(k).key, later(k).args);
+        end
+    end
+
+    function cancel_jobs(keep)
+        % drops the queued maps of other signals (all of them without keep): the pool has one worker
+        for k = numel(spec_jobs):-1:1
+            if nargin == 0 || ~startsWith(spec_jobs(k).key, [keep '|'])
+                cancel(spec_jobs(k).job);
+                spec_jobs(k) = [];
+            end
+        end
+        if nargin == 0
+            spec_preview(:) = [];
+        else
+            spec_preview(~startsWith({spec_preview.key}, [keep '|'])) = [];
+        end
+    end
+
+    function on_map_done(key, job)
+        k = find(strcmp({spec_jobs.key}, key), 1);
+        if isempty(k) || spec_jobs(k).job.ID ~= job.ID          % cancelled, or asked for again since
+            return
+        end
+        spec_jobs(k) = [];
+        if ~isempty(job.Error)
+            write_log(['ERROR computing the enhanced spectrogram: ' job.Error.message]);
+            return
+        end
+        [t, f, L] = fetchOutputs(job);
+        keep = f >= 20;
+        m = struct('t', t, 'f', f(keep), 'L', single(L(keep, :)));
+        if endsWith(key, '|preview')
+            key = key(1:end-8);
+            if any(strcmp({spec_cache.key}, key))               % the exact map came first
+                return
+            end
+            spec_preview(end+1) = struct('key', key, 'map', m);
+        else
+            store_map(key, m);
+            spec_preview(strcmp({spec_preview.key}, key)) = [];
+        end
+        show_ready_map(key);
+    end
+
+    function m = preview_map(mode)
+        k = find(strcmp({spec_preview.key}, [spec_signal '|' mode]), 1);
+        m = [];
+        if ~isempty(k)
+            m = spec_preview(k).map;
+        end
+    end
+
+    function show_ready_map(key)
+        % a full map arrived: it goes on screen when the spectrogram waits for it,
+        % or shows the preview in its place
+        if ~il_is_open(win_wave) || isempty(spec_view) || ~strcmp(key, [spec_signal '|' spec_view.mode])
+            return
+        end
+        if spec_computing || spec_busy                          % a step in the foreground: once it ends
+            t = timer('StartDelay', 0.2, 'TimerFcn', @(~, ~) show_ready_map(key), ...
+                'StopFcn', @(tm, ~) delete(tm), 'ObjectVisibility', 'off');
+            start(t);
+            return
+        end
+        m = full_map(spec_view.mode, false);
+        preview = isempty(m);
+        if preview
+            m = preview_map(spec_view.mode);
+        end
+        if isempty(m) || (~isempty(spec_view.full) && (preview || ~spec_view.preview))
+            return                                              % nothing better than what is on screen
+        end
+        if ~spec_view.zoomed || isempty(findobj(ax_spec, 'Type', 'surface'))
+            draw_spectrogram(true);
+            return
+        end
+        spec_view.full = m;                                     % zoomed: for Home, or on screen if at the whole file
+        spec_view.preview = preview;
+        spec_top = max(weighted(m), [], 'all');
+        apply_black();
+        stop_spec_timer();
+        apply_spec_zoom();
+    end
+
+    function draw_waiting(mode, weighting)
+        % the enhanced map is on its way from the background pool: a note in its place
+        spec_view = struct('full', [], 'mode', mode, 'weighting', weighting, 'zoomed', false, 'zoom', [], ...
+            'preview', false);
+        spec_busy = true;
+        cla(ax_spec);
+        ax_spec.YScale = 'log';
+        xlim(ax_spec, [0 numel(wave_x) / wave_fs]);
+        ylim(ax_spec, [20 wave_fs/2]);
+        title(ax_spec, sprintf('Enhanced STFT (%s)', mode), 'Interpreter', 'none');
+        note_waiting('Computing the enhanced spectrogram in the background...');
+        spec_busy = false;
+    end
+
+    function note_waiting(msg)
+        delete(findobj(ax_spec, 'Tag', 'spec_wait'));
+        text(ax_spec, 0.5, 0.5, msg, 'Units', 'normalized', 'HorizontalAlignment', 'center', ...
+            'FontSize', 14, 'Tag', 'spec_wait', 'PickableParts', 'none');
     end
 
     function m = zoom_map(lim)
@@ -2146,6 +2373,7 @@ end
     end
 
     function show_map(srf, m)
+        delete(findobj(ax_spec, 'Tag', 'spec_wait'));
         [xe, ye] = il_map_edges(m.t, m.f);
         set(srf, 'XData', xe, 'YData', ye, 'ZData', zeros(2), 'CData', weighted(m));
     end
