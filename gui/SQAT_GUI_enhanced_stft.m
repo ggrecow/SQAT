@@ -145,20 +145,34 @@ starts = 0:hop:n_x-1;
 n_fr = numel(starts);
 R = zeros(M, F);
 chunk = max(1, floor(2e6 / N));
-for a = 1:chunk:n_fr
-    j = a:min(a + chunk - 1, n_fr);
+lin = {};                                              % cells and energies of several blocks, added in one go
+val = {};
+n_buf = 0;
+for b = 1:chunk:n_fr
+    j = b:min(b + chunk - 1, n_fr);
     S = xp((starts(j) + pad) + (-h+1:h)');             % frames centred on sample starts(j)
-    X0 = fft([S(h+1:N, :) .* w(h+1:N); S(1:h, :) .* w(1:h)]);
-    X1 = fft([S(h+1:N, :) .* wt(h+1:N); S(1:h, :) .* wt(1:h)]);
-    X2 = fft([S(h+1:N, :) .* wd(h+1:N); S(1:h, :) .* wd(1:h)]);
-    Xh = X0(1:Fk, :);
+    % the frames are not rotated to put their centre first: that only multiplies
+    % every spectrum by (-1)^k, which cancels in the ratios below
+    Xh = fft(S .* w);
+    Xh = Xh(1:Fk, :);
+    Xt = fft(S .* wt);
+    Xd = fft(S .* wd);
+    Xd = Xd(1:Fk, :);
     P2 = abs(Xh).^2;
     r = conj(Xh) ./ max(P2, eps);
-    t_hat = starts(j) + real(X1(1:Fk, :) .* r);        % samples
-    f_hat = fbin - (fs / (2*pi)) * imag(X2(1:Fk, :) .* r);   % Hz
+    t_hat = starts(j) + real(Xt(1:Fk, :) .* r);        % samples
+    f_hat = fbin - (fs / (2*pi)) * imag(Xd .* r);      % Hz
     it = round(t_hat / hop_out) + 1;
     jf = round(bpo * log2(max(f_hat, eps) / f_min)) + 1;
     ok = P2 > 1e-10 * max(P2, [], 'all') & it >= 1 & it <= M & jf >= 1 & jf <= F & f_hat > 0;
-    R = R + accumarray([it(ok) jf(ok)], P2(ok) * hop, [M F]);
+    lin{end+1} = it(ok) + (jf(ok) - 1) * M;            %#ok<AGROW>
+    val{end+1} = P2(ok) * hop;                         %#ok<AGROW>
+    n_buf = n_buf + nnz(ok);
+    if n_buf > 1e7 || j(end) == n_fr                   % about 160 MB at most
+        R = R + reshape(accumarray(vertcat(lin{:}), vertcat(val{:}), [M*F 1]), M, F);
+        lin = {};
+        val = {};
+        n_buf = 0;
+    end
 end
 end
