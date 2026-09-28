@@ -1452,14 +1452,14 @@ il_signal_channel(fig, 1, 'All');
 il_press(fig, 'run');
 il_press(fig, 'open_graphs');
 g = il_window('SQAT_GUI_graphs');
-dc = findobj(g, 'Tag', 'graph_channel');
+dc = findobj(g, 'Tag', 'graph_channel_1');
 tc.verifyEqual(dc.Items, {'1','2','Binaural','All'});
 il_set(g, 'graph_analysis', 'loudness');
 ref = audioread(tc.TestData.wav_stereo); fs = tc.TestData.fs;
 [~, rb] = evalc('Loudness_ECMA418_2(ref, fs, ''free-frontal'', 0.304, false)');
-il_set(g, 'graph_channel', '2');
+il_set(g, 'graph_channel_1', '2');
 tc.verifyEqual(findobj(g, 'Type', 'line').YData(:), rb.loudnessTDep(:, 2));
-il_set(g, 'graph_channel', 'Binaural');
+il_set(g, 'graph_channel_1', 'Binaural');
 tc.verifyEqual(findobj(g, 'Type', 'line').YData(:), rb.loudnessTDepBin(:));
 end
 
@@ -1520,22 +1520,50 @@ tc.verifyEqual(findobj(g2, 'Tag', 'graph_metric').Value, 'Roughness_Daniel1997')
 end
 
 function test_gui_graphs_compare_a_mono_and_a_stereo_signal(tc)
+% each signal has its own channel choice: the mono against channel 1, channel 2,
+% the binaural result or every channel of the stereo
 fig = SQAT_GUI({tc.TestData.wav_mono, tc.TestData.wav_stereo}, 'Visible', 'off');
 tc.addTeardown(@() delete(fig));
-il_select_metrics(fig, {'Loudness_ISO532_1'});
+il_select_metrics(fig, {'Loudness_ECMA418_2'});
 il_signal_channel(fig, 2, 'All');
 il_press(fig, 'run');
 il_press(fig, 'open_graphs');
 g = il_window('SQAT_GUI_graphs');
-dc = findobj(g, 'Tag', 'graph_channel');
-tc.verifyEqual(dc.Items, {'1', '2', 'All'});
-il_set(g, 'graph_channel', 'All');
+d1 = findobj(g, 'Tag', 'graph_channel_1');
+d2 = findobj(g, 'Tag', 'graph_channel_2');
+tc.verifyEqual(d1.Items, {'1'});
+tc.verifyEqual(char(d1.Enable), 'off');                    % nothing to choose for the mono
+tc.verifyEqual(d2.Items, {'1', '2', 'Binaural', 'All'});
+tc.verifyEqual(d2.Value, '1');
 il_set(g, 'graph_analysis', 'loudness');
-tc.verifyNumElements(findobj(g, 'Type', 'line'), 3);       % the mono, and both channels of the stereo
-tc.verifyEqual(findobj(g, 'Type', 'legend').String, ...
-    {'Signal #1, ch1', 'Signal #2, ch1', 'Signal #2, ch2'});
-il_set(g, 'graph_channel', '1');
-tc.verifyNumElements(findobj(g, 'Type', 'line'), 2);       % one channel, as before
+legend_of = @() findobj(g, 'Type', 'legend').String;
+tc.verifyEqual(legend_of(), {'Signal #1, ch1', 'Signal #2, ch1'});
+il_set(g, 'graph_channel_2', '2');
+tc.verifyEqual(legend_of(), {'Signal #1, ch1', 'Signal #2, ch2'});
+tc.verifyFalse(contains(findobj(g, 'Type', 'axes').Title.String, 'channel'));   % the legend says it
+x2 = audioread(tc.TestData.wav_stereo); fs = tc.TestData.fs;
+[~, r2] = evalc('Loudness_ECMA418_2(x2, fs, ''free-frontal'', 0.304, false)');
+lines = findobj(g, 'Type', 'line');
+tc.verifyEqual(lines(strcmp({lines.DisplayName}, 'Signal #2, ch2')).YData(:), r2.loudnessTDep(:, 2));
+il_set(g, 'graph_channel_2', 'Binaural');
+tc.verifyEqual(legend_of(), {'Signal #1, ch1', 'Signal #2, binaural'});
+il_set(g, 'graph_channel_2', 'All');
+tc.verifyEqual(legend_of(), {'Signal #1, ch1', 'Signal #2, ch1', 'Signal #2, ch2', 'Signal #2, binaural'});
+il_set(g, 'graph_analysis', 'stats');                      % the choice stays through a redraw
+tc.verifyEqual(findobj(g, 'Tag', 'graph_channel_2').Value, 'All');
+end
+
+function test_gui_graphs_offer_no_channel_row_for_mono_signals(tc)
+fig = SQAT_GUI({tc.TestData.wav_mono, tc.TestData.wav_tone}, 'Visible', 'off');
+tc.addTeardown(@() delete(fig));
+il_select_metrics(fig, {'Loudness_ISO532_1'});
+il_press(fig, 'run');
+il_press(fig, 'open_graphs');
+g = il_window('SQAT_GUI_graphs');
+row = findobj(g, 'Tag', 'graph_channels');
+tc.verifyEqual(row.Parent.RowHeight{2}, 0);
+il_set(g, 'graph_analysis', 'loudness');
+tc.verifyEqual(findobj(g, 'Type', 'legend').String, {'Signal #1, ch1', 'Signal #2, ch1'});
 end
 
 function test_gui_graphs_window_needs_results(tc)

@@ -16,8 +16,10 @@ function varargout = SQAT_GUI(files, varargin)
 %   and the maps sit side by side on one colour scale. For one signal the
 %   window also offers the figure that the SQAT function draws (with the
 %   inferno colour scale of the toolbox, cmap_inferno.txt) and all the analyses at once. Each signal of the list
-%   has a number, and the plots tag a curve as Signal #1, ch1. The channel All
-%   plots every channel of every signal, to compare a mono with a stereo signal.
+%   has a number, and the plots tag a curve as Signal #1, ch1. When a signal
+%   has several channels, the window offers a channel choice per signal (1, 2,
+%   Binaural when the metric gives one, or All), so that a mono signal can be
+%   compared with either channel or the binaural result of a stereo signal.
 %   Pin keeps a window with its signals and its results, so that a later run
 %   leaves it as it is and Open Graphs Window opens another one to compare
 %   with. A player window shows the waveform and the spectrogram, and the
@@ -1570,24 +1572,24 @@ end
         w = uifigure('Name', 'SQAT graphs', 'Position', [160 160 1100 700] + [30 -30 0 0] * mod(n, 6), ...
             'Visible', fig.Visible, 'Tag', 'SQAT_GUI_graphs', 'CreateFcn', '');
         graph_figs(end+1) = w;
-        g = uigridlayout(w, [2 1]);
-        g.RowHeight = {30, '1x'};
+        g = uigridlayout(w, [3 1]);
+        g.RowHeight = {30, 0, '1x'};                  % the channel row opens when a signal has several
         g.Padding = [8 8 8 8];
-        bar = uigridlayout(g, [1 8]);
+        bar = uigridlayout(g, [1 6]);
         bar.Padding = [0 0 0 0];
-        bar.ColumnWidth = {50, 230, 60, 260, 60, 90, 70, '1x'};
+        bar.ColumnWidth = {50, 230, 60, 260, 70, '1x'};
         uilabel(bar, 'Text', 'Metric:', 'HorizontalAlignment', 'right');
         uidropdown(bar, 'Items', {}, 'Tag', 'graph_metric', 'ValueChangedFcn', @on_graph_control);
         uilabel(bar, 'Text', 'Analysis:', 'HorizontalAlignment', 'right');
         uidropdown(bar, 'Items', {}, 'Tag', 'graph_analysis', 'ValueChangedFcn', @on_graph_control, ...
             'Tooltip', ['SQAT figure and All analyses need one signal; with several signals ' ...
                         'the analyses that can be compared are on offer']);
-        uilabel(bar, 'Text', 'Channel:', 'HorizontalAlignment', 'right');
-        uidropdown(bar, 'Items', {'1'}, 'Tag', 'graph_channel', 'ValueChangedFcn', @on_graph_control);
         uibutton(bar, 'state', 'Text', 'Pin', 'Tag', 'graph_pin', 'ValueChangedFcn', @on_graph_pin, ...
             'Tooltip', ['Keeps this window with its signals and results, whatever runs next; ' ...
                         'Open Graphs Window then opens another one to compare with']);
         uilabel(bar, 'Text', '');
+        row = uigridlayout(g, [1 1], 'Tag', 'graph_channels');   % one channel choice per signal
+        row.Padding = [0 0 0 0];
         uipanel(g, 'BorderType', 'none', 'Tag', 'graph_body');
         apply_theme();
     end
@@ -1636,14 +1638,14 @@ end
         ws = window_store(w);
         pinned = findobj(w, 'Tag', 'graph_pin').Value;
         dm = findobj(w, 'Tag', 'graph_metric');
-        dc = findobj(w, 'Tag', 'graph_channel');
         da = findobj(w, 'Tag', 'graph_analysis');
         body = findobj(w, 'Tag', 'graph_body');
         delete(body.Children);
         in_window = ismember({ws.file}, paths);
         ids = unique({ws(in_window).metric}, 'stable');   % the keys of the analyses, in the order of the run
         if isempty(ids)
-            set([dm, dc, da], 'Items', {});
+            set([dm, da], 'Items', {});
+            channel_row(w, {}, {});
             uilabel(uigridlayout(body, [1 1]), 'HorizontalAlignment', 'center', ...
                 'Text', 'No results for the signals of this window. Tick signals and run an analysis.');
             w.Name = 'SQAT graphs';
@@ -1662,33 +1664,20 @@ end
         label = il_key_label(ws, id);
 
         in_metric = in_window & strcmp({ws.metric}, id);
-        chans = unique({ws(in_metric).channel}, 'stable');
-        chans = [sort(chans(~strcmp(chans, 'Binaural'))), chans(strcmp(chans, 'Binaural'))];
-        wanted = dc.Value;
-        if numel(chans) > 1
-            dc.Items = [chans, {'All'}];       % every channel of every signal, to compare them
-        else
-            dc.Items = chans;
-        end
-        if il_is_member(wanted, dc.Items)
-            dc.Value = wanted;
-        end
-        chan = dc.Value;
-
+        chans = channel_row(w, paths, ws(in_metric));
         entries = il_empty_store();
         for k_p = 1:numel(paths)
-            if strcmp(chan, 'All')
-                k_e = find(in_metric & strcmp({ws.file}, paths{k_p}));
-            else
-                k_e = find(in_metric & strcmp({ws.file}, paths{k_p}) & strcmp({ws.channel}, chan), 1);
+            k_e = find(in_metric & strcmp({ws.file}, paths{k_p}));
+            if ~isempty(k_e) && ~strcmp(chans{k_p}, 'All')
+                k_e = k_e(strcmp({ws(k_e).channel}, chans{k_p}));
             end
-            if ~isempty(k_e)
-                entries = [entries, ws(k_e)]; %#ok<AGROW>
-            end
+            entries = [entries, ws(k_e)]; %#ok<AGROW>
         end
-        n_missing = nnz(ismember(paths, {ws(in_metric).file})) - numel(entries);
-        if ~strcmp(chan, 'All') && n_missing > 0
-            write_log(sprintf('%d signal(s) have no channel %s of %s and are left out.', n_missing, chan, label));
+        chan = unique({entries.channel});
+        if isscalar(chan)
+            chan = chan{1};                   % the channel of every line, for the titles
+        else
+            chan = '';                        % mixed channels: the legend names them
         end
 
         [items, data] = il_analysis_items(entries);
@@ -1721,6 +1710,45 @@ end
             otherwise
                 draw_analysis(body, entries, da.Value, chan);
         end
+    end
+
+    function chans = channel_row(w, paths, results)
+        % one channel choice per signal of the window, each with the channels its
+        % results hold (and All when there are several); the row shows only when
+        % a signal has more than one. Returns the choice of each signal
+        row = findobj(w, 'Tag', 'graph_channels');
+        before = findobj(row, 'Type', 'uidropdown');
+        old_tags = arrayfun(@(d) d.Tag, before, 'UniformOutput', false);
+        old_values = arrayfun(@(d) d.Value, before, 'UniformOutput', false);
+        delete(row.Children);
+        chans = repmat({''}, 1, numel(paths));
+        n_c = 0;
+        for k_p = 1:numel(paths)
+            r = results(strcmp({results.file}, paths{k_p}));
+            if isempty(r)
+                continue
+            end
+            c = unique({r.channel}, 'stable');
+            c = [sort(c(~strcmp(c, 'Binaural'))), c(strcmp(c, 'Binaural'))];
+            if numel(c) > 1
+                c{end+1} = 'All'; %#ok<AGROW>
+            end
+            tag = sprintf('graph_channel_%d', r(1).id);
+            old = old_values(strcmp(old_tags, tag));
+            chans{k_p} = c{1};
+            if ~isempty(old) && il_is_member(old{1}, c)
+                chans{k_p} = old{1};          % the choice stays through a redraw
+            end
+            uilabel(row, 'Text', sprintf('Signal #%d:', r(1).id), 'HorizontalAlignment', 'right', ...
+                'Tooltip', r(1).name);
+            uidropdown(row, 'Items', c, 'Value', chans{k_p}, 'Tag', tag, 'Enable', numel(c) > 1, ...
+                'ValueChangedFcn', @on_graph_control, 'Tooltip', ['Channel of ' r(1).name]);
+            n_c = max(n_c, numel(c));
+        end
+        n = numel(row.Children) / 2;
+        row.ColumnWidth = [repmat({70, 90}, 1, n), {'1x'}];
+        uilabel(row, 'Text', '');
+        row.Parent.RowHeight{2} = il_if(n_c > 1, 30, 0);
     end
 
     function ok = show_sqat_figure(parent, id, path, may_run)
@@ -1852,7 +1880,11 @@ end
         else
             what = sprintf('%d signals', numel(unique({entries.file})));
         end
-        title(ax, sprintf('%s: %s, channel %s', A(1).label, what, chan), 'Interpreter', 'none');
+        if isempty(chan)
+            title(ax, sprintf('%s: %s', A(1).label, what), 'Interpreter', 'none');
+        else
+            title(ax, sprintf('%s: %s, channel %s', A(1).label, what, chan), 'Interpreter', 'none');
+        end
         if numel(A) > 1
             legend(ax, names, 'Interpreter', 'none', 'Location', 'best');
         end

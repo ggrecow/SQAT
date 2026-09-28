@@ -1,6 +1,6 @@
 # Tests of the SQAT GUI
 
-`tSQAT_GUI.m` holds 101 tests of the graphical interface in `gui/`. They use
+`tSQAT_GUI.m` holds 102 tests of the graphical interface in `gui/`. They use
 MATLAB's own unit test framework (`functiontests`) and need nothing besides
 SQAT: the test signals are synthetic WAV files written to a temporary folder
 at the start, and the audio player runs with a silent buffer, so the tests
@@ -41,7 +41,8 @@ runtests('test/tSQAT_GUI.m', 'Name', 'tSQAT_GUI/test_gui_run_shows_a_progress_di
 
 The whole suite takes 4 to 6 minutes. Measured on a Mac with 12 cores and
 MATLAB R2026a: 257 s in one run and 341 s in another; in low power mode it
-took up to 576 s. The time of each section in the 341 s run:
+took up to 576 s. The time of each section in the 341 s run, which had 101
+tests (the channel test of the graphs windows came later and takes about 4 s):
 
 | Section | Tests | Time (s) |
 |---|---:|---:|
@@ -53,7 +54,7 @@ took up to 576 s. The time of each section in the 341 s run:
 | Spectrogram, windows, filters and weighting | 11 | 6 |
 | Main window | 13 | 39 |
 | Running the analyses | 15 | 69 |
-| Graphs windows | 19 | 71 |
+| Graphs windows | 20 | 71 |
 | Waveform window | 16 | 44 |
 | Enhanced STFT in the waveform window | 10 | 42 |
 
