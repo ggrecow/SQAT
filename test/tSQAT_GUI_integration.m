@@ -1,9 +1,7 @@
-function tests = tSQAT_GUI
-% Tests of the SQAT graphical interface (gui/). How to run them and how long
-% they take: test/README.md.
-%
-% Run with:
-%   matlab -batch "startup_SQAT; cd test; r = runtests('tSQAT_GUI'); disp(table(r)); assert(all([r.Passed]))"
+function tests = tSQAT_GUI_integration
+% Integration tests of the SQAT graphical interface: the windows open (hidden),
+% the callbacks run, the metrics run, and the player and the background pool work.
+% How to run the three test files and how long they take: test/README.md.
 tests = functiontests(localfunctions);
 end
 
@@ -11,6 +9,7 @@ end
 
 function setupOnce(tc)
 setappdata(groot, 'sqat_gui_mute', true);           % the player runs, with a silent buffer
+setappdata(groot, 'sqat_no_background', true);      % no enhanced maps computed behind the tests (il_use_pool)
 addpath(fullfile(basepath_SQAT, 'gui'));
 fs = 48000;
 t = (0:1/fs:3-1/fs)';
@@ -48,607 +47,16 @@ audiowrite(tc.TestData.wav_tone, sqrt(2)*2e-5*10^(60/20)*sin(2*pi*1000*t), fs, '
 end
 
 function teardownOnce(tc)
-if isappdata(groot, 'sqat_gui_mute')
-    rmappdata(groot, 'sqat_gui_mute');
+for name = {'sqat_gui_mute', 'sqat_no_background'}
+    if isappdata(groot, name{1})
+        rmappdata(groot, name{1});
+    end
 end
 rmdir(tc.TestData.dir_tmp, 's');
 end
 
 function teardown(~)
 delete(findall(groot, 'Type', 'figure'));
-end
-
-%% Catalogue ---------------------------------------------------------------
-
-function test_catalogue_lists_every_metric_of_sqat(tc)
-m = SQAT_GUI_metrics;
-expected = {'Loudness_ISO532_1','Loudness_ECMA418_2','Sharpness_DIN45692', ...
-    'Roughness_Daniel1997','Roughness_ECMA418_2','FluctuationStrength_Osses2016', ...
-    'Tonality_Aures1985','Tonality_ECMA418_2', ...
-    'PsychoacousticAnnoyance_Widmann1992','PsychoacousticAnnoyance_Zwicker1999', ...
-    'PsychoacousticAnnoyance_More2010','PsychoacousticAnnoyance_Di2016', ...
-    'EPNL_FAR_Part36'};
-tc.verifyEqual({m.id}, expected);
-for k = 1:numel(m)
-    tc.verifyEqual(exist(m(k).id, 'file'), 2, m(k).id);
-    tc.verifyNotEmpty(m(k).label, m(k).id);
-    tc.verifyTrue(isa(m(k).run, 'function_handle'), m(k).id);
-end
-end
-
-function test_catalogue_parameters_are_well_formed(tc)
-m = SQAT_GUI_metrics;
-for k = 1:numel(m)
-    for p = m(k).params
-        tc.verifyTrue(ismember(p.type, {'choice','number'}), [m(k).id '.' p.name]);
-        tc.verifyNotEmpty(p.label, [m(k).id '.' p.name]);
-        if strcmp(p.type, 'choice')
-            tc.verifyTrue(any(cellfun(@(o) isequal(o, p.value), p.options(:,2))), ...
-                [m(k).id '.' p.name ': default not among the options']);
-        else
-            tc.verifyTrue(isnumeric(p.value) && isscalar(p.value), [m(k).id '.' p.name]);
-        end
-    end
-end
-end
-
-function test_catalogue_defaults_follow_the_toolbox(tc)
-m = SQAT_GUI_metrics;
-v = @(id, name) m(strcmp({m.id}, id)).params(strcmp({m(strcmp({m.id}, id)).params.name}, name)).value;
-d = psychoacoustic_metrics_get_defaults('Loudness_ISO532_1');
-tc.verifyEqual(v('Loudness_ISO532_1','field'), d.field);
-tc.verifyEqual(v('Loudness_ISO532_1','method'), d.method);
-tc.verifyEqual(v('Loudness_ISO532_1','time_skip'), d.time_skip);
-d = psychoacoustic_metrics_get_defaults('Sharpness_DIN45692');
-tc.verifyEqual(v('Sharpness_DIN45692','weight_type'), d.weight_type);
-tc.verifyEqual(v('Sharpness_DIN45692','field'), d.field);
-tc.verifyEqual(v('Sharpness_DIN45692','method'), d.method);
-tc.verifyEqual(v('Sharpness_DIN45692','time_skip'), d.time_skip);
-d = psychoacoustic_metrics_get_defaults('Roughness_Daniel1997');
-tc.verifyEqual(v('Roughness_Daniel1997','time_skip'), d.time_skip);
-d = psychoacoustic_metrics_get_defaults('FluctuationStrength_Osses2016');
-tc.verifyEqual(v('FluctuationStrength_Osses2016','method'), d.method);
-tc.verifyEqual(v('FluctuationStrength_Osses2016','time_skip'), d.time_skip);
-d = psychoacoustic_metrics_get_defaults('Tonality_Aures1985');
-tc.verifyEqual(v('Tonality_Aures1985','field'), d.Loudness_field);
-tc.verifyEqual(v('Tonality_Aures1985','time_skip'), d.time_skip);
-d = psychoacoustic_metrics_get_defaults('PsychoacousticAnnoyance_Widmann1992');
-for id = {'PsychoacousticAnnoyance_Widmann1992','PsychoacousticAnnoyance_Zwicker1999', ...
-          'PsychoacousticAnnoyance_More2010','PsychoacousticAnnoyance_Di2016'}
-    tc.verifyEqual(v(id{1},'field'), d.Loudness_field, id{1});
-    tc.verifyEqual(v(id{1},'time_skip'), d.time_skip, id{1});
-end
-% ECMA-418-2 and EPNL: defaults stated in the headers of the functions
-tc.verifyEqual(v('Loudness_ECMA418_2','fieldtype'), 'free-frontal');
-tc.verifyEqual(v('Loudness_ECMA418_2','time_skip'), 0.304);
-tc.verifyEqual(v('Roughness_ECMA418_2','fieldtype'), 'free-frontal');
-tc.verifyEqual(v('Roughness_ECMA418_2','time_skip'), 0.32);
-tc.verifyEqual(v('Tonality_ECMA418_2','fieldtype'), 'free-frontal');
-tc.verifyEqual(v('Tonality_ECMA418_2','time_skip'), 0.304);
-tc.verifyEqual(v('EPNL_FAR_Part36','dt'), 0.5);
-tc.verifyEqual(v('EPNL_FAR_Part36','threshold'), 10);
-end
-
-%% Running a metric --------------------------------------------------------
-
-function test_run_equals_the_direct_call(tc)
-% The interface must add nothing: its call returns exactly what the metric returns.
-x = tc.TestData.x_mono; xb = tc.TestData.x_burst; fs = tc.TestData.fs;
-direct = {
- 'Loudness_ISO532_1',            @() Loudness_ISO532_1(x, fs, 0, 2, 0.5, false)
- 'Loudness_ECMA418_2',           @() Loudness_ECMA418_2(x, fs, 'free-frontal', 0.304, false)
- 'Sharpness_DIN45692',           @() Sharpness_DIN45692(x, fs, 'DIN45692', 0, 2, 0.5, false, false)
- 'Roughness_Daniel1997',         @() Roughness_Daniel1997(x, fs, 0, false)
- 'Roughness_ECMA418_2',          @() Roughness_ECMA418_2(x, fs, 'free-frontal', 0.32, false)
- 'FluctuationStrength_Osses2016',@() FluctuationStrength_Osses2016(x, fs, 1, 0, false)
- 'Tonality_Aures1985',           @() Tonality_Aures1985(x, fs, 0, 0, false)
- 'Tonality_ECMA418_2',           @() Tonality_ECMA418_2(x, fs, 'free-frontal', 0.304, false)
- 'PsychoacousticAnnoyance_Widmann1992', @() PsychoacousticAnnoyance_Widmann1992(x, fs, 0, 0.2, false, false)
- 'PsychoacousticAnnoyance_Zwicker1999', @() PsychoacousticAnnoyance_Zwicker1999(x, fs, 0, 0.2, false, false)
- 'PsychoacousticAnnoyance_More2010',    @() PsychoacousticAnnoyance_More2010(x, fs, 0, 0.2, false, false)
- 'PsychoacousticAnnoyance_Di2016',      @() PsychoacousticAnnoyance_Di2016(x, fs, 0, 0.2, false, false)
- 'EPNL_FAR_Part36',              @() EPNL_FAR_Part36(xb, fs, 1, 0.5, 10, false)
-};
-m = SQAT_GUI_metrics;
-for k = 1:size(direct, 1)
-    e = m(strcmp({m.id}, direct{k,1}));
-    p = il_default_params(e);
-    if strcmp(e.id, 'EPNL_FAR_Part36'), sig = xb; else, sig = x; end
-    [~, out_gui] = evalc('e.run(sig, fs, p, false)');
-    [~, out_ref] = evalc('direct{k,2}()');
-    tc.verifyTrue(isequaln(out_gui, out_ref), [direct{k,1} ': output differs from the direct call']);
-end
-end
-
-function test_run_passes_the_chosen_parameters(tc)
-x = tc.TestData.x_mono; fs = tc.TestData.fs;
-m = SQAT_GUI_metrics;
-e = m(strcmp({m.id}, 'Loudness_ISO532_1'));
-p = il_default_params(e); p.method = 1;             % stationary
-[~, out] = evalc('e.run(x, fs, p, false)');
-[~, ref] = evalc('Loudness_ISO532_1(x, fs, 0, 1, 0.5, false)');
-tc.verifyTrue(isequaln(out, ref));
-tc.verifyTrue(isfield(out, 'Loudness') && ~isfield(out, 'InstantaneousLoudness'));
-e = m(strcmp({m.id}, 'Sharpness_DIN45692'));
-p = il_default_params(e); p.weight_type = 'aures'; p.field = 1;
-[~, out] = evalc('e.run(x, fs, p, false)');
-[~, ref] = evalc('Sharpness_DIN45692(x, fs, ''aures'', 1, 2, 0.5, false, false)');
-tc.verifyTrue(isequaln(out, ref));
-end
-
-function test_run_without_show_opens_no_figure(tc)
-x = tc.TestData.x_mono; fs = tc.TestData.fs;
-m = SQAT_GUI_metrics;
-e = m(strcmp({m.id}, 'Roughness_Daniel1997'));
-before = numel(findall(groot, 'Type', 'figure'));
-evalc('e.run(x, fs, il_default_params(e), false)');
-tc.verifyEqual(numel(findall(groot, 'Type', 'figure')), before);
-evalc('e.run(x, fs, il_default_params(e), true)');
-tc.verifyGreaterThan(numel(findall(groot, 'Type', 'figure')), before);
-end
-
-%% Loading audio -----------------------------------------------------------
-
-function test_load_calibrates_with_dbfs_94(tc)
-[x, fs, nch] = SQAT_GUI_load(tc.TestData.wav_mono, 94, 1);
-[ref, fs_ref] = audioread(tc.TestData.wav_mono);
-tc.verifyEqual(x, ref(:,1));
-tc.verifyEqual(fs, fs_ref);
-tc.verifyEqual(nch, 1);
-end
-
-function test_load_applies_the_dbfs_gain(tc)
-x94  = SQAT_GUI_load(tc.TestData.wav_mono, 94, 1);
-x100 = SQAT_GUI_load(tc.TestData.wav_mono, 100, 1);
-tc.verifyEqual(x100, x94 * 10^((100-94)/20), 'AbsTol', 1e-15);
-end
-
-function test_load_selects_the_channel(tc)
-[x2, ~, nch] = SQAT_GUI_load(tc.TestData.wav_stereo, 94, 2);
-ref = audioread(tc.TestData.wav_stereo);
-tc.verifyEqual(nch, 2);
-tc.verifyEqual(x2, ref(:,2));
-tc.verifyError(@() SQAT_GUI_load(tc.TestData.wav_stereo, 94, 3), 'SQAT_GUI:channel');
-end
-
-function test_load_reads_several_channels_at_once(tc)
-ref = audioread(tc.TestData.wav_stereo);
-X = SQAT_GUI_load(tc.TestData.wav_stereo, 94, [1 2]);
-tc.verifyEqual(X, ref);
-X = SQAT_GUI_load(tc.TestData.wav_stereo, 100, [2 1]);
-tc.verifyEqual(X, ref(:, [2 1]) * 10^(6/20));
-tc.verifyError(@() SQAT_GUI_load(tc.TestData.wav_stereo, 94, [1 3]), 'SQAT_GUI:channel');
-tc.verifyError(@() SQAT_GUI_load(tc.TestData.wav_stereo, 94, [1 1.5]), 'SQAT_GUI:channel');
-end
-
-%% Extracting results ------------------------------------------------------
-
-function test_single_values_are_the_top_level_scalars(tc)
-OUT.time = (0:9)';
-OUT.InstantaneousLoudness = rand(10,1);
-OUT.Nmax = 3; OUT.N5 = 2.5;
-OUT.dz = 0.5;                       % step of the Bark axis, not a result
-OUT.L = struct('N5', 1);            % nested result of a sub-metric
-OUT.soundField = "free-frontal";
-T = SQAT_GUI_single_values(OUT);
-tc.verifyEqual(T.Quantity, {'Nmax'; 'N5'});
-tc.verifyEqual(T.Value, [3; 2.5]);
-end
-
-function test_analyses_of_every_metric_follow_its_output(tc)
-% The analyses on offer are the ones each metric returns, by metric and by
-% method, with the shapes the plots rely on. Ids that must exist per case:
-x = tc.TestData.x_mono; x2 = [x, x*10^(-10/20)]; fs = tc.TestData.fs;
-m = SQAT_GUI_metrics;
-cases = {
- 'Loudness_ISO532_1', struct('method', 1), x, {'specific_loudness'}
- 'Loudness_ISO532_1', struct('method', 2), x, {'loudness','loudness_level','specific_loudness_time'}
- 'Sharpness_DIN45692', struct('method', 1), x, {}
- 'Sharpness_DIN45692', struct('method', 2), x, {'sharpness'}
- 'Roughness_Daniel1997', struct(), x, {'roughness','specific_roughness_time','specific_roughness'}
- 'FluctuationStrength_Osses2016', struct('method', 0), x, {'specific_fs'}
- 'FluctuationStrength_Osses2016', struct('method', 1), x, {'fs','specific_fs_time','specific_fs'}
- 'Tonality_Aures1985', struct(), x, {'tonality','tonal_weighting','loudness_weighting'}
- 'Loudness_ECMA418_2', struct(), x, {'loudness','specific_loudness_time','specific_tonal_loudness_time','specific_noise_loudness_time','specific_loudness'}
- 'Roughness_ECMA418_2', struct(), x, {'roughness','specific_roughness_time','specific_roughness'}
- 'Tonality_ECMA418_2', struct(), x, {'tonality','tonal_frequency','specific_tonality_time','specific_tonal_loudness_time','specific_noise_loudness_time','specific_tonality'}
- 'PsychoacousticAnnoyance_Widmann1992', struct(), x, {'annoyance','weight_fr','weight_s'}
- 'EPNL_FAR_Part36', struct(), x, {'pnlt','pnl','pn','spl','tob_spectra'}};
-for k = 1:size(cases, 1)
-    id = cases{k, 1};
-    e = m(strcmp({m.id}, id));
-    p = il_default_params(e);
-    for f = fieldnames(cases{k, 2})', p.(f{1}) = cases{k, 2}.(f{1}); end
-    [~, OUT] = evalc('e.run(cases{k, 3}, fs, p, false)');
-    A = SQAT_GUI_extract(OUT, id, 1);
-    label = sprintf('%s method %s', id, mat2str(il_field_or(p, 'method', [])));
-    tc.verifyEqual({A.id}, cases{k, 4}, label);
-    for a = A
-        tc.verifyNotEmpty(a.label, a.id);
-        tc.verifyTrue(ismember(a.kind, {'series','profile','map'}), a.id);
-        tc.verifyTrue(iscolumn(a.x) && numel(a.x) > 1, [label ' ' a.id]);
-        switch a.kind
-            case 'series'
-                tc.verifyTrue(iscolumn(a.y) && numel(a.y) == numel(a.x), [label ' ' a.id]);
-            case 'profile'
-                tc.verifyTrue(iscolumn(a.y) && numel(a.y) == numel(a.x), [label ' ' a.id]);
-            case 'map'
-                tc.verifyTrue(iscolumn(a.y) && numel(a.y) > 1, [label ' ' a.id]);
-                tc.verifyEqual(size(a.z), [numel(a.x), numel(a.y)], [label ' ' a.id]);
-        end
-        tc.verifyTrue(all(isfinite(a.x)), [label ' ' a.id]);
-    end
-end
-end
-
-function test_analyses_take_the_values_of_the_output(tc)
-x = tc.TestData.x_mono; fs = tc.TestData.fs;
-m = SQAT_GUI_metrics;
-% series and a map that the metric stores as bands x time
-e = m(strcmp({m.id}, 'Roughness_Daniel1997'));
-[~, OUT] = evalc('e.run(x, fs, il_default_params(e), false)');
-A = SQAT_GUI_extract(OUT, 'Roughness_Daniel1997', 1);
-tc.verifyEqual(A(strcmp({A.id}, 'roughness')).y, OUT.InstantaneousRoughness(:));
-tc.verifyEqual(A(strcmp({A.id}, 'roughness')).x, OUT.time(:));
-sp = A(strcmp({A.id}, 'specific_roughness_time'));
-tc.verifyEqual(sp.z, OUT.InstantaneousSpecificRoughness.');   % time x bands
-tc.verifyEqual(sp.y, OUT.barkAxis(:));
-pr = A(strcmp({A.id}, 'specific_roughness'));
-tc.verifyEqual(pr.y, OUT.TimeAveragedSpecificRoughness(:));
-% a map stored as time x bands, and a row vector on a column time axis
-e = m(strcmp({m.id}, 'FluctuationStrength_Osses2016'));
-[~, OUT] = evalc('e.run(x, fs, il_default_params(e), false)');
-A = SQAT_GUI_extract(OUT, 'FluctuationStrength_Osses2016', 1);
-tc.verifyEqual(A(strcmp({A.id}, 'fs')).y, OUT.InstantaneousFluctuationStrength(:));
-tc.verifyEqual(A(strcmp({A.id}, 'specific_fs_time')).z, OUT.InstantaneousSpecificFluctuationStrength);
-end
-
-function test_analyses_pick_the_channel_of_a_binaural_output(tc)
-x = tc.TestData.x_mono; x2 = [x, x*10^(-10/20)]; fs = tc.TestData.fs;
-m = SQAT_GUI_metrics;
-e = m(strcmp({m.id}, 'Loudness_ECMA418_2'));
-[~, OUT] = evalc('e.run(x2, fs, il_default_params(e), false)');
-for c = 1:2
-    A = SQAT_GUI_extract(OUT, 'Loudness_ECMA418_2', c);
-    tc.verifyEqual(A(strcmp({A.id}, 'loudness')).y, OUT.loudnessTDep(:, c));
-    tc.verifyEqual(A(strcmp({A.id}, 'specific_loudness')).y, OUT.specLoudnessPowAvg(:, c));
-    tc.verifyEqual(A(strcmp({A.id}, 'specific_loudness_time')).z, OUT.specLoudness(:, :, c));
-end
-A = SQAT_GUI_extract(OUT, 'Loudness_ECMA418_2', 'Binaural');
-tc.verifyEqual(A(strcmp({A.id}, 'loudness')).y, OUT.loudnessTDepBin(:));
-tc.verifyEqual(A(strcmp({A.id}, 'specific_loudness_time')).z, OUT.specLoudnessBin);
-% a mono output has one channel only
-[~, OUT1] = evalc('e.run(x, fs, il_default_params(e), false)');
-tc.verifyEmpty(SQAT_GUI_extract(OUT1, 'Loudness_ECMA418_2', 2));
-tc.verifyEmpty(SQAT_GUI_extract(OUT1, 'Loudness_ECMA418_2', 'Binaural'));
-% the tonality of ECMA-418-2 has no combined binaural value
-e = m(strcmp({m.id}, 'Tonality_ECMA418_2'));
-[~, OUT] = evalc('e.run(x2, fs, il_default_params(e), false)');
-tc.verifyNotEmpty(SQAT_GUI_extract(OUT, 'Tonality_ECMA418_2', 2));
-tc.verifyEmpty(SQAT_GUI_extract(OUT, 'Tonality_ECMA418_2', 'Binaural'));
-end
-
-function test_single_values_of_a_binaural_output_go_by_channel(tc)
-x = tc.TestData.x_mono; x2 = [x, x*10^(-10/20)]; fs = tc.TestData.fs;
-m = SQAT_GUI_metrics;
-e = m(strcmp({m.id}, 'Loudness_ECMA418_2'));
-[~, OUT] = evalc('e.run(x2, fs, il_default_params(e), false)');
-for c = 1:2
-    T = SQAT_GUI_single_values(OUT, c, 2);
-    tc.verifyEqual(T.Value(strcmp(T.Quantity, 'Nmean')), OUT.Nmean(c));
-    tc.verifyEqual(T.Value(strcmp(T.Quantity, 'N5')), OUT.N5(c));
-    tc.verifyEqual(T.Value(strcmp(T.Quantity, 'loudnessPowAvg')), OUT.loudnessPowAvg(c));
-end
-T = SQAT_GUI_single_values(OUT, 'Binaural', 2);
-tc.verifyEqual(T.Value(strcmp(T.Quantity, 'Nmean')), OUT.Nmean(3));
-tc.verifyEqual(T.Value(strcmp(T.Quantity, 'loudnessPowAvg')), OUT.loudnessPowAvgBin);
-% a plain output keeps the scalars it always had
-[~, OUT1] = evalc('e.run(x, fs, il_default_params(e), false)');
-tc.verifyEqual(SQAT_GUI_single_values(OUT1, 1, 1), SQAT_GUI_single_values(OUT1));
-% tonality has left and right only
-e = m(strcmp({m.id}, 'Tonality_ECMA418_2'));
-[~, OUT] = evalc('e.run(x2, fs, il_default_params(e), false)');
-T = SQAT_GUI_single_values(OUT, 2, 2);
-tc.verifyEqual(T.Value(strcmp(T.Quantity, 'Tmean')), OUT.Tmean(2));
-tc.verifyEmpty(SQAT_GUI_single_values(OUT, 'Binaural', 2));
-end
-
-%% Sharing results between metrics -----------------------------------------
-
-function test_share_plan_follows_the_parameters(tc)
-% A result is taken from another metric only when that metric computed the
-% same thing. A different time_skip asks for the statistics again.
-m = SQAT_GUI_metrics;
-params = struct();
-for k = 1:numel(m)
-    params.(m(k).id) = il_default_params(m(k));
-end
-plan = SQAT_GUI_share({m.id}, params, 3*48000, 48000);
-step = @(id) plan(strcmp({plan.id}, id));
-tc.verifyEqual(plan(1).id, 'PsychoacousticAnnoyance_Widmann1992', 'the models run first');
-% Zwicker 1999 calls Widmann 1992 with its own arguments
-tc.verifyEqual(step('PsychoacousticAnnoyance_Zwicker1999').from, ...
-    'PsychoacousticAnnoyance_Widmann1992');
-tc.verifyEmpty(step('PsychoacousticAnnoyance_Zwicker1999').field, 'the whole output');
-tc.verifyEmpty(step('PsychoacousticAnnoyance_Zwicker1999').restat);
-% the components come from the first model, with the time_skip of this run
-for id = {'Loudness_ISO532_1', 'Sharpness_DIN45692', 'Roughness_Daniel1997', ...
-        'FluctuationStrength_Osses2016'}
-    tc.verifyEqual(step(id{1}).from, 'PsychoacousticAnnoyance_Widmann1992', id{1});
-    tc.verifyEqual(step(id{1}).restat, params.(id{1}).time_skip, id{1});
-end
-tc.verifyEqual(step('Sharpness_DIN45692').attach, {'loudness', 'L'});
-% only More 2010 and Di 2016 compute tonality, and with time_skip 0, which
-% is the default of the metric
-tc.verifyEqual(step('Tonality_Aures1985').from, 'PsychoacousticAnnoyance_More2010');
-tc.verifyEqual(step('Tonality_Aures1985').field, 'K');
-tc.verifyEmpty(step('Tonality_Aures1985').restat);
-% the ECMA-418-2 metrics and EPNL share nothing
-for id = {'Loudness_ECMA418_2', 'Roughness_ECMA418_2', 'Tonality_ECMA418_2', 'EPNL_FAR_Part36'}
-    tc.verifyEmpty(step(id{1}).from, id{1});
-end
-end
-
-function test_share_takes_the_result_the_metric_itself_returns(tc)
-% Every result taken from another metric must be, field by field, what the
-% metric returns when it is called with the parameters of this run. The
-% defaults are used here, so the time_skip of the components (0.5, 0.5, 0,
-% 0) differs from the one of the models (0.2).
-x = tc.TestData.x_mono; fs = tc.TestData.fs;
-m = SQAT_GUI_metrics;
-params = struct();
-for k = 1:numel(m)
-    params.(m(k).id) = il_default_params(m(k));
-end
-ids = {'PsychoacousticAnnoyance_Widmann1992', 'PsychoacousticAnnoyance_Zwicker1999', ...
-    'PsychoacousticAnnoyance_More2010', 'Loudness_ISO532_1', 'Sharpness_DIN45692', ...
-    'Roughness_Daniel1997', 'FluctuationStrength_Osses2016', 'Tonality_Aures1985'};
-plan = SQAT_GUI_share(ids, params, numel(x), fs);
-tc.assertEqual(numel(plan), numel(ids));
-
-done = struct();
-n_taken = 0;
-for k = 1:numel(plan)
-    step = plan(k);
-    e = m(strcmp({m.id}, step.id)); %#ok<NASGU>
-    if isempty(step.from)
-        [~, OUT] = evalc('e.run(x, fs, params.(step.id), false)');
-        done.(step.id) = OUT;
-        continue
-    end
-    taken = SQAT_GUI_take(done.(step.from), step);
-    [~, ref] = evalc('e.run(x, fs, params.(step.id), false)');
-    tc.verifyTrue(isequaln(taken, ref), ...
-        sprintf('%s taken from %s differs from the metric itself', step.id, step.from));
-    done.(step.id) = taken;
-    n_taken = n_taken + 1;
-end
-tc.verifyEqual(n_taken, 6, 'five metrics and Zwicker 1999 are taken from a model');
-end
-
-%% Spectrogram, windows, filters and weighting -----------------------------
-
-function test_window_shapes(tc)
-n = 1024;
-for name = {'hann', 'hamming', 'rect', 'blackmanharris'}
-    w = SQAT_GUI_window(name{1}, n);
-    tc.verifyTrue(iscolumn(w) && numel(w) == n, name{1});
-end
-% periodic windows: the first sample is the value at phase zero, the peak sits at n/2 + 1
-w = SQAT_GUI_window('hann', n);            tc.verifyEqual(w(1), 0, 'AbsTol', 1e-15);
-w = SQAT_GUI_window('hamming', n);         tc.verifyEqual(w(1), 0.08, 'AbsTol', 1e-12);
-w = SQAT_GUI_window('blackmanharris', n);  tc.verifyEqual(w(1), 6.0e-5, 'AbsTol', 1e-9);
-for name = {'hann', 'hamming', 'blackmanharris'}
-    w = SQAT_GUI_window(name{1}, n);
-    tc.verifyEqual(w(n/2 + 1), 1, 'AbsTol', 1e-12, name{1});
-    tc.verifyEqual(w(2:n/2), flipud(w(n/2+2:n)), 'AbsTol', 1e-12, name{1});   % symmetric about the peak
-end
-tc.verifyEqual(SQAT_GUI_window('rect', n), ones(n, 1));
-tc.verifyEqual(SQAT_GUI_window('Rectangular', 8), ones(8, 1));
-% a custom window is resampled to the length asked for, and kept as it is at its own length
-v = [0 1 3 2]';
-tc.verifyEqual(SQAT_GUI_window('custom', 4, v), v);
-tc.verifyEqual(SQAT_GUI_window('custom', 7, v), interp1(linspace(0, 1, 4), v, linspace(0, 1, 7))', 'AbsTol', 1e-12);
-tc.verifyError(@() SQAT_GUI_window('kaiser', 8), 'SQAT_GUI:window');
-tc.verifyError(@() SQAT_GUI_window('custom', 8), 'SQAT_GUI:window');
-end
-
-function test_read_window_takes_text_and_mat_files(tc)
-d = tc.TestData.dir_tmp;
-v = [0.1 0.5 1 0.5 0.1]';
-writematrix(v, fullfile(d, 'w_col.csv'));
-writematrix(v', fullfile(d, 'w_row.txt'), 'Delimiter', ' ');
-w = v; save(fullfile(d, 'w_var.mat'), 'w');
-for f = {'w_col.csv', 'w_row.txt', 'w_var.mat'}
-    got = SQAT_GUI_read_window(fullfile(d, f{1}));
-    tc.verifyEqual(got, v, 'AbsTol', 1e-12, f{1});
-    tc.verifyTrue(iscolumn(got), f{1});
-end
-% what cannot be a window is refused
-writematrix([1 2; 3 4], fullfile(d, 'w_matrix.csv'));
-writematrix([1 NaN 2]', fullfile(d, 'w_nan.csv'));
-writematrix(1, fullfile(d, 'w_one.csv'));
-copyfile(fullfile(d, 'w_col.csv'), fullfile(d, 'w_col.xyz'));
-for f = {'w_matrix.csv', 'w_nan.csv', 'w_one.csv', 'w_col.xyz'}
-    tc.verifyError(@() SQAT_GUI_read_window(fullfile(d, f{1})), 'SQAT_GUI:window', f{1});
-end
-end
-
-function test_spectrogram_reads_the_level_of_a_tone_with_any_window(tc)
-fs = 48000; t = (0:fs-1)'/fs;
-x = sqrt(2)*2e-5*10^(60/20) * sin(2*pi*1500*t);      % on a bin of a 1024 point FFT (32 x 46.875 Hz)
-for name = {'hann', 'hamming', 'rect', 'blackmanharris'}
-    [tt, f, L, info] = SQAT_GUI_spectrogram(x, fs, name{1}, 10, 50);
-    tc.verifyEqual(max(L(:)), 60, 'AbsTol', 0.05, name{1});
-    [~, i] = max(max(L, [], 2));
-    tc.verifyEqual(f(i), 1500, name{1});
-    tc.verifyEqual(size(L), [513, numel(tt)], name{1});
-    tc.verifyEqual(info.n_fft, 1024);
-    tc.verifyEqual(info.overlap, 50);
-    tc.verifyFalse(info.limited);
-end
-end
-
-function test_spectrogram_follows_degree_and_overlap(tc)
-fs = 48000; x = randn(fs, 1) * 0.01;
-[~, f, L4096] = SQAT_GUI_spectrogram(x, fs, 'hann', 12, 50);
-tc.verifyEqual(numel(f), 2049);
-tc.verifyEqual(f(2) - f(1), fs/4096, 'AbsTol', 1e-9);
-[t50, ~, ~] = SQAT_GUI_spectrogram(x, fs, 'hann', 10, 50);
-[t75, ~, ~] = SQAT_GUI_spectrogram(x, fs, 'hann', 10, 75);
-tc.verifyEqual(numel(t50), floor((fs - 1024)/512) + 1);
-tc.verifyEqual(numel(t75), floor((fs - 1024)/256) + 1);
-% a window given as a vector is used as it is at the FFT length, and resampled to it otherwise
-w = SQAT_GUI_window('hann', 1024);
-[~, ~, Lc] = SQAT_GUI_spectrogram(x, fs, w, 10, 50);
-[~, ~, Lh] = SQAT_GUI_spectrogram(x, fs, 'hann', 10, 50);
-tc.verifyEqual(Lc, Lh);
-v = SQAT_GUI_window('hann', 200);
-[~, ~, Lr] = SQAT_GUI_spectrogram(x, fs, v, 10, 50);
-[~, ~, Le] = SQAT_GUI_spectrogram(x, fs, SQAT_GUI_window('custom', 1024, v), 10, 50);
-tc.verifyEqual(Lr, Le);
-% a signal shorter than the FFT is padded
-[t, ~, Ls] = SQAT_GUI_spectrogram(x(1:300), fs, 'hann', 10, 50);
-tc.verifyEqual(size(Ls, 2), numel(t));
-tc.verifyGreaterThanOrEqual(numel(t), 1);
-end
-
-function test_spectrogram_limits_the_frames_and_says_so(tc)
-fs = 8000; x = randn(200*fs, 1) * 0.01;
-[t, ~, L, info] = SQAT_GUI_spectrogram(x, fs, 'hann', 10, 90);
-tc.verifyTrue(info.limited);
-tc.verifyLessThan(info.overlap, 90);
-tc.verifyLessThanOrEqual(numel(t), 4000);
-tc.verifyLessThanOrEqual(numel(L), 8e6);
-% the largest FFT still fits in memory
-[t, f, L, info] = SQAT_GUI_spectrogram(x, fs, 'hann', 16, 95);
-tc.verifyLessThanOrEqual(numel(L), 8e6);
-tc.verifyTrue(info.limited);
-end
-
-function test_spectral_filter_removes_a_box_and_only_that(tc)
-fs = 48000; t = (0:3*fs-1)'/fs;
-x = sin(2*pi*500*t) + sin(2*pi*2000*t);
-% no box, or a box beyond the spectrum: the signal comes back
-tc.verifyEqual(SQAT_GUI_spectral_filter(x, fs, zeros(0, 4)), x);
-tc.verifyEqual(SQAT_GUI_spectral_filter(x, fs, [0 3 30000 40000]), x, 'AbsTol', 1e-12);
-% a box around 2 kHz for the whole signal
-y = SQAT_GUI_spectral_filter(x, fs, [0 3 1500 2500]);
-tc.verifyTrue(iscolumn(y) && numel(y) == numel(x));
-mid = fs:2*fs;                                        % away from the edges
-tc.verifyLessThan(il_tone_db(y(mid), fs, 2000) - il_tone_db(x(mid), fs, 2000), -40);
-tc.verifyEqual(il_tone_db(y(mid), fs, 500), il_tone_db(x(mid), fs, 500), 'AbsTol', 0.1);
-% a box that lasts one second only removes the tone there
-y = SQAT_GUI_spectral_filter(x, fs, [1 2 1500 2500]);
-inside = round(1.2*fs):round(1.8*fs); before = 1:round(0.8*fs); after = round(2.2*fs):numel(x);
-tc.verifyLessThan(il_tone_db(y(inside), fs, 2000) - il_tone_db(x(inside), fs, 2000), -40);
-tc.verifyEqual(il_tone_db(y(before), fs, 2000), il_tone_db(x(before), fs, 2000), 'AbsTol', 0.1);
-tc.verifyEqual(il_tone_db(y(after), fs, 2000), il_tone_db(x(after), fs, 2000), 'AbsTol', 0.1);
-% the box can be kept and the rest removed
-y = SQAT_GUI_spectral_filter(x, fs, [0 3 1500 2500], 'keep');
-tc.verifyLessThan(il_tone_db(y(mid), fs, 500) - il_tone_db(x(mid), fs, 500), -40);
-tc.verifyEqual(il_tone_db(y(mid), fs, 2000), il_tone_db(x(mid), fs, 2000), 'AbsTol', 0.1);
-y = SQAT_GUI_spectral_filter(x, fs, [1 2 1500 2500], 'keep');       % outside the box's time: silence
-tc.verifyLessThan(rms(y(1:round(0.8*fs))), 1e-6);
-tc.verifyLessThan(rms(y(round(2.2*fs):end)), 1e-6);
-tc.verifyEqual(il_tone_db(y(inside), fs, 2000), il_tone_db(x(inside), fs, 2000), 'AbsTol', 0.1);
-tc.verifyLessThan(il_tone_db(y(inside), fs, 500) - il_tone_db(x(inside), fs, 500), -40);
-tc.verifyEqual(SQAT_GUI_spectral_filter(x, fs, zeros(0, 4), 'keep'), x);   % no box: as it was
-tc.verifyError(@() SQAT_GUI_spectral_filter(x, fs, [0 3 1500 2500], 'other'), 'SQAT_GUI:filter');
-% two boxes
-y = SQAT_GUI_spectral_filter(x, fs, [0 3 1500 2500; 0 3 400 600]);
-tc.verifyLessThan(il_tone_db(y(mid), fs, 500) - il_tone_db(x(mid), fs, 500), -40);
-tc.verifyLessThan(il_tone_db(y(mid), fs, 2000) - il_tone_db(x(mid), fs, 2000), -40);
-end
-
-function test_weighting_follows_iec_61672_at_the_reference_points(tc)
-fs = 48000; t = (0:2*fs-1)'/fs;
-x100 = sin(2*pi*100*t); x1k = sin(2*pi*1000*t);
-tc.verifyEqual(SQAT_GUI_weight(x100, fs, 'Z'), x100);
-keep = fs/2:2*fs;                                     % after the start-up of the filter
-db = @(y, x) 20*log10(rms(y(keep)) / rms(x(keep)));
-tc.verifyEqual(db(SQAT_GUI_weight(x100, fs, 'A'), x100), -19.1, 'AbsTol', 0.2);
-tc.verifyEqual(db(SQAT_GUI_weight(x100, fs, 'C'), x100), -0.3, 'AbsTol', 0.2);
-tc.verifyEqual(db(SQAT_GUI_weight(x1k, fs, 'A'), x1k), 0, 'AbsTol', 0.1);
-tc.verifyEqual(db(SQAT_GUI_weight(x1k, fs, 'C'), x1k), 0, 'AbsTol', 0.1);
-% the curve drawn on the spectrogram is the response of the same filter
-tc.verifyEqual(SQAT_GUI_weight_curve([100 1000], fs, 'A'), [-19.1 0], 'AbsTol', 0.2);
-tc.verifyEqual(SQAT_GUI_weight_curve([100 1000], fs, 'C'), [-0.3 0], 'AbsTol', 0.2);
-tc.verifyEqual(SQAT_GUI_weight_curve([100 1000], fs, 'Z'), [0 0]);
-tc.verifyTrue(iscolumn(SQAT_GUI_weight_curve([100; 1000], fs, 'A')));
-tc.verifyError(@() SQAT_GUI_weight(x1k, fs, 'B'), 'SQAT_GUI:weighting');
-end
-
-function test_weighting_filters_equal_those_of_the_sound_level_meter(tc)
-% SQAT_GUI_weight_filter rewrites the design of Gen_weighting_filters without the toolbox
-% function it calls (bilinear); the coefficients must stay the same
-for fs = [44100 48000 96000]
-    for type = {'A', 'C'}
-        [b, a] = SQAT_GUI_weight_filter(fs, type{1});
-        [b0, a0] = Gen_weighting_filters(fs, type{1});
-        lbl = sprintf('%s at %d Hz', type{1}, fs);
-        tc.verifyEqual(b(:), b0(:), 'RelTol', 1e-9, 'AbsTol', 1e-12, lbl);
-        tc.verifyEqual(a(:), a0(:), 'RelTol', 1e-9, 'AbsTol', 1e-12, lbl);
-    end
-end
-[b, a] = SQAT_GUI_weight_filter(48000, 'Z');
-tc.verifyEqual([b a], [1 1]);
-tc.verifyError(@() SQAT_GUI_weight_filter(48000, 'D'), 'SQAT_GUI:weighting');
-end
-
-function test_gui_helpers_need_no_toolbox(tc)
-% besides MATLAB itself: the files of the waveform window and the extraction
-names = {'SQAT_GUI_window', 'SQAT_GUI_read_window', 'SQAT_GUI_spectrogram', ...
-    'SQAT_GUI_spectral_filter', 'SQAT_GUI_weight', 'SQAT_GUI_weight_curve', ...
-    'SQAT_GUI_weight_filter', 'SQAT_GUI_extract', 'SQAT_GUI_load', 'SQAT_GUI_single_values'};
-for k = 1:numel(names)
-    [~, prods] = matlab.codetools.requiredFilesAndProducts(which(names{k}));
-    tc.verifyEmpty(setdiff({prods.Name}, {'MATLAB'}), [names{k} ' needs a toolbox']);
-end
-end
-
-function test_enhanced_stft_settings(tc)
-% the two smoothings of the function: both put a 1 kHz tone at 1 kHz, and the sharp one gives the thinner line
-[x, fs] = audioread(tc.TestData.wav_tone);
-w = zeros(1, 2);
-for k = 1:2
-    modes = {'readable', 'sharp'};
-    [~, f, L, info] = SQAT_GUI_enhanced_stft(x, fs, modes{k});
-    tc.verifyEqual(info.smoothing, modes{k});
-    p = max(L, [], 2);
-    [~, i] = max(p);
-    tc.verifyEqual(f(i), 1000, 'AbsTol', 10);
-    w(k) = nnz(p >= max(p) - 3);                      % rows within 3 dB of the peak
-end
-tc.verifyLessThan(w(2), w(1));
-tc.verifyError(@() SQAT_GUI_enhanced_stft(x, fs, 'other'), 'SQAT_GUI_enhanced_stft:smoothing');
-end
-
-function test_enhanced_stft_gives_both_smoothings_in_one_call(tc)
-% the reassignment is shared: both maps at once equal the two calls
-[x, fs] = audioread(tc.TestData.wav_two);
-[t, f, L, info] = SQAT_GUI_enhanced_stft(x, fs, {'readable', 'sharp'});
-tc.verifyEqual(info.smoothing, {'readable', 'sharp'});
-[t1, f1, L1] = SQAT_GUI_enhanced_stft(x, fs, 'readable');
-[~, ~, L2] = SQAT_GUI_enhanced_stft(x, fs, 'sharp');
-tc.verifyEqual({t, f}, {t1, f1});
-tc.verifyEqual(L, {L1, L2});
-end
-
-function test_enhanced_stft_preview_steps_by_one_column(tc)
-% the preview of a long signal: frames step by up to one output column; with 1 ms columns nothing changes
-[x, fs] = audioread(tc.TestData.wav_tone);
-x = x(1:round(1.5*fs));                                        % 1.5 s in 2000 columns: 1 ms per column
-[t, f, L] = SQAT_GUI_enhanced_stft(x, fs, 'readable');
-[t_p, f_p, L_p, info] = SQAT_GUI_enhanced_stft(x, fs, 'readable', [], [], [], true);
-tc.verifyTrue(info.preview);
-tc.verifyEqual({t_p, f_p, L_p}, {t, f, L});
-[t, f, L] = SQAT_GUI_enhanced_stft(x, fs, 'readable', 50);    % 30 ms columns, as in a long signal
-[t_p, f_p, L_p] = SQAT_GUI_enhanced_stft(x, fs, 'readable', 50, [], [], true);
-tc.verifyEqual({t_p, f_p}, {t, f});
-tc.verifyNotEqual(L_p, L);
-[~, i] = max(max(L_p, [], 2));
-tc.verifyEqual(f_p(i), 1000, 'AbsTol', 10);
 end
 
 %% Main window -------------------------------------------------------------
@@ -861,13 +269,6 @@ il_select_metrics(fig, {'Roughness_Daniel1997'});
 il_press(fig, 'run');
 tc.verifySubstring(findobj(fig, 'Tag', 'status').Text, 'Done');
 tc.verifyEqual(findobj(fig, 'Tag', 'progress').Value, 100);
-end
-
-function test_startup_puts_the_gui_on_the_path(tc)
-rmpath(fullfile(basepath_SQAT, 'gui'));
-tc.addTeardown(@() addpath(fullfile(basepath_SQAT, 'gui')));
-evalc('run(fullfile(basepath_SQAT, ''startup_SQAT.m''))');
-tc.verifyNotEmpty(which('SQAT_GUI'));
 end
 
 %% Running the analyses ----------------------------------------------------
@@ -2153,7 +1554,6 @@ end
 function test_waveform_enhanced_stft_switch(tc)
 fig = SQAT_GUI({tc.TestData.wav_tone}, 'Visible', 'off');
 tc.addTeardown(@() delete(fig));
-setappdata(fig, 'sqat_no_background', true);        % the map is computed at once, in the foreground
 il_press(fig, 'open_waveform');
 w = il_window('SQAT_GUI_waveform');
 sw = findobj(w, 'Tag', 'spec_enhanced');
@@ -2191,7 +1591,6 @@ function test_enhanced_stft_zoom_recomputes(tc)
 % a zoom on the enhanced map recomputes the excerpt with finer columns; zooming out restores the full map
 fig = SQAT_GUI({tc.TestData.wav_tone}, 'Visible', 'off');
 tc.addTeardown(@() delete(fig));
-setappdata(fig, 'sqat_no_background', true);
 il_press(fig, 'open_waveform');
 w = il_window('SQAT_GUI_waveform');
 il_set(w, 'spec_enhanced', 'On');
@@ -2222,7 +1621,6 @@ function test_enhanced_stft_options_keep_the_zoom(tc)
 % weighting only adds its curve to each row
 fig = SQAT_GUI({tc.TestData.wav_two}, 'Visible', 'off');
 tc.addTeardown(@() delete(fig));
-setappdata(fig, 'sqat_no_background', true);
 il_press(fig, 'open_waveform');
 w = il_window('SQAT_GUI_waveform');
 il_set(w, 'spec_enhanced', 'On');
@@ -2255,7 +1653,6 @@ end
 function test_enhanced_stft_home_shows_the_whole_file(tc)
 fig = SQAT_GUI({tc.TestData.wav_tone}, 'Visible', 'off');
 tc.addTeardown(@() delete(fig));
-setappdata(fig, 'sqat_no_background', true);
 il_press(fig, 'open_waveform');
 w = il_window('SQAT_GUI_waveform');
 il_set(w, 'spec_enhanced', 'On');
@@ -2278,7 +1675,6 @@ end
 function test_enhanced_stft_zoom_buttons_take_turns_with_the_box(tc)
 fig = SQAT_GUI({tc.TestData.wav_tone}, 'Visible', 'off');
 tc.addTeardown(@() delete(fig));
-setappdata(fig, 'sqat_no_background', true);
 il_press(fig, 'open_waveform');
 w = il_window('SQAT_GUI_waveform');
 zin = findobj(w, 'Tag', 'spec_zoom_in');
@@ -2303,7 +1699,6 @@ end
 function test_enhanced_stft_colour_floor_moves_by_5_dB(tc)
 fig = SQAT_GUI({tc.TestData.wav_tone}, 'Visible', 'off');
 tc.addTeardown(@() delete(fig));
-setappdata(fig, 'sqat_no_background', true);
 il_press(fig, 'open_waveform');
 w = il_window('SQAT_GUI_waveform');
 il_set(w, 'spec_enhanced', 'On');
@@ -2328,6 +1723,7 @@ end
 
 function test_enhanced_stft_comes_from_the_background_pool(tc)
 % with the pool the window waits with a note, and the map that arrives equals the direct computation
+il_use_pool(tc);
 fig = SQAT_GUI({tc.TestData.wav_tone}, 'Visible', 'off');
 tc.addTeardown(@() delete(fig));
 il_press(fig, 'open_waveform');
@@ -2352,6 +1748,7 @@ tc.verifyEqual(surf().CData, double(single(L(keep, :))) + SQAT_GUI_weight_curve(
 end
 
 function test_enhanced_stft_of_a_long_signal_shows_a_preview_first(tc)
+il_use_pool(tc);
 fs = 48000;
 t = (0:1/fs:61-1/fs)';
 wav = fullfile(tc.TestData.dir_tmp, 'long_tone.wav');
@@ -2383,6 +1780,7 @@ end
 
 function test_enhanced_stft_follows_a_new_signal_while_computing(tc)
 % a map still on its way for the last signal never replaces the map of the new one
+il_use_pool(tc);
 fig = SQAT_GUI({tc.TestData.wav_tone, tc.TestData.wav_two}, 'Visible', 'off');
 tc.addTeardown(@() delete(fig));
 il_activate_signal(fig, 1);
@@ -2405,6 +1803,7 @@ end
 
 function test_waveform_close_while_a_map_is_computed(tc)
 % closing the window with maps queued leaves no timer running and logs no error
+il_use_pool(tc);
 fig = SQAT_GUI({tc.TestData.wav_tone}, 'Visible', 'off');
 tc.addTeardown(@() delete(fig));
 timers_before = numel(timerfindall);
@@ -2425,13 +1824,6 @@ tc.verifyNotEmpty(surf());
 end
 
 %% Helpers -----------------------------------------------------------------
-
-function p = il_default_params(e)
-p = struct();
-for q = e.params
-    p.(q.name) = q.value;
-end
-end
 
 function draw_two_corners(w, axs, t1, t2)
 % arms the filter tool and clicks the two corners of a box from t1 to t2 (s), 1.5 to 2.5 kHz
@@ -2477,10 +1869,6 @@ w = 0.5 - 0.5*cos(2*pi*(0:n-1)'/n);
 Y = fft(y(:) .* w);
 k = round(f0 * n / fs) + 1;
 db = 20*log10(max(abs(Y(k-2:k+2))) * 2 / sum(w) + eps);
-end
-
-function v = il_field_or(s, name, default)
-if isfield(s, name), v = s.(name); else, v = default; end
 end
 
 function il_activate_signal(fig, k)
@@ -2548,6 +1936,13 @@ function il_pick_tab(tg, k)
 old = tg.SelectedTab;
 tg.SelectedTab = tg.Children(k);
 tg.SelectionChangedFcn(tg, struct('NewValue', tg.Children(k), 'OldValue', old));
+end
+
+function il_use_pool(tc)
+% the background pool for this test only: the other tests leave it off, so that
+% no enhanced map is computed behind them
+rmappdata(groot, 'sqat_no_background');
+tc.addTeardown(@() setappdata(groot, 'sqat_no_background', true));
 end
 
 function il_set(win, tag, value)

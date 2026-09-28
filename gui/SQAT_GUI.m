@@ -2446,7 +2446,7 @@ end
         % full maps are computed there while the window stays usable
         if ~spec_pool_tried
             spec_pool_tried = true;
-            if ~isappdata(fig, 'sqat_no_background')           % the tests of the foreground path
+            if ~isappdata(fig, 'sqat_no_background') && ~isappdata(groot, 'sqat_no_background')   % set by the tests
                 try
                     spec_pool = backgroundPool;
                 catch
