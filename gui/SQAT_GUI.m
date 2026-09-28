@@ -194,7 +194,7 @@ og.ColumnWidth = {150, 105, 120, '1x'};
 og.Padding = [6 4 6 4];
 cb_show = uicheckbox(og, 'Text', 'Show plots after run', 'Tag', 'show_plots');
 cb_split = uicheckbox(og, 'Text', 'Split figures', 'Tag', 'split_figures', ...
-    'Tooltip', 'One tab per panel of a SQAT figure in the graphs windows', ...
+    'Tooltip', 'One tab (and one saved file) per panel of a SQAT figure', ...
     'ValueChangedFcn', @on_graph_option);
 uibutton(og, 'Text', 'Save figures...', 'Tag', 'save_figures', 'ButtonPushedFcn', @(~, ~) open_save_dialog(), ...
     'Tooltip', 'Choose the signals and the figures of the last run to save');
@@ -2017,12 +2017,10 @@ end
             ti.CheckedNodes = on;
         end
         expand(ti);
-        row = uigridlayout(g, [1 4], 'Padding', 0);
-        row.ColumnWidth = {60, 90, 160, '1x'};
+        row = uigridlayout(g, [1 3], 'Padding', 0);
+        row.ColumnWidth = {60, 90, '1x'};
         uilabel(row, 'Text', 'Format:', 'HorizontalAlignment', 'right');
         uidropdown(row, 'Items', {'PNG', 'PDF'}, 'ItemsData', {'png', 'pdf'}, 'Tag', 'save_format');
-        uicheckbox(row, 'Text', 'One file per panel', 'Tag', 'save_split', 'Value', cb_split.Value, ...
-            'Tooltip', 'A SQAT figure with several panels gives one file per panel');
         uilabel(row, 'Text', '');
         row = uigridlayout(g, [1 5], 'Padding', 0);
         row.ColumnWidth = {60, '1x', 80, 80, 80};
@@ -2056,7 +2054,7 @@ end
             return
         end
         fmt = findobj(d, 'Tag', 'save_format').Value;
-        split = findobj(d, 'Tag', 'save_split').Value;
+        split = cb_split.Value;                         % Split figures: one file per panel
         n_sig = findobj(d, 'Tag', 'save_signals').CheckedNodes;
         paths = {};
         if ~isempty(n_sig)

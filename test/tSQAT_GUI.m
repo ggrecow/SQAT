@@ -1187,11 +1187,11 @@ fig = SQAT_GUI({tc.TestData.wav_mono}, 'Visible', 'off');
 tc.addTeardown(@() delete(fig));
 il_select_metrics(fig, {'Roughness_Daniel1997'});
 il_press(fig, 'run');
+h = findobj(fig, 'Tag', 'split_figures'); h.Value = true;
 il_press(fig, 'save_figures');
 d = il_window('SQAT_GUI_save');
 out_dir = fullfile(tc.TestData.dir_tmp, 'saved_split'); mkdir(out_dir);
 h = findobj(d, 'Tag', 'save_folder'); h.Value = out_dir;
-h = findobj(d, 'Tag', 'save_split'); h.Value = true;
 il_press(d, 'save_do');
 figs = il_all_sqat_figures();                              % drawn to be saved, kept hidden
 tc.assertNotEmpty(figs);
