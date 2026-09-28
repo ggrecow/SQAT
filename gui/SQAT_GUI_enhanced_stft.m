@@ -56,13 +56,12 @@ n_x = numel(x);
 durations = 8e-3 * 64 .^ ((0:8) / 8);                 % nine windows, 8 to 512 ms
 Ns = 2 * round(durations * fs / 2);                    % even window lengths (samples)
 % Each window steps by N/step_div, and the energy of each frame is held over
-% that step. 16 is the default. Any value from 8 up is accepted: N/8 takes
-% about half the time, but its longer hold widens clicks and onsets (about
-% 6 ms instead of 5) and separates close tones less; N/32 narrows clicks
-% further (about 4 ms) at about 3.3 times the time of N/8 and leaves more
-% spurious points in broadband noise. Below 8 the frames are too sparse for
-% the hold to be short.
-step_div = 16;
+% that step. 8 is the default. N/16 narrows clicks and onsets (about 5 ms
+% instead of 6) and separates close tones better, at about twice the time;
+% N/32 narrows clicks further (about 4 ms) at about 3.3 times the time of
+% N/8 and leaves more spurious points in broadband noise. Below 8 the frames
+% are too sparse for the hold to be short.
+step_div = 8;
 hop_out = max([1, round(0.001 * fs), ceil(n_x / n_frames)]);   % output time step (samples): 1 ms or more
 M = numel(0:hop_out:n_x-1);
 n_oct = log2((fs/2) / f_min);

@@ -107,9 +107,17 @@ boxes = zeros(0, 4);                                  % [t1 t2 f1 f2] removed fr
 box_corner = [];                                      % first corner of a box being drawn
 drag_active = false;                                  % the mouse is being followed to size a box
 spec_custom = [];                                     % window read from a file
-spec_view = [];                                       % full-file enhanced map, kept to redraw a zoomed excerpt
+spec_view = [];                                       % enhanced maps on screen: the full file and the zoomed excerpt
+spec_signal = '';                                     % file, channel and calibration on screen: the key of the cache
+spec_cache = struct('key', {}, 'map', {});            % full enhanced maps already computed, not weighted
+spec_dlg = [];                                        % the wait message of the spectrogram
+spec_computing = false;                               % an enhanced map is being computed
 spec_busy = false;                                    % the spectrogram limits are being set by the code
 spec_timer = [];                                      % waits for the zoom to settle before recomputing
+spec_top = [];                                        % top of the colour scale of the spectrogram (dB)
+spec_range = 45;                                      % its default span (dB)
+spec_black = 0;                                       % dB added to its bottom: more is more black
+align_timer = [];                                     % aligns the waveform with the spectrogram once the layout settles
 theme_style = il_if(il_has_theme(), 'dark', 'light');   % no themes before R2025a: the default light look
 graph_figs = gobjects(0);                              % the graphs windows
 last_metric = '';                                     % the metric the last graphs window showed
@@ -771,8 +779,8 @@ end
             win_wave = uifigure('Name', 'Waveform', 'Position', [140 140 1100 700], ...
                 'Visible', fig.Visible, 'Tag', 'SQAT_GUI_waveform', 'CloseRequestFcn', @on_close_waveform, ...
                 'CreateFcn', '', 'KeyPressFcn', @on_wave_key);
-            gw = uigridlayout(win_wave, [4 1]);
-            gw.RowHeight = {30, 30, '1x', '1.2x'};
+            gw = uigridlayout(win_wave, [3 1]);
+            gw.RowHeight = {30, 30, '1x'};
             hw = uigridlayout(gw, [1 9]);
             hw.Padding = [0 0 0 0];
             hw.ColumnWidth = {80, 80, 60, 100, 110, 140, 80, 60, '1x'};
@@ -819,8 +827,28 @@ end
                 'Tag', 'spec_enhanced_mode', 'Enable', 'off', 'ValueChangedFcn', @on_spec_enhanced, ...
                 'Tooltip', 'Readable: smoothing of 4 ms and 1.45 % of the frequency, continuous lines. Sharp: 1 ms and 1 Hz, the thinnest lines.');
             uilabel(sw, 'Text', '');
-            ax_wave = uiaxes(gw, 'Tag', 'waveform_axes', 'ButtonDownFcn', @on_wave_click);
-            ax_spec = uiaxes(gw, 'Tag', 'spectrogram', 'ButtonDownFcn', @on_wave_click);
+            pg = uigridlayout(gw, [3 1]);                  % the plots, with the tools of the spectrogram between them
+            pg.RowHeight = {'1x', 24, '1.2x'};
+            pg.Padding = [0 0 0 0];
+            pg.RowSpacing = 2;
+            ax_wave = uiaxes(pg, 'Tag', 'waveform_axes', 'ButtonDownFcn', @on_wave_click);
+            tg = uigridlayout(pg, [1 6]);
+            tg.ColumnWidth = {60, 70, 80, 30, 30, '1x'};
+            tg.Padding = [0 0 0 0];
+            uibutton(tg, 'Text', 'Home', 'Tag', 'spec_home', 'ButtonPushedFcn', @on_spec_home, ...
+                'Tooltip', 'The whole file again, from the map already computed');
+            uibutton(tg, 'state', 'Text', 'Zoom in', 'Tag', 'spec_zoom_in', 'UserData', 'in', ...
+                'ValueChangedFcn', @on_spec_tool, 'Tooltip', 'Click or drag a box on the spectrogram to zoom in');
+            uibutton(tg, 'state', 'Text', 'Zoom out', 'Tag', 'spec_zoom_out', 'UserData', 'out', ...
+                'ValueChangedFcn', @on_spec_tool, 'Tooltip', 'Click on the spectrogram to zoom out');
+            uibutton(tg, 'Text', char(8722), 'Tag', 'spec_black_less', 'ButtonPushedFcn', @(~, ~) shift_black(-5), ...
+                'Tooltip', 'Less black: the colour scale reaches 5 dB lower (down arrow)');
+            uibutton(tg, 'Text', '+', 'Tag', 'spec_black_more', 'ButtonPushedFcn', @(~, ~) shift_black(5), ...
+                'Tooltip', 'More black: the colour scale starts 5 dB higher (up arrow)');
+            uilabel(tg, 'Text', '');
+            ax_spec = uiaxes(pg, 'Tag', 'spectrogram', 'ButtonDownFcn', @on_wave_click);
+            win_wave.AutoResizeChildren = 'off';
+            win_wave.SizeChangedFcn = @(~, ~) schedule_align();
             ax_spec.XAxis.LimitsChangedFcn = @on_spec_limits;
             setappdata(win_wave, 'sqat_spec_zoom', @apply_spec_zoom);   % the recomputation, for the tests
             setappdata(win_wave, 'sqat_audio', @process_audio);   % what plays, for the tests
@@ -834,8 +862,13 @@ end
     end
 
     function on_wave_key(~, event)
-        if strcmp(event.Key, 'space')
-            toggle_play();
+        switch event.Key
+            case 'space'
+                toggle_play();
+            case 'uparrow'
+                shift_black(5);
+            case 'downarrow'
+                shift_black(-5);
         end
     end
 
@@ -1084,16 +1117,90 @@ end
 
     function on_weighting_changed(~, ~)
         rebuild_audio();
-        draw_spectrogram();
+        draw_spectrogram(true);
     end
 
     function on_draw_box(src, ~)
+        if src.Value
+            set_spec_tool('');                % a zoom or pan mode would take the clicks
+        end
         end_drag();
         box_corner = [];
         delete(findobj(ax_spec, 'Tag', 'box_corner'));
         if src.Value
             write_log('Draw filter: drag a box on the spectrogram, or click two opposite corners.');
         end
+    end
+
+    function on_spec_tool(src, ~)
+        if src.Value
+            db = findobj(win_wave, 'Tag', 'draw_box');
+            if db.Value
+                db.Value = false;
+                on_draw_box(db);
+            end
+            set_spec_tool(src.UserData);
+        else
+            set_spec_tool('');
+        end
+    end
+
+    function set_spec_tool(tool)
+        % '' (none), 'in' or 'out': the zoom mode, on the spectrogram only
+        set(findobj(win_wave, 'Tag', 'spec_zoom_in'), 'Value', strcmp(tool, 'in'));
+        set(findobj(win_wave, 'Tag', 'spec_zoom_out'), 'Value', strcmp(tool, 'out'));
+        z = zoom(win_wave);
+        z.Enable = 'off';
+        if ~isempty(tool)
+            z.Direction = tool;
+            setAllowAxesZoom(z, ax_wave, false);
+            z.Enable = 'on';
+        end
+    end
+
+    function shift_black(d)
+        % + moves the bottom of the colour scale up (more black), - down (less black)
+        spec_black = min(max(spec_black + d, -60), spec_range - 5);
+        apply_black();
+    end
+
+    function apply_black()
+        if ~isempty(spec_top) && il_is_open(win_wave)
+            clim(ax_spec, spec_top + [spec_black - spec_range, 0]);
+        end
+    end
+
+    function schedule_align()
+        % the layout of a uifigure settles after the callback: the alignment waits for it
+        il_delete_timer(align_timer);
+        align_timer = timer('StartDelay', 0.3, 'ExecutionMode', 'singleShot', ...
+            'TimerFcn', @(~, ~) align_wave(), 'ObjectVisibility', 'off');
+        start(align_timer);
+    end
+
+    function align_wave()
+        % the waveform as wide as the spectrogram, whose colorbar takes room on the right
+        if ~il_is_open(win_wave) || isempty(findobj(ax_spec, 'Type', 'surface'))
+            return
+        end
+        ax_wave.PositionConstraint = 'outerposition';   % back to the size of its row
+        drawnow
+        p = ax_spec.InnerPosition;
+        q = ax_wave.InnerPosition;
+        ax_wave.InnerPosition = [p(1) q(2) p(3) q(4)];
+    end
+
+    function on_spec_home(~, ~)
+        % the whole file: the full enhanced map is kept, so nothing is computed again
+        if isempty(wave_x)
+            return
+        end
+        spec_busy = true;
+        xlim(ax_spec, [0 numel(wave_x) / wave_fs]);
+        ylim(ax_spec, [20 wave_fs/2]);
+        spec_busy = false;
+        stop_spec_timer();
+        apply_spec_zoom();
     end
 
     function on_box_click(pt)
@@ -1210,7 +1317,7 @@ end
         d.Value = round(min(max(d.Value, 6), 16));
         o = findobj(win_wave, 'Tag', 'spec_overlap');
         o.Value = min(max(o.Value, 0), 95);
-        draw_spectrogram();
+        draw_spectrogram(true);
     end
 
     function on_spec_enhanced(~, ~)
@@ -1222,7 +1329,7 @@ end
         set(findobj(win_wave, 'Tag', 'spec_degree'), 'Enable', state);
         set(findobj(win_wave, 'Tag', 'spec_overlap'), 'Enable', state);
         set(findobj(win_wave, 'Tag', 'spec_enhanced_mode'), 'Enable', matlab.lang.OnOffSwitchState(on));
-        draw_spectrogram();
+        draw_spectrogram(true);
     end
 
     function on_import_window(~, ~)
@@ -1249,12 +1356,13 @@ end
         set(dd, 'Items', [dd.Items(keep), {['Custom: ' base ext]}], 'ItemsData', [dd.ItemsData(keep), {'custom'}]);
         dd.Value = 'custom';
         write_log(sprintf('Window %s%s loaded: %d samples, resampled to the FFT size.', base, ext, numel(spec_custom)));
-        draw_spectrogram();
+        draw_spectrogram(true);
     end
 
     function on_close_waveform(~, ~)
         on_stop();
         stop_spec_timer();
+        il_delete_timer(align_timer);
         delete(win_wave);
     end
 
@@ -1264,6 +1372,7 @@ end
         end
         clear_cache();
         stop_spec_timer();
+        il_delete_timer(align_timer);
         if il_is_open(win_wave), delete(win_wave); end
         delete(open_graph_windows());
         delete(fig);
@@ -1791,6 +1900,7 @@ end
         wave_x = x;
         wave_y = y;
         wave_fs = fs;
+        spec_signal = sprintf('%s|%g', key, f.dBFS);
         win_wave.Name = sprintf('Waveform: %s, channel %d', f.name, ch);
         t_end = numel(x) / fs;
         step = max(1, ceil(numel(x) / 2e6));   % display only: at most 2e6 points
@@ -1804,10 +1914,16 @@ end
         draw_spectrogram();
     end
 
-    function draw_spectrogram()
+    function draw_spectrogram(keep_view)
+        % keep_view: an option changed, not the signal, so the zoom of the spectrogram stays
         if isempty(wave_x)
             return
         end
+        lims = {};
+        if nargin > 0 && keep_view && ~isempty(findobj(ax_spec, 'Type', 'surface'))
+            lims = {ax_spec.XLim, ax_spec.YLim};
+        end
+        zoomed = ~isempty(lims) && diff(lims{1}) < 0.95 * numel(wave_x) / wave_fs;
         dd = findobj(win_wave, 'Tag', 'spec_window');
         degree = findobj(win_wave, 'Tag', 'spec_degree').Value;
         overlap = findobj(win_wave, 'Tag', 'spec_overlap').Value;
@@ -1819,36 +1935,62 @@ end
         enhanced = strcmp(findobj(win_wave, 'Tag', 'spec_enhanced').Value, 'On');
         if enhanced
             mode = findobj(win_wave, 'Tag', 'spec_enhanced_mode').Value;
-            [t_spec, f_spec, L, info] = SQAT_GUI_enhanced_stft(wave_x, wave_fs, mode);
+            computing = spec_guard();   %#ok<NASGU>
+            busy = spec_loading('Drawing the enhanced spectrogram...');   %#ok<NASGU> closes when the map is drawn
+            prev = spec_view;
+            spec_view = struct('full', full_map(mode, ~zoomed), 'mode', mode, 'weighting', weighting, ...
+                'zoomed', zoomed, 'zoom', []);
+            if zoomed && ~isempty(prev) && ~isempty(prev.zoom) && strcmp(prev.mode, mode)
+                spec_view.zoom = prev.zoom;             % the same excerpt, only weighted otherwise
+            end
+            if zoomed
+                m = zoom_map(lims{1});
+            else
+                m = spec_view.full;
+            end
+            t_spec = m.t;
+            f_spec = m.f;
+            L = weighted(m);
+            top = max(L, [], 'all');
+            if ~isempty(spec_view.full)
+                top = max(weighted(spec_view.full), [], 'all');   % the colours of the whole file
+            end
         else
+            spec_view = [];
             [t_spec, f_spec, L, info] = SQAT_GUI_spectrogram(wave_x, wave_fs, win, degree, overlap);
             if info.limited
                 write_log(sprintf('The spectrogram was limited to %d frames: the overlap is %.0f %%.', ...
                     numel(t_spec), info.overlap));
             end
-        end
-        keep = f_spec >= 20;
-        L = L(keep, :) + SQAT_GUI_weight_curve(f_spec(keep), wave_fs, weighting);
-        if enhanced
-            spec_view = struct('t', t_spec, 'f', f_spec(keep), 'L', L, 'hop', info.hop, ...
-                'mode', mode, 'weighting', weighting, 'zoomed', false);
-        else
-            spec_view = [];
+            keep = f_spec >= 20;
+            f_spec = f_spec(keep);
+            L = L(keep, :) + SQAT_GUI_weight_curve(f_spec, wave_fs, weighting);
+            top = max(L, [], 'all');
         end
         spec_busy = true;
         cla(ax_spec);
-        surface(ax_spec, t_spec, f_spec(keep), zeros(nnz(keep), numel(t_spec)), L, ...
-            'EdgeColor', 'none', 'PickableParts', 'none');
+        if enhanced                  % a log-spaced grid: one textured face, much lighter to draw than a mesh
+            [xe, ye] = il_map_edges(t_spec, f_spec);
+            surface(ax_spec, xe, ye, zeros(2), 'CData', L, 'FaceColor', 'texturemap', ...
+                'EdgeColor', 'none', 'PickableParts', 'none');
+        else
+            surface(ax_spec, t_spec, f_spec, zeros(numel(f_spec), numel(t_spec)), L, ...
+                'EdgeColor', 'none', 'PickableParts', 'none');
+        end
         ax_spec.YScale = 'log';
         ax_spec.Layer = 'top';
-        xlim(ax_spec, [0 numel(wave_x) / wave_fs]);
-        ylim(ax_spec, [20 wave_fs/2]);
-        colormap(ax_spec, cmap);
-        if enhanced
-            clim(ax_spec, max(L, [], 'all') + [-45 0]);
+        if isempty(lims)
+            xlim(ax_spec, [0 numel(wave_x) / wave_fs]);
+            ylim(ax_spec, [20 wave_fs/2]);
         else
-            clim(ax_spec, max(L, [], 'all') + [-80 0]);
+            xlim(ax_spec, lims{1});
+            ylim(ax_spec, lims{2});
         end
+        colormap(ax_spec, cmap);
+        spec_top = top;
+        spec_range = il_if(enhanced, 45, 80);
+        spec_black = min(spec_black, spec_range - 5);
+        apply_black();
         cb = colorbar(ax_spec);
         if strcmp(weighting, 'Z')
             cb.Label.String = 'Level (dB SPL)';
@@ -1867,6 +2009,8 @@ end
             'Tag', 'playhead_spectrogram', 'PickableParts', 'none');
         draw_boxes();
         spec_busy = false;
+        align_wave();
+        schedule_align();
     end
 
     function on_spec_limits(~, ~)
@@ -1882,6 +2026,20 @@ end
         start(spec_timer);
     end
 
+    function closer = spec_loading(msg)
+        % a wait message over the waveform window; it closes when the closer of
+        % the step that opened it is cleared, and a later step only changes its text
+        if il_is_open(spec_dlg)
+            spec_dlg.Message = msg;
+            closer = [];
+            return
+        end
+        spec_dlg = uiprogressdlg(win_wave, 'Title', 'Enhanced STFT', 'Message', msg, 'Indeterminate', 'on');
+        drawnow
+        d = spec_dlg;
+        closer = onCleanup(@() delete(d));
+    end
+
     function stop_spec_timer()
         if ~isempty(spec_timer) && isvalid(spec_timer)
             stop(spec_timer);
@@ -1891,34 +2049,105 @@ end
     end
 
     function apply_spec_zoom()
-        if isempty(spec_view) || ~il_is_open(win_wave)
+        if isempty(spec_view) || ~il_is_open(win_wave) || spec_computing
             return
         end
         srf = findobj(ax_spec, 'Type', 'surface');
         if isempty(srf)
             return
         end
+        computing = spec_guard();   %#ok<NASGU>
         lim = ax_spec.XLim;
-        dur = numel(wave_x) / wave_fs;
+        cleanup = onCleanup(@() recheck_zoom(lim));   %#ok<NASGU> after computing: the view may have moved
         span = diff(lim);
-        if span >= 0.95 * dur || span / 2000 >= 0.999 * spec_view.hop
+        hop = max(round(0.001 * wave_fs), ceil(numel(wave_x) / 2000)) / wave_fs;   % time step of the full map
+        if span >= 0.95 * numel(wave_x) / wave_fs || span / 2000 >= 0.999 * hop
             if spec_view.zoomed                                 % back to the full map
-                set(srf(1), 'XData', spec_view.t, 'YData', spec_view.f, ...
-                    'ZData', zeros(numel(spec_view.f), numel(spec_view.t)), 'CData', spec_view.L);
+                busy = spec_loading('Drawing the enhanced spectrogram...');   %#ok<NASGU>
+                if isempty(spec_view.full)                      % the mode changed during the zoom
+                    spec_view.full = full_map(spec_view.mode, true);
+                    spec_top = max(weighted(spec_view.full), [], 'all');
+                    apply_black();
+                end
+                show_map(srf(1), spec_view.full);
                 spec_view.zoomed = false;
             end
             return
         end
+        busy = spec_loading('Drawing the enhanced spectrogram...');   %#ok<NASGU>
+        show_map(srf(1), zoom_map(lim));
+        spec_view.zoomed = true;
+    end
+
+    function guard = spec_guard()
+        % marks a computation of an enhanced map: a zoom event that arrives
+        % meanwhile (during the drawnow of the wait message) does not start another
+        spec_computing = true;
+        guard = onCleanup(@() end_spec_computing());
+    end
+
+    function end_spec_computing()
+        spec_computing = false;
+    end
+
+    function recheck_zoom(lim)
+        if il_is_open(win_wave) && ~isempty(spec_view) && ~isequal(ax_spec.XLim, lim)
+            on_spec_limits();
+        end
+    end
+
+    function m = full_map(mode, compute)
+        % the enhanced map of the whole signal, not weighted: from the cache, or
+        % computed and kept when compute is true ([] otherwise)
+        key = [spec_signal '|' mode];
+        k = find(strcmp({spec_cache.key}, key), 1);
+        if ~isempty(k)
+            m = spec_cache(k).map;
+            return
+        end
+        m = [];
+        if compute
+            busy = spec_loading('Computing the enhanced spectrogram...');   %#ok<NASGU> closes on return
+            m = enhanced_map(wave_x, mode, []);
+            spec_cache(end+1) = struct('key', key, 'map', m);
+            if numel(spec_cache) > 6                            % about 15 MB each
+                spec_cache(1) = [];
+            end
+        end
+    end
+
+    function m = zoom_map(lim)
+        % the enhanced map of the excerpt in view, kept while the view and the mode stay
+        z = spec_view.zoom;
+        if ~isempty(z) && isequal(z.lim, lim)
+            m = z;
+            return
+        end
+        span = diff(lim);
         pad = 0.3;                                             % the longest window reaches 256 ms around each instant
         i1 = max(1, floor((lim(1) - pad) * wave_fs) + 1);
         i2 = min(numel(wave_x), ceil((lim(2) + pad) * wave_fs));
         n_frames = ceil((i2 - i1 + 1) / max(1, round(max(0.001, span / 2000) * wave_fs)));
-        [t_z, f_z, L_z] = SQAT_GUI_enhanced_stft(wave_x(i1:i2), wave_fs, spec_view.mode, n_frames);
-        keep = f_z >= 20;
-        L_z = L_z(keep, :) + SQAT_GUI_weight_curve(f_z(keep), wave_fs, spec_view.weighting);
-        t_z = t_z + (i1 - 1) / wave_fs;
-        set(srf(1), 'XData', t_z, 'YData', f_z(keep), 'ZData', zeros(nnz(keep), numel(t_z)), 'CData', L_z);
-        spec_view.zoomed = true;
+        busy = spec_loading('Computing the enhanced spectrogram of the zoomed excerpt...');   %#ok<NASGU>
+        m = enhanced_map(wave_x(i1:i2), spec_view.mode, n_frames);
+        m.t = m.t + (i1 - 1) / wave_fs;
+        m.lim = lim;
+        spec_view.zoom = m;
+    end
+
+    function m = enhanced_map(x, mode, n_frames)
+        [t, f, L] = SQAT_GUI_enhanced_stft(x, wave_fs, mode, n_frames);
+        keep = f >= 20;
+        m = struct('t', t, 'f', f(keep), 'L', single(L(keep, :)));   % single: levels in dB, half the memory
+    end
+
+    function L = weighted(m)
+        L = double(m.L) + SQAT_GUI_weight_curve(m.f, wave_fs, spec_view.weighting);
+    end
+
+    function show_map(srf, m)
+        [xe, ye] = il_map_edges(m.t, m.f);
+        set(srf, 'XData', xe, 'YData', ye, 'ZData', zeros(2), 'CData', weighted(m));
     end
 
     function move_playhead(sample)
@@ -2170,6 +2399,22 @@ end
 
 function tf = il_is_open(h)
 tf = ~isempty(h) && isvalid(h);
+end
+
+function [xe, ye] = il_map_edges(t, f)
+% outer edges of a map with a uniform time step and log-spaced frequencies, for a
+% texture: on a log axis each row of the texture then covers its own band
+dt = t(end) - t(end-1);
+r = sqrt(f(end) / f(end-1));
+xe = [t(1) - dt/2, t(end) + dt/2];
+ye = [f(1) / r, f(end) * r];
+end
+
+function il_delete_timer(t)
+if ~isempty(t) && isvalid(t)
+    stop(t);
+    delete(t);
+end
 end
 
 function tf = il_has_theme()
