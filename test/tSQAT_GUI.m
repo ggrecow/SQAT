@@ -1,5 +1,6 @@
 function tests = tSQAT_GUI
-% Tests of the SQAT graphical interface (gui/). Local, not part of the toolbox.
+% Tests of the SQAT graphical interface (gui/). How to run them and how long
+% they take: test/README.md.
 %
 % Run with:
 %   matlab -batch "startup_SQAT; cd test; r = runtests('tSQAT_GUI'); disp(table(r)); assert(all([r.Passed]))"
@@ -669,8 +670,10 @@ evalc('SQAT_GUI({tc.TestData.wav_mono}, ''Visible'', ''off'')');
 fig = findall(groot, 'Type', 'figure', 'Tag', 'SQAT_GUI');
 tc.assertNumElements(fig, 1);
 tc.addTeardown(@() delete(fig));
-il_press(fig, 'theme');
-tc.verifyEqual(char(fig.Theme.BaseColorStyle), 'light');
+if il_has_theme()
+    il_press(fig, 'theme');
+    tc.verifyEqual(char(fig.Theme.BaseColorStyle), 'light');
+end
 il_select_metrics(fig, {'Roughness_Daniel1997'});
 il_press(fig, 'run');
 tc.verifySubstring(findobj(fig, 'Tag', 'status').Text, 'Done');
@@ -819,6 +822,13 @@ fig = SQAT_GUI({}, 'Visible', 'off');
 tc.addTeardown(@() delete(fig));
 logo = findobj(fig, 'Tag', 'logo');
 b = findobj(fig, 'Tag', 'theme');
+if ~il_has_theme()                                  % before R2025a: the light look, and no toggle
+    tc.verifyTrue(endsWith(logo.ImageSource, 'logo.png'));
+    tc.verifyTrue(isfile(logo.ImageSource));
+    tc.verifyEqual(char(b.Enable), 'off');
+    tc.verifySubstring(b.Tooltip, 'R2025a');
+    return
+end
 tc.verifyEqual(char(fig.Theme.BaseColorStyle), 'dark');         % starts dark, like pySQAT
 tc.verifyTrue(endsWith(logo.ImageSource, 'logo_white.png'));
 tc.verifyTrue(isfile(logo.ImageSource));
@@ -2398,6 +2408,11 @@ function w = il_open_params(fig, k)
 b = findobj(fig, 'Tag', sprintf('analysis_params_%d', k));
 b.ButtonPushedFcn(b, []);
 w = findall(groot, 'Type', 'figure', 'Tag', 'SQAT_GUI_params');
+end
+
+function tf = il_has_theme()
+% the theme function, and with it the dark theme of the GUI, came in R2025a
+tf = exist('theme', 'file') > 0;
 end
 
 function il_set(win, tag, value)
