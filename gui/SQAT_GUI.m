@@ -87,6 +87,7 @@ next_analysis = 2;                                    % the number of the next a
 loaded = struct('path', {}, 'name', {}, 'nch', {}, 'fs', {}, 'marked', {}, 'id', {}, 'channel', {}, 'dBFS', {}, 'cal_set', {});
 next_id = 1;                                          % the number of the next signal loaded
 active_idx = 0;                                       % the signal on screen in the player
+wave_ch_by_id = [];                                    % channel chosen by a tab of the waveform window, by signal number
 results = il_empty_results();
 store = il_empty_store();                             % analyses of each signal, metric and channel
 player = [];
@@ -250,6 +251,9 @@ end
 
     function on_signal_channel(k, c)
         loaded(k).channel = c;
+        if numel(wave_ch_by_id) >= loaded(k).id
+            wave_ch_by_id(loaded(k).id) = 0;             % the waveform follows the list again
+        end
         signal_changed(k);
     end
 
@@ -871,25 +875,45 @@ end
     end
 
     function on_wave_tab(~, event)
-        % a tab makes its signal the one of the window, as its name in the list does
-        k = find([loaded.id] == event.NewValue.UserData, 1);
-        if ~isempty(k)
+        % a tab makes its signal and channel the ones of the window, as the name
+        % of the signal in the list does
+        u = event.NewValue.UserData;                    % [signal number, channel]
+        k = find([loaded.id] == u(1), 1);
+        if isempty(k)
+            return
+        end
+        wave_ch_by_id(u(1)) = u(2);
+        if k == active_idx
+            show_active();                              % the same signal, another channel
+        else
             on_signal_name(k);
         end
     end
 
     function sync_wave_tabs()
-        % one tab per signal of the list, the active one selected
+        % one tab per signal of the list, and per channel of a signal with several;
+        % the tab on screen selected
         tg = findobj(win_wave, 'Tag', 'wave_tabs');
-        titles = arrayfun(@(f) sprintf('#%d %s', f.id, f.name), loaded(:)', 'UniformOutput', false);
+        titles = {};
+        data = zeros(0, 2);
+        for k = 1:numel(loaded)
+            f = loaded(k);
+            for c = 1:f.nch
+                titles{end+1} = sprintf('#%d %s', f.id, f.name); %#ok<AGROW>
+                if f.nch > 1
+                    titles{end} = sprintf('%s ch%d', titles{end}, c);
+                end
+                data(end+1, :) = [f.id c]; %#ok<AGROW>
+            end
+        end
         if ~isequal(arrayfun(@(t) t.Title, tg.Children(:)', 'UniformOutput', false), titles)
             delete(tg.Children);
-            for k = 1:numel(loaded)
-                uitab(tg, 'Title', titles{k}, 'UserData', loaded(k).id);
+            for k = 1:numel(titles)
+                uitab(tg, 'Title', titles{k}, 'UserData', data(k, :));
             end
         end
         if active_idx > 0
-            tg.SelectedTab = tg.Children(active_idx);
+            tg.SelectedTab = tg.Children(ismember(data, [active_file().id channel_of_active()], 'rows'));
         end
     end
 
@@ -1545,8 +1569,14 @@ end
     end
 
     function ch = channel_of_active()
-        % the channel that the waveform and the player take
-        ch = str2double(active_file().channel);
+        % the channel that the waveform and the player take: the one of its tab, or
+        % else the channel of the signal in the list
+        id = active_file().id;
+        if numel(wave_ch_by_id) >= id && wave_ch_by_id(id) > 0
+            ch = wave_ch_by_id(id);
+        else
+            ch = str2double(active_file().channel);
+        end
         if isnan(ch)
             ch = 1;                          % All
         end

@@ -1634,26 +1634,34 @@ tc.verifyNotEmpty(findobj(w, 'Tag', 'playhead_spectrogram'));
 end
 
 function test_waveform_has_a_tab_per_signal(tc)
-% the tabs choose the signal of the waveform window, and follow the list of signals
-fig = SQAT_GUI({tc.TestData.wav_tone, tc.TestData.wav_two, tc.TestData.wav_mono}, 'Visible', 'off');
+% the tabs choose the signal and channel of the waveform window (a stereo signal
+% has one tab per channel), and follow the list of signals
+fig = SQAT_GUI({tc.TestData.wav_tone, tc.TestData.wav_stereo, tc.TestData.wav_mono}, 'Visible', 'off');
 tc.addTeardown(@() delete(fig));
 il_press(fig, 'open_waveform');
 w = il_window('SQAT_GUI_waveform');
 tg = findobj(w, 'Tag', 'wave_tabs');
 tc.assertNumElements(tg, 1);
-tc.verifyEqual({tg.Children.Title}, {'#1 tone_1k_60dB.wav', '#2 two_tones.wav', '#3 tone_mono.wav'});
+titles = @() arrayfun(@(t) t.Title, tg.Children(:)', 'UniformOutput', false);
+tc.verifyEqual(titles(), {'#1 tone_1k_60dB.wav', '#2 tone_stereo.wav ch1', '#2 tone_stereo.wav ch2', ...
+    '#3 tone_mono.wav'});
 tc.verifyEqual(tg.SelectedTab, tg.Children(1));
-old = tg.SelectedTab;
-tg.SelectedTab = tg.Children(2);                           % a click on the second tab
-tg.SelectionChangedFcn(tg, struct('NewValue', tg.Children(2), 'OldValue', old));
-tc.verifySubstring(w.Name, 'two_tones');
+il_pick_tab(tg, 3);                                        % channel 2 of the stereo
+tc.verifySubstring(w.Name, 'tone_stereo.wav, channel 2');
+ref = audioread(tc.TestData.wav_stereo);
+tc.verifyEqual(findobj(w, 'Tag', 'waveform_axes').Children(end).YData(:), ref(:, 2));
 tc.verifyEqual(char(findobj(fig, 'Tag', 'signal_name_2').FontWeight), 'bold');   % the list follows
+il_pick_tab(tg, 2);                                        % channel 1 of the same signal
+tc.verifySubstring(w.Name, 'tone_stereo.wav, channel 1');
+tc.verifyEqual(findobj(w, 'Tag', 'waveform_axes').Children(end).YData(:), ref(:, 1));
 il_activate_signal(fig, 3);                                % and the tabs follow the list
 tc.verifyEqual(tg.SelectedTab.Title, '#3 tone_mono.wav');
 tc.verifySubstring(w.Name, 'tone_mono');
+il_activate_signal(fig, 2);                                % back to the stereo: the channel last chosen
+tc.verifyEqual(tg.SelectedTab.Title, '#2 tone_stereo.wav ch1');
 il_remove_signal(fig, 1);
-tc.verifyEqual({tg.Children.Title}, {'#2 two_tones.wav', '#3 tone_mono.wav'});
-tc.verifyEqual(tg.SelectedTab.Title, '#3 tone_mono.wav');
+tc.verifyEqual(titles(), {'#2 tone_stereo.wav ch1', '#2 tone_stereo.wav ch2', '#3 tone_mono.wav'});
+tc.verifyEqual(tg.SelectedTab.Title, '#2 tone_stereo.wav ch1');
 end
 
 function test_waveform_space_starts_and_pauses_playback(tc)
@@ -2465,6 +2473,13 @@ end
 function tf = il_has_theme()
 % the theme function, and with it the dark theme of the GUI, came in R2025a
 tf = exist('theme', 'file') > 0;
+end
+
+function il_pick_tab(tg, k)
+% a click on tab k of a tab group
+old = tg.SelectedTab;
+tg.SelectedTab = tg.Children(k);
+tg.SelectionChangedFcn(tg, struct('NewValue', tg.Children(k), 'OldValue', old));
 end
 
 function il_set(win, tag, value)
