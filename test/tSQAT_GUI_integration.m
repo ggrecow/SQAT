@@ -482,6 +482,28 @@ tc.verifySubstring(v{1}, 'Roughness_Daniel1997');
 tc.verifyTrue(any(strcmp(S.Item, 'SQAT version')));
 end
 
+function test_gui_exported_settings_list_what_ran(tc)
+% a run stopped after the first signal, then a removed signal: the settings list only the signals with results
+fig = SQAT_GUI({tc.TestData.wav_mono, tc.TestData.wav_tone}, 'Visible', 'off');
+tc.addTeardown(@() delete(fig));
+il_select_metrics(fig, {'Loudness_ISO532_1'});
+b = findobj(fig, 'Tag', 'stop_run');
+tm = timer('ExecutionMode', 'fixedSpacing', 'Period', 0.05, 'TimerFcn', @(t, ~) il_stop_once_running(t, fig, b));
+tc.addTeardown(@() delete(tm));
+start(tm);
+il_press(fig, 'run');
+stop(tm);
+describe = getappdata(fig, 'sqat_run_description');
+S = describe();
+T = findobj(fig, 'Tag', 'results_table').Data;
+tc.assertEqual(unique(T.File), {'tone_mono.wav'});      % the active signal ran, then the run stopped
+tc.verifyEqual(S.Item(startsWith(S.Item, 'Signal')), {'Signal #1'});
+il_press(fig, 'run');                                   % both, then the second leaves
+il_remove_signal(fig, 2);
+S = describe();
+tc.verifyEqual(S.Item(startsWith(S.Item, 'Signal')), {'Signal #1'});
+end
+
 function test_gui_marks_the_results_when_a_setting_changes(tc)
 fig = SQAT_GUI({tc.TestData.wav_mono}, 'Visible', 'off');
 tc.addTeardown(@() delete(fig));
@@ -1996,6 +2018,14 @@ end
 function il_press(fig, tag)
 b = findobj(fig, 'Tag', tag);
 b.ButtonPushedFcn(b, []);
+end
+
+function il_stop_once_running(t, fig, b)
+% presses Stop once the first metric has started, so the run ends after it
+if any(contains(findobj(fig, 'Tag', 'console').Value, 'Running'))
+    b.ButtonPushedFcn(b, []);
+    stop(t);
+end
 end
 
 function w = il_window(tag)

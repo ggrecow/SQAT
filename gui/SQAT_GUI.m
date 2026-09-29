@@ -709,6 +709,10 @@ end
         [~, order] = sortrows([a_num, q, (1:height(new_results))']);
         results = new_results(order, :);
         store = new_store;
+        if stop_requested                        % the settings list only what ran
+            run_settings.signals = run_settings.signals(ismember({run_settings.signals.path}, {store.file}));
+            run_settings.analyses = run_settings.analyses(ismember({run_settings.analyses.key}, {store.metric}));
+        end
         tab_results.Title = 'Results';           % fresh results: a removal later keeps the mark of a change
         show_results();
         ran = sel(ismember(sel, {store.metric}));
@@ -1487,6 +1491,7 @@ end
         keep = ~strcmp({store.file}, f.path);
         store = store(keep);
         results = results(~strcmp(results.Path, f.path), :);
+        run_settings.signals(strcmp({run_settings.signals.path}, f.path)) = [];   % out of the exported settings
         show_results();
         drop = strcmp({cache.file}, f.path);
         for k_c = find(drop)
