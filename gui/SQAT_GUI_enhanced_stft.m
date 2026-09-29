@@ -1,5 +1,5 @@
-function [t, f, L, info] = SQAT_GUI_enhanced_stft(x, fs, smoothing, n_frames, f_min, bins_per_octave, preview)
-% function [t, f, L, info] = SQAT_GUI_enhanced_stft(x, fs, smoothing, n_frames, f_min, bins_per_octave, preview)
+function [t, f, L, info] = SQAT_GUI_enhanced_stft(x, fs, smoothing, n_frames, f_min, bins_per_octave, preview, ref)
+% function [t, f, L, info] = SQAT_GUI_enhanced_stft(x, fs, smoothing, n_frames, f_min, bins_per_octave, preview, ref)
 %
 %   Enhanced spectrogram with no window to choose: nine Blackman-Harris
 %   windows from 8 to 512 ms (geometric spacing) are reassigned (Auger and
@@ -29,6 +29,10 @@ function [t, f, L, info] = SQAT_GUI_enhanced_stft(x, fs, smoothing, n_frames, f_
 %             fewer frames, and each column gets fewer of them, so the map is
 %             an approximation (clicks come out weaker). When the columns are
 %             1 ms, as in a zoomed excerpt, nothing changes. Default false.
+%   ref : info.ref of the map of the whole signal, for an excerpt of it: the
+%         noise threshold, the normalisation, the floor and the top of the
+%         level come from the whole signal, so the excerpt reads on the same
+%         scale as the whole map. Default [] (from x itself)
 %
 % OUTPUTS
 %   t : [1xN] time of each column (s)
@@ -36,7 +40,8 @@ function [t, f, L, info] = SQAT_GUI_enhanced_stft(x, fs, smoothing, n_frames, f_
 %   L : [MxN] level (dB); the maximum is aligned with the maximum of the
 %       level of the 64 ms window (dB SPL), so the colour scale is relative.
 %       With a cell array of smoothings, a cell array of maps in that order
-%   info : struct with the windows (ms), the time step (s) and the smoothing
+%   info : struct with the windows (ms), the time step (s), the smoothing and
+%          ref, the references of this map (one per smoothing), for its excerpts
 %
 % Author: Sergio Aguirre and Gil Felix Greco, September 2026
 %
@@ -61,6 +66,7 @@ if nargin < 4 || isempty(n_frames), n_frames = 2000; end
 if nargin < 5 || isempty(f_min), f_min = 20; end
 if nargin < 6 || isempty(bins_per_octave), bins_per_octave = 192; end
 if nargin < 7 || isempty(preview), preview = false; end
+if nargin < 8, ref = []; end
 if f_min >= fs/2
     error('SQAT_GUI_enhanced_stft:f_min', 'f_min (%g Hz) must be below fs/2 (%g Hz)', f_min, fs/2);
 end
@@ -105,9 +111,20 @@ for k = 1:numel(modes)
     gt = exp(-(-kt:kt)' .^ 2 / (2 * sig_t^2));
     gts{k} = gt / sum(gt);
 end
+% noise threshold of the reassignment: the largest frame energy of the whole signal, which
+% bounds |X|^2 since the windows have unit energy (a maximum per block of frames would
+% depend on the block, and a quiet block would let noise through)
+if isempty(ref)
+    e_max = arrayfun(@(N) max(movsum(x.^2, N), [], 'all'), Ns);
+else
+    e_max = ref(1).e_max;
+end
 log_sum = num2cell(zeros(1, numel(modes)));      % one geometric mean per smoothing
+r_sum = zeros(numel(Ns), numel(modes));          % the normalisation of each map, and its floor
+r_max = r_sum;
 for w_i = 1:numel(Ns)
-    R = il_reassigned(x, fs, Ns(w_i), steps(w_i), hop_out, M, F, f_min, bins_per_octave);
+    R = il_reassigned(x, fs, Ns(w_i), steps(w_i), hop_out, M, F, f_min, bins_per_octave, e_max(w_i));
+    R = R / hop_out;                              % energy density: the same scale at any column width
     % the energy of a frame is held over its own step, so that the long windows leave no gaps
     n_hold = 2 * floor(steps(w_i) / hop_out / 2) + 1;
     if n_hold > 1
@@ -115,26 +132,44 @@ for w_i = 1:numel(Ns)
     end
     for k = 1:numel(modes)
         Rk = il_smooth(conv2(gts{k}, 1, R, 'same'), sig_fs{k});
-        Rk = Rk / sum(Rk(:));
-        log_sum{k} = log_sum{k} + log(Rk + 1e-6 * max(Rk(:)));
+        if isempty(ref)
+            r_sum(w_i, k) = sum(Rk(:));
+            r_max(w_i, k) = max(Rk(:));
+        else
+            r_sum(w_i, k) = ref(k).r_sum(w_i);
+            r_max(w_i, k) = ref(k).r_max(w_i);
+        end
+        log_sum{k} = log_sum{k} + log((Rk + 1e-6 * r_max(w_i, k)) / r_sum(w_i, k));
     end
 end
 % level: 10 log10 of the energy density, its peak aligned with the peak of the 64 ms spectrogram (relative colour scale)
-[~, ~, L_ref] = SQAT_GUI_spectrogram(x, fs, 'hann', max(6, min(16, round(log2(0.064 * fs)))), 50);
+if isempty(ref)
+    [~, ~, L_ref] = SQAT_GUI_spectrogram(x, fs, 'hann', max(6, min(16, round(log2(0.064 * fs)))), 50);
+    top = max(L_ref, [], 'all');
+else
+    top = ref(1).top;
+end
 L = cell(size(modes));
+refs = struct('e_max', {}, 'top', {}, 'r_sum', {}, 'r_max', {}, 'c_max', {});
 for k = 1:numel(modes)
     C = exp(log_sum{k} / numel(Ns));
-    C = C / sum(C(:));
-    if ~all(isfinite(C(:)))                            % no energy (a silent excerpt): the floor of the scale
+    if ~all(isfinite(C(:)))                            % no energy (a silent signal): the floor of the scale
         C = zeros(size(C));
     end
-    L{k} = (10*log10(C / max(max(C(:)), realmin) + 1e-12))' + max(L_ref, [], 'all');
+    if isempty(ref)
+        c_max = max(max(C(:)), realmin);
+    else
+        c_max = ref(k).c_max;
+    end
+    L{k} = (10*log10(C / c_max + 1e-12))' + top;
+    refs(k) = struct('e_max', e_max, 'top', top, 'r_sum', r_sum(:, k)', 'r_max', r_max(:, k)', 'c_max', c_max);
 end
 if ~iscell(smoothing)
     L = L{1};
 end
 t = (0:M-1) * hop_out / fs;
-info = struct('windows_ms', 1e3 * Ns / fs, 'hop', hop_out / fs, 'smoothing', {smoothing}, 'preview', preview);
+info = struct('windows_ms', 1e3 * Ns / fs, 'hop', hop_out / fs, 'smoothing', {smoothing}, 'preview', preview, ...
+    'ref', refs);
 end
 
 function R = il_smooth(R, sig_f)
@@ -156,7 +191,7 @@ end
 R = out;
 end
 
-function R = il_reassigned(x, fs, N, hop, hop_out, M, F, f_min, bpo)
+function R = il_reassigned(x, fs, N, hop, hop_out, M, F, f_min, bpo, e_max)
 % reassigned spectrogram of one Blackman-Harris window (N samples, unit energy,
 % frame step hop) accumulated on the output grid
 n_x = numel(x);
@@ -197,7 +232,7 @@ for b = 1:chunk:n_fr
     f_hat = fbin - (fs / (2*pi)) * imag(Xd .* r);      % Hz
     it = round(t_hat / hop_out) + 1;
     jf = round(bpo * log2(max(f_hat, eps) / f_min)) + 1;
-    ok = P2 > 1e-10 * max(P2, [], 'all') & it >= 1 & it <= M & jf >= 1 & jf <= F & f_hat > 0;
+    ok = P2 > 1e-10 * e_max & it >= 1 & it <= M & jf >= 1 & jf <= F & f_hat > 0;
     lin{end+1} = it(ok) + (jf(ok) - 1) * M;            %#ok<AGROW>
     val{end+1} = P2(ok) * hop;                         %#ok<AGROW>
     n_buf = n_buf + nnz(ok);

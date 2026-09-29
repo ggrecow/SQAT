@@ -402,6 +402,27 @@ tc.verifyEqual({t, f}, {t1, f1});
 tc.verifyEqual(L, {L1, L2});
 end
 
+function test_enhanced_stft_excerpt_reads_on_the_scale_of_the_whole_map(tc)
+% a loud half (80 dB tone, 40 dB noise) and a quiet one (20 dB tone, 0 dB noise): with the
+% references of the whole map, a zoom into the quiet half keeps its levels and its floor
+fs = 48000;
+t = (0:1/fs:1.5-1/fs)';
+rng(1);
+x = [sqrt(2)*2e-5*1e4*sin(2*pi*1000*t) + 2e-5*100*randn(size(t)); ...
+     sqrt(2)*2e-5*10*sin(2*pi*2000*t) + 2e-5*randn(size(t))];
+[t_w, f, L, info] = SQAT_GUI_enhanced_stft(x, fs, 'readable');
+i1 = round(1.7*fs) + 1;
+i2 = round(2.8*fs);
+[t_z, ~, L_z] = SQAT_GUI_enhanced_stft(x(i1:i2), fs, 'readable', 1100, [], [], [], info.ref);
+t_z = t_z + (i1 - 1) / fs;
+in = @(tv) tv >= 2 & tv <= 2.5;
+tone = abs(f - 2000) < 40;
+tc.verifyEqual(max(L_z(tone, in(t_z)), [], 'all'), max(L(tone, in(t_w)), [], 'all'), 'AbsTol', 0.5);
+tc.verifyEqual(min(L_z(:, in(t_z)), [], 'all'), min(L(:, in(t_w)), [], 'all'), 'AbsTol', 0.5);
+[~, ~, L_own] = SQAT_GUI_enhanced_stft(x(i1:i2), fs, 'readable', 1100);   % on its own scale, the floor drops
+tc.verifyLessThan(min(L_own, [], 'all'), min(L(:, in(t_w)), [], 'all') - 20);
+end
+
 function test_enhanced_stft_preview_steps_by_one_column(tc)
 % the preview of a long signal: frames step by up to one output column; with 1 ms columns nothing changes
 [x, fs] = audioread(tc.TestData.wav_tone);

@@ -2557,7 +2557,7 @@ end
         if any(strcmp({spec_jobs.key}, key))
             return
         end
-        job = parfeval(spec_pool, @SQAT_GUI_enhanced_stft, 3, args{:});
+        job = parfeval(spec_pool, @SQAT_GUI_enhanced_stft, 4, args{:});
         afterEach(job, @(done) on_map_done(key, done), 0, 'PassFuture', true);
         spec_jobs(end+1) = struct('key', key, 'job', job);
     end
@@ -2588,13 +2588,14 @@ end
             write_log(['ERROR computing the enhanced spectrogram: ' job.Error.message]);
             return
         end
-        [t, f, L] = fetchOutputs(job);
+        [t, f, L, info] = fetchOutputs(job);
         keep = f >= 20;
         preview = endsWith(key, '|preview');
         base = extractBefore(key, '|both');
         for mode = {'readable', 'sharp'}
             k_m = [base '|' mode{1}];
-            m = struct('t', t, 'f', f(keep), 'L', single(L{1 + strcmp(mode{1}, 'sharp')}(keep, :)));
+            i_m = 1 + strcmp(mode{1}, 'sharp');
+            m = struct('t', t, 'f', f(keep), 'L', single(L{i_m}(keep, :)), 'ref', info.ref(i_m));
             if preview
                 if ~any(strcmp({spec_cache.key}, k_m))          % unless the exact map came first
                     spec_preview(end+1) = struct('key', k_m, 'map', m); %#ok<AGROW>
@@ -2641,6 +2642,7 @@ end
         end
         spec_view.full = m;                                     % zoomed: for Home, or on screen if at the whole file
         spec_view.preview = preview;
+        spec_view.zoom = [];                                    % the excerpt again, on the scale of the new map
         spec_top = max(weighted(m), [], 'all');
         apply_black();
         stop_spec_timer();
@@ -2680,21 +2682,29 @@ end
         i2 = min(numel(wave_x), ceil((lim(2) + pad) * wave_fs));
         n_frames = ceil((i2 - i1 + 1) / max(1, round(max(0.001, span / 2000) * wave_fs)));
         busy = spec_loading('Computing the enhanced spectrogram of the zoomed excerpt...');   %#ok<NASGU>
-        m = enhanced_map(wave_x(i1:i2), spec_view.mode, n_frames);
+        ref = [];                                              % the scale of the whole map, when it is there
+        if ~isempty(spec_view.full)
+            ref = spec_view.full.ref;
+        end
+        m = enhanced_map(wave_x(i1:i2), spec_view.mode, n_frames, ref);
         m.t = m.t + (i1 - 1) / wave_fs;
         m.lim = lim;
         spec_view.zoom = m;
     end
 
-    function m = enhanced_map(x, mode, n_frames)
-        % the map of one mode, or a map per mode when mode is a cell array
-        [t, f, L] = SQAT_GUI_enhanced_stft(x, wave_fs, mode, n_frames);
+    function m = enhanced_map(x, mode, n_frames, ref)
+        % the map of one mode, or a map per mode when mode is a cell array; ref (optional):
+        % the references of the whole map, for an excerpt
+        if nargin < 4
+            ref = [];
+        end
+        [t, f, L, info] = SQAT_GUI_enhanced_stft(x, wave_fs, mode, n_frames, [], [], [], ref);
         keep = f >= 20;
         if ~iscell(L)
             L = {L};
         end
         for k = numel(L):-1:1
-            m(k) = struct('t', t, 'f', f(keep), 'L', single(L{k}(keep, :)));   % single: dB, half the memory
+            m(k) = struct('t', t, 'f', f(keep), 'L', single(L{k}(keep, :)), 'ref', info.ref(k));   % single: dB, half the memory
         end
     end
 
