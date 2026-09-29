@@ -2197,10 +2197,9 @@ end
         t_end = numel(x) / fs;
         step = max(1, ceil(numel(x) / 2e6));   % display only: at most 2e6 points
         t = (0:numel(x)-1)' / fs;
-        ylim(ax_wave, 'auto');
         plot(ax_wave, t(1:step:end), x(1:step:end), 'PickableParts', 'none', 'Tag', 'wave_line', ...
             'UserData', [step -inf inf]);
-        ylim(ax_wave, 'manual');                % a zoom redraws the line, the amplitude scale stays
+        ylim(ax_wave, 1.05 * max(max(abs(x)), eps) * [-1 1]);   % fixed: a zoom redraws the line, the scale stays
         xlim(ax_wave, [0 t_end]);
         ylabel(ax_wave, 'Sound pressure (Pa)');
         title(ax_wave, 'Waveform');

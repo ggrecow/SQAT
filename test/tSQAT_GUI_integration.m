@@ -1778,6 +1778,7 @@ axw = findobj(w, 'Tag', 'waveform_axes');
 ln = findobj(axw, 'Tag', 'wave_line');
 tc.verifyEqual(ln.XData(2) - ln.XData(1), 2/fs, 'AbsTol', 1e-12);   % 2.16e6 samples: one in two
 y_lim = axw.YLim;
+tc.verifyEqual(y_lim, 1.05 * max(abs(ln.YData)) * [-1 1], 'RelTol', 1e-3);   % the whole wave, both halves
 axw.XLim = [10 11]; drawnow
 tc.verifyEqual(ln.XData(2) - ln.XData(1), 1/fs, 'AbsTol', 1e-12);
 tc.verifyLessThanOrEqual(ln.XData(1), 10);
