@@ -380,6 +380,17 @@ tc.verifyLessThan(w(2), w(1));
 tc.verifyError(@() SQAT_GUI_enhanced_stft(x, fs, 'other'), 'SQAT_GUI_enhanced_stft:smoothing');
 end
 
+function test_enhanced_stft_of_silence_and_a_high_f_min(tc)
+% a silent excerpt (a zoom over a pause) gives a flat finite map; f_min at or above fs/2 is refused by name
+fs = 48000;
+[~, ~, L] = SQAT_GUI_enhanced_stft(zeros(fs/2, 1), fs, {'readable', 'sharp'});
+for k = 1:2
+    tc.verifyTrue(all(isfinite(L{k}(:))));
+    tc.verifyEqual(min(L{k}(:)), max(L{k}(:)));
+end
+tc.verifyError(@() SQAT_GUI_enhanced_stft(zeros(fs/2, 1), fs, 'sharp', [], fs/2), 'SQAT_GUI_enhanced_stft:f_min');
+end
+
 function test_enhanced_stft_gives_both_smoothings_in_one_call(tc)
 % the reassignment is shared: both maps at once equal the two calls
 [x, fs] = audioread(tc.TestData.wav_two);

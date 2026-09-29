@@ -61,6 +61,9 @@ if nargin < 4 || isempty(n_frames), n_frames = 2000; end
 if nargin < 5 || isempty(f_min), f_min = 20; end
 if nargin < 6 || isempty(bins_per_octave), bins_per_octave = 192; end
 if nargin < 7 || isempty(preview), preview = false; end
+if f_min >= fs/2
+    error('SQAT_GUI_enhanced_stft:f_min', 'f_min (%g Hz) must be below fs/2 (%g Hz)', f_min, fs/2);
+end
 x = x(:);
 n_x = numel(x);
 durations = 8e-3 * 64 .^ ((0:8) / 8);                 % nine windows, 8 to 512 ms
@@ -122,7 +125,10 @@ L = cell(size(modes));
 for k = 1:numel(modes)
     C = exp(log_sum{k} / numel(Ns));
     C = C / sum(C(:));
-    L{k} = (10*log10(C / max(C(:)) + 1e-12))' + max(L_ref, [], 'all');
+    if ~all(isfinite(C(:)))                            % no energy (a silent excerpt): the floor of the scale
+        C = zeros(size(C));
+    end
+    L{k} = (10*log10(C / max(max(C(:)), realmin) + 1e-12))' + max(L_ref, [], 'all');
 end
 if ~iscell(smoothing)
     L = L{1};
