@@ -851,7 +851,7 @@ end
             pg.RowSpacing = 2;
             ax_wave = uiaxes(pg, 'Tag', 'waveform_axes', 'ButtonDownFcn', @on_wave_click);
             tg = uigridlayout(pg, [1 6]);
-            tg.ColumnWidth = {60, 70, 80, 30, 30, '1x'};
+            tg.ColumnWidth = {60, 70, 80, '1x', 30, 30};    % the colour buttons at the right, over the colorbar
             tg.Padding = [0 0 0 0];
             uibutton(tg, 'Text', 'Home', 'Tag', 'spec_home', 'ButtonPushedFcn', @on_spec_home, ...
                 'Tooltip', 'The whole file again, from the map already computed');
@@ -859,11 +859,11 @@ end
                 'ValueChangedFcn', @on_spec_tool, 'Tooltip', 'Click or drag a box on the spectrogram to zoom in');
             uibutton(tg, 'state', 'Text', 'Zoom out', 'Tag', 'spec_zoom_out', 'UserData', 'out', ...
                 'ValueChangedFcn', @on_spec_tool, 'Tooltip', 'Click on the spectrogram to zoom out');
+            uilabel(tg, 'Text', '');
             uibutton(tg, 'Text', char(8722), 'Tag', 'spec_black_less', 'ButtonPushedFcn', @(~, ~) shift_black(-5), ...
                 'Tooltip', 'Less black: the colour scale reaches 5 dB lower (down arrow)');
             uibutton(tg, 'Text', '+', 'Tag', 'spec_black_more', 'ButtonPushedFcn', @(~, ~) shift_black(5), ...
                 'Tooltip', 'More black: the colour scale starts 5 dB higher (up arrow)');
-            uilabel(tg, 'Text', '');
             ax_spec = uiaxes(pg, 'Tag', 'spectrogram', 'ButtonDownFcn', @on_wave_click);
             win_wave.AutoResizeChildren = 'off';
             win_wave.SizeChangedFcn = @(~, ~) schedule_align();
