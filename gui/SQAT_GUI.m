@@ -868,6 +868,7 @@ end
             win_wave.AutoResizeChildren = 'off';
             win_wave.SizeChangedFcn = @(~, ~) schedule_align();
             ax_spec.XAxis.LimitsChangedFcn = @on_spec_limits;
+            ax_wave.XAxis.LimitsChangedFcn = @on_wave_limits;
             setappdata(win_wave, 'sqat_spec_zoom', @apply_spec_zoom);   % the recomputation, for the tests
             setappdata(win_wave, 'sqat_audio', @process_audio);   % what plays, for the tests
             setappdata(win_wave, 'sqat_play', @play_info);
@@ -2196,7 +2197,10 @@ end
         t_end = numel(x) / fs;
         step = max(1, ceil(numel(x) / 2e6));   % display only: at most 2e6 points
         t = (0:numel(x)-1)' / fs;
-        plot(ax_wave, t(1:step:end), x(1:step:end), 'PickableParts', 'none');
+        ylim(ax_wave, 'auto');
+        plot(ax_wave, t(1:step:end), x(1:step:end), 'PickableParts', 'none', 'Tag', 'wave_line', ...
+            'UserData', [step -inf inf]);
+        ylim(ax_wave, 'manual');                % a zoom redraws the line, the amplitude scale stays
         xlim(ax_wave, [0 t_end]);
         ylabel(ax_wave, 'Sound pressure (Pa)');
         title(ax_wave, 'Waveform');
@@ -2329,10 +2333,67 @@ end
         schedule_align();
     end
 
-    function on_spec_limits(~, ~)
-        % a zoom or a pan of the spectrogram: the enhanced map of the excerpt is
-        % recomputed once the limits settle, since the full map has at most
-        % 2000 columns and a zoom only stretches them
+    function on_wave_limits(~, event)
+        % a zoom or a pan of the waveform: the spectrogram follows, and its own
+        % LimitsChangedFcn takes the enhanced map to the excerpt
+        follow_limits(ax_wave, ax_spec, event);
+        draw_wave_line();
+    end
+
+    function follow_limits(src, dst, event)
+        % the time axes of the waveform and the spectrogram move together, inside
+        % the file; a span under 50 ms is refused. The event arrives at the next
+        % drawnow, so the limits one axis gave the other are recognised as its echo
+        if isempty(wave_x)
+            return
+        end
+        if nargin > 2 && isequal(event.NewLimits, getappdata(src, 'sqat_echo'))
+            setappdata(src, 'sqat_echo', []);
+            return
+        end
+        lim = min(max(src.XLim, 0), numel(wave_x) / wave_fs);
+        if diff(lim) < 0.05
+            lim = dst.XLim;
+        end
+        if ~isequal(src.XLim, lim)
+            src.XLim = lim;
+        end
+        if ~isequal(dst.XLim, lim)
+            setappdata(dst, 'sqat_echo', lim);
+            dst.XLim = lim;
+        end
+    end
+
+    function draw_wave_line()
+        % the waveform of the view and one view to each side, at most 2e6 points:
+        % a zoom shows every sample again, a pan inside the drawn part draws nothing
+        h = findobj(ax_wave, 'Tag', 'wave_line');
+        if isempty(h) || isempty(wave_x)
+            return
+        end
+        lim = ax_wave.XLim;
+        n = numel(wave_x);
+        i1 = max(1, floor((lim(1) - diff(lim)) * wave_fs) + 1);
+        i2 = min(n, ceil((lim(2) + diff(lim)) * wave_fs) + 1);
+        step = max(1, ceil((i2 - i1 + 1) / 2e6));
+        u = h.UserData;
+        if u(1) == step && u(2) <= lim(1) && u(3) >= lim(2)
+            return
+        end
+        i = (i1:step:i2)';
+        set(h, 'XData', (i - 1) / wave_fs, 'YData', wave_x(i), ...
+            'UserData', [step il_if(i1 == 1, -inf, (i1 - 1) / wave_fs) il_if(i2 == n, inf, (i2 - 1) / wave_fs)]);
+    end
+
+    function on_spec_limits(~, event)
+        % a zoom or a pan of the spectrogram: the waveform follows, and the enhanced
+        % map of the excerpt is recomputed once the limits settle, since the full
+        % map has at most 2000 columns and a zoom only stretches them
+        if nargin > 1
+            follow_limits(ax_spec, ax_wave, event);
+        else
+            follow_limits(ax_spec, ax_wave);
+        end
         if spec_busy || isempty(spec_view)
             return
         end

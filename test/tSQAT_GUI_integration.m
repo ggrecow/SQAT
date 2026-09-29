@@ -1736,6 +1736,74 @@ tc.verifyEqual(surf().XData, x_full);
 tc.verifyEqual(surf().CData, L_full);
 end
 
+function test_waveform_and_spectrogram_share_the_time_axis(tc)
+% a zoom or a pan on either plot moves the other, inside the file and never under 50 ms;
+% Home and a new signal or tab go back to the whole file; the frequency stays apart
+fig = SQAT_GUI({tc.TestData.wav_tone, tc.TestData.wav_stereo}, 'Visible', 'off');
+tc.addTeardown(@() delete(fig));
+il_press(fig, 'open_waveform');
+w = il_window('SQAT_GUI_waveform');
+axw = findobj(w, 'Tag', 'waveform_axes');
+axs = findobj(w, 'Tag', 'spectrogram');
+both = @() [axw.XLim; axs.XLim];
+f_lim = axs.YLim;
+axw.XLim = [1 1.5]; drawnow
+tc.verifyEqual(both(), [1 1.5; 1 1.5]);
+tc.verifyEqual(axs.YLim, f_lim);
+axs.XLim = [0.5 2]; axs.YLim = [100 5000]; drawnow
+tc.verifyEqual(both(), [0.5 2; 0.5 2]);
+axw.XLim = [-1 2]; drawnow
+tc.verifyEqual(both(), [0 2; 0 2]);
+axs.XLim = [1 1.01]; drawnow
+tc.verifyEqual(both(), [0 2; 0 2]);
+il_press(w, 'spec_home'); drawnow
+tc.verifyEqual(both(), [0 3; 0 3]);
+axw.XLim = [1 1.5]; drawnow
+il_pick_tab(findobj(w, 'Tag', 'wave_tabs'), 2); drawnow
+tc.verifyEqual(both(), [0 3; 0 3]);
+axw.XLim = [1 1.5]; drawnow
+il_activate_signal(fig, 1); drawnow
+tc.verifyEqual(both(), [0 3; 0 3]);
+end
+
+function test_waveform_zoom_shows_every_sample_of_a_long_signal(tc)
+fs = 48000;
+wav = fullfile(tc.TestData.dir_tmp, 'long_45s.wav');
+audiowrite(wav, 0.1*sin(2*pi*1000*(0:1/fs:45-1/fs)'), fs, 'BitsPerSample', 32);
+fig = SQAT_GUI({wav}, 'Visible', 'off');
+tc.addTeardown(@() delete(fig));
+il_press(fig, 'open_waveform');
+w = il_window('SQAT_GUI_waveform');
+axw = findobj(w, 'Tag', 'waveform_axes');
+ln = findobj(axw, 'Tag', 'wave_line');
+tc.verifyEqual(ln.XData(2) - ln.XData(1), 2/fs, 'AbsTol', 1e-12);   % 2.16e6 samples: one in two
+y_lim = axw.YLim;
+axw.XLim = [10 11]; drawnow
+tc.verifyEqual(ln.XData(2) - ln.XData(1), 1/fs, 'AbsTol', 1e-12);
+tc.verifyLessThanOrEqual(ln.XData(1), 10);
+tc.verifyGreaterThanOrEqual(ln.XData(end), 11);
+tc.verifyEqual(axw.YLim, y_lim);
+end
+
+function test_enhanced_stft_follows_a_zoom_of_the_waveform(tc)
+fig = SQAT_GUI({tc.TestData.wav_tone}, 'Visible', 'off');
+tc.addTeardown(@() delete(fig));
+il_press(fig, 'open_waveform');
+w = il_window('SQAT_GUI_waveform');
+il_set(w, 'spec_enhanced', 'On');
+axs = findobj(w, 'Tag', 'spectrogram');
+surf = @() findobj(axs, 'Type', 'surface');
+x_full = surf().XData;
+axw = findobj(w, 'Tag', 'waveform_axes');
+axw.XLim = [1 1.5]; drawnow
+pause(1);                                                  % the debounce of 0.3 s
+t_z = il_map_centres(surf());
+tc.verifyEqual(t_z(2) - t_z(1), 0.001, 'AbsTol', 1e-9);      % the excerpt, in 1 ms columns
+il_press(w, 'spec_home'); drawnow
+pause(1);
+tc.verifyEqual(surf().XData, x_full);
+end
+
 function test_enhanced_stft_zoom_buttons_take_turns_with_the_box(tc)
 fig = SQAT_GUI({tc.TestData.wav_tone}, 'Visible', 'off');
 tc.addTeardown(@() delete(fig));
