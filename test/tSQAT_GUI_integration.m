@@ -1642,7 +1642,7 @@ il_set(w, 'spec_enhanced_mode', 'readable');
 tc.verifyEqual(surf().CData, c);
 [~, i] = max(max(c, [], 2));
 tc.verifyEqual(y(i), 1000, 'AbsTol', 25);                   % the tone sits at 1 kHz on the log grid
-tc.verifyEqual(max(c(:)), max(c_plain(:)), 'AbsTol', 1e-3);  % peak aligned with the level of a steady tone
+tc.verifyEqual(10*log10(median(sum(10.^(c/10), 1))), 60, 'AbsTol', 0.1);   % the cells of a column add up to the 60 dB SPL of the tone
 il_set(w, 'spec_enhanced', 'Off');
 for tag = {'spec_degree', 'spec_overlap', 'spec_window', 'import_window'}
     tc.verifyEqual(char(findobj(w, 'Tag', tag{1}).Enable), 'on', ['back: ' tag{1}]);

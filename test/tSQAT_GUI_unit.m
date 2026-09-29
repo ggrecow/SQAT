@@ -375,6 +375,7 @@ for k = 1:2
     [~, i] = max(p);
     tc.verifyEqual(f(i), 1000, 'AbsTol', 10);
     w(k) = nnz(p >= max(p) - 3);                      % rows within 3 dB of the peak
+    tc.verifyEqual(10*log10(median(sum(10.^(L(:, 500:1500)/10), 1))), 60, 'AbsTol', 0.1);   % dB SPL: a column adds up to the tone
 end
 tc.verifyLessThan(w(2), w(1));
 tc.verifyError(@() SQAT_GUI_enhanced_stft(x, fs, 'other'), 'SQAT_GUI_enhanced_stft:smoothing');

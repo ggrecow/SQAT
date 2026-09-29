@@ -4,8 +4,7 @@ function [t, f, L, info] = SQAT_GUI_enhanced_stft(x, fs, smoothing, n_frames, f_
 %   Enhanced spectrogram with no window to choose: nine Blackman-Harris
 %   windows from 8 to 512 ms (geometric spacing) are reassigned (Auger and
 %   Flandrin, 1995), the energy of each frame is held over the frame step
-%   of its window, each map is smoothed with the chosen smoothing and
-%   normalised, and
+%   of its window, each map is smoothed with the chosen smoothing, and
 %   the maps are combined by geometric mean, so that only the energy that
 %   all the windows place at the same point of the time-frequency plane
 %   remains (the idea of Cheung and Lim, 1991, applied to reassigned maps).
@@ -30,15 +29,17 @@ function [t, f, L, info] = SQAT_GUI_enhanced_stft(x, fs, smoothing, n_frames, f_
 %             an approximation (clicks come out weaker). When the columns are
 %             1 ms, as in a zoomed excerpt, nothing changes. Default false.
 %   ref : info.ref of the map of the whole signal, for an excerpt of it: the
-%         noise threshold, the normalisation, the floor and the top of the
-%         level come from the whole signal, so the excerpt reads on the same
-%         scale as the whole map. Default [] (from x itself)
+%         noise threshold and the floor of the geometric mean come from the
+%         whole signal, so the excerpt reads as the whole map. Default [] (from
+%         x itself)
 %
 % OUTPUTS
 %   t : [1xN] time of each column (s)
 %   f : [Mx1] frequencies (Hz), on a logarithmic grid
-%   L : [MxN] level (dB); the maximum is aligned with the maximum of the
-%       level of the 64 ms window (dB SPL), so the colour scale is relative.
+%   L : [MxN] level of each cell (dB SPL): the mean square pressure that the
+%       cell holds, so the cells of a column add up to the sound pressure level
+%       of that instant. A steady tone spread by the smoothing over several
+%       cells reads lower in each of them (about 10 dB with 'readable').
 %       With a cell array of smoothings, a cell array of maps in that order
 %   info : struct with the windows (ms), the time step (s), the smoothing and
 %          ref, the references of this map (one per smoothing), for its excerpts
@@ -120,8 +121,7 @@ else
     e_max = ref(1).e_max;
 end
 log_sum = num2cell(zeros(1, numel(modes)));      % one geometric mean per smoothing
-r_sum = zeros(numel(Ns), numel(modes));          % the normalisation of each map, and its floor
-r_max = r_sum;
+r_max = zeros(numel(Ns), numel(modes));          % the floor of each map
 for w_i = 1:numel(Ns)
     R = il_reassigned(x, fs, Ns(w_i), steps(w_i), hop_out, M, F, f_min, bins_per_octave, e_max(w_i));
     R = R / hop_out;                              % energy density: the same scale at any column width
@@ -133,36 +133,20 @@ for w_i = 1:numel(Ns)
     for k = 1:numel(modes)
         Rk = il_smooth(conv2(gts{k}, 1, R, 'same'), sig_fs{k});
         if isempty(ref)
-            r_sum(w_i, k) = sum(Rk(:));
             r_max(w_i, k) = max(Rk(:));
         else
-            r_sum(w_i, k) = ref(k).r_sum(w_i);
             r_max(w_i, k) = ref(k).r_max(w_i);
         end
-        log_sum{k} = log_sum{k} + log((Rk + 1e-6 * r_max(w_i, k)) / r_sum(w_i, k));
+        log_sum{k} = log_sum{k} + log(Rk + 1e-6 * r_max(w_i, k));
     end
 end
-% level: 10 log10 of the energy density, its peak aligned with the peak of the 64 ms spectrogram (relative colour scale)
-if isempty(ref)
-    [~, ~, L_ref] = SQAT_GUI_spectrogram(x, fs, 'hann', max(6, min(16, round(log2(0.064 * fs)))), 50);
-    top = max(L_ref, [], 'all');
-else
-    top = ref(1).top;
-end
+% level: the maps are mean square pressures (Pa^2), so their geometric mean is one too
 L = cell(size(modes));
-refs = struct('e_max', {}, 'top', {}, 'r_sum', {}, 'r_max', {}, 'c_max', {});
+refs = struct('e_max', {}, 'r_max', {});
 for k = 1:numel(modes)
     C = exp(log_sum{k} / numel(Ns));
-    if ~all(isfinite(C(:)))                            % no energy (a silent signal): the floor of the scale
-        C = zeros(size(C));
-    end
-    if isempty(ref)
-        c_max = max(max(C(:)), realmin);
-    else
-        c_max = ref(k).c_max;
-    end
-    L{k} = (10*log10(C / c_max + 1e-12))' + top;
-    refs(k) = struct('e_max', e_max, 'top', top, 'r_sum', r_sum(:, k)', 'r_max', r_max(:, k)', 'c_max', c_max);
+    L{k} = 10*log10(C / (2e-5)^2 + 1e-12)';            % dB SPL; a silent signal sits at -120 dB
+    refs(k) = struct('e_max', e_max, 'r_max', r_max(:, k)');
 end
 if ~iscell(smoothing)
     L = L{1};
@@ -234,7 +218,7 @@ for b = 1:chunk:n_fr
     jf = round(bpo * log2(max(f_hat, eps) / f_min)) + 1;
     ok = P2 > 1e-10 * e_max & it >= 1 & it <= M & jf >= 1 & jf <= F & f_hat > 0;
     lin{end+1} = it(ok) + (jf(ok) - 1) * M;            %#ok<AGROW>
-    val{end+1} = P2(ok) * hop;                         %#ok<AGROW>
+    val{end+1} = P2(ok) * (2 * hop / N);               %#ok<AGROW> one-sided power of a unit-energy window: mean square
     n_buf = n_buf + nnz(ok);
     if n_buf > 1e7 || j(end) == n_fr                   % about 160 MB at most
         R = R + reshape(accumarray(vertcat(lin{:}), vertcat(val{:}), [M*F 1]), M, F);

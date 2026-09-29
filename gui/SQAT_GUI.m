@@ -2472,7 +2472,7 @@ end
 
     function spec_title()
         % the title of the enhanced map, which says when the map on screen is the preview
-        s = sprintf('Enhanced STFT (consensus of 8 to 512 ms windows, %s, relative colour scale)', spec_view.mode);
+        s = sprintf('Enhanced STFT (consensus of 8 to 512 ms windows, %s)', spec_view.mode);
         if spec_view.preview && ~spec_view.zoomed
             s = [s ': preview, the exact map follows'];
         end
