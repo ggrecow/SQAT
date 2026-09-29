@@ -498,6 +498,22 @@ il_signal_dbfs(fig, 1, 100);                         % the calibration of a sign
 tc.verifySubstring(tab.Title, 'settings changed');
 end
 
+function test_gui_keeps_the_mark_only_for_a_real_change(tc)
+% a reset to the values already there is no change; removing a signal keeps the mark of an earlier change
+fig = SQAT_GUI({tc.TestData.wav_mono, tc.TestData.wav_tone}, 'Visible', 'off');
+tc.addTeardown(@() delete(fig));
+il_select_metrics(fig, {'Loudness_ISO532_1'});
+il_press(fig, 'run');
+tab = findobj(fig, 'Type', 'uitab', 'Title', 'Results');
+pw = il_open_params(fig, 1);
+b = findobj(pw, 'Tag', 'params_reset'); b.ButtonPushedFcn(b, []);
+tc.verifyEqual(tab.Title, 'Results');
+c = findobj(pw, 'Tag', 'param_method'); c.Value = 1; c.ValueChangedFcn(c, []);
+il_remove_signal(fig, 1);
+tc.verifySubstring(tab.Title, 'settings changed');
+tc.verifySubstring(findobj(fig, 'Tag', 'status').Text, 'Settings changed');
+end
+
 function test_gui_reports_a_failing_metric_and_goes_on(tc)
 fig = SQAT_GUI({tc.TestData.wav_mono}, 'Visible', 'off');
 tc.addTeardown(@() delete(fig));

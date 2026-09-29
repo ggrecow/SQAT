@@ -450,7 +450,7 @@ end
 
     function set_param(num, name, value)
         k = find([analyses.n] == num, 1);
-        if ~isempty(k)
+        if ~isempty(k) && ~isequal(analyses(k).p.(name), value)   % a reset to the same value changes nothing
             analyses(k).p.(name) = value;
             mark_stale();
             set(findobj(analysis_list, 'Tag', sprintf('analysis_summary_%d', k)), ...
@@ -485,7 +485,6 @@ end
 
     function show_results()
         % the results as one list, and one tab per signal (Results #1, #2, ...) with its own rows
-        tab_results.Title = 'Results';
         tbl.Data = results;
         delete(findobj(tabs, 'Tag', 'results_signal'));
         for f = loaded
@@ -693,6 +692,7 @@ end
         [~, order] = sortrows([a_num, q, (1:height(new_results))']);
         results = new_results(order, :);
         store = new_store;
+        tab_results.Title = 'Results';           % fresh results: a removal later keeps the mark of a change
         show_results();
         ran = sel(ismember(sel, {store.metric}));
         if stop_requested
