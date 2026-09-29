@@ -388,9 +388,26 @@ end
     end
 
     function on_remove_analysis(k)
+        % the analysis leaves the list, and its results and figures of the last run go with it
+        n = analyses(k).n;
+        k_r = find([run_settings.analyses.n] == n, 1);   % the keys of the run, by number
         analyses(k) = [];
         assign_keys();
         refresh_analyses();
+        if isempty(k_r)
+            return
+        end
+        key = run_settings.analyses(k_r).key;
+        run_settings.analyses(k_r) = [];
+        results = results(~strcmp(results.Analysis, sprintf('#%d', n)), :);
+        store = store(~strcmp({store.metric}, key));
+        drop = strcmp({cache.metric}, key);
+        for k_c = find(drop)
+            delete(cache(k_c).figs(isvalid(cache(k_c).figs)));
+        end
+        cache = cache(~drop);
+        show_results();
+        refresh_windows();
     end
 
     function on_analysis_params(k)

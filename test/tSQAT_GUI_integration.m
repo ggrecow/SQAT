@@ -577,6 +577,32 @@ il_press(fig, 'add_analysis');                       % a number is not given twi
 tc.verifyEqual(findobj(fig, 'Tag', 'analysis_number_2').Text, '#3');
 end
 
+function test_gui_removing_an_analysis_takes_its_results(tc)
+% the results, graphs and exported settings of a removed analysis go with it; the others stay
+fig = SQAT_GUI({tc.TestData.wav_mono}, 'Visible', 'off');
+tc.addTeardown(@() delete(fig));
+il_press(fig, 'add_analysis');                       % Loudness #1 and #2
+pw = il_open_params(fig, 2);
+c = findobj(pw, 'Tag', 'param_method'); c.Value = 1; c.ValueChangedFcn(c, []);
+il_press(fig, 'run');
+T = findobj(fig, 'Tag', 'results_table').Data;
+T2 = T(strcmp(T.Analysis, '#2'), :);
+il_press(fig, 'add_analysis');                       % #3 is not in the run: its removal leaves the results
+b = findobj(fig, 'Tag', 'analysis_remove_3'); b.ButtonPushedFcn(b, []);
+tc.verifyEqual(findobj(fig, 'Tag', 'results_table').Data, T);
+b = findobj(fig, 'Tag', 'analysis_remove_1'); b.ButtonPushedFcn(b, []);
+tc.verifyEqual(findobj(fig, 'Tag', 'results_table').Data, T2);
+tab = findobj(fig, 'Type', 'uitab', 'Title', 'Results');
+tc.verifyNumElements(tab, 1);                        % the rest are still the results of the run
+describe = getappdata(fig, 'sqat_run_description');
+S = describe();
+tc.verifyFalse(any(strcmp(S.Item, 'Analysis #1')));
+tc.verifyTrue(any(strcmp(S.Item, 'Analysis #2')));
+il_press(fig, 'open_graphs');
+g = il_window('SQAT_GUI_graphs');
+tc.verifyEqual(findobj(g, 'Tag', 'graph_metric').Items, {'#2 Loudness (ISO 532-1)'});
+end
+
 function test_gui_save_dialog_saves_the_chosen_figures(tc)
 % Save figures opens a dialog: the signals, and per metric the SQAT figure, the
 % analyses (the signals overlaid, as in the graphs window) and the statistics (CSV)
