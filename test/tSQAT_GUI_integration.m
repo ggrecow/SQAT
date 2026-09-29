@@ -1160,6 +1160,9 @@ tc.verifyEqual(max(sf.CData(:)), 60, 'AbsTol', 1.5);
 tc.verifyEqual(sf.YData(i_max), 1000, 'AbsTol', 48000/1024);
 tc.verifyEqual(ax.Colorbar.Label.String, 'Sound pressure level (dB SPL)');
 tc.verifyNotEmpty(findobj(w, 'Tag', 'playhead_spectrogram'));
+cl = ax.CLim;
+il_set(w, 'wave_weighting', 'A');
+tc.verifyEqual(ax.CLim, cl);                                   % A weighting keeps the colour scale
 end
 
 function test_waveform_has_a_tab_per_signal(tc)
@@ -1696,7 +1699,9 @@ zoom_now = getappdata(w, 'sqat_spec_zoom');
 zoom_now();
 L_z = surf().CData;
 [t_z, f_z] = il_map_centres(surf());
+cl = ax.CLim;
 il_set(w, 'wave_weighting', 'A');
+tc.verifyEqual(ax.CLim, cl);                                   % the colours stay with the weighting
 tc.verifyEqual(ax.XLim, [1 1.5]);
 tc.verifyEqual(ax.YLim, [200 5000]);
 tc.verifyEqual(il_map_centres(surf()), t_z);                   % the same excerpt
@@ -1705,6 +1710,7 @@ tc.verifyEqual(d, repmat(d(:, 1), 1, numel(t_z)), 'AbsTol', 1e-9);   % one offse
 a = SQAT_GUI_weight_curve(f_z, 48000, 'A');
 tc.verifyEqual(d(:, 1), a(:), 'AbsTol', 1e-6);
 il_set(w, 'spec_enhanced_mode', 'sharp');
+tc.verifyEqual(ax.CLim, cl);                                   % and with the mode
 tc.verifyEqual(ax.XLim, [1 1.5]);
 tc.verifyEqual(ax.YLim, [200 5000]);
 tc.verifyEqual(il_map_centres(surf()), t_z);

@@ -2270,10 +2270,7 @@ end
             t_spec = m.t;
             f_spec = m.f;
             L = weighted(m);
-            top = max(L, [], 'all');
-            if ~isempty(spec_view.full)
-                top = max(weighted(spec_view.full), [], 'all');   % the colours of the whole file
-            end
+            top = enhanced_top(m);
         else
             spec_view = [];
             [t_spec, f_spec, L, info] = SQAT_GUI_spectrogram(wave_x, wave_fs, win, degree, overlap);
@@ -2283,8 +2280,8 @@ end
             end
             keep = f_spec >= 20;
             f_spec = f_spec(keep);
+            top = max(L(keep, :), [], 'all');                % without weighting: A or C keep the colours
             L = L(keep, :) + SQAT_GUI_weight_curve(f_spec, wave_fs, weighting);
-            top = max(L, [], 'all');
         end
         spec_busy = true;
         cla(ax_spec);
@@ -2454,7 +2451,7 @@ end
                             return
                         end
                     end
-                    spec_top = max(weighted(spec_view.full), [], 'all');
+                    spec_top = enhanced_top(spec_view.full);
                     apply_black();
                 end
                 busy = spec_loading('Drawing the enhanced spectrogram...');   %#ok<NASGU>
@@ -2643,7 +2640,7 @@ end
         spec_view.full = m;                                     % zoomed: for Home, or on screen if at the whole file
         spec_view.preview = preview;
         spec_view.zoom = [];                                    % the excerpt again, on the scale of the new map
-        spec_top = max(weighted(m), [], 'all');
+        spec_top = enhanced_top(m);
         apply_black();
         stop_spec_timer();
         apply_spec_zoom();
@@ -2706,6 +2703,22 @@ end
         for k = numel(L):-1:1
             m(k) = struct('t', t, 'f', f(keep), 'L', single(L{k}(keep, :)), 'ref', info.ref(k));   % single: dB, half the memory
         end
+    end
+
+    function top = enhanced_top(m)
+        % the top of the colour scale: the loudest cell of the whole file without weighting,
+        % in either mode, so that neither the mode, the weighting nor a zoom moves the colours
+        top = max(m.L, [], 'all');
+        for md = {'readable', 'sharp'}
+            o = full_map(md{1}, false);
+            if isempty(o)
+                o = preview_map(md{1});
+            end
+            if ~isempty(o)
+                top = max(top, max(o.L, [], 'all'));
+            end
+        end
+        top = double(top);
     end
 
     function L = weighted(m)
