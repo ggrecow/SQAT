@@ -8,9 +8,9 @@ audio player runs with a silent buffer, so the tests make no sound.
 
 | File | Tests | Time | What it covers |
 |---|---:|---:|---|
-| `tSQAT_GUI_unit.m` | 23 | 7 s | the functions of `gui/` alone: catalogue, loading, share plan, windows, spectrogram, weighting, enhanced STFT. No window opens and no SQAT metric runs. |
-| `tSQAT_GUI_tool_calling.m` | 8 | 45 s | the functions that call the SQAT metrics: the output of the GUI must equal a direct call of each metric, and the analyses and single values are read from it. No window opens. |
-| `tSQAT_GUI_integration.m` | 79 | 212 s | the interface itself: main window, runs, results, graphs windows, saving, waveform window, player, enhanced STFT with the background pool. |
+| `SQAT_GUI_unit_test.m` | 23 | 7 s | the functions of `gui/` alone: catalogue, loading, share plan, windows, spectrogram, weighting, enhanced STFT. No window opens and no SQAT metric runs. |
+| `SQAT_GUI_tool_calling_test.m` | 8 | 45 s | the functions that call the SQAT metrics: the output of the GUI must equal a direct call of each metric, and the analyses and single values are read from it. No window opens. |
+| `SQAT_GUI_integration_test.m` | 79 | 212 s | the interface itself: main window, runs, results, graphs windows, saving, waveform window, player, enhanced STFT with the background pool. |
 
 Times measured on a Mac with 12 cores and MATLAB R2026a, one run each (264 s
 for the three). Run the unit tests after any change, and the three files
@@ -23,23 +23,23 @@ The other files in this folder are local scripts and stay out of git.
 From the SQAT root, in a terminal:
 
 ```
-matlab -batch "startup_SQAT; cd test; r = runtests({'tSQAT_GUI_unit','tSQAT_GUI_tool_calling','tSQAT_GUI_integration'}); disp(table(r)); assert(all([r.Passed]))"
+matlab -batch "startup_SQAT; cd test/gui; r = runtests({'SQAT_GUI_unit_test','SQAT_GUI_tool_calling_test','SQAT_GUI_integration_test'}); disp(table(r)); assert(all([r.Passed]))"
 ```
 
 or at the MATLAB prompt, with the SQAT root as the current folder:
 
 ```matlab
 startup_SQAT
-r = runtests('test/tSQAT_GUI_unit.m');     % one file
+r = runtests('test/gui/SQAT_GUI_unit_test.m');     % one file
 table(r)
 ```
 
 To run part of a file, filter by name:
 
 ```matlab
-runtests('test/tSQAT_GUI_integration.m', 'Name', 'tSQAT_GUI_integration/test_waveform_*')       % waveform window
-runtests('test/tSQAT_GUI_integration.m', 'Name', 'tSQAT_GUI_integration/test_enhanced_stft_*')  % enhanced STFT
-runtests('test/tSQAT_GUI_integration.m', 'Name', 'tSQAT_GUI_integration/test_gui_*')            % main and graphs windows
+runtests('test/gui/SQAT_GUI_integration_test.m', 'Name', 'SQAT_GUI_integration_test/test_waveform_*')       % waveform window
+runtests('test/gui/SQAT_GUI_integration_test.m', 'Name', 'SQAT_GUI_integration_test/test_enhanced_stft_*')  % enhanced STFT
+runtests('test/gui/SQAT_GUI_integration_test.m', 'Name', 'SQAT_GUI_integration_test/test_gui_*')            % main and graphs windows
 ```
 
 The windows of the integration tests open hidden, so the screen stays free.
