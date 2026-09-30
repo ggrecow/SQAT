@@ -22,7 +22,7 @@ function varargout = SQAT_GUI(files, varargin)
 %   compared with either channel or the binaural result of a stereo signal.
 %   Pin keeps a window with its signals and its results, so that a later run
 %   leaves it as it is and Open Graphs Window opens another one to compare
-%   with. Save figures (in the main window, or Save in a graphs window) opens
+%   with. Save in a graphs window opens
 %   a dialog to tick the signals and, per metric, the SQAT figure, the analyses
 %   (the signals overlaid) and the statistics (CSV), as PNG or PDF. A player
 %   window shows the waveform and the spectrogram, and the results go to a
@@ -159,56 +159,50 @@ img_logo = uiimage(top, 'ImageSource', fullfile(dir_logos, 'logo_white.png'), 'T
 uilabel(top, 'Text', 'Sound Quality Analysis Toolbox', 'FontSize', 16, 'FontWeight', 'bold');
 uilabel(top, 'Text', '');
 
-left = uigridlayout(main, [4 1]);
+left = uigridlayout(main, [2 1]);
 left.Layout.Row = 2; left.Layout.Column = 1;
 left.Padding = [0 0 0 0];
-left.RowHeight = {28, 170, 28, '1x'};
-sh = uigridlayout(left, [1 3]);
+left.RowHeight = {220, '1x'};
+sig_box = uigridlayout(uipanel(left), [2 1]);          % a box around each list, to set them apart
+sig_box.RowHeight = {28, '1x'};
+sig_box.Padding = [6 6 6 6];
+ana_box = uigridlayout(uipanel(left), [2 1]);
+ana_box.RowHeight = {28, '1x'};
+ana_box.Padding = [6 6 6 6];
+sh = uigridlayout(sig_box, [1 3]);
 sh.Padding = [0 0 0 0];
 sh.ColumnWidth = {'1x', 100, 130};
 uilabel(sh, 'Text', 'SIGNALS', 'FontWeight', 'bold');
 lbl_files = uilabel(sh, 'Text', 'No files loaded', 'Tag', 'file_count', 'HorizontalAlignment', 'right');
 uibutton(sh, 'Text', 'Open WAV files...', 'Tag', 'load_files', 'ButtonPushedFcn', @on_load_files);
-signal_list = uigridlayout(left, [1 6], 'Scrollable', 'on', 'Tag', 'signals_list');
+signal_list = uigridlayout(sig_box, [1 6], 'Scrollable', 'on', 'Tag', 'signals_list');
 signal_list.ColumnWidth = {30, 22, '1x', 62, 58, 26};
 signal_list.Padding = [0 0 0 0];
 signal_list.RowSpacing = 4;
-ah = uigridlayout(left, [1 2]);
+ah = uigridlayout(ana_box, [1 2]);
 ah.Padding = [0 0 0 0];
 ah.ColumnWidth = {'1x', 130};
 uilabel(ah, 'Text', 'ANALYSES (gear: parameters)', 'FontWeight', 'bold');
 uibutton(ah, 'Text', '+ Add', 'Tag', 'add_analysis', 'ButtonPushedFcn', @on_add_analysis, ...
     'Tooltip', 'Adds a copy of the last analysis, to compare the same metric with other parameters');
-analysis_list = uigridlayout(left, [1 5], 'Scrollable', 'on', 'Tag', 'analysis_list');
+analysis_list = uigridlayout(ana_box, [1 5], 'Scrollable', 'on', 'Tag', 'analysis_list');
 analysis_list.ColumnWidth = {30, 175, '1x', 36, 28};
 analysis_list.Padding = [0 0 0 0];
 
-right = uigridlayout(main, [3 1]);
+right = uigridlayout(main, [2 1]);
 right.Layout.Row = 2; right.Layout.Column = 2;
 right.Padding = [0 0 0 0];
-right.RowHeight = {56, 64, '1x'};
+right.RowHeight = {64, '1x'};
 
-opt_panel = uipanel(right, 'Title', 'OPTIONS');
-og = uigridlayout(opt_panel, [1 4]);
-og.ColumnWidth = {150, 105, 120, '1x'};
-og.Padding = [6 4 6 4];
-cb_show = uicheckbox(og, 'Text', 'Show plots after run', 'Tag', 'show_plots');
-cb_split = uicheckbox(og, 'Text', 'Split figures', 'Tag', 'split_figures', ...
-    'Tooltip', 'One tab (and one saved file) per panel of a SQAT figure', ...
-    'ValueChangedFcn', @on_graph_option);
-uibutton(og, 'Text', 'Save figures...', 'Tag', 'save_figures', 'ButtonPushedFcn', @(~, ~) open_save_dialog(), ...
-    'Tooltip', 'Choose the signals and the figures of the last run to save');
-uilabel(og, 'Text', '');
 save_folder = pwd;                                     % the folder of the last save
+split_figures = false;                                 % one tab and one file per panel: no control for now
 
 act_panel = uipanel(right, 'Title', 'ACTIONS');
-ag = uigridlayout(act_panel, [1 6]);
-ag.ColumnWidth = {'1.4x', '1x', '1x', '1x', '1x', 36};
+ag = uigridlayout(act_panel, [1 5]);
+ag.ColumnWidth = {'1.4x', '1x', '1x', '1x', 36};
 ag.Padding = [6 4 6 4];
 uibutton(ag, 'Text', 'Run Analysis', 'Tag', 'run', 'FontWeight', 'bold', ...
     'BackgroundColor', green, 'FontColor', [1 1 1], 'ButtonPushedFcn', @on_run);
-btn_stop = uibutton(ag, 'Text', 'Stop', 'Tag', 'stop_run', 'Enable', 'off', ...
-    'Tooltip', 'Ends the run after the metric being computed', 'ButtonPushedFcn', @on_stop_run);
 uibutton(ag, 'Text', 'Open Graphs Window', 'Tag', 'open_graphs', 'ButtonPushedFcn', @on_open_graphs);
 uibutton(ag, 'Text', 'Waveform / Play', 'Tag', 'open_waveform', 'ButtonPushedFcn', @on_open_waveform);
 uibutton(ag, 'Text', 'Export results...', 'Tag', 'export', 'ButtonPushedFcn', @on_export);
@@ -236,6 +230,7 @@ add_files(files);
 refresh_analyses();
 setappdata(fig, 'sqat_set_analyses', @set_analyses);   % the list from metric ids, for the tests
 setappdata(fig, 'sqat_run_description', @run_description);   % the Settings sheet, for the tests
+setappdata(fig, 'sqat_stop', @on_stop_run);           % the Stop of the progress dialog, which a hidden window has not
 write_log('Ready. Open WAV files, choose metrics and parameters, then press Run Analysis.');
 if nargout > 0
     varargout{1} = fig;   % fig itself stays: the callbacks share it
@@ -301,15 +296,6 @@ end
             end
         end
         remove_signal(k);
-    end
-
-    function on_graph_option(~, ~)
-        % the split option changes how the SQAT figure is laid out
-        for w = open_graph_windows()
-            if strcmp(findobj(w, 'Tag', 'graph_analysis').Value, 'sqat')
-                draw_window(w);
-            end
-        end
     end
 
     %% The list of analyses
@@ -572,8 +558,6 @@ end
         n_errors = 0;
         set_progress(0);
         stop_requested = false;
-        btn_stop.Enable = 'on';
-        stop_off = onCleanup(@() set(btn_stop, 'Enable', 'off')); %#ok<NASGU>
         dlg = [];
         if strcmp(fig.Visible, 'on')             % the dialog needs a visible window
             try
@@ -715,7 +699,6 @@ end
         end
         tab_results.Title = 'Results';           % fresh results: a removal later keeps the mark of a change
         show_results();
-        ran = sel(ismember(sel, {store.metric}));
         if stop_requested
             msg = sprintf('Stopped: %d value(s) from %d of the %d analysis step(s) in %.1f s', ...
                 height(results), n_done, n_total, toc(t_start));
@@ -729,11 +712,7 @@ end
         end
         lbl_status.Text = msg;
         write_log([msg '.']);
-        if cb_show.Value && ~isempty(ran)
-            on_open_graphs();
-        else
-            refresh_graph_windows();
-        end
+        refresh_graph_windows();
     end
 
     function on_export(~, ~)
@@ -1868,7 +1847,7 @@ end
         tg = uitabgroup(uigridlayout(parent, [1 1], 'Padding', 0));   % the grid sizes it on screen
         for k_f = 1:numel(cache(k_c).figs)
             src = cache(k_c).figs(k_f);
-            if ~cb_split.Value
+            if ~split_figures
                 tab = uitab(tg, 'Title', il_figure_title(src, label, k_f));
                 copyobj(src.Children, tab);
                 set_colormap(tab);
@@ -2077,7 +2056,7 @@ end
             return
         end
         fmt = findobj(d, 'Tag', 'save_format').Value;
-        split = cb_split.Value;                         % Split figures: one file per panel
+        split = split_figures;                          % one file per panel
         n_sig = findobj(d, 'Tag', 'save_signals').CheckedNodes;
         paths = {};
         if ~isempty(n_sig)
@@ -2867,7 +2846,7 @@ end
     end
 
     function poll_cancel()
-        % the Stop of the progress dialog ends the run like the Stop button
+        % the Stop of the progress dialog ends the run at the next step
         if il_is_open(dlg) && dlg.CancelRequested
             on_stop_run();
         end

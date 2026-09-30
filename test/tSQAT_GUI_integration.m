@@ -66,10 +66,12 @@ fig = SQAT_GUI({}, 'Visible', 'off');
 tc.addTeardown(@() delete(fig));
 tc.verifyClass(fig, 'matlab.ui.Figure');
 for tag = {'logo','file_count','load_files','signals_list','theme', ...
-           'add_analysis','analysis_list','run','stop_run','open_graphs','open_waveform','export', ...
-           'show_plots','save_figures','split_figures', ...
+           'add_analysis','analysis_list','run','open_graphs','open_waveform','export', ...
            'console','results_table','status','progress'}
     tc.verifyNotEmpty(findobj(fig, 'Tag', tag{1}), ['missing control: ' tag{1}]);
+end
+for tag = {'show_plots','save_figures','split_figures','stop_run'}   % Stop is in the progress dialog
+    tc.verifyEmpty(findobj(fig, 'Tag', tag{1}), ['control still there: ' tag{1}]);
 end
 tc.verifyEqual(findobj(fig, 'Tag', 'file_count').Text, 'No files loaded');
 tc.verifyEqual(findobj(fig, 'Tag', 'status').Text, 'Ready');
@@ -487,8 +489,8 @@ function test_gui_exported_settings_list_what_ran(tc)
 fig = SQAT_GUI({tc.TestData.wav_mono, tc.TestData.wav_tone}, 'Visible', 'off');
 tc.addTeardown(@() delete(fig));
 il_select_metrics(fig, {'Loudness_ISO532_1'});
-b = findobj(fig, 'Tag', 'stop_run');
-tm = timer('ExecutionMode', 'fixedSpacing', 'Period', 0.05, 'TimerFcn', @(t, ~) il_stop_once_running(t, fig, b));
+stop_run = getappdata(fig, 'sqat_stop');                % the Stop of the progress dialog
+tm = timer('ExecutionMode', 'fixedSpacing', 'Period', 0.05, 'TimerFcn', @(t, ~) il_stop_once_running(t, fig, stop_run));
 tc.addTeardown(@() delete(tm));
 start(tm);
 il_press(fig, 'run');
@@ -626,13 +628,16 @@ tc.verifyEqual(findobj(g, 'Tag', 'graph_metric').Items, {'#2 Loudness (ISO 532-1
 end
 
 function test_gui_save_dialog_saves_the_chosen_figures(tc)
-% Save figures opens a dialog: the signals, and per metric the SQAT figure, the
-% analyses (the signals overlaid, as in the graphs window) and the statistics (CSV)
+% Save in a graphs window opens a dialog: the signals, and per metric the SQAT figure,
+% the analyses (the signals overlaid, as in the graphs window) and the statistics (CSV)
 fig = SQAT_GUI({tc.TestData.wav_mono, tc.TestData.wav_tone}, 'Visible', 'off');
 tc.addTeardown(@() delete(fig));
 il_select_metrics(fig, {'Loudness_ISO532_1'});
 il_press(fig, 'run');
-il_press(fig, 'save_figures');
+il_press(fig, 'open_graphs');
+g = il_window('SQAT_GUI_graphs');
+shown = findobj(g, 'Tag', 'graph_analysis').Value;
+il_press(g, 'graph_save');
 d = il_window('SQAT_GUI_save');
 tc.assertNumElements(d, 1);
 sig = findobj(d, 'Tag', 'save_signals');
@@ -641,7 +646,7 @@ items = findobj(d, 'Tag', 'save_items');
 kids = items.Children(1).Children;
 tc.verifyEqual(kids(1).Text, 'SQAT figure');
 tc.verifyEqual(kids(end).Text, 'Statistics');
-tc.verifyEqual({items.CheckedNodes.Text}, {'SQAT figure'});   % the default
+tc.verifyEqual(arrayfun(@(n) n.NodeData.aid, items.CheckedNodes, 'UniformOutput', false), {shown});   % what the window shows
 aids = arrayfun(@(n) n.NodeData.aid, kids, 'UniformOutput', false);
 items.CheckedNodes = kids(ismember(aids, {'sqat', 'loudness', 'stats'}));
 out_dir = fullfile(tc.TestData.dir_tmp, 'saved'); mkdir(out_dir);
@@ -656,27 +661,6 @@ tc.verifyTrue(ismember('Loudness_ISO532_1_statistics_s1-s2.csv', names));
 c = readcell(fullfile(out_dir, 'Loudness_ISO532_1_statistics_s1-s2.csv'));
 tc.verifyEqual(c(1, :), {'Quantity', 'Signal #1, ch1', 'Signal #2, ch1'});
 tc.verifySubstring(strjoin(findobj(fig, 'Tag', 'console').Value, newline), ['saved to ' out_dir]);
-end
-
-function test_gui_save_dialog_saves_one_file_per_panel(tc)
-fig = SQAT_GUI({tc.TestData.wav_mono}, 'Visible', 'off');
-tc.addTeardown(@() delete(fig));
-il_select_metrics(fig, {'Roughness_Daniel1997'});
-il_press(fig, 'run');
-h = findobj(fig, 'Tag', 'split_figures'); h.Value = true;
-il_press(fig, 'save_figures');
-d = il_window('SQAT_GUI_save');
-out_dir = fullfile(tc.TestData.dir_tmp, 'saved_split'); mkdir(out_dir);
-h = findobj(d, 'Tag', 'save_folder'); h.Value = out_dir;
-il_press(d, 'save_do');
-figs = il_all_sqat_figures();                              % drawn to be saved, kept hidden
-tc.assertNotEmpty(figs);
-n_axes = numel(findobj(figs, 'Type', 'axes'));
-tc.verifyNumElements(dir(fullfile(out_dir, '*.png')), n_axes);
-tc.verifyGreaterThanOrEqual(n_axes, numel(figs));
-for ax = findobj(figs, 'Type', 'axes')'
-    tc.verifyEqual(ax.Colormap, load('cmap_inferno.txt'));
-end
 end
 
 function test_gui_run_saves_no_figure(tc)
@@ -797,38 +781,6 @@ y = findobj(ax, 'Type', 'line').YData;
 tc.assertLessThan(max(y) - min(y), 1e-3 * mean(y));      % the premise: nearly constant
 tc.verifyGreaterThanOrEqual(diff(ax.YLim), 0.09 * mean(y));
 tc.verifyTrue(ax.YLim(1) <= min(y) && ax.YLim(2) >= max(y));
-end
-
-function test_gui_show_plots_after_run_opens_the_graphs_window(tc)
-fig = SQAT_GUI({tc.TestData.wav_mono}, 'Visible', 'off');
-tc.addTeardown(@() delete(fig));
-il_select_metrics(fig, {'Roughness_Daniel1997'});
-h = findobj(fig, 'Tag', 'show_plots'); h.Value = true;
-il_press(fig, 'run');
-tc.verifyNumElements(il_window('SQAT_GUI_graphs'), 1);
-tc.verifyEmpty(il_sqat_figures());                % no second copy of the figure
-end
-
-function test_gui_split_figures_gives_one_tab_per_panel(tc)
-fig = SQAT_GUI({tc.TestData.wav_mono}, 'Visible', 'off');
-tc.addTeardown(@() delete(fig));
-il_select_metrics(fig, {'Roughness_Daniel1997', 'Loudness_ECMA418_2'});
-il_press(fig, 'run');
-for id = {'Roughness_Daniel1997', 'Loudness_ECMA418_2'}     % plain axes, and a tiled layout
-    il_press(fig, 'open_graphs');
-    g = il_window('SQAT_GUI_graphs');
-    il_set(g, 'graph_metric', id{1});
-    n_axes = numel(findobj(g, 'Type', 'axes'));
-    tc.verifyNumElements(findobj(g, 'Type', 'uitab'), 1, id{1});
-    cb = findobj(fig, 'Tag', 'split_figures'); cb.Value = true; cb.ValueChangedFcn(cb, []);
-    tabs = findobj(g, 'Type', 'uitab');
-    tc.verifyNumElements(tabs, n_axes, id{1});
-    for t = tabs'
-        tc.verifyNumElements(findobj(t, 'Type', 'axes'), 1, id{1});
-    end
-    cb.Value = false; cb.ValueChangedFcn(cb, []);
-    tc.verifyNumElements(findobj(g, 'Type', 'uitab'), 1, id{1});
-end
 end
 
 function test_gui_graph_window_offers_the_analyses_of_the_metric(tc)
@@ -2095,10 +2047,10 @@ b = findobj(fig, 'Tag', tag);
 b.ButtonPushedFcn(b, []);
 end
 
-function il_stop_once_running(t, fig, b)
+function il_stop_once_running(t, fig, stop_run)
 % presses Stop once the first metric has started, so the run ends after it
 if any(contains(findobj(fig, 'Tag', 'console').Value, 'Running'))
-    b.ButtonPushedFcn(b, []);
+    stop_run();
     stop(t);
 end
 end
