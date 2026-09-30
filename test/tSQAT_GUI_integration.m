@@ -538,6 +538,87 @@ tc.verifySubstring(tab.Title, 'settings changed');
 tc.verifySubstring(findobj(fig, 'Tag', 'status').Text, 'Settings changed');
 end
 
+function test_gui_run_keeps_the_results_that_did_not_change(tc)
+% an analysis added to the list runs alone; a change of calibration, channel or
+% parameters runs the analysis again
+fig = SQAT_GUI({tc.TestData.wav_stereo}, 'Visible', 'off');
+tc.addTeardown(@() delete(fig));
+il_select_metrics(fig, {'Loudness_ISO532_1'});
+il_press(fig, 'run');
+v1 = il_value(fig, 'tone_stereo.wav', 'Loudness_ISO532_1', 'Nmean');
+il_select_metrics(fig, {'Loudness_ISO532_1', 'Roughness_Daniel1997'});
+il_press(fig, 'run');
+log = strjoin(findobj(fig, 'Tag', 'console').Value, newline);
+tc.verifySubstring(log, 'Loudness_ISO532_1 on tone_stereo.wav: kept from the last run');
+tc.verifySubstring(findobj(fig, 'Tag', 'status').Text, '1 kept from the last run');
+tc.verifyEqual(il_value(fig, 'tone_stereo.wav', 'Loudness_ISO532_1', 'Nmean'), v1);
+tc.verifyNotEmpty(il_value(fig, 'tone_stereo.wav', 'Roughness_Daniel1997', 'Rmean'));
+il_press(fig, 'run');                                 % nothing changed: nothing runs
+tc.verifySubstring(findobj(fig, 'Tag', 'status').Text, '2 kept from the last run');
+il_signal_dbfs(fig, 1, 104);                          % 10 dB more: every analysis again
+il_press(fig, 'run');
+tc.verifySubstring(findobj(fig, 'Tag', 'status').Text, 'Done');
+tc.verifyEmpty(strfind(findobj(fig, 'Tag', 'status').Text, 'kept'));
+tc.verifyGreaterThan(il_value(fig, 'tone_stereo.wav', 'Loudness_ISO532_1', 'Nmean'), v1);
+il_signal_channel(fig, 1, '1');                       % one channel instead of both
+il_press(fig, 'run');
+tc.verifyEmpty(strfind(findobj(fig, 'Tag', 'status').Text, 'kept'));
+pw = il_open_params(fig, 2);                          % the parameters of the roughness
+c = findobj(pw, 'Tag', 'param_time_skip'); c.Value = 0.5; c.ValueChangedFcn(c, []);
+il_press(fig, 'run');
+tc.verifySubstring(findobj(fig, 'Tag', 'status').Text, '1 kept from the last run');
+end
+
+function test_gui_run_after_a_stop_computes_what_was_left(tc)
+% a stopped run keeps what ran; the next run computes the rest, not the kept part again
+fig = SQAT_GUI({tc.TestData.wav_mono, tc.TestData.wav_tone}, 'Visible', 'off');
+tc.addTeardown(@() delete(fig));
+il_select_metrics(fig, {'Loudness_ISO532_1'});
+stop_run = getappdata(fig, 'sqat_stop');                % the Stop of the progress dialog
+tm = timer('ExecutionMode', 'fixedSpacing', 'Period', 0.05, 'TimerFcn', @(t, ~) il_stop_once_running(t, fig, stop_run));
+tc.addTeardown(@() delete(tm));
+start(tm);
+il_press(fig, 'run');
+stop(tm);
+tc.assertSubstring(findobj(fig, 'Tag', 'status').Text, 'Stopped');
+il_press(fig, 'run');
+status = findobj(fig, 'Tag', 'status').Text;
+tc.verifySubstring(status, 'Done');
+tc.verifySubstring(status, '1 kept from the last run');  % the signal done before the stop
+tc.verifyNotEmpty(il_value(fig, 'tone_mono.wav', 'Loudness_ISO532_1', 'Nmean'));
+tc.verifyNotEmpty(il_value(fig, 'tone_1k_60dB.wav', 'Loudness_ISO532_1', 'Nmean'));
+end
+
+function test_gui_graphs_window_has_no_axes_toolbar(tc)
+% Save... keeps the figures; the toolbar of the axes would only move the plots
+fig = SQAT_GUI({tc.TestData.wav_mono}, 'Visible', 'off');
+tc.addTeardown(@() delete(fig));
+il_select_metrics(fig, {'Loudness_ISO532_1'});
+il_press(fig, 'run');
+g = il_window('SQAT_GUI_graphs');
+tc.assertNumElements(g, 1);
+for value = {'sqat', 'all', 'loudness'}
+    il_set(g, 'graph_analysis', value{1});
+    axs = findall(g, 'Type', 'axes');
+    tc.assertNotEmpty(axs, value{1});
+    for ax = axs'
+        tc.verifyEqual(char(ax.Toolbar.Visible), 'off', value{1});
+    end
+end
+end
+
+function test_gui_calibration_explains_the_full_scale(tc)
+fig = SQAT_GUI({tc.TestData.wav_mono}, 'Visible', 'off');
+tc.addTeardown(@() delete(fig));
+head = findobj(fig, 'Tag', 'signal_cal_info');
+tc.assertNotEmpty(head);
+tc.verifySubstring(head.Text, char(9432));
+for tip = {head.Tooltip, findobj(fig, 'Tag', 'signal_cal_1').Tooltip}
+    tc.verifySubstring(tip{1}, 'between -1 and 1');
+    tc.verifySubstring(tip{1}, '94 dB reads 1 as 1 Pa');
+end
+end
+
 function test_gui_reports_a_failing_metric_and_goes_on(tc)
 fig = SQAT_GUI({tc.TestData.wav_mono}, 'Visible', 'off');
 tc.addTeardown(@() delete(fig));
@@ -681,8 +762,9 @@ fig = SQAT_GUI({tc.TestData.wav_mono}, 'Visible', 'off');
 tc.addTeardown(@() delete(fig));
 il_select_metrics(fig, {'Loudness_ISO532_1','Roughness_Daniel1997'});
 il_press(fig, 'run');
-tc.verifyEmpty(il_window('SQAT_GUI_graphs'));      % opens on request only
-il_press(fig, 'open_graphs');
+tc.verifyNumElements(il_window('SQAT_GUI_graphs'), 1);   % opens at the end of the run
+delete(il_window('SQAT_GUI_graphs'));
+il_press(fig, 'open_graphs');                            % and again on request
 g = il_window('SQAT_GUI_graphs');
 tc.verifyNumElements(g, 1);
 pm = findobj(g, 'Tag', 'graph_metric');
@@ -736,6 +818,7 @@ il_select_metrics(fig, {'Loudness_ISO532_1'});
 il_press(fig, 'run');
 tc.verifyNumElements(il_all_sqat_figures(), 1, 'the analysis drew more than the active file');
 il_mark_signal(fig, 1, false);                       % the tone is the only signal ticked
+il_set(il_window('SQAT_GUI_graphs'), 'graph_analysis', 'sqat');   % the window opened by the run
 il_press(fig, 'open_graphs');
 il_press(fig, 'open_graphs');
 log = strjoin(findobj(fig, 'Tag', 'console').Value, newline);

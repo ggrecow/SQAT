@@ -8,9 +8,12 @@ function varargout = SQAT_GUI(files, varargin)
 %   and lists their single values. The channel to analyse is one channel of
 %   the file or All (the default for a stereo file): the ECMA-418-2 metrics take a stereo pair in one call and
 %   return the left, the right and (except the tonality) the combined
-%   binaural result, so a pair runs once.
+%   binaural result, so a pair runs once. A run keeps the results of the last
+%   run whose signal (channel and calibration) and analysis (metric and
+%   parameters) did not change, so an analysis added to the list runs alone.
 %
-%   A graphs window plots one metric of the ticked signals. The analysis is
+%   A graphs window opens at the end of a run (Open Graphs Window opens it
+%   again after it is closed) and plots one metric of the ticked signals. The analysis is
 %   chosen in the window (a time series, a profile over the critical bands, a
 %   map of band against time, or the statistics): the signals are overlaid,
 %   and the maps sit side by side on one colour scale. For one signal the
@@ -89,6 +92,12 @@ analyses = struct('key', 'Loudness_ISO532_1', 'id', 'Loudness_ISO532_1', 'n', 1,
 next_analysis = 2;                                    % the number of the next analysis
 loaded = struct('path', {}, 'name', {}, 'nch', {}, 'fs', {}, 'marked', {}, 'id', {}, 'channel', {}, 'dBFS', {}, 'cal_set', {});
 next_id = 1;                                          % the number of the next signal loaded
+cal_help = ['Calibration of the file. A WAV file holds numbers between -1 and 1, with no unit: ' ...
+    'the pressure they stand for depends on the recording chain. Cal. is the level in dB SPL of a ' ...
+    'sample value of 1; the signal is scaled by 10^((Cal. - 94)/20), so 94 dB reads 1 as 1 Pa. ' ...
+    'Take it from a calibrator recorded with the signal, or from the recording documentation. ' ...
+    'A file without this information has no absolute level, and its loudness, roughness and ' ...
+    'levels are only relative.'];
 active_idx = 0;                                       % the signal on screen in the player
 wave_ch_by_id = [];                                    % channel chosen by a tab of the waveform window, by signal number
 results = il_empty_results();
@@ -476,6 +485,32 @@ end
         e.p = a.p;
     end
 
+    function [old, same_key] = reusable(f, a)
+        % the entries of the last run for signal f and analysis a, when neither
+        % changed since: the same channel and calibration, the same metric and
+        % parameters, and every channel of the signal done (a run stopped halfway
+        % leaves some out). same_key: the analysis kept its key, so its SQAT figures stay
+        old = il_empty_store();
+        same_key = false;
+        k_s = find(strcmp({run_settings.signals.path}, f.path), 1);
+        k_a = find([run_settings.analyses.n] == a.n, 1);
+        if isempty(k_s) || isempty(k_a)
+            return
+        end
+        s = run_settings.signals(k_s);
+        b = run_settings.analyses(k_a);
+        if ~strcmp(s.channel, f.channel) || s.dBFS ~= f.dBFS || ~strcmp(b.id, a.id) || ~isequal(b.p, a.p)
+            return
+        end
+        prev = store(strcmp({store.file}, f.path) & strcmp({store.metric}, b.key));
+        if isempty(prev) || ~all(ismember(arrayfun(@num2str, channel_list(f), 'UniformOutput', false), {prev.channel}))
+            return
+        end
+        [prev.metric] = deal(a.key);          % a removal before it may have changed its key
+        old = prev;
+        same_key = strcmp(b.key, a.key);
+    end
+
     function mark_stale()
         % a setting changed after the run: the results on screen no longer follow the settings
         if height(results) == 0 || contains(tab_results.Title, 'changed')
@@ -541,7 +576,21 @@ end
         end
         files_order = [use(k_active), use(use ~= use(k_active))];
         active_path = loaded(files_order(1)).path;
-        clear_cache();
+
+        % the results of the last run whose signal and analysis did not change are kept
+        kept = cell(1, numel(loaded));                     % entries kept, by signal
+        keep_figs = {};                                    % file|key of the SQAT figures that stay
+        for i = files_order
+            kept{i} = il_empty_store();
+            for a = analyses
+                [old, same_key] = reusable(loaded(i), a);
+                kept{i} = [kept{i}, old];
+                if same_key
+                    keep_figs{end+1} = [loaded(i).path '|' a.key]; %#ok<AGROW>
+                end
+            end
+        end
+        clear_cache(keep_figs);
         run_settings = struct('signals', loaded(use), 'analyses', analyses);
         close_params();
 
@@ -549,10 +598,13 @@ end
         new_store = il_empty_store();
         stereo_sel = ismember({analyses.id}, {metrics([metrics.stereo]).id});
         n_total = 0;
+        n_kept = 0;
         for i = files_order
             n_ch = numel(channel_list(loaded(i)));
             joint = n_ch == 2;
-            n_total = n_total + nnz(~(stereo_sel & joint)) * n_ch + nnz(stereo_sel & joint);
+            todo = ~ismember(sel, {kept{i}.metric});
+            n_total = n_total + nnz(~(stereo_sel & joint) & todo) * n_ch + nnz(stereo_sel & joint & todo);
+            n_kept = n_kept + nnz(~todo);
         end
         n_done = 0;
         n_errors = 0;
@@ -575,9 +627,13 @@ end
             cl = channel_list(f);
             dBFS = f.dBFS;
             joint = numel(cl) == 2;              % a binaural pair goes in one call
-            ids_joint = sel(stereo_sel & joint);
-            ids_single = sel(~(stereo_sel & joint));
-            entries = il_empty_store();          % of this file, in the order of the calls
+            entries = kept{i};                   % of this file: the kept ones, then in the order of the calls
+            todo = ~ismember(sel, {entries.metric});
+            for key = sel(~todo)
+                write_log(sprintf('%s on %s: kept from the last run, nothing changed.', key{1}, f.name));
+            end
+            ids_joint = sel(stereo_sel & joint & todo);
+            ids_single = sel(~(stereo_sel & joint) & todo);
             for c = cl
                 if isempty(ids_single) || stop_requested
                     break
@@ -707,12 +763,22 @@ end
             msg = sprintf('Done: %d value(s) from %d file(s) and %d metric(s) in %.1f s', ...
                 height(results), numel(use), numel(sel), toc(t_start));
         end
+        if n_kept > 0
+            msg = sprintf('%s, %d kept from the last run', msg, n_kept);
+        end
         if n_errors > 0
             msg = sprintf('%s, %d error(s)', msg, n_errors);
         end
         lbl_status.Text = msg;
         write_log([msg '.']);
         refresh_graph_windows();
+        if ~isempty(store)                       % the results show at once; the button opens them again
+            if isempty(live_window())
+                on_open_graphs();
+            elseif strcmp(fig.Visible, 'on')
+                figure(live_window());
+            end
+        end
     end
 
     function on_export(~, ~)
@@ -1492,9 +1558,12 @@ end
         delete(signal_list.Children);
         n = numel(loaded);
         signal_list.RowHeight = repmat({24}, 1, n + 1);
-        heads = {'', '', 'Signal', 'Channel', 'Cal. (dB)', ''};
+        heads = {'', '', 'Signal', 'Channel', ['Cal. (dB) ' char(9432)], ''};
         for c = 1:6
-            uilabel(signal_list, 'Text', heads{c}, 'FontWeight', 'bold');
+            h = uilabel(signal_list, 'Text', heads{c}, 'FontWeight', 'bold');
+            if c == 5
+                set(h, 'Tag', 'signal_cal_info', 'Tooltip', cal_help);
+            end
         end
         for k = 1:n
             f = loaded(k);
@@ -1516,8 +1585,7 @@ end
             end
             uieditfield(signal_list, 'numeric', 'Value', f.dBFS, 'Tag', sprintf('signal_cal_%d', k), ...
                 'FontAngle', angle, ...
-                'Tooltip', ['Calibration: dB SPL of a full-scale amplitude (94: full scale 1.0 is 1 Pa). ' ...
-                            'In italics while it is the default'], ...
+                'Tooltip', [cal_help newline 'In italics while it is the default.'], ...
                 'ValueChangedFcn', @(src, ~) on_signal_cal(k, src));
             uibutton(signal_list, 'Text', 'x', 'Tag', sprintf('signal_remove_%d', k), ...
                 'Tooltip', 'Removes this signal and its results', 'ButtonPushedFcn', @(~, ~) on_signal_remove(k));
@@ -1752,6 +1820,10 @@ end
                 draw_stats(body, entries);
             otherwise
                 draw_analysis(body, entries, da.Value, chan);
+        end
+        % no axes toolbar: Save... keeps the figures, and its tools would move the plots
+        for ax = findall(body, 'Type', 'axes')'
+            ax.Toolbar.Visible = 'off';
         end
     end
 
@@ -2805,11 +2877,19 @@ end
         end
     end
 
-    function clear_cache()
-        for k_c = 1:numel(cache)
-            delete(cache(k_c).figs(isvalid(cache(k_c).figs)));
+    function clear_cache(keep)
+        % the SQAT figures go, except those of the results kept (file|key)
+        if nargin < 1
+            keep = {};
         end
-        cache = struct('file', {}, 'metric', {}, 'figs', {});
+        stay = false(1, numel(cache));
+        for k_c = 1:numel(cache)
+            stay(k_c) = ismember([cache(k_c).file '|' cache(k_c).metric], keep);
+            if ~stay(k_c)
+                delete(cache(k_c).figs(isvalid(cache(k_c).figs)));
+            end
+        end
+        cache = cache(stay);
     end
 
     function set_colormap(parent)
