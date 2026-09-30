@@ -3,7 +3,7 @@ function varargout = SQAT_GUI(files, varargin)
 %
 %   Graphical interface to the metrics of SQAT, laid out as the interface of
 %   pySQAT. It loads .wav files into a list of signals (a tick marks a signal
-%   for use, the x removes it; each signal has its own channel and dBFS),
+%   for use, the bin removes it; each signal has its own channel and dBFS),
 %   runs the ticked metrics with the chosen parameters on the ticked signals,
 %   and lists their single values. The channel to analyse is one channel of
 %   the file or All (the default for a stereo file): the ECMA-418-2 metrics take a stereo pair in one call and
@@ -80,6 +80,7 @@ if isempty(which('Loudness_ISO532_1'))
     run(fullfile(fileparts(fileparts(mfilename('fullpath'))), 'startup_SQAT.m'));
 end
 dir_logos = fullfile(fileparts(mfilename('fullpath')), 'logos');
+icon_remove = fullfile(dir_logos, 'trash.png');          % the remove buttons of the lists
 green = [0.13 0.55 0.37];
 
 %% State
@@ -158,7 +159,7 @@ fig = uifigure('Name', 'SQAT: Sound Quality Analysis Toolbox', ...
     'CloseRequestFcn', @on_close, 'CreateFcn', '');   % skips a user default CreateFcn
 main = uigridlayout(fig, [3 2]);
 main.RowHeight = {44, '1x', 30};
-main.ColumnWidth = {430, '1x'};
+main.ColumnWidth = {600, '1x'};                  % the lists get the room, the console the rest
 
 top = uigridlayout(main, [1 3]);
 top.Layout.Row = 1; top.Layout.Column = [1 2];
@@ -296,7 +297,7 @@ end
     end
 
     function on_signal_remove(k)
-        % the x asks first: the results and the figures of the signal go with it
+        % the bin asks first: the results and the figures of the signal go with it
         if strcmp(fig.Visible, 'on')
             answer = uiconfirm(fig, sprintf('Remove %s and its results?', loaded(k).name), ...
                 'Remove signal', 'Options', {'Remove', 'Cancel'}, 'DefaultOption', 2, 'CancelOption', 2);
@@ -310,7 +311,7 @@ end
     %% The list of analyses
 
     function refresh_analyses()
-        % one row per analysis: its number, the metric, its parameters in short, the gear and the x
+        % one row per analysis: its number, the metric, its parameters in short (in full in the tooltip), the gear and the bin
         delete(analysis_list.Children);
         w = findall(groot, 'Type', 'figure', 'Tag', 'SQAT_GUI_params');
         if ~isempty(w) && ~ismember(w(1).UserData, [analyses.n])
@@ -324,10 +325,11 @@ end
             uidropdown(analysis_list, 'Items', {metrics.label}, 'ItemsData', {metrics.id}, ...
                 'Value', a.id, 'Tag', sprintf('analysis_metric_%d', k), ...
                 'ValueChangedFcn', @(src, ~) on_analysis_metric(k, src.Value));
-            uilabel(analysis_list, 'Text', il_param_summary(metrics, a), 'Tag', sprintf('analysis_summary_%d', k));
+            uilabel(analysis_list, 'Text', il_param_summary(metrics, a), 'Tag', sprintf('analysis_summary_%d', k), ...
+                'Tooltip', il_param_text(metrics(strcmp({metrics.id}, a.id)), a.p));
             uibutton(analysis_list, 'Text', char(9881), 'FontSize', 16, 'Tag', sprintf('analysis_params_%d', k), ...
                 'Tooltip', 'Parameters of this analysis', 'ButtonPushedFcn', @(~, ~) on_analysis_params(k));
-            uibutton(analysis_list, 'Text', 'x', 'Tag', sprintf('analysis_remove_%d', k), ...
+            uibutton(analysis_list, 'Text', '', 'Icon', icon_remove, 'Tag', sprintf('analysis_remove_%d', k), ...
                 'Tooltip', 'Removes this analysis', 'ButtonPushedFcn', @(~, ~) on_remove_analysis(k));
         end
     end
@@ -466,7 +468,8 @@ end
             analyses(k).p.(name) = value;
             mark_stale();
             set(findobj(analysis_list, 'Tag', sprintf('analysis_summary_%d', k)), ...
-                'Text', il_param_summary(metrics, analyses(k)));
+                'Text', il_param_summary(metrics, analyses(k)), ...
+                'Tooltip', il_param_text(metrics(strcmp({metrics.id}, analyses(k).id)), analyses(k).p));
         end
     end
 
@@ -1554,7 +1557,7 @@ end
     end
 
     function refresh_signals()
-        % one row per signal: number, tick, name (click: player), channel, calibration and x
+        % one row per signal: number, tick, name (click: player), channel, calibration and bin
         delete(signal_list.Children);
         n = numel(loaded);
         signal_list.RowHeight = repmat({24}, 1, n + 1);
@@ -1587,7 +1590,7 @@ end
                 'FontAngle', angle, ...
                 'Tooltip', [cal_help newline 'In italics while it is the default.'], ...
                 'ValueChangedFcn', @(src, ~) on_signal_cal(k, src));
-            uibutton(signal_list, 'Text', 'x', 'Tag', sprintf('signal_remove_%d', k), ...
+            uibutton(signal_list, 'Text', '', 'Icon', icon_remove, 'Tag', sprintf('signal_remove_%d', k), ...
                 'Tooltip', 'Removes this signal and its results', 'ButtonPushedFcn', @(~, ~) on_signal_remove(k));
         end
         if n == 0
@@ -3109,7 +3112,7 @@ end
 end
 
 function txt = il_param_summary(metrics, a)
-% the parameters of analysis a in short, e.g. FF tv t 0.5s
+% the parameters of analysis a in short, e.g. free field, time-varying, skip 0.5 s
 e = metrics(strcmp({metrics.id}, a.id));
 parts = {};
 for q = e.params
@@ -3122,27 +3125,23 @@ for q = e.params
         if isempty(unit)
             unit = {''};
         end
-        prefix = struct('time_skip', 't', 'dt', 'dt', 'threshold', 'thr');
+        prefix = struct('time_skip', 'skip', 'dt', 'dt', 'threshold', 'threshold');
         if isfield(prefix, q.name)
             name = prefix.(q.name);
         else
             name = q.name;
         end
-        u = unit{1};
-        if ~strcmp(u, 's')
-            u = [' ' u];
-        end
-        parts{end+1} = sprintf('%s %g%s', name, v, u); %#ok<AGROW>
+        parts{end+1} = strtrim(sprintf('%s %g %s', name, v, unit{1})); %#ok<AGROW>
     end
 end
-txt = strjoin(parts, ' ');
+txt = strjoin(parts, ', ');
 end
 
 function s = il_short(option)
 % the short name of an option in the summary of the parameters
-names = {'Free field', 'FF'; 'Diffuse field', 'DF'; 'Free-frontal', 'FFront'; 'Diffuse', 'Diff'; ...
-         'Stationary', 'stat'; 'Time-varying', 'tv'; 'DIN 45692', 'DIN'; 'Aures', 'Aures'; ...
-         'von Bismarck', 'Bism'};
+names = {'Free field', 'free field'; 'Diffuse field', 'diffuse field'; 'Free-frontal', 'free-frontal'; ...
+         'Diffuse', 'diffuse'; 'Stationary', 'stationary'; 'Time-varying', 'time-varying'; ...
+         'DIN 45692', 'DIN 45692'; 'Aures', 'Aures'; 'von Bismarck', 'von Bismarck'};
 k = find(strcmp(names(:, 1), option), 1);
 s = option;
 if ~isempty(k)

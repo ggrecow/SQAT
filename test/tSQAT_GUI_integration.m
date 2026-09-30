@@ -166,7 +166,7 @@ tc.verifyEqual(findobj(fig, 'Tag', 'signal_channel_2').Items, {'1', '2', 'All'})
 end
 
 function test_gui_signal_list_keeps_the_x_in_view_for_long_names(tc)
-% The name takes the space that is left, so a long name cannot push the x out.
+% The name takes the space that is left, so a long name cannot push the bin out.
 long = fullfile(tc.TestData.dir_tmp, [repmat('a_very_long_signal_name_', 1, 5) '.wav']);
 copyfile(tc.TestData.wav_mono, long);
 fig = SQAT_GUI({long}, 'Visible', 'off');
@@ -174,7 +174,25 @@ tc.addTeardown(@() delete(fig));
 g = findobj(fig, 'Tag', 'signals_list');
 tc.verifyEqual(g.ColumnWidth{3}, '1x');
 tc.verifyTrue(all(cellfun(@isnumeric, g.ColumnWidth([1 2 4 5 6]))));
-tc.verifyLessThanOrEqual(sum([g.ColumnWidth{[1 2 4 5 6]}]), 250);   % the name keeps most of the 430 px
+tc.verifyLessThanOrEqual(sum([g.ColumnWidth{[1 2 4 5 6]}]), 250);   % the name keeps most of the 600 px
+tc.verifyEqual(g.Parent.Parent.Parent.Parent.ColumnWidth{1}, 600);   % list, box, panel, left column, main grid
+end
+
+function test_gui_lists_remove_with_a_bin_and_show_the_parameters_in_full(tc)
+% The remove buttons carry the bin icon; the short parameters of an analysis
+% show in full in their tooltip.
+fig = SQAT_GUI({tc.TestData.wav_mono}, 'Visible', 'off');
+tc.addTeardown(@() delete(fig));
+for tag = {'signal_remove_1', 'analysis_remove_1'}
+    b = findobj(fig, 'Tag', tag{1});
+    tc.verifyEmpty(b.Text, tag{1});
+    tc.verifySubstring(b.Icon, 'trash.png', tag{1});
+end
+s = findobj(fig, 'Tag', 'analysis_summary_1');
+tc.verifySubstring(s.Tooltip, 'Time skip');
+pw = il_open_params(fig, 1);
+c = findobj(pw, 'Tag', 'param_time_skip'); c.Value = 0.7; c.ValueChangedFcn(c, []);
+tc.verifySubstring(s.Tooltip, '0.7');
 end
 
 function test_gui_channels_offer_all_only_with_a_stereo_file(tc)
@@ -396,7 +414,7 @@ t = findobj(pw, 'Tag', 'param_time_skip'); t.Value = 1; t.ValueChangedFcn(t, [])
 b = findobj(pw, 'Tag', 'params_reset'); b.ButtonPushedFcn(b, []);
 tc.verifyEqual(c.Value, 2);
 tc.verifyEqual(t.Value, 0.5);
-tc.verifyEqual(findobj(fig, 'Tag', 'analysis_summary_1').Text, 'FF tv t 0.5s');
+tc.verifyEqual(findobj(fig, 'Tag', 'analysis_summary_1').Text, 'free field, time-varying, skip 0.5 s');
 c.Value = 1; c.ValueChangedFcn(c, []);          % stationary again, for the run
 il_press(fig, 'add_analysis');                  % the window stays open while the list changes
 tc.verifyTrue(isvalid(pw));
@@ -644,7 +662,7 @@ tc.addTeardown(@() delete(fig2));
 il_select_metrics(fig2, {});
 % the summary of the ECMA-418-2 parameters
 il_select_metrics(fig2, {'Loudness_ECMA418_2'});
-tc.verifyEqual(findobj(fig2, 'Tag', 'analysis_summary_1').Text, 'FFront t 0.304s');
+tc.verifyEqual(findobj(fig2, 'Tag', 'analysis_summary_1').Text, 'free-frontal, skip 0.304 s');
 il_select_metrics(fig2, {});
 il_press(fig2, 'run');
 tc.verifySubstring(strjoin(findobj(fig2, 'Tag', 'console').Value, newline), 'No metrics');
@@ -657,10 +675,10 @@ il_press(fig, 'add_analysis');                       % a copy of the first: Loud
 tc.verifyEqual(findobj(fig, 'Tag', 'analysis_metric_2').Value, 'Loudness_ISO532_1');
 tc.verifyEqual(findobj(fig, 'Tag', 'analysis_number_1').Text, '#1');
 tc.verifyEqual(findobj(fig, 'Tag', 'analysis_number_2').Text, '#2');
-tc.verifyEqual(findobj(fig, 'Tag', 'analysis_summary_1').Text, 'FF tv t 0.5s');
+tc.verifyEqual(findobj(fig, 'Tag', 'analysis_summary_1').Text, 'free field, time-varying, skip 0.5 s');
 pw = il_open_params(fig, 2);
 c = findobj(pw, 'Tag', 'param_method'); c.Value = 1; c.ValueChangedFcn(c, []);   % stationary
-tc.verifyEqual(findobj(fig, 'Tag', 'analysis_summary_2').Text, 'FF stat t 0.5s');
+tc.verifyEqual(findobj(fig, 'Tag', 'analysis_summary_2').Text, 'free field, stationary, skip 0.5 s');
 il_press(fig, 'run');
 T = findobj(fig, 'Tag', 'results_table').Data;
 tc.verifyEqual(unique(T.Analysis, 'stable'), {'#1'; '#2'});
@@ -676,7 +694,7 @@ tc.verifyNotEmpty(findobj(g, 'Type', 'axes'));
 % removing the first leaves the second with its number: #2 keeps meaning the same analysis
 b = findobj(fig, 'Tag', 'analysis_remove_1'); b.ButtonPushedFcn(b, []);
 tc.verifyEqual(findobj(fig, 'Tag', 'analysis_number_1').Text, '#2');
-tc.verifyEqual(findobj(fig, 'Tag', 'analysis_summary_1').Text, 'FF stat t 0.5s');
+tc.verifyEqual(findobj(fig, 'Tag', 'analysis_summary_1').Text, 'free field, stationary, skip 0.5 s');
 tc.verifyEmpty(findobj(fig, 'Tag', 'analysis_metric_2'));
 il_press(fig, 'add_analysis');                       % a number is not given twice
 tc.verifyEqual(findobj(fig, 'Tag', 'analysis_number_2').Text, '#3');
