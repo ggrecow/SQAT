@@ -7,7 +7,8 @@ function [insig, fs, nch] = SQAT_GUI_load(wavfilename, dBFS, channel)
 %
 % INPUT ARGUMENTS
 %   wavfilename : char or string, path of the .wav file
-%   dBFS : number, dB SPL of a full-scale amplitude (94 means 1 = 1 Pa)
+%   dBFS : number, dB SPL of a full-scale amplitude (94 means 1 = 1 Pa), or
+%          [1 x nch], one value per channel of the file (see SQAT_GUI_calibration)
 %   channel : integer or vector of integers, channels to read (1 for mono files)
 %
 % OUTPUTS
@@ -39,6 +40,9 @@ if isempty(channel) || any(channel ~= round(channel)) || any(channel < 1) || any
     error('SQAT_GUI:channel', 'Channel %s requested, but %s has %d channel(s).', ...
           mat2str(channel), wavfilename, nch);
 end
-gain_factor = 10^((dBFS-94)/20);
-insig = y(:, channel) * gain_factor;
+gain_factor = 10.^((dBFS(:).'-94)/20);
+if ~isscalar(gain_factor)
+    gain_factor = gain_factor(channel);  % the full-scale level of each channel read
+end
+insig = y(:, channel) .* gain_factor;
 end

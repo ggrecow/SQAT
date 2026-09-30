@@ -152,10 +152,10 @@ tc.verifyEqual(findobj(fig, 'Tag', 'file_count').Text, '2 files loaded');
 tc.verifyEqual(findobj(fig, 'Tag', 'signal_channel_1').Value, '1');
 tc.verifyEqual(findobj(fig, 'Tag', 'signal_channel_2').Value, 'All');
 c = findobj(fig, 'Tag', 'signal_cal_1');
-tc.verifyEqual(c.Value, 94);
+tc.verifyEqual(c.Text, '94 dBFS');
 tc.verifyEqual(c.FontAngle, 'italic');                      % the default is marked
 il_signal_dbfs(fig, 1, 94);
-tc.verifyEqual(c.FontAngle, 'normal');                      % set by hand, even to the same value
+tc.verifyEqual(findobj(fig, 'Tag', 'signal_cal_1').FontAngle, 'normal');   % set, even to the same value
 end
 
 function test_gui_each_signal_offers_only_its_own_channels(tc)
@@ -626,15 +626,47 @@ end
 end
 
 function test_gui_calibration_explains_the_full_scale(tc)
+% The head of the column explains calibration and its three ways; each
+% signal shows its method and, in the tooltip, its full-scale level.
 fig = SQAT_GUI({tc.TestData.wav_mono}, 'Visible', 'off');
 tc.addTeardown(@() delete(fig));
 head = findobj(fig, 'Tag', 'signal_cal_info');
 tc.assertNotEmpty(head);
 tc.verifySubstring(head.Text, char(9432));
-for tip = {head.Tooltip, findobj(fig, 'Tag', 'signal_cal_1').Tooltip}
-    tc.verifySubstring(tip{1}, 'between -1 and 1');
-    tc.verifySubstring(tip{1}, '94 dB reads 1 as 1 Pa');
+for part = {'between -1 and +1', 'Full-scale level (dBFS)', 'Calibrator recording', 'Relative level'}
+    tc.verifySubstring(head.Tooltip, part{1});
 end
+tc.verifySubstring(findobj(fig, 'Tag', 'signal_cal_1').Tooltip, 'Full scale: 94.00 dB SPL');
+end
+
+function test_gui_calibrates_each_channel_from_a_stereo_calibrator(tc)
+% A calibrator of 94 dB recorded in each ear, channel 2 recorded 6 dB lower
+% (a less sensitive ear), and a tone that reached both ears with the same
+% pressure, so it too is 6 dB lower in channel 2. Each channel gets its own
+% full scale (94 dB minus the level of its recording), and the tone reads the
+% same loudness in both; the export tells the method.
+fs = tc.TestData.fs;
+t = (0:2*fs-1)' / fs;
+cal = fullfile(tc.TestData.dir_tmp, 'calibrator_stereo.wav');
+audiowrite(cal, 0.5 * [sin(2*pi*1000*t), 0.5 * sin(2*pi*1000*t)], fs, 'BitsPerSample', 32);
+sig = fullfile(tc.TestData.dir_tmp, 'tone_through_the_ears.wav');
+audiowrite(sig, 0.1 * [sin(2*pi*1000*t), 0.5 * sin(2*pi*1000*t)], fs, 'BitsPerSample', 32);
+fig = SQAT_GUI({sig}, 'Visible', 'off');
+tc.addTeardown(@() delete(fig));
+set_calibration = getappdata(fig, 'sqat_set_calibration');
+tc.verifyTrue(set_calibration(1, 'calibrator', 94, cal));
+tc.verifyEqual(findobj(fig, 'Tag', 'signal_cal_1').Text, 'calib. 94 dB');
+il_select_metrics(fig, {'Loudness_ISO532_1'});
+il_press(fig, 'run');
+T = findobj(fig, 'Tag', 'results_table').Data;
+full = @(c) T.Cal_dB_SPL(find(strcmp(T.Channel, c), 1));
+tc.verifyEqual(full('1'), 94 - 20*log10(0.5/sqrt(2)), 'AbsTol', 1e-4);
+tc.verifyEqual(full('2'), 94 - 20*log10(0.25/sqrt(2)), 'AbsTol', 1e-4);
+N = @(c) T.Value(strcmp(T.Channel, c) & strcmp(T.Quantity, 'Nmean'));
+tc.verifyEqual(N('2'), N('1'), 'RelTol', 1e-9);
+describe = getappdata(fig, 'sqat_run_description');
+S = describe();
+tc.verifySubstring(S.Value{strcmp(S.Item, 'Signal #1')}, 'calibration calib. 94 dB');
 end
 
 function test_gui_reports_a_failing_metric_and_goes_on(tc)
@@ -2087,9 +2119,9 @@ d.ValueChangedFcn(d, []);
 end
 
 function il_signal_dbfs(fig, k, v)
-e = findobj(fig, 'Tag', sprintf('signal_cal_%d', k));
-e.Value = v;
-e.ValueChangedFcn(e, []);
+% the full-scale level of signal k, as the calibration dialog sets it
+set_calibration = getappdata(fig, 'sqat_set_calibration');
+set_calibration(k, 'dbfs', v);
 end
 
 function names = il_signal_names(fig)

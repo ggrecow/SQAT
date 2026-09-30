@@ -3,7 +3,7 @@ function varargout = SQAT_GUI(files, varargin)
 %
 %   Graphical interface to the metrics of SQAT, laid out as the interface of
 %   pySQAT. It loads .wav files into a list of signals (a tick marks a signal
-%   for use, the bin removes it; each signal has its own channel and dBFS),
+%   for use, the bin removes it; each signal has its own channel and calibration),
 %   runs the ticked metrics with the chosen parameters on the ticked signals,
 %   and lists their single values. The channel to analyse is one channel of
 %   the file or All (the default for a stereo file): the ECMA-418-2 metrics take a stereo pair in one call and
@@ -91,14 +91,20 @@ metrics = SQAT_GUI_metrics;
 analyses = struct('key', 'Loudness_ISO532_1', 'id', 'Loudness_ISO532_1', 'n', 1, ...
     'p', il_default_params(metrics(strcmp({metrics.id}, 'Loudness_ISO532_1'))));
 next_analysis = 2;                                    % the number of the next analysis
-loaded = struct('path', {}, 'name', {}, 'nch', {}, 'fs', {}, 'marked', {}, 'id', {}, 'channel', {}, 'dBFS', {}, 'cal_set', {});
+loaded = struct('path', {}, 'name', {}, 'nch', {}, 'fs', {}, 'marked', {}, 'id', {}, 'channel', {}, 'dBFS', {}, 'cal_set', {}, 'cal', {});
+% dBFS: the full-scale level of each channel (dB SPL); cal: how it was set (method, level, file, label)
+last_cal = struct('method', 'dbfs', 'level', 94, 'file', '');   % the calibration dialog opens with the last choice
 next_id = 1;                                          % the number of the next signal loaded
-cal_help = ['Calibration of the file. A WAV file holds numbers between -1 and 1, with no unit: ' ...
-    'the pressure they stand for depends on the recording chain. Cal. is the level in dB SPL of a ' ...
-    'sample value of 1; the signal is scaled by 10^((Cal. - 94)/20), so 94 dB reads 1 as 1 Pa. ' ...
-    'Take it from a calibrator recorded with the signal, or from the recording documentation. ' ...
-    'A file without this information has no absolute level, and its loudness, roughness and ' ...
-    'levels are only relative.'];
+cal_help = ['A WAV file stores numbers between -1 and +1, with no unit. To read them as sound pressure ' ...
+    'in pascals, SQAT needs to know which level they stand for. There are three ways to set it ' ...
+    '(Greco 2026, Section 3.3):' newline ...
+    '- Full-scale level (dBFS): the level in dB SPL of a sample of value 1, known from the recording ' ...
+    'chain or the documentation of the file. SQAT assumes 94 dB (1 = 1 Pa) when nothing is set.' newline ...
+    '- Calibrator recording: a recording of a sound level calibrator (1 kHz at 94 dB, for example) made ' ...
+    'with the same setup; its rms against the level of the calibrator gives the full scale. A stereo ' ...
+    'recording calibrates each channel on its own.' newline ...
+    '- Relative level: with no information, the rms of the file is set to a chosen level. The results ' ...
+    'then only compare signals among themselves; they are not absolute levels.'];
 active_idx = 0;                                       % the signal on screen in the player
 wave_ch_by_id = [];                                    % channel chosen by a tab of the waveform window, by signal number
 results = il_empty_results();
@@ -186,7 +192,7 @@ uilabel(sh, 'Text', 'SIGNALS', 'FontWeight', 'bold');
 lbl_files = uilabel(sh, 'Text', 'No files loaded', 'Tag', 'file_count', 'HorizontalAlignment', 'right');
 uibutton(sh, 'Text', 'Open WAV files...', 'Tag', 'load_files', 'ButtonPushedFcn', @on_load_files);
 signal_list = uigridlayout(sig_box, [1 6], 'Scrollable', 'on', 'Tag', 'signals_list');
-signal_list.ColumnWidth = {30, 22, '1x', 62, 58, 26};
+signal_list.ColumnWidth = {30, 22, '1x', 62, 96, 26};
 signal_list.Padding = [0 0 0 0];
 signal_list.RowSpacing = 4;
 ah = uigridlayout(ana_box, [1 2]);
@@ -241,6 +247,7 @@ refresh_analyses();
 setappdata(fig, 'sqat_set_analyses', @set_analyses);   % the list from metric ids, for the tests
 setappdata(fig, 'sqat_run_description', @run_description);   % the Settings sheet, for the tests
 setappdata(fig, 'sqat_stop', @on_stop_run);           % the Stop of the progress dialog, which a hidden window has not
+setappdata(fig, 'sqat_set_calibration', @set_calibration);   % the calibration without its dialog, for the tests
 write_log('Ready. Open WAV files, choose metrics and parameters, then press Run Analysis.');
 if nargout > 0
     varargout{1} = fig;   % fig itself stays: the callbacks share it
@@ -265,12 +272,38 @@ end
         signal_changed(k);
     end
 
-    function on_signal_cal(k, src)
-        % the level of a full-scale amplitude; set by hand, it is no longer shown as the default
-        loaded(k).dBFS = src.Value;
+    function ok = set_calibration(k, method, level, calfile)
+        % calibrates signal k: the full-scale level of each channel from the method
+        % (SQAT_GUI_calibration); a failure leaves the signal as it was and returns false
+        if nargin < 4
+            calfile = '';
+        end
+        try
+            [dBFS, label] = SQAT_GUI_calibration(method, loaded(k).path, level, calfile);
+        catch err
+            write_log(['Calibration not changed: ' err.message]);
+            ok = false;
+            return
+        end
+        loaded(k).dBFS = dBFS;
         loaded(k).cal_set = true;
-        src.FontAngle = 'normal';
+        loaded(k).cal = struct('method', method, 'level', level, 'file', calfile, 'label', label);
+        last_cal = struct('method', method, 'level', level, 'file', calfile);
+        write_log(sprintf('%s calibrated: %s (full scale %s dB SPL).', loaded(k).name, label, ...
+            strjoin(arrayfun(@(v) sprintf('%.2f', v), dBFS, 'UniformOutput', false), ', ')));
+        refresh_signals();
         signal_changed(k);
+        ok = true;
+    end
+
+    function on_signal_cal(k)
+        % the dialog of the calibration of signal k, opened on the last choice
+        c = last_cal;
+        if loaded(k).cal_set
+            c = loaded(k).cal;
+        end
+        SQAT_GUI_calibration_dialog(fig, loaded(k).name, c, cal_help, ...
+            @(method, level, calfile) set_calibration(k, method, level, calfile));
     end
 
     function signal_changed(k)
@@ -502,7 +535,7 @@ end
         end
         s = run_settings.signals(k_s);
         b = run_settings.analyses(k_a);
-        if ~strcmp(s.channel, f.channel) || s.dBFS ~= f.dBFS || ~strcmp(b.id, a.id) || ~isequal(b.p, a.p)
+        if ~strcmp(s.channel, f.channel) || ~isequal(s.dBFS, f.dBFS) || ~strcmp(b.id, a.id) || ~isequal(b.p, a.p)
             return
         end
         prev = store(strcmp({store.file}, f.path) & strcmp({store.metric}, b.key));
@@ -731,7 +764,7 @@ end
                     unit = cellfun(@(q) il_unit(a.id, q), en.values.Quantity, 'UniformOutput', false);
                     rows = [rows; table(repmat({sprintf('#%d', f.id)}, n, 1), repmat({f.name}, n, 1), ...
                         repmat({en.number}, n, 1), repmat({a.id}, n, 1), repmat({en.channel}, n, 1), ...
-                        en.values.Quantity, en.values.Value, unit(:), repmat(f.dBFS, n, 1), ...
+                        en.values.Quantity, en.values.Value, unit(:), repmat(il_cal_of(f, en.channel), n, 1), ...
                         repmat({il_param_text(e_j, a.p)}, n, 1), repmat({f.path}, n, 1), ...
                         'VariableNames', il_empty_results().Properties.VariableNames)]; %#ok<AGROW>
                 end
@@ -809,8 +842,10 @@ end
                  'SQAT version', il_sqat_version();
                  'MATLAB', version};
         for f = run_settings.signals
-            items(end+1, :) = {sprintf('Signal #%d', f.id), sprintf('%s | fs %g Hz | %d channel(s) | channel %s | cal. %g dB SPL at full scale%s', ...
-                f.path, f.fs, f.nch, f.channel, f.dBFS, il_if(f.cal_set, '', ' (default)'))}; %#ok<AGROW>
+            items(end+1, :) = {sprintf('Signal #%d', f.id), sprintf('%s | fs %g Hz | %d channel(s) | channel %s | calibration %s%s | full scale %s dB SPL%s', ...
+                f.path, f.fs, f.nch, f.channel, f.cal.label, il_if(isempty(f.cal.file), '', [' (' f.cal.file ')']), ...
+                strjoin(arrayfun(@(v) sprintf('%.2f', v), f.dBFS, 'UniformOutput', false), ', '), ...
+                il_if(f.cal_set, '', ' (default)'))}; %#ok<AGROW>
         end
         for a = run_settings.analyses
             e = metrics(strcmp({metrics.id}, a.id));
@@ -1517,7 +1552,8 @@ end
             [~, base, ext] = fileparts(path);
             loaded(end+1) = struct('path', path, 'name', [base ext], ...
                 'nch', info.NumChannels, 'fs', info.SampleRate, 'marked', true, 'id', next_id, ...
-                'channel', il_default_channel(info.NumChannels), 'dBFS', 94, 'cal_set', false); %#ok<AGROW>
+                'channel', il_default_channel(info.NumChannels), 'dBFS', 94 * ones(1, info.NumChannels), ...
+                'cal_set', false, 'cal', struct('method', 'dbfs', 'level', 94, 'file', '', 'label', '94 dBFS')); %#ok<AGROW>
             next_id = next_id + 1;
         end
         if isempty(loaded)
@@ -1528,6 +1564,11 @@ end
         end
         refresh_signals();
         write_log(sprintf('%d file(s) loaded.', numel(loaded)));
+        if strcmp(fig.Visible, 'on')             % one calibration dialog per new file, one after the other
+            for k_new = n_before+1:numel(loaded)
+                on_signal_cal(k_new);
+            end
+        end
         if numel(loaded) > n_before
             refresh_windows();
         end
@@ -1561,7 +1602,7 @@ end
         delete(signal_list.Children);
         n = numel(loaded);
         signal_list.RowHeight = repmat({24}, 1, n + 1);
-        heads = {'', '', 'Signal', 'Channel', ['Cal. (dB) ' char(9432)], ''};
+        heads = {'', '', 'Signal', 'Channel', ['Calibration ' char(9432)], ''};
         for c = 1:6
             h = uilabel(signal_list, 'Text', heads{c}, 'FontWeight', 'bold');
             if c == 5
@@ -1586,10 +1627,13 @@ end
             if f.cal_set
                 angle = 'normal';
             end
-            uieditfield(signal_list, 'numeric', 'Value', f.dBFS, 'Tag', sprintf('signal_cal_%d', k), ...
+            uibutton(signal_list, 'Text', f.cal.label, 'Tag', sprintf('signal_cal_%d', k), ...
                 'FontAngle', angle, ...
-                'Tooltip', [cal_help newline 'In italics while it is the default.'], ...
-                'ValueChangedFcn', @(src, ~) on_signal_cal(k, src));
+                'Tooltip', sprintf(['Full scale: %s dB SPL (%s). Click to change the calibration.' newline ...
+                    'In italics while it is the default of SQAT.'], ...
+                    strjoin(arrayfun(@(v) sprintf('%.2f', v), f.dBFS, 'UniformOutput', false), ', '), ...
+                    il_if(f.nch > 1, 'one value per channel', 'one channel')), ...
+                'ButtonPushedFcn', @(~, ~) on_signal_cal(k));
             uibutton(signal_list, 'Text', '', 'Icon', icon_remove, 'Tag', sprintf('signal_remove_%d', k), ...
                 'Tooltip', 'Removes this signal and its results', 'ButtonPushedFcn', @(~, ~) on_signal_remove(k));
         end
@@ -2247,7 +2291,7 @@ end
         wave_x = x;
         wave_y = y;
         wave_fs = fs;
-        spec_signal = sprintf('%s|%g', key, f.dBFS);
+        spec_signal = sprintf('%s|%s', key, mat2str(f.dBFS));
         cancel_jobs(spec_signal);
         win_wave.Name = sprintf('Waveform: %s, channel %d', f.name, ch);
         t_end = numel(x) / fs;
@@ -3204,6 +3248,19 @@ root = fileparts(fileparts(mfilename('fullpath')));
 v = 'unknown (not a git checkout)';
 if status == 0
     v = ['commit ' strtrim(out)];
+end
+end
+
+function v = il_cal_of(f, channel)
+% the full-scale level (dB SPL) of the channel of a result: '1', '2', ... or
+% 'Binaural', which gets the value of the channels when they share it (NaN if not)
+c = str2double(channel);
+if ~isnan(c)
+    v = f.dBFS(min(c, numel(f.dBFS)));
+elseif all(f.dBFS == f.dBFS(1))
+    v = f.dBFS(1);
+else
+    v = NaN;
 end
 end
 

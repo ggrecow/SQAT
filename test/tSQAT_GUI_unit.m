@@ -114,6 +114,59 @@ x100 = SQAT_GUI_load(tc.TestData.wav_mono, 100, 1);
 tc.verifyEqual(x100, x94 * 10^((100-94)/20), 'AbsTol', 1e-15);
 end
 
+function test_load_applies_one_dbfs_per_channel(tc)
+% a [1 x nch] full scale gives each channel its own gain, also when one channel is read
+x = SQAT_GUI_load(tc.TestData.wav_stereo, [94 100], [1 2]);
+ref = audioread(tc.TestData.wav_stereo);
+tc.verifyEqual(x, ref .* [1, 10^(6/20)], 'AbsTol', 1e-15);
+tc.verifyEqual(SQAT_GUI_load(tc.TestData.wav_stereo, [94 100], 2), ref(:, 2) * 10^(6/20), 'AbsTol', 1e-15);
+end
+
+%% Calibration -------------------------------------------------------------
+
+function test_calibration_from_a_full_scale_level(tc)
+% 'dbfs': the level given, for every channel (Greco 2026, Eq. 3.2)
+[d, label] = SQAT_GUI_calibration('dbfs', tc.TestData.wav_stereo, 104);
+tc.verifyEqual(d, [104 104]);
+tc.verifyEqual(label, '104 dBFS');
+end
+
+function test_calibration_from_a_calibrator_recording(tc)
+% 'calibrator': dBFS = level - 20 log10(rms of the recording) (Greco 2026,
+% Eq. 3.1, as calibrate.m); a mono recording serves every channel, a
+% recording with as many channels as the file calibrates each of them
+fs = 48000;
+t = (0:fs-1)' / fs;
+mono = fullfile(tc.TestData.dir_tmp, 'cal_mono.wav');
+stereo = fullfile(tc.TestData.dir_tmp, 'cal_stereo.wav');
+audiowrite(mono, 0.5 * sin(2*pi*1000*t), fs, 'BitsPerSample', 32);
+audiowrite(stereo, [0.5 * sin(2*pi*1000*t), 0.25 * sin(2*pi*1000*t)], fs, 'BitsPerSample', 32);
+[d, label] = SQAT_GUI_calibration('calibrator', tc.TestData.wav_stereo, 94, mono);
+tc.verifyEqual(d, (94 - 20*log10(0.5/sqrt(2))) * [1 1], 'AbsTol', 1e-4);
+tc.verifyEqual(label, 'calib. 94 dB');
+[~, ~, dBFS_ref] = calibrate(1, audioread(mono), 94);      % the toolbox function of Eq. 3.1
+tc.verifyEqual(d(1), dBFS_ref, 'AbsTol', 1e-9);
+d = SQAT_GUI_calibration('calibrator', tc.TestData.wav_stereo, 114, stereo);
+tc.verifyEqual(d, 114 - 20*log10([0.5 0.25]/sqrt(2)), 'AbsTol', 1e-4);
+end
+
+function test_calibration_to_a_relative_level_keeps_the_channels_apart(tc)
+% 'relative': one gain for the whole file, so that the rms of all channels
+% together is the level (Greco 2026, Eq. 3.3); channel 2 stays 10 dB below 1
+d = SQAT_GUI_calibration('relative', tc.TestData.wav_stereo, 70);
+x = SQAT_GUI_load(tc.TestData.wav_stereo, d, [1 2]);
+tc.verifyEqual(d(1), d(2));
+tc.verifyEqual(20*log10(sqrt(mean(x(:).^2))) + 94, 70, 'AbsTol', 1e-6);   % SQAT reads 94 dB as 1 Pa
+tc.verifyEqual(20*log10(rms(x(:, 1)) / rms(x(:, 2))), 10, 'AbsTol', 1e-6);
+end
+
+function test_calibration_rejects_silence(tc)
+silent = fullfile(tc.TestData.dir_tmp, 'silent.wav');
+audiowrite(silent, zeros(4800, 1), 48000);
+tc.verifyError(@() SQAT_GUI_calibration('relative', silent, 70), 'SQAT_GUI:calibration');
+tc.verifyError(@() SQAT_GUI_calibration('calibrator', tc.TestData.wav_mono, 94, silent), 'SQAT_GUI:calibration');
+end
+
 function test_load_selects_the_channel(tc)
 [x2, ~, nch] = SQAT_GUI_load(tc.TestData.wav_stereo, 94, 2);
 ref = audioread(tc.TestData.wav_stereo);
