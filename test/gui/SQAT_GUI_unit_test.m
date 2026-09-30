@@ -1,13 +1,14 @@
-function tests = tSQAT_GUI_unit
+function tests = SQAT_GUI_unit_test
 % Unit tests of the functions in gui/: no window opens and no SQAT metric runs.
-% How to run the three test files and how long they take: test/README.md.
+% How to run the three test files and how long they take: test/gui/README.md.
 tests = functiontests(localfunctions);
 end
 
 %% Fixtures ----------------------------------------------------------------
 
 function setupOnce(tc)
-addpath(fullfile(basepath_SQAT, 'gui'));
+root = fileparts(fileparts(fileparts(mfilename('fullpath'))));
+tc.applyFixture(matlab.unittest.fixtures.PathFixture(root, 'IncludingSubfolders', true));   % SQAT and gui/, also on a clean MATLAB path
 fs = 48000;
 t = (0:1/fs:3-1/fs)';
 x_mono = sqrt(2)*2e-5*10^(60/20) * (1 + 0.5*sin(2*pi*4*t)) .* sin(2*pi*1000*t);   % 1 kHz, 60 dB SPL, AM at 4 Hz

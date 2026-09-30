@@ -1,14 +1,15 @@
-function tests = tSQAT_GUI_tool_calling
+function tests = SQAT_GUI_tool_calling_test
 % Tests of the GUI functions that call the SQAT metrics: no window opens, the
 % metrics of the toolbox run for real.
-% How to run the three test files and how long they take: test/README.md.
+% How to run the three test files and how long they take: test/gui/README.md.
 tests = functiontests(localfunctions);
 end
 
 %% Fixtures ----------------------------------------------------------------
 
 function setupOnce(tc)
-addpath(fullfile(basepath_SQAT, 'gui'));
+root = fileparts(fileparts(fileparts(mfilename('fullpath'))));
+tc.applyFixture(matlab.unittest.fixtures.PathFixture(root, 'IncludingSubfolders', true));   % SQAT and gui/, also on a clean MATLAB path
 fs = 48000;
 t = (0:1/fs:3-1/fs)';
 % 1 kHz tone, 60 dB SPL, amplitude-modulated at 4 Hz (roughness and FS > 0)

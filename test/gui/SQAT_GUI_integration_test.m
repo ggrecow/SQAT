@@ -1,7 +1,7 @@
-function tests = tSQAT_GUI_integration
+function tests = SQAT_GUI_integration_test
 % Integration tests of the SQAT graphical interface: the windows open (hidden),
 % the callbacks run, the metrics run, and the player and the background pool work.
-% How to run the three test files and how long they take: test/README.md.
+% How to run the three test files and how long they take: test/gui/README.md.
 tests = functiontests(localfunctions);
 end
 
@@ -10,7 +10,8 @@ end
 function setupOnce(tc)
 setappdata(groot, 'sqat_gui_mute', true);           % the player runs, with a silent buffer
 setappdata(groot, 'sqat_no_background', true);      % no enhanced maps computed behind the tests (il_use_pool)
-addpath(fullfile(basepath_SQAT, 'gui'));
+root = fileparts(fileparts(fileparts(mfilename('fullpath'))));
+tc.applyFixture(matlab.unittest.fixtures.PathFixture(root, 'IncludingSubfolders', true));   % SQAT and gui/, also on a clean MATLAB path
 fs = 48000;
 t = (0:1/fs:3-1/fs)';
 % 1 kHz tone, 60 dB SPL, amplitude-modulated at 4 Hz (roughness and FS > 0)
