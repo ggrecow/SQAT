@@ -1764,6 +1764,8 @@ end
         old_tags = arrayfun(@(d) d.Tag, before, 'UniformOutput', false);
         old_values = arrayfun(@(d) d.Value, before, 'UniformOutput', false);
         delete(row.Children);
+        row.ColumnWidth = [repmat({70, 90}, 1, numel(paths)), {'1x'}];   % before the controls: a full grid
+        row.RowHeight = {'1x'};                                          % adds a row for each one
         chans = repmat({''}, 1, numel(paths));
         n_c = 0;
         for k_p = 1:numel(paths)

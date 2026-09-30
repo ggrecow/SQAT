@@ -911,6 +911,7 @@ il_press(fig, 'open_graphs');
 g = il_window('SQAT_GUI_graphs');
 dc = findobj(g, 'Tag', 'graph_channel_1');
 tc.verifyEqual(dc.Items, {'1','2','Binaural','All'});
+tc.verifyTrue(all(arrayfun(@(h) h.Layout.Row, findobj(g, 'Tag', 'graph_channels').Children) == 1));   % one row at the first opening
 il_set(g, 'graph_analysis', 'loudness');
 ref = audioread(tc.TestData.wav_stereo); fs = tc.TestData.fs;
 [~, rb] = evalc('Loudness_ECMA418_2(ref, fs, ''free-frontal'', 0.304, false)');
