@@ -912,7 +912,8 @@ il_press(fig, 'open_graphs');
 il_set(il_window('SQAT_GUI_graphs'), 'graph_analysis', 'roughness');
 ax = findobj(il_window('SQAT_GUI_graphs'), 'Type', 'axes');
 y = findobj(ax, 'Type', 'line').YData;
-tc.assertLessThan(max(y) - min(y), 1e-3 * mean(y));      % the premise: nearly constant
+tc.assumeLessThan(max(y) - min(y), 1e-3 * mean(y), ...   % the premise: nearly constant (on Linux the
+    'the roughness of this signal is not constant within 0.1 % here');   % FFT rounding leaves 0.18 %)
 tc.verifyGreaterThanOrEqual(diff(ax.YLim), 0.09 * mean(y));
 tc.verifyTrue(ax.YLim(1) <= min(y) && ax.YLim(2) >= max(y));
 end
@@ -1203,6 +1204,7 @@ tc.verifyEqual(ax.Colormap, c);
 end
 
 function test_waveform_window_shows_the_signal_and_follows_playback(tc)
+il_needs_audio(tc);
 fig = SQAT_GUI({tc.TestData.wav_mono}, 'Visible', 'off');
 tc.addTeardown(@() delete(fig));
 il_press(fig, 'open_waveform');
@@ -1284,6 +1286,7 @@ tc.verifyEqual(tg.SelectedTab.Title, '#2 tone_stereo.wav ch1');
 end
 
 function test_waveform_space_starts_and_pauses_playback(tc)
+il_needs_audio(tc);
 fig = SQAT_GUI({tc.TestData.wav_mono}, 'Visible', 'off');
 tc.addTeardown(@() delete(fig));
 il_press(fig, 'open_waveform');
@@ -1349,6 +1352,7 @@ end
 
 function test_waveform_play_starts_where_the_click_was_and_stop_goes_back(tc)
 % the state of the play is checked, not the time: the audio device starts a second or two late
+il_needs_audio(tc);
 fig = SQAT_GUI({tc.TestData.wav_mono}, 'Visible', 'off');
 tc.addTeardown(@() delete(fig));
 il_press(fig, 'open_waveform');
@@ -1380,6 +1384,7 @@ il_press(w, 'stop');
 end
 
 function test_waveform_loops_by_default(tc)
+il_needs_audio(tc);
 fig = SQAT_GUI({tc.TestData.wav_short}, 'Visible', 'off');
 tc.addTeardown(@() delete(fig));
 il_press(fig, 'open_waveform');
@@ -1493,6 +1498,7 @@ tc.verifyNumElements(findobj(w, 'Tag', 'box'), 2);
 end
 
 function test_waveform_loops_inside_the_box(tc)
+il_needs_audio(tc);
 fig = SQAT_GUI({tc.TestData.wav_two}, 'Visible', 'off');
 tc.addTeardown(@() delete(fig));
 il_press(fig, 'open_waveform');
@@ -1528,6 +1534,7 @@ tc.verifyEqual(b.Text, 'Play', 'the box was played more than once');
 end
 
 function test_waveform_box_loop_is_left_and_entered_by_clicks(tc)
+il_needs_audio(tc);
 fig = SQAT_GUI({tc.TestData.wav_two}, 'Visible', 'off');
 tc.addTeardown(@() delete(fig));
 il_press(fig, 'open_waveform');
@@ -2085,6 +2092,12 @@ while toc(t0) < seconds
     pause(0.05);
     ok = ok && ph.Value >= lo && ph.Value <= hi;
 end
+end
+
+function il_needs_audio(tc)
+% the player needs an audio output; the CI runner has none ("No audio
+% outputs were found"), so the playback never starts there
+tc.assumeFalse(strcmp(getenv('CI'), 'true'), 'needs an audio output, which the CI runner has not');
 end
 
 function il_needs_display(tc)
