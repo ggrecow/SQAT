@@ -787,6 +787,30 @@ il_press(fig2, 'run');
 tc.verifySubstring(strjoin(findobj(fig2, 'Tag', 'console').Value, newline), 'No metrics');
 end
 
+function test_gui_results_plot_carries_the_playhead(tc)
+% The plot below the matrix, when it is against time, carries the playhead of
+% the waveform window: a click on it opens that window and moves both
+% playheads to the time clicked; a playhead moved in the waveform window
+% moves the one of the plot.
+fig = SQAT_GUI({tc.TestData.wav_mono}, 'Visible', 'off');
+tc.addTeardown(@() delete(fig));
+il_select_metrics(fig, {'Loudness_ISO532_1'});
+il_press(fig, 'run');
+pl = findobj(fig, 'Tag', 'overview_plot');
+ph = findall(pl, 'Tag', 'overview_playhead');           % kept out of the legend: findall
+tc.assertNumElements(ph, 1);
+tc.verifyEqual(ph.Value, 0);
+ax = findobj(pl, 'Type', 'axes');
+ax.ButtonDownFcn(ax, struct('IntersectionPoint', [1.5 0 0]));
+w = il_window('SQAT_GUI_waveform');
+tc.assertNumElements(w, 1);
+tc.verifyEqual(findobj(w, 'Tag', 'playhead').Value, 1.5, 'AbsTol', 1/48000);
+tc.verifyEqual(ph.Value, 1.5, 'AbsTol', 1/48000);
+axw = findobj(w, 'Tag', 'waveform_axes');
+axw.ButtonDownFcn(axw, struct('IntersectionPoint', [0.5 0 0]));
+tc.verifyEqual(ph.Value, 0.5, 'AbsTol', 1/48000);
+end
+
 function test_gui_add_metric_adds_an_analysis_with_its_defaults(tc)
 % The Add metric menu appends an analysis of the chosen metric, with the
 % defaults of the catalogue and the next number, and goes back to its prompt.

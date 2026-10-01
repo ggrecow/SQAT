@@ -688,6 +688,28 @@ end
         for ov_ax = findall(ov_plot, 'Type', 'axes')'
             ov_ax.Toolbar.Visible = 'off';
         end
+        ov_a = ov_entries(1).analyses(strcmp({ov_entries(1).analyses.id}, dd_overview.Value));
+        if strcmp(ov_a.kind, 'series')               % against time: the playhead, and a click seeks
+            ov_ax = findall(ov_plot, 'Type', 'axes');
+            set(findobj(ov_ax, 'Type', 'line'), 'PickableParts', 'none');
+            ov_t = 0;
+            if ~isempty(wave_fs) && il_is_open(win_wave)
+                ov_t = (max(play_start, 1) - 1) / wave_fs;
+            end
+            xline(ov_ax, ov_t, 'Color', [0.85 0.2 0.2], 'LineWidth', 1.2, 'Tag', 'overview_playhead', ...
+                'PickableParts', 'none', 'HandleVisibility', 'off');
+            ov_ax.ButtonDownFcn = @(~, ev) on_overview_click(ev.IntersectionPoint(1));
+        end
+    end
+
+    function on_overview_click(t)
+        % a click on a plot against time takes the player of the waveform window there
+        if ~il_is_open(win_wave)
+            on_open_waveform();
+        end
+        seek(t);
+        set(findall(ov_plot, 'Tag', 'overview_playhead'), 'Value', ...
+            (min(max(round(t * wave_fs) + 1, 1), numel(wave_y)) - 1) / wave_fs);
     end
 
     function on_stop_run(~, ~)
@@ -2906,6 +2928,7 @@ end
             return
         end
         t_now = (sample - 1) / wave_fs;
+        set(findall(ov_plot, 'Tag', 'overview_playhead'), 'Value', t_now);
         set(findobj(win_wave, 'Tag', 'playhead'), 'Value', t_now);
         set(findobj(win_wave, 'Tag', 'playhead_spectrogram'), 'Value', t_now);
     end
