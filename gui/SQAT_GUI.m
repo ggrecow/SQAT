@@ -167,11 +167,11 @@ m_file = uimenu(fig, 'Text', 'File');
 uimenu(m_file, 'Text', 'Open session...', 'MenuSelectedFcn', @(~, ~) on_session('open'));
 uimenu(m_file, 'Text', 'Save session...', 'MenuSelectedFcn', @(~, ~) on_session('save'));
 main = uigridlayout(fig, [3 2]);
-main.RowHeight = {44, '1x', 30};
+main.RowHeight = {64, '1x', 30};                 % the logo as tall as the Actions panel beside it
 main.ColumnWidth = {600, '1x'};                  % the lists get the room, the console the rest
 
 top = uigridlayout(main, [1 3]);
-top.Layout.Row = 1; top.Layout.Column = [1 2];
+top.Layout.Row = 1; top.Layout.Column = 1;
 top.Padding = [0 0 0 0];
 top.ColumnWidth = {70, 440, '1x'};
 img_logo = uiimage(top, 'ImageSource', fullfile(dir_logos, 'logo_white.png'), 'Tag', 'logo');
@@ -181,7 +181,7 @@ uilabel(top, 'Text', '');
 left = uigridlayout(main, [2 1]);
 left.Layout.Row = 2; left.Layout.Column = 1;
 left.Padding = [0 0 0 0];
-left.RowHeight = {220, '1x'};
+left.RowHeight = {'1.4x', '1x'};                  % more room for the signals than for the analyses
 sig_box = uigridlayout(uipanel(left), [2 1]);          % a box around each list, to set them apart
 sig_box.RowHeight = {28, '1x'};
 sig_box.Padding = [6 6 6 6];
@@ -212,7 +212,7 @@ analysis_list.ColumnWidth = {30, 175, '1x', 36, 28};
 analysis_list.Padding = [0 0 0 0];
 
 right = uigridlayout(main, [2 1]);
-right.Layout.Row = 2; right.Layout.Column = 2;
+right.Layout.Row = [1 2]; right.Layout.Column = 2;  % Actions up beside the logo, the results below
 right.Padding = [0 0 0 0];
 right.RowHeight = {64, '1x'};
 
