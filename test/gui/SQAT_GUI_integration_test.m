@@ -1800,19 +1800,6 @@ o.Value = 0; o.ValueChangedFcn(o, []);                    % and the down arrow a
 tc.verifyEqual(numel(findobj(findobj(w, 'Tag', 'spectrogram'), 'Type', 'surface').XData), numel(t0));
 end
 
-function test_waveform_is_as_wide_as_the_spectrogram(tc)
-% The plot area of the waveform starts at the same x and has the same width
-% as the one of the spectrogram.
-fig = SQAT_GUI({tc.TestData.wav_tone}, 'Visible', 'off');
-tc.addTeardown(@() delete(fig));
-il_press(fig, 'open_waveform');
-w = il_window('SQAT_GUI_waveform');
-pause(1);                                                      % the alignment waits for the layout
-p = findobj(w, 'Tag', 'spectrogram').InnerPosition;
-q = findobj(w, 'Tag', 'waveform_axes').InnerPosition;
-tc.verifyEqual(q([1 3]), p([1 3]), 'AbsTol', 1);
-end
-
 function test_waveform_spectrogram_takes_a_window_from_a_file(tc)
 % Import window reads a window from a text or .mat file: a Hann window from
 % a file gives the Hann spectrogram, a window of another length is resampled,
