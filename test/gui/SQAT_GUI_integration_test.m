@@ -63,6 +63,9 @@ end
 %% Main window -------------------------------------------------------------
 
 function test_gui_opens_with_the_expected_controls(tc)
+% The main window opens with every control of the layout: logo, file count,
+% Load files, signal list, theme, analyses, Run, the two windows, export,
+% console, results, status and progress.
 fig = SQAT_GUI({}, 'Visible', 'off');
 tc.addTeardown(@() delete(fig));
 tc.verifyClass(fig, 'matlab.ui.Figure');
@@ -142,6 +145,10 @@ tc.verifyTrue(contains(log, 'Playing') || contains(log, 'Audio output unavailabl
 end
 
 function test_gui_loads_files_and_draws_the_waveform(tc)
+% Two files given at the start appear in the list in order, ticked, each with
+% its bin; a mono file starts on channel 1 and a stereo one on All; the
+% calibration shows 94 dBFS in italics until it is set, even to the same
+% value.
 fig = SQAT_GUI({tc.TestData.wav_mono, tc.TestData.wav_stereo}, 'Visible', 'off');
 tc.addTeardown(@() delete(fig));
 tc.verifyEqual(il_signal_names(fig), {'tone_mono.wav', 'tone_stereo.wav'});
@@ -160,6 +167,8 @@ tc.verifyEqual(findobj(fig, 'Tag', 'signal_cal_1').FontAngle, 'normal');   % set
 end
 
 function test_gui_each_signal_offers_only_its_own_channels(tc)
+% The channel menu of each signal lists only the channels of its file: 1 for
+% a mono file; 1, 2 and All for a stereo one.
 fig = SQAT_GUI({tc.TestData.wav_mono, tc.TestData.wav_stereo}, 'Visible', 'off');
 tc.addTeardown(@() delete(fig));
 tc.verifyEqual(findobj(fig, 'Tag', 'signal_channel_1').Items, {'1'});
@@ -197,6 +206,8 @@ tc.verifySubstring(s.Tooltip, '0.7');
 end
 
 function test_gui_channels_offer_all_only_with_a_stereo_file(tc)
+% A mono file offers channel 1 only, without All, and its bin empties the
+% list.
 fig = SQAT_GUI({tc.TestData.wav_mono}, 'Visible', 'off');
 tc.addTeardown(@() delete(fig));
 tc.verifyEqual(findobj(fig, 'Tag', 'signal_channel_1').Items, {'1'});
@@ -205,6 +216,9 @@ tc.verifyEmpty(il_signal_names(fig));
 end
 
 function test_gui_signal_list_ticks_and_removes_signals(tc)
+% Only the ticked signals are analysed; with none ticked the run warns and
+% does nothing; removing a signal takes its results with it and updates the
+% file count down to "No files loaded".
 fig = SQAT_GUI({tc.TestData.wav_mono, tc.TestData.wav_tone}, 'Visible', 'off');
 tc.addTeardown(@() delete(fig));
 il_select_metrics(fig, {'Loudness_ISO532_1'});
@@ -238,6 +252,9 @@ tc.verifySubstring(strjoin(findobj(fig, 'Tag', 'console').Value, newline), 'No f
 end
 
 function test_gui_signals_carry_a_number_and_the_plots_use_it_as_a_tag(tc)
+% Signals are numbered #1, #2 in the list, and the legends and the statistics
+% table of the graphs window name them "Signal #1, ch1". After a removal the
+% remaining signal keeps its number.
 fig = SQAT_GUI({tc.TestData.wav_mono, tc.TestData.wav_tone}, 'Visible', 'off');
 tc.addTeardown(@() delete(fig));
 tc.verifyEqual(il_signal_numbers(fig), {'#1', '#2'});
@@ -258,6 +275,10 @@ tc.verifyEqual(il_signal_numbers(fig), {'#2'});
 end
 
 function test_gui_theme_switches_between_dark_and_light(tc)
+% The window starts dark, as pySQAT, with the white logo and a sun on the
+% theme button; the button switches to light, with the dark logo and a moon.
+% Before R2025a the window stays light and the button is disabled, with a
+% tooltip naming R2025a.
 fig = SQAT_GUI({}, 'Visible', 'off');
 tc.addTeardown(@() delete(fig));
 logo = findobj(fig, 'Tag', 'logo');
@@ -283,6 +304,8 @@ tc.verifySubstring(b.Tooltip, 'Dark');
 end
 
 function test_gui_status_bar_follows_the_run(tc)
+% The progress bar starts at 0 and ends at 100 after a run, with "Done" in
+% the status line.
 fig = SQAT_GUI({tc.TestData.wav_mono}, 'Visible', 'off');
 tc.addTeardown(@() delete(fig));
 tc.verifyEqual(findobj(fig, 'Tag', 'progress').Value, 0);
@@ -324,6 +347,8 @@ tc.verifySubstring(findobj(fig, 'Tag', 'status').Text, 'Done');
 end
 
 function test_gui_results_have_one_tab_per_signal(tc)
+% The results have one tab per signal, "Results #1" and "Results #2", and each
+% tab holds exactly the rows of its signal from the full table.
 fig = SQAT_GUI({tc.TestData.wav_mono, tc.TestData.wav_tone}, 'Visible', 'off');
 tc.addTeardown(@() delete(fig));
 il_select_metrics(fig, {'Loudness_ISO532_1'});
@@ -344,6 +369,9 @@ tc.verifyEmpty(tabs());
 end
 
 function test_gui_results_put_the_signals_and_channels_side_by_side(tc)
+% In the results table each quantity is listed for every signal and channel
+% before the next quantity, the analyses come in order and with their units,
+% and the tab of a stereo signal interleaves its two channels.
 fig = SQAT_GUI({tc.TestData.wav_mono, tc.TestData.wav_stereo}, 'Visible', 'off');
 tc.addTeardown(@() delete(fig));
 il_select_metrics(fig, {'Loudness_ISO532_1', 'Roughness_Daniel1997'});
@@ -367,6 +395,9 @@ tc.verifyEqual(D.Channel(1:4), {'1'; '2'; '1'; '2'});
 end
 
 function test_gui_all_channels_runs_a_binaural_pair_in_one_call(tc)
+% With All on a stereo file, ISO 532-1 loudness gives channels 1 and 2
+% interleaved, and ECMA-418-2 loudness gives 1, 2 and Binaural from one call;
+% the values equal those of direct calls of the metrics.
 fig = SQAT_GUI({tc.TestData.wav_stereo}, 'Visible', 'off');
 tc.addTeardown(@() delete(fig));
 il_select_metrics(fig, {'Loudness_ISO532_1', 'Loudness_ECMA418_2'});
@@ -402,6 +433,10 @@ tc.verifyEqual(numel(strfind(log, 'Running Loudness_ISO532_1 on tone_stereo.wav'
 end
 
 function test_gui_edits_the_parameters_of_a_metric(tc)
+% The parameter window of an analysis shows units and limits, Reset restores
+% the defaults and the summary in the list, the window stays open while
+% another analysis is added, and a stationary method changes what the run
+% returns.
 fig = SQAT_GUI({tc.TestData.wav_mono}, 'Visible', 'off');
 tc.addTeardown(@() delete(fig));
 il_select_metrics(fig, {'Loudness_ISO532_1'});
@@ -426,6 +461,8 @@ tc.verifyFalse(any(strcmp(T.Quantity, 'N5')));
 end
 
 function test_gui_runs_several_metrics_on_several_files(tc)
+% Two metrics on two files give rows for every pair, and a value in the table
+% equals the one of a direct call of the metric on the same file.
 fig = SQAT_GUI({tc.TestData.wav_mono, tc.TestData.wav_stereo}, 'Visible', 'off');
 tc.addTeardown(@() delete(fig));
 il_select_metrics(fig, {'Loudness_ISO532_1','Roughness_Daniel1997'});
@@ -442,6 +479,9 @@ tc.verifySubstring(strjoin(findobj(fig, 'Tag', 'console').Value, newline), 'Done
 end
 
 function test_gui_uses_the_dbfs_and_channel_of_each_signal(tc)
+% The run uses the calibration and the channel of each signal: 100 dBFS gives
+% more loudness than 94 dBFS, and channel 2, recorded 10 dB lower, gives less
+% than channel 1.
 fig = SQAT_GUI({tc.TestData.wav_stereo}, 'Visible', 'off');
 tc.addTeardown(@() delete(fig));
 il_select_metrics(fig, {'Loudness_ISO532_1'});
@@ -478,6 +518,9 @@ tc.verifyEqual(unique(T.File), {'tone_1k_60dB.wav'; 'tone_mono.wav'});
 end
 
 function test_gui_exports_the_results_to_excel(tc)
+% The export writes the results table to a spreadsheet with the values,
+% units, calibration, parameters and path of each row, and a Settings sheet
+% with the signals, the analyses and the SQAT version.
 fig = SQAT_GUI({tc.TestData.wav_mono}, 'Visible', 'off');
 tc.addTeardown(@() delete(fig));
 il_select_metrics(fig, {'Roughness_Daniel1997'});
@@ -526,6 +569,9 @@ tc.verifyEqual(S.Item(startsWith(S.Item, 'Signal')), {'Signal #1'});
 end
 
 function test_gui_marks_the_results_when_a_setting_changes(tc)
+% The results tab is marked "settings changed" when a parameter or the
+% calibration of a signal with results changes, and the mark goes away with
+% the next run.
 fig = SQAT_GUI({tc.TestData.wav_mono}, 'Visible', 'off');
 tc.addTeardown(@() delete(fig));
 il_select_metrics(fig, {'Loudness_ISO532_1'});
@@ -693,6 +739,9 @@ tc.verifySubstring(S.Value{strcmp(S.Item, 'Signal #1')}, 'calibration calib. 94 
 end
 
 function test_gui_reports_a_failing_metric_and_goes_on(tc)
+% A metric that raises an error (a time skip longer than the signal) is
+% reported as ERROR in the console, and the other metric of the run still
+% gives its results.
 fig = SQAT_GUI({tc.TestData.wav_mono}, 'Visible', 'off');
 tc.addTeardown(@() delete(fig));
 il_select_metrics(fig, {'Loudness_ISO532_1','Roughness_Daniel1997'});
@@ -708,6 +757,9 @@ tc.verifyEqual(unique(T.Metric), {'Roughness_Daniel1997'});
 end
 
 function test_gui_run_without_files_or_metrics_only_warns(tc)
+% Run with no files, or with no analyses, only writes a warning to the
+% console; on the way, the summary of the ECMA-418-2 loudness parameters is
+% checked.
 fig = SQAT_GUI({}, 'Visible', 'off');
 tc.addTeardown(@() delete(fig));
 il_press(fig, 'run');
@@ -724,6 +776,9 @@ tc.verifySubstring(strjoin(findobj(fig2, 'Tag', 'console').Value, newline), 'No 
 end
 
 function test_gui_compares_one_metric_with_two_sets_of_parameters(tc)
+% One metric added twice with different parameters runs as analyses #1 and
+% #2, both offered in the graphs window; removing #1 leaves #2 with its own
+% number and parameters.
 fig = SQAT_GUI({tc.TestData.wav_mono}, 'Visible', 'off');
 tc.addTeardown(@() delete(fig));
 il_press(fig, 'add_analysis');                       % a copy of the first: Loudness #2
@@ -831,6 +886,9 @@ end
 %% Graphs windows ----------------------------------------------------------
 
 function test_gui_plots_the_series_of_the_active_file(tc)
+% The graphs window opens at the end of a run and on request, offers the
+% metrics that ran, and shows the figure the SQAT function draws itself, with
+% the same axes and data, in the inferno colour scale of the toolbox.
 fig = SQAT_GUI({tc.TestData.wav_mono}, 'Visible', 'off');
 tc.addTeardown(@() delete(fig));
 il_select_metrics(fig, {'Loudness_ISO532_1','Roughness_Daniel1997'});
@@ -915,6 +973,8 @@ tc.verifyNumElements(ln, 1);
 end
 
 function test_gui_close_deletes_the_drawn_figures(tc)
+% Closing the main window deletes the graphs window and every figure the
+% SQAT functions drew for it.
 fig = SQAT_GUI({tc.TestData.wav_mono}, 'Visible', 'off');
 il_select_metrics(fig, {'Roughness_Daniel1997'});
 il_press(fig, 'run');
@@ -941,6 +1001,9 @@ tc.verifyTrue(ax.YLim(1) <= min(y) && ax.YLim(2) >= max(y));
 end
 
 function test_gui_graph_window_offers_the_analyses_of_the_metric(tc)
+% With one signal, the graphs window offers the SQAT figure, all the analyses
+% and each analysis of the metric; a stationary loudness drops the time
+% series from the list.
 fig = SQAT_GUI({tc.TestData.wav_mono}, 'Visible', 'off');
 tc.addTeardown(@() delete(fig));
 il_select_metrics(fig, {'Loudness_ISO532_1'});
@@ -959,6 +1022,8 @@ tc.verifyEqual(dd.ItemsData, {'sqat','all','specific_loudness','stats'});
 end
 
 function test_gui_graphs_overlay_the_ticked_signals(tc)
+% With two signals, the graphs window leaves out the SQAT figure and overlays
+% the loudness of both signals, each curve equal to a direct call.
 fig = SQAT_GUI({tc.TestData.wav_mono, tc.TestData.wav_tone}, 'Visible', 'off');
 tc.addTeardown(@() delete(fig));
 il_select_metrics(fig, {'Loudness_ISO532_1'});
@@ -988,6 +1053,8 @@ tc.verifyNumElements(findobj(il_window('SQAT_GUI_graphs'), 'Type', 'line'), 1);
 end
 
 function test_gui_graphs_overlay_profiles_over_the_bark_axis(tc)
+% The specific roughness of two signals is overlaid against Bark, each curve
+% equal to the time-averaged specific roughness of a direct call.
 fig = SQAT_GUI({tc.TestData.wav_mono, tc.TestData.wav_rough}, 'Visible', 'off');
 tc.addTeardown(@() delete(fig));
 il_select_metrics(fig, {'Roughness_Daniel1997'});
@@ -1008,6 +1075,8 @@ tc.verifySubstring(ax.XLabel.String, 'Bark');
 end
 
 function test_gui_graphs_put_maps_side_by_side_on_one_colour_scale(tc)
+% The specific roughness maps of two signals are drawn side by side on one
+% colour scale, in inferno.
 fig = SQAT_GUI({tc.TestData.wav_mono, tc.TestData.wav_rough}, 'Visible', 'off');
 tc.addTeardown(@() delete(fig));
 il_select_metrics(fig, {'Roughness_Daniel1997'});
@@ -1026,6 +1095,8 @@ end
 end
 
 function test_gui_graphs_tabulate_the_statistics_of_the_signals(tc)
+% The statistics view is a table with one column per signal and channel, and
+% its values equal the single values of the results table.
 fig = SQAT_GUI({tc.TestData.wav_mono, tc.TestData.wav_tone}, 'Visible', 'off');
 tc.addTeardown(@() delete(fig));
 il_select_metrics(fig, {'Loudness_ISO532_1'});
@@ -1045,6 +1116,8 @@ end
 end
 
 function test_gui_graphs_all_analyses_gives_a_tab_each(tc)
+% "All analyses" in the graphs window gives one tab per analysis of the
+% metric plus one for the statistics: four tabs for Roughness_Daniel1997.
 fig = SQAT_GUI({tc.TestData.wav_mono}, 'Visible', 'off');
 tc.addTeardown(@() delete(fig));
 il_select_metrics(fig, {'Roughness_Daniel1997'});
@@ -1059,6 +1132,9 @@ tc.verifyNumElements(findobj(g, 'Tag', 'graph_stats'), 1);
 end
 
 function test_gui_graphs_choose_the_channel_of_a_binaural_analysis(tc)
+% For ECMA-418-2 loudness on All, the graphs window offers channels 1, 2,
+% Binaural and All in one row, and the curve of channel 2 and of Binaural
+% equals the one of a direct call.
 fig = SQAT_GUI({tc.TestData.wav_stereo}, 'Visible', 'off');
 tc.addTeardown(@() delete(fig));
 il_select_metrics(fig, {'Loudness_ECMA418_2'});
@@ -1079,6 +1155,9 @@ tc.verifyEqual(findobj(g, 'Type', 'line').YData(:), rb.loudnessTDepBin(:));
 end
 
 function test_gui_pinned_graph_window_keeps_its_signals(tc)
+% A pinned graphs window keeps the signals it had when changes are made to the
+% list, also when its analysis changes; Open graphs then opens a second
+% window, and only that one follows the list.
 fig = SQAT_GUI({tc.TestData.wav_mono, tc.TestData.wav_tone}, 'Visible', 'off');
 tc.addTeardown(@() delete(fig));
 il_select_metrics(fig, {'Loudness_ISO532_1'});
@@ -1169,6 +1248,8 @@ tc.verifyEqual(findobj(g, 'Tag', 'graph_channel_2').Value, 'All');
 end
 
 function test_gui_graphs_offer_no_channel_row_for_mono_signals(tc)
+% With mono signals only, the channel row of the graphs window is hidden and
+% the legend names each signal with ch1.
 fig = SQAT_GUI({tc.TestData.wav_mono, tc.TestData.wav_tone}, 'Visible', 'off');
 tc.addTeardown(@() delete(fig));
 il_select_metrics(fig, {'Loudness_ISO532_1'});
@@ -1206,6 +1287,8 @@ tc.verifyEqual({dir(fullfile(out_dir, '*.pdf')).name}, {'Loudness_ISO532_1_loudn
 end
 
 function test_gui_graphs_window_needs_results(tc)
+% Open graphs before any run opens no window and asks in the console to run
+% an analysis first.
 fig = SQAT_GUI({tc.TestData.wav_mono}, 'Visible', 'off');
 tc.addTeardown(@() delete(fig));
 il_press(fig, 'open_graphs');
@@ -1216,6 +1299,8 @@ end
 %% Waveform window ---------------------------------------------------------
 
 function test_colormap_is_the_inferno_scale_of_the_toolbox(tc)
+% The spectrogram of the waveform window uses the 256 colours of the inferno
+% scale of the toolbox (cmap_inferno.txt).
 c = load('cmap_inferno.txt');
 tc.verifySize(c, [256 3]);
 fig = SQAT_GUI({tc.TestData.wav_mono}, 'Visible', 'off');
@@ -1226,6 +1311,9 @@ tc.verifyEqual(ax.Colormap, c);
 end
 
 function test_waveform_window_shows_the_signal_and_follows_playback(tc)
+% The waveform window draws the calibrated signal with the playhead at 0; Play
+% turns the button into Pause and the playhead moves with the playback. Needs
+% an audio output.
 il_needs_audio(tc);
 fig = SQAT_GUI({tc.TestData.wav_mono}, 'Visible', 'off');
 tc.addTeardown(@() delete(fig));
@@ -1255,6 +1343,9 @@ tc.verifyEqual(ph.Value, 0);
 end
 
 function test_waveform_window_has_the_spectrogram(tc)
+% The waveform window has a spectrogram in dB SPL on a log frequency axis, in
+% inferno: a 60 dB tone at 1 kHz peaks near 60 dB at 1 kHz, the playhead is
+% drawn on it, and the A weighting keeps the colour limits.
 fig = SQAT_GUI({tc.TestData.wav_tone}, 'Visible', 'off');
 tc.addTeardown(@() delete(fig));
 il_press(fig, 'open_waveform');
@@ -1308,6 +1399,9 @@ tc.verifyEqual(tg.SelectedTab.Title, '#2 tone_stereo.wav ch1');
 end
 
 function test_waveform_space_starts_and_pauses_playback(tc)
+% The space bar starts, pauses and restarts the playback, other keys do
+% nothing, and two space events at once count as one press. Needs an audio
+% output.
 il_needs_audio(tc);
 fig = SQAT_GUI({tc.TestData.wav_mono}, 'Visible', 'off');
 tc.addTeardown(@() delete(fig));
@@ -1352,6 +1446,9 @@ il_press(w, 'stop');
 end
 
 function test_waveform_click_moves_the_playhead(tc)
+% A click on the waveform or on the spectrogram moves both playheads to that
+% time, kept between the start and the end of the file; the lines and the map
+% do not take the click.
 fig = SQAT_GUI({tc.TestData.wav_mono}, 'Visible', 'off');
 tc.addTeardown(@() delete(fig));
 il_press(fig, 'open_waveform');
@@ -1406,6 +1503,9 @@ il_press(w, 'stop');
 end
 
 function test_waveform_loops_by_default(tc)
+% The loop is on by default: a short file keeps playing past its end until
+% Stop. With the loop off the playback ends at the end of the file and the
+% playhead goes back to 0. Needs an audio output.
 il_needs_audio(tc);
 fig = SQAT_GUI({tc.TestData.wav_short}, 'Visible', 'off');
 tc.addTeardown(@() delete(fig));
@@ -1432,6 +1532,9 @@ tc.verifyEqual(findobj(w, 'Tag', 'playhead').Value, 0);
 end
 
 function test_waveform_box_modes(tc)
+% Draw filter with two clicks on the spectrogram draws a box from opposite
+% corners, in any order, and disarms the tool; the box modes are loop only
+% (the default, the sound unchanged), isolate and remove.
 fig = SQAT_GUI({tc.TestData.wav_two}, 'Visible', 'off');
 tc.addTeardown(@() delete(fig));
 il_press(fig, 'open_waveform');
@@ -1487,6 +1590,9 @@ tc.verifyEqual(ph.Value, 1.0, 'AbsTol', 1/fs);
 end
 
 function test_waveform_box_can_be_dragged(tc)
+% A box can also be dragged: a preview follows the mouse, the release draws the
+% box and stops following the mouse; a press and release on one spot counts
+% as the first of two clicks.
 fig = SQAT_GUI({tc.TestData.wav_two}, 'Visible', 'off');
 tc.addTeardown(@() delete(fig));
 il_press(fig, 'open_waveform');
@@ -1520,6 +1626,9 @@ tc.verifyNumElements(findobj(w, 'Tag', 'box'), 2);
 end
 
 function test_waveform_loops_inside_the_box(tc)
+% With a box drawn and the loop on, Play starts at the box and the playhead
+% stays inside it for more than three times its length. Needs an audio
+% output.
 il_needs_audio(tc);
 fig = SQAT_GUI({tc.TestData.wav_two}, 'Visible', 'off');
 tc.addTeardown(@() delete(fig));
@@ -1556,6 +1665,10 @@ tc.verifyEqual(b.Text, 'Play', 'the box was played more than once');
 end
 
 function test_waveform_box_loop_is_left_and_entered_by_clicks(tc)
+% During the playback, a box drawn with the loop on takes the playback into
+% it; a click outside leaves the loop and plays on from there, a click inside
+% enters it again, the loop off plays the box once, and a box drawn after a
+% pause takes the next play to its start. Needs an audio output.
 il_needs_audio(tc);
 fig = SQAT_GUI({tc.TestData.wav_two}, 'Visible', 'off');
 tc.addTeardown(@() delete(fig));
@@ -1613,6 +1726,9 @@ il_press(w, 'stop');
 end
 
 function test_waveform_weighting_filters_the_playback_and_the_spectrogram(tc)
+% The Z, A and C weightings filter what plays and the spectrogram: the level
+% at 500 Hz drops by the A curve, the colorbar names the weighting, and Z
+% gives the file back as it is.
 fig = SQAT_GUI({tc.TestData.wav_two}, 'Visible', 'off');
 tc.addTeardown(@() delete(fig));
 il_press(fig, 'open_waveform');
@@ -1639,6 +1755,9 @@ tc.verifyEqual(audio(), ref);
 end
 
 function test_waveform_spectrogram_options(tc)
+% The window type, the FFT degree and the overlap of the plain spectrogram
+% start at Hann, 10 and 50 %, change the map as expected, and the degree is a
+% spinner limited to 6 to 16.
 fig = SQAT_GUI({tc.TestData.wav_tone}, 'Visible', 'off');
 tc.addTeardown(@() delete(fig));
 il_press(fig, 'open_waveform');
@@ -1682,6 +1801,8 @@ tc.verifyEqual(numel(findobj(findobj(w, 'Tag', 'spectrogram'), 'Type', 'surface'
 end
 
 function test_waveform_is_as_wide_as_the_spectrogram(tc)
+% The plot area of the waveform starts at the same x and has the same width
+% as the one of the spectrogram.
 fig = SQAT_GUI({tc.TestData.wav_tone}, 'Visible', 'off');
 tc.addTeardown(@() delete(fig));
 il_press(fig, 'open_waveform');
@@ -1693,6 +1814,9 @@ tc.verifyEqual(q([1 3]), p([1 3]), 'AbsTol', 1);
 end
 
 function test_waveform_spectrogram_takes_a_window_from_a_file(tc)
+% Import window reads a window from a text or .mat file: a Hann window from
+% a file gives the Hann spectrogram, a window of another length is resampled,
+% and a second import replaces the first in the menu.
 fig = SQAT_GUI({tc.TestData.wav_tone}, 'Visible', 'off');
 tc.addTeardown(@() delete(fig));
 il_press(fig, 'open_waveform');
@@ -1735,6 +1859,8 @@ end
 %% Enhanced STFT in the waveform window ------------------------------------
 
 function test_waveform_enhanced_stft_switch(tc)
+% The enhanced STFT is off by default; switched on, it fades the window, FFT
+% degree, overlap and import controls and changes the map.
 fig = SQAT_GUI({tc.TestData.wav_tone}, 'Visible', 'off');
 tc.addTeardown(@() delete(fig));
 il_press(fig, 'open_waveform');
@@ -1837,6 +1963,9 @@ tc.verifyEqual(surf().CData, L_z);                             % back where it s
 end
 
 function test_enhanced_stft_whole_file_reuses_the_full_map(tc)
+% After a zoom of the enhanced spectrogram, going back to the whole file shows
+% the full map computed before, with the same times and levels, without
+% computing it again.
 fig = SQAT_GUI({tc.TestData.wav_tone}, 'Visible', 'off');
 tc.addTeardown(@() delete(fig));
 il_press(fig, 'open_waveform');
@@ -1901,6 +2030,9 @@ tc.verifyEqual(both(), [0 3; 0 3]);
 end
 
 function test_waveform_zoom_shows_every_sample_of_a_long_signal(tc)
+% A 45 s signal is drawn with one sample in two at full view; a zoom to one
+% second draws every sample of the view, and the amplitude axis stays where it
+% was.
 fs = 48000;
 wav = fullfile(tc.TestData.dir_tmp, 'long_45s.wav');
 audiowrite(wav, 0.1*sin(2*pi*1000*(0:1/fs:45-1/fs)'), fs, 'BitsPerSample', 32);
@@ -1921,6 +2053,9 @@ tc.verifyEqual(axw.YLim, y_lim);
 end
 
 function test_enhanced_stft_follows_a_zoom_of_the_waveform(tc)
+% A zoom of the waveform to half a second recomputes the enhanced map of that
+% excerpt in 1 ms columns, and the whole file brings the full map back. Needs
+% a display.
 il_needs_display(tc);
 fig = SQAT_GUI({tc.TestData.wav_tone}, 'Visible', 'off');
 tc.addTeardown(@() delete(fig));
@@ -1941,6 +2076,9 @@ tc.verifyEqual(surf().XData, x_full);
 end
 
 function test_enhanced_stft_colour_floor_moves_by_5_dB(tc)
+% The + and - buttons and the up and down arrows move the bottom of the colour
+% scale of the enhanced map by 5 dB, the floor survives a redraw, and the
+% range stays between 5 dB and 60 dB below the default. Needs a display.
 il_needs_display(tc);
 fig = SQAT_GUI({tc.TestData.wav_tone}, 'Visible', 'off');
 tc.addTeardown(@() delete(fig));
@@ -1967,6 +2105,9 @@ tc.verifyEqual(ax.CLim, top + [-105 0], 'AbsTol', 1e-9);       % at most 60 dB b
 end
 
 function test_enhanced_stft_comes_from_the_background_pool(tc)
+% With the parallel pool, the window shows a waiting note until the enhanced
+% map arrives, the map equals the direct computation, and the sharp map comes
+% with the same job. Needs a display.
 il_needs_display(tc);
 % with the pool the window waits with a note, and the map that arrives equals the direct computation
 il_use_pool(tc);
@@ -1994,6 +2135,8 @@ tc.verifyEqual(surf().CData, double(single(L(keep, :))) + SQAT_GUI_weight_curve(
 end
 
 function test_enhanced_stft_of_a_long_signal_shows_a_preview_first(tc)
+% For a 61 s signal the enhanced map first appears as a preview, marked in the
+% title, and the full map replaces it later. Needs a display.
 il_needs_display(tc);
 il_use_pool(tc);
 fs = 48000;
@@ -2026,6 +2169,9 @@ tc.verifyEqual(surf().CData, double(single(L(keep, :))) + SQAT_GUI_weight_curve(
 end
 
 function test_enhanced_stft_follows_a_new_signal_while_computing(tc)
+% When another signal becomes active while the map of the last one is being
+% computed, the window shows the map of the new signal, and a late map of the
+% old one does not replace it. Needs a display.
 il_needs_display(tc);
 % a map still on its way for the last signal never replaces the map of the new one
 il_use_pool(tc);
@@ -2050,6 +2196,9 @@ tc.verifyEqual(surf().CData, double(single(L(keep, :))) + SQAT_GUI_weight_curve(
 end
 
 function test_waveform_close_while_a_map_is_computed(tc)
+% Closing the waveform window while enhanced maps are computed leaves no timer
+% running and logs no error, and the window opens again and draws its map.
+% Needs a display.
 il_needs_display(tc);
 % closing the window with maps queued leaves no timer running and logs no error
 il_use_pool(tc);

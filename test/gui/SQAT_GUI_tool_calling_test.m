@@ -56,6 +56,9 @@ end
 end
 
 function test_run_passes_the_chosen_parameters(tc)
+% The parameters chosen in the GUI reach the metric: a stationary ISO 532-1
+% loudness and an Aures sharpness in diffuse field give the same output as the
+% direct calls with those parameters.
 x = tc.TestData.x_mono; fs = tc.TestData.fs;
 m = SQAT_GUI_metrics;
 e = m(strcmp({m.id}, 'Loudness_ISO532_1'));
@@ -72,6 +75,7 @@ tc.verifyTrue(isequaln(out, ref));
 end
 
 function test_run_without_show_opens_no_figure(tc)
+% A metric run by the GUI opens no figure unless the figure is asked for.
 x = tc.TestData.x_mono; fs = tc.TestData.fs;
 m = SQAT_GUI_metrics;
 e = m(strcmp({m.id}, 'Roughness_Daniel1997'));
@@ -131,6 +135,9 @@ end
 end
 
 function test_analyses_take_the_values_of_the_output(tc)
+% The analyses offered in the graphs (time series, Bark profiles and maps) take
+% their values from the output of the metric, whether the map is stored as
+% bands by time (roughness) or time by bands (fluctuation strength).
 x = tc.TestData.x_mono; fs = tc.TestData.fs;
 m = SQAT_GUI_metrics;
 % series and a map that the metric stores as bands x time
@@ -153,6 +160,8 @@ tc.verifyEqual(A(strcmp({A.id}, 'specific_fs_time')).z, OUT.InstantaneousSpecifi
 end
 
 function test_analyses_pick_the_channel_of_a_binaural_output(tc)
+% For a two-channel ECMA-418-2 loudness output, the analyses of channel 1 and
+% channel 2 take the series, profile and map of that channel.
 x = tc.TestData.x_mono; x2 = [x, x*10^(-10/20)]; fs = tc.TestData.fs;
 m = SQAT_GUI_metrics;
 e = m(strcmp({m.id}, 'Loudness_ECMA418_2'));
@@ -178,6 +187,8 @@ tc.verifyEmpty(SQAT_GUI_extract(OUT, 'Tonality_ECMA418_2', 'Binaural'));
 end
 
 function test_single_values_of_a_binaural_output_go_by_channel(tc)
+% For a two-channel ECMA-418-2 loudness output, the single values of each
+% channel (Nmean, N5, loudnessPowAvg) are the ones of that channel.
 x = tc.TestData.x_mono; x2 = [x, x*10^(-10/20)]; fs = tc.TestData.fs;
 m = SQAT_GUI_metrics;
 e = m(strcmp({m.id}, 'Loudness_ECMA418_2'));

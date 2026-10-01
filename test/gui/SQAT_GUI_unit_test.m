@@ -31,6 +31,8 @@ end
 %% Catalogue ---------------------------------------------------------------
 
 function test_catalogue_lists_every_metric_of_sqat(tc)
+% The catalogue of the GUI lists the 13 metrics of SQAT in order, each an
+% existing function with a label and a run handle.
 m = SQAT_GUI_metrics;
 expected = {'Loudness_ISO532_1','Loudness_ECMA418_2','Sharpness_DIN45692', ...
     'Roughness_Daniel1997','Roughness_ECMA418_2','FluctuationStrength_Osses2016', ...
@@ -47,6 +49,8 @@ end
 end
 
 function test_catalogue_parameters_are_well_formed(tc)
+% Every parameter of the catalogue is a choice or a number with a label, and
+% the default of a choice is among its options.
 m = SQAT_GUI_metrics;
 for k = 1:numel(m)
     for p = m(k).params
@@ -63,6 +67,8 @@ end
 end
 
 function test_catalogue_defaults_follow_the_toolbox(tc)
+% The default parameters of the catalogue equal the defaults of the toolbox
+% (psychoacoustic_metrics_get_defaults) for each metric.
 m = SQAT_GUI_metrics;
 v = @(id, name) m(strcmp({m.id}, id)).params(strcmp({m(strcmp({m.id}, id)).params.name}, name)).value;
 d = psychoacoustic_metrics_get_defaults('Loudness_ISO532_1');
@@ -102,6 +108,8 @@ end
 %% Loading audio -----------------------------------------------------------
 
 function test_load_calibrates_with_dbfs_94(tc)
+% At 94 dBFS the loaded signal equals the samples of the file, with its
+% sampling rate and channel count.
 [x, fs, nch] = SQAT_GUI_load(tc.TestData.wav_mono, 94, 1);
 [ref, fs_ref] = audioread(tc.TestData.wav_mono);
 tc.verifyEqual(x, ref(:,1));
@@ -110,6 +118,7 @@ tc.verifyEqual(nch, 1);
 end
 
 function test_load_applies_the_dbfs_gain(tc)
+% Loading at 100 dBFS scales the signal by 6 dB against 94 dBFS.
 x94  = SQAT_GUI_load(tc.TestData.wav_mono, 94, 1);
 x100 = SQAT_GUI_load(tc.TestData.wav_mono, 100, 1);
 tc.verifyEqual(x100, x94 * 10^((100-94)/20), 'AbsTol', 1e-15);
@@ -162,6 +171,8 @@ tc.verifyEqual(20*log10(rms(x(:, 1)) / rms(x(:, 2))), 10, 'AbsTol', 1e-6);
 end
 
 function test_calibration_rejects_silence(tc)
+% Calibration stops with an error on a silent file (relative level) and on a
+% silent calibrator recording.
 silent = fullfile(tc.TestData.dir_tmp, 'silent.wav');
 audiowrite(silent, zeros(4800, 1), 48000);
 tc.verifyError(@() SQAT_GUI_calibration('relative', silent, 70), 'SQAT_GUI:calibration');
@@ -169,6 +180,8 @@ tc.verifyError(@() SQAT_GUI_calibration('calibrator', tc.TestData.wav_mono, 94, 
 end
 
 function test_load_selects_the_channel(tc)
+% Loading a stereo file on channel 2 returns that channel, and a channel the
+% file does not have is an error.
 [x2, ~, nch] = SQAT_GUI_load(tc.TestData.wav_stereo, 94, 2);
 ref = audioread(tc.TestData.wav_stereo);
 tc.verifyEqual(nch, 2);
@@ -177,6 +190,8 @@ tc.verifyError(@() SQAT_GUI_load(tc.TestData.wav_stereo, 94, 3), 'SQAT_GUI:chann
 end
 
 function test_load_reads_several_channels_at_once(tc)
+% Several channels load at once in the order asked, with the gain of the
+% dBFS; a missing or non-integer channel is an error.
 ref = audioread(tc.TestData.wav_stereo);
 X = SQAT_GUI_load(tc.TestData.wav_stereo, 94, [1 2]);
 tc.verifyEqual(X, ref);
@@ -189,6 +204,8 @@ end
 %% Extracting results ------------------------------------------------------
 
 function test_single_values_are_the_top_level_scalars(tc)
+% The single values of an output are its numeric scalars at the top level:
+% time series, axis steps, nested results and text are left out.
 OUT.time = (0:9)';
 OUT.InstantaneousLoudness = rand(10,1);
 OUT.Nmax = 3; OUT.N5 = 2.5;
@@ -239,6 +256,8 @@ end
 %% Spectrogram, windows, filters and weighting -----------------------------
 
 function test_window_shapes(tc)
+% Hann, Hamming, rectangular and Blackman-Harris windows come as columns of
+% the length asked for, with the expected shape.
 n = 1024;
 for name = {'hann', 'hamming', 'rect', 'blackmanharris'}
     w = SQAT_GUI_window(name{1}, n);
@@ -264,6 +283,8 @@ tc.verifyError(@() SQAT_GUI_window('custom', 8), 'SQAT_GUI:window');
 end
 
 function test_read_window_takes_text_and_mat_files(tc)
+% A window can be read from a CSV or text file, as a row or a column, and from
+% a .mat file; it always comes back as a column.
 d = tc.TestData.dir_tmp;
 v = [0.1 0.5 1 0.5 0.1]';
 writematrix(v, fullfile(d, 'w_col.csv'));
@@ -285,6 +306,8 @@ end
 end
 
 function test_spectrogram_reads_the_level_of_a_tone_with_any_window(tc)
+% A 60 dB tone on a bin of the FFT reads 60 dB at its frequency with each of
+% the four windows, with the size, FFT length and overlap reported.
 fs = 48000; t = (0:fs-1)'/fs;
 x = sqrt(2)*2e-5*10^(60/20) * sin(2*pi*1500*t);      % on a bin of a 1024 point FFT (32 x 46.875 Hz)
 for name = {'hann', 'hamming', 'rect', 'blackmanharris'}
@@ -300,6 +323,9 @@ end
 end
 
 function test_spectrogram_follows_degree_and_overlap(tc)
+% The FFT degree sets the frequency resolution and the overlap the number of
+% frames; a window given as a vector is used as it is or resampled to the FFT
+% length, and a signal shorter than the FFT is padded.
 fs = 48000; x = randn(fs, 1) * 0.01;
 [~, f, L4096] = SQAT_GUI_spectrogram(x, fs, 'hann', 12, 50);
 tc.verifyEqual(numel(f), 2049);
@@ -324,6 +350,8 @@ tc.verifyGreaterThanOrEqual(numel(t), 1);
 end
 
 function test_spectrogram_limits_the_frames_and_says_so(tc)
+% On a long signal the spectrogram lowers the overlap to keep the map within
+% 4000 frames and 8e6 values, and reports it; the largest FFT also fits.
 fs = 8000; x = randn(200*fs, 1) * 0.01;
 [t, ~, L, info] = SQAT_GUI_spectrogram(x, fs, 'hann', 10, 90);
 tc.verifyTrue(info.limited);
@@ -337,6 +365,9 @@ tc.verifyTrue(info.limited);
 end
 
 function test_spectral_filter_removes_a_box_and_only_that(tc)
+% The spectral filter takes out a box of time and frequency (over 40 dB at
+% the tone inside it) and leaves the rest within 0.1 dB; in keep mode it keeps
+% only the box; with no box the signal comes back.
 fs = 48000; t = (0:3*fs-1)'/fs;
 x = sin(2*pi*500*t) + sin(2*pi*2000*t);
 % no box, or a box beyond the spectrum: the signal comes back
@@ -372,6 +403,9 @@ tc.verifyLessThan(il_tone_db(y(mid), fs, 2000) - il_tone_db(x(mid), fs, 2000), -
 end
 
 function test_weighting_follows_iec_61672_at_the_reference_points(tc)
+% The A and C weightings give the IEC 61672-1 values at 100 Hz and 1 kHz,
+% within 0.2 dB, Z leaves the signal unchanged, the curve drawn on the
+% spectrogram is the response of the same filter, and B is an error.
 fs = 48000; t = (0:2*fs-1)'/fs;
 x100 = sin(2*pi*100*t); x1k = sin(2*pi*1000*t);
 tc.verifyEqual(SQAT_GUI_weight(x100, fs, 'Z'), x100);
@@ -497,6 +531,7 @@ end
 %% Path --------------------------------------------------------------------
 
 function test_startup_puts_the_gui_on_the_path(tc)
+% startup_SQAT adds the gui folder to the MATLAB path.
 rmpath(fullfile(basepath_SQAT, 'gui'));
 tc.addTeardown(@() addpath(fullfile(basepath_SQAT, 'gui')));
 evalc('run(fullfile(basepath_SQAT, ''startup_SQAT.m''))');
