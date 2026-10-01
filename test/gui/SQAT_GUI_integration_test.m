@@ -1880,6 +1880,7 @@ tc.verifyEqual(axw.YLim, y_lim);
 end
 
 function test_enhanced_stft_follows_a_zoom_of_the_waveform(tc)
+il_needs_display(tc);
 fig = SQAT_GUI({tc.TestData.wav_tone}, 'Visible', 'off');
 tc.addTeardown(@() delete(fig));
 il_press(fig, 'open_waveform');
@@ -1899,6 +1900,7 @@ tc.verifyEqual(surf().XData, x_full);
 end
 
 function test_enhanced_stft_zoom_buttons_take_turns_with_the_box(tc)
+il_needs_display(tc);
 fig = SQAT_GUI({tc.TestData.wav_tone}, 'Visible', 'off');
 tc.addTeardown(@() delete(fig));
 il_press(fig, 'open_waveform');
@@ -1923,6 +1925,7 @@ tc.verifyEqual(char(zoom(w).Enable), 'off');
 end
 
 function test_enhanced_stft_colour_floor_moves_by_5_dB(tc)
+il_needs_display(tc);
 fig = SQAT_GUI({tc.TestData.wav_tone}, 'Visible', 'off');
 tc.addTeardown(@() delete(fig));
 il_press(fig, 'open_waveform');
@@ -1948,6 +1951,7 @@ tc.verifyEqual(ax.CLim, top + [-105 0], 'AbsTol', 1e-9);       % at most 60 dB b
 end
 
 function test_enhanced_stft_comes_from_the_background_pool(tc)
+il_needs_display(tc);
 % with the pool the window waits with a note, and the map that arrives equals the direct computation
 il_use_pool(tc);
 fig = SQAT_GUI({tc.TestData.wav_tone}, 'Visible', 'off');
@@ -1974,6 +1978,7 @@ tc.verifyEqual(surf().CData, double(single(L(keep, :))) + SQAT_GUI_weight_curve(
 end
 
 function test_enhanced_stft_of_a_long_signal_shows_a_preview_first(tc)
+il_needs_display(tc);
 il_use_pool(tc);
 fs = 48000;
 t = (0:1/fs:61-1/fs)';
@@ -2005,6 +2010,7 @@ tc.verifyEqual(surf().CData, double(single(L(keep, :))) + SQAT_GUI_weight_curve(
 end
 
 function test_enhanced_stft_follows_a_new_signal_while_computing(tc)
+il_needs_display(tc);
 % a map still on its way for the last signal never replaces the map of the new one
 il_use_pool(tc);
 fig = SQAT_GUI({tc.TestData.wav_tone, tc.TestData.wav_two}, 'Visible', 'off');
@@ -2028,6 +2034,7 @@ tc.verifyEqual(surf().CData, double(single(L(keep, :))) + SQAT_GUI_weight_curve(
 end
 
 function test_waveform_close_while_a_map_is_computed(tc)
+il_needs_display(tc);
 % closing the window with maps queued leaves no timer running and logs no error
 il_use_pool(tc);
 fig = SQAT_GUI({tc.TestData.wav_tone}, 'Visible', 'off');
@@ -2066,6 +2073,14 @@ while toc(t0) < seconds
     pause(0.05);
     ok = ok && ph.Value >= lo && ph.Value <= hi;
 end
+end
+
+function il_needs_display(tc)
+% the enhanced spectrogram of the waveform window recomputes on timers and
+% on the background pool; on the CI runner, with no display, these tests
+% waited forever (30.09.2026), so they run only where there is one
+tc.assumeFalse(strcmp(getenv('CI'), 'true'), ...
+    'needs a display: the timers of the enhanced spectrogram do not fire on the CI runner');
 end
 
 function il_wait_until(cond, seconds)
