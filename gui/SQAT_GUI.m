@@ -979,6 +979,10 @@ end
                 figure(live_window());
             end
         end
+        try
+            focus(matrix);                       % off the Run button: a space would press it again
+        catch
+        end
     end
 
     function on_export(~, ~)
