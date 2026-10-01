@@ -236,18 +236,18 @@ btn_theme = uibutton(ag, 'Text', char(9788), 'FontSize', 18, 'Tag', 'theme', ...
 tabs = uitabgroup(right);
 tab_results = uitab(tabs, 'Title', 'Results');
 ov = uigridlayout(tab_results, [3 1]);
-ov.RowHeight = {'1x', 26, '1.5x'};
+ov.RowHeight = {'1.5x', 26, '1x'};                     % the plot above the matrix, as Gil prefers
 ov.Padding = [4 4 4 4];
-matrix = uitable(ov, 'Data', cell(0, 2), 'ColumnName', {'Analysis', 'Quantity'}, 'RowName', {}, ...
-    'Tag', 'results_matrix', 'CellSelectionCallback', @on_matrix_select, ...
-    'Tooltip', 'Click a row to plot its analysis below');
+ov_plot = uipanel(ov, 'BorderType', 'none', 'Tag', 'overview_plot');
 ob = uigridlayout(ov, [1 3]);
 ob.Padding = [0 0 0 0];
 ob.ColumnWidth = {40, 300, '1x'};
 uilabel(ob, 'Text', 'Plot:', 'HorizontalAlignment', 'right');
 dd_overview = uidropdown(ob, 'Items', {}, 'Tag', 'overview_analysis', 'ValueChangedFcn', @(~, ~) draw_overview());
 uilabel(ob, 'Text', '');
-ov_plot = uipanel(ov, 'BorderType', 'none', 'Tag', 'overview_plot');
+matrix = uitable(ov, 'Data', cell(0, 2), 'ColumnName', {'Analysis', 'Quantity'}, 'RowName', {}, ...
+    'Tag', 'results_matrix', 'CellSelectionCallback', @on_matrix_select, ...
+    'Tooltip', 'Click a row to plot its analysis above');
 ov_number = 0;                                         % the analysis plotted below the matrix
 tab_table = uitab(tabs, 'Title', 'Table');
 tbl = uitable(uigridlayout(tab_table, [1 1]), 'Data', results, 'Tag', 'results_table');
@@ -617,6 +617,8 @@ end
         % one row per analysis and quantity, one column per signal and channel, in
         % the order of the run; UserData holds the analysis number of each row
         mx_T = results;
+        mx_p = str2double(regexp(mx_T.Quantity, '\d+$', 'match', 'once'));   % N10, R95, LAF50: percentiles
+        mx_T = mx_T(isnan(mx_p) | ismember(mx_p, [5 90]), :);  % only the 5 and 90 %, as Gil asked; Table keeps all
         mx_col = strcat(mx_T.Signal, ', ch', mx_T.Channel);
         mx_col = strrep(mx_col, ', chBinaural', ', binaural');
         [mx_cols, ~, mx_ic] = unique(mx_col, 'stable');

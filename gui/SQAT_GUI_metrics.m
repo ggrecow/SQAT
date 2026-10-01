@@ -119,7 +119,7 @@ end
 function OUT = il_sound_level(x, fs, p, show)
 % the sound level meter of SQAT on a signal in Pa, as ex_sound_level_meter.m
 % uses it: the time-weighted level, its equivalent and maximum, the levels
-% exceeded 5, 50 and 90 % of the time, the sound exposure level, and the
+% exceeded 5 and 90 % of the time, the sound exposure level, and the
 % one-third octave levels (unweighted) of Do_OB13_ISO532_1. No minimum: the
 % time weighting starts from zero, so the first samples would give it
 L = Do_SLM(x, fs, p.weight_freq, p.weight_time, 94);
@@ -135,7 +135,6 @@ OUT.InstantaneousSPL = L(1:step:end);
 OUT.(['L' fw 'eq']) = Get_Leq(L, fs);
 OUT.(['L' fw tw 'max']) = max(L);
 OUT.(['L' fw tw '5']) = get_exceeded_value(L, 5);
-OUT.(['L' fw tw '50']) = get_exceeded_value(L, 50);
 OUT.(['L' fw tw '90']) = get_exceeded_value(L, 90);
 OUT.(['L' fw 'E']) = OUT.(['L' fw 'eq']) + 10*log10(numel(L) / fs);
 [bands, fc] = Do_OB13_ISO532_1(x, fs);

@@ -368,6 +368,8 @@ row = find(strcmp(M.Data(:, 2), 'N5 (sone)'));
 tc.assertNumElements(row, 1);
 tc.verifyEqual(M.Data{row, 3}, T.Value(strcmp(T.File, 'tone_mono.wav') & strcmp(T.Quantity, 'N5')));
 tc.verifyEqual(M.Data{row, 4}, T.Value(strcmp(T.File, 'tone_1k_60dB.wav') & strcmp(T.Quantity, 'N5')));
+tc.verifyEmpty(find(strcmp(M.Data(:, 2), 'N10 (sone)'), 1));     % percentiles: only 5 and 90 %
+tc.verifyNotEmpty(find(strcmp(M.Data(:, 2), 'N90 (sone)'), 1));
 plot_lines = @() findobj(findobj(fig, 'Tag', 'overview_plot'), 'Type', 'line');
 tc.verifyNumElements(plot_lines(), 2);                         % the loudness of both signals
 tc.verifyEqual(findobj(fig, 'Tag', 'overview_analysis').Value, 'loudness');

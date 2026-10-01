@@ -75,7 +75,7 @@ tc.verifyEqual(OUT.LAE, OUT.LAeq + 10*log10(10), 'AbsTol', 1e-9);
 [~, k] = max(OUT.TOB_level);
 tc.verifyEqual(OUT.TOB_freq(k), 1000, 'RelTol', 0.01);
 T = SQAT_GUI_single_values(OUT);
-tc.verifyEqual(T.Quantity', {'LAeq', 'LAFmax', 'LAF5', 'LAF50', 'LAF90', 'LAE'});
+tc.verifyEqual(T.Quantity', {'LAeq', 'LAFmax', 'LAF5', 'LAF90', 'LAE'});
 end
 
 function test_run_passes_the_chosen_parameters(tc)
