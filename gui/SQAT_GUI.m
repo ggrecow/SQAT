@@ -162,6 +162,9 @@ cmap = load('cmap_inferno.txt');                                    % the colour
 fig = uifigure('Name', 'SQAT: Sound Quality Analysis Toolbox', ...
     'Position', [40 30 1460 900], 'Visible', opts.Visible, 'Tag', 'SQAT_GUI', ...
     'CloseRequestFcn', @on_close, 'CreateFcn', '');   % skips a user default CreateFcn
+m_file = uimenu(fig, 'Text', 'File');
+uimenu(m_file, 'Text', 'Open session...', 'MenuSelectedFcn', @(~, ~) on_session('open'));
+uimenu(m_file, 'Text', 'Save session...', 'MenuSelectedFcn', @(~, ~) on_session('save'));
 main = uigridlayout(fig, [3 2]);
 main.RowHeight = {44, '1x', 30};
 main.ColumnWidth = {600, '1x'};                  % the lists get the room, the console the rest
@@ -269,7 +272,8 @@ end
 refresh_analyses();
 setappdata(fig, 'sqat_set_analyses', @set_analyses);   % the list from metric ids, for the tests
 setappdata(fig, 'sqat_run_description', @run_description);   % the Settings sheet, for the tests
-setappdata(fig, 'sqat_write_report', @write_report);   % the PDF report, without its file dialog, for the tests
+setappdata(fig, 'sqat_write_report', @write_report);
+setappdata(fig, 'sqat_session', @session);           % save or open a session without the file dialog, for the tests   % the PDF report, without its file dialog, for the tests
 setappdata(fig, 'sqat_stop', @on_stop_run);           % the Stop of the progress dialog, which a hidden window has not
 setappdata(fig, 'sqat_set_calibration', @set_calibration);   % the calibration without its dialog, for the tests
 write_log('Ready. Open WAV files, choose metrics and parameters, then press Run Analysis.');
@@ -981,6 +985,52 @@ end
         catch err
             write_log(['ERROR exporting the results: ' err.message]);
         end
+    end
+
+    function on_session(what)
+        if strcmp(what, 'save')
+            [f, p] = uiputfile('*.mat', 'Save session', 'SQAT_session.mat');
+        else
+            [f, p] = uigetfile('*.mat', 'Open session');
+        end
+        focus_gui();
+        if ~isequal(f, 0)
+            session(what, fullfile(p, f));
+        end
+    end
+
+    function session(what, file)
+        % a session: the signals (path, channel, calibration, tick) and the
+        % analyses with their parameters; results are not kept, a run makes them
+        if strcmp(what, 'save')
+            se = struct('signals', loaded, 'analyses', analyses, 'next_analysis', next_analysis); %#ok<NASGU>
+            save(file, '-struct', 'se');
+            write_log(['Session saved to ' file]);
+            return
+        end
+        se = load(file);
+        while ~isempty(loaded)
+            remove_signal(1);                    % the signals of the session replace the list, results too
+        end
+        add_files({se.signals.path});
+        for se_f = se.signals
+            se_k = find(strcmp({loaded.path}, se_f.path), 1);
+            if isempty(se_k)
+                write_log(['ERROR: not found, left out of the session: ' se_f.path]);
+                continue
+            end
+            loaded(se_k).channel = se_f.channel;
+            loaded(se_k).marked = se_f.marked;
+            loaded(se_k).dBFS = se_f.dBFS;
+            loaded(se_k).cal_set = se_f.cal_set;
+            loaded(se_k).cal = se_f.cal;
+        end
+        analyses = se.analyses;
+        next_analysis = se.next_analysis;
+        assign_keys();
+        refresh_signals();
+        refresh_analyses();
+        write_log(['Session opened from ' file]);
     end
 
     function write_report(file)

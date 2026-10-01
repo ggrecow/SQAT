@@ -594,6 +594,30 @@ write_report(pdf);                                             % a second report
 tc.verifyTrue(isfile(pdf));
 end
 
+function test_gui_session_restores_signals_and_analyses(tc)
+% A saved session opened in a fresh window gives back the signals with their
+% channel, calibration and tick, and the analyses with their parameters.
+fig = SQAT_GUI({tc.TestData.wav_mono, tc.TestData.wav_stereo}, 'Visible', 'off');
+tc.addTeardown(@() delete(fig));
+il_select_metrics(fig, {'Do_SLM', 'Loudness_ISO532_1'});
+il_signal_channel(fig, 2, '2');
+il_signal_dbfs(fig, 2, 100);
+il_mark_signal(fig, 1, false);
+file = fullfile(tc.TestData.dir_tmp, 'session.mat');
+session = getappdata(fig, 'sqat_session');
+session('save', file);
+fig2 = SQAT_GUI({tc.TestData.wav_tone}, 'Visible', 'off');
+tc.addTeardown(@() delete(fig2));
+session2 = getappdata(fig2, 'sqat_session');
+session2('open', file);
+tc.verifyEqual(il_signal_names(fig2), {'tone_mono.wav', 'tone_stereo.wav'});
+tc.verifyFalse(findobj(fig2, 'Tag', 'signal_tick_1').Value);
+tc.verifyEqual(findobj(fig2, 'Tag', 'signal_channel_2').Value, '2');
+tc.verifyEqual(findobj(fig2, 'Tag', 'signal_cal_2').Text, '100 dBFS');
+tc.verifyEqual(findobj(fig2, 'Tag', 'analysis_metric_1').Value, 'Do_SLM');
+tc.verifyEqual(findobj(fig2, 'Tag', 'analysis_metric_2').Value, 'Loudness_ISO532_1');
+end
+
 function test_gui_marks_the_results_when_a_setting_changes(tc)
 % The results tab is marked "settings changed" when a parameter or the
 % calibration of a signal with results changes, and the mark goes away with
