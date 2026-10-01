@@ -1829,6 +1829,18 @@ tc.verifyEqual(surf().XData, x_full);
 tc.verifyEqual(surf().CData, L_full);
 end
 
+function test_spectrogram_title_gives_the_frequency_resolution(tc)
+% The title of the plain spectrogram gives the window, the points, the
+% overlap and the frequency resolution fs/N, as Gil asked (30.09.2026).
+fig = SQAT_GUI({tc.TestData.wav_tone}, 'Visible', 'off');
+tc.addTeardown(@() delete(fig));
+il_press(fig, 'open_waveform');
+ax = findobj(il_window('SQAT_GUI_waveform'), 'Tag', 'spectrogram');
+t = ax.Title.String;
+n = sscanf(regexp(t, '\d+ points', 'match', 'once'), '%d');
+tc.verifySubstring(t, sprintf('%cf %.1f Hz', 916, tc.TestData.fs / n));
+end
+
 function test_waveform_and_spectrogram_share_the_time_axis(tc)
 % a zoom or a pan on either plot moves the other, inside the file and never under 50 ms;
 % Home and a new signal or tab go back to the whole file; the frequency stays apart
