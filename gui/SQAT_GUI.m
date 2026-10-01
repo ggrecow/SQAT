@@ -181,7 +181,7 @@ uilabel(top, 'Text', '');
 left = uigridlayout(main, [2 1]);
 left.Layout.Row = 2; left.Layout.Column = 1;
 left.Padding = [0 0 0 0];
-left.RowHeight = {'1.4x', '1x'};                  % more room for the signals than for the analyses
+left.RowHeight = {'1x', '1x'};
 sig_box = uigridlayout(uipanel(left), [2 1]);          % a box around each list, to set them apart
 sig_box.RowHeight = {28, '1x'};
 sig_box.Padding = [6 6 6 6];
@@ -201,7 +201,7 @@ signal_list.RowSpacing = 4;
 ah = uigridlayout(ana_box, [1 3]);
 ah.Padding = [0 0 0 0];
 ah.ColumnWidth = {'1x', 190, 100};
-uilabel(ah, 'Text', '2   ANALYSES (gear: parameters)', 'FontWeight', 'bold');
+uilabel(ah, 'Text', '2   ANALYSES', 'FontWeight', 'bold');
 uidropdown(ah, 'Items', [{'+ Add metric...'}, {metrics.label}], 'ItemsData', [{''}, {metrics.id}], ...
     'Value', '', 'Tag', 'add_metric', 'ValueChangedFcn', @on_add_metric, ...
     'Tooltip', 'Adds an analysis of the chosen metric, with its default parameters');
@@ -219,16 +219,15 @@ right.RowHeight = {64, '1x'};
 save_folder = pwd;                                     % the folder of the last save
 split_figures = false;                                 % one tab and one file per panel: no control for now
 
-act_panel = uipanel(right, 'Title', 'ACTIONS');
-ag = uigridlayout(act_panel, [1 5]);
-ag.ColumnWidth = {'1.4x', '1x', '1x', '1x', 36};
-ag.Padding = [6 4 6 4];
-btn_run = uibutton(ag, 'Text', 'Run Analysis', 'Tag', 'run', 'FontWeight', 'bold', ...
+ag = uigridlayout(right, [1 5]);                       % the buttons alone, as tall as the logo row
+ag.ColumnWidth = {'1.4x', '1x', '1x', '1x', 48};
+ag.Padding = [0 4 0 4];
+btn_run = uibutton(ag, 'Text', 'Run Analysis', 'Tag', 'run', 'FontWeight', 'bold', 'FontSize', 15, ...
     'BackgroundColor', green, 'FontColor', [1 1 1], 'ButtonPushedFcn', @on_run);
-uibutton(ag, 'Text', 'Open Graphs Window', 'Tag', 'open_graphs', 'ButtonPushedFcn', @on_open_graphs);
-uibutton(ag, 'Text', 'Waveform / Play', 'Tag', 'open_waveform', 'ButtonPushedFcn', @on_open_waveform);
-uibutton(ag, 'Text', 'Export results...', 'Tag', 'export', 'ButtonPushedFcn', @on_export);
-btn_theme = uibutton(ag, 'Text', char(9788), 'FontSize', 18, 'Tag', 'theme', ...
+uibutton(ag, 'Text', 'Open Graphs Window', 'Tag', 'open_graphs', 'FontSize', 14, 'ButtonPushedFcn', @on_open_graphs);
+uibutton(ag, 'Text', 'Waveform / Play', 'Tag', 'open_waveform', 'FontSize', 14, 'ButtonPushedFcn', @on_open_waveform);
+uibutton(ag, 'Text', 'Export results...', 'Tag', 'export', 'FontSize', 14, 'ButtonPushedFcn', @on_export);
+btn_theme = uibutton(ag, 'Text', char(9788), 'FontSize', 22, 'Tag', 'theme', ...
     'Tooltip', 'Light theme', 'ButtonPushedFcn', @on_theme);   % a sun, or a moon in the light theme
 
 % the results: the single values of the signals side by side, and below them
