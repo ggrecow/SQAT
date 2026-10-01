@@ -161,7 +161,8 @@ cmap = load('cmap_inferno.txt');                                    % the colour
 %% Main window
 fig = uifigure('Name', 'SQAT: Sound Quality Analysis Toolbox', ...
     'Position', [40 30 1460 900], 'Visible', opts.Visible, 'Tag', 'SQAT_GUI', ...
-    'CloseRequestFcn', @on_close, 'CreateFcn', '');   % skips a user default CreateFcn
+    'CloseRequestFcn', @on_close, 'CreateFcn', '', ...   % skips a user default CreateFcn
+    'KeyPressFcn', @on_main_key);
 m_file = uimenu(fig, 'Text', 'File');
 uimenu(m_file, 'Text', 'Open session...', 'MenuSelectedFcn', @(~, ~) on_session('open'));
 uimenu(m_file, 'Text', 'Save session...', 'MenuSelectedFcn', @(~, ~) on_session('save'));
@@ -709,11 +710,27 @@ end
         end
     end
 
-    function on_overview_click(t)
-        % a click on a plot against time takes the player of the waveform window there
+    function on_main_key(~, event)
+        % the space bar plays and pauses from the main window too; the player
+        % lives in the waveform window, which opens behind when it is closed
+        if strcmp(event.Key, 'space') && ~isempty(loaded)
+            open_player();
+            toggle_play();
+        end
+    end
+
+    function open_player()
         if ~il_is_open(win_wave)
             on_open_waveform();
+            if strcmp(fig.Visible, 'on')
+                figure(fig);                         % the main window keeps the focus
+            end
         end
+    end
+
+    function on_overview_click(t)
+        % a click on a plot against time takes the player of the waveform window there
+        open_player();
         seek(t);
         set(findall(ov_plot, 'Tag', 'overview_playhead'), 'Value', ...
             (min(max(round(t * wave_fs) + 1, 1), numel(wave_y)) - 1) / wave_fs);

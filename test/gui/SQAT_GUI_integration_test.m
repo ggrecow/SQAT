@@ -853,6 +853,25 @@ axw.ButtonDownFcn(axw, struct('IntersectionPoint', [0.5 0 0]));
 tc.verifyEqual(ph.Value, 0.5, 'AbsTol', 1/48000);
 end
 
+function test_gui_space_plays_from_the_main_window(tc)
+% The space bar in the main window opens the waveform window when it is
+% closed and starts the playback; a second press pauses it. Needs an audio
+% output.
+il_needs_audio(tc);
+fig = SQAT_GUI({tc.TestData.wav_mono}, 'Visible', 'off');
+tc.addTeardown(@() delete(fig));
+fig.KeyPressFcn(fig, struct('Key', 'space'));
+w = il_window('SQAT_GUI_waveform');
+tc.assertNumElements(w, 1);
+log = strjoin(findobj(fig, 'Tag', 'console').Value, newline);
+tc.assumeTrue(contains(log, 'Playing'), 'no audio output on this machine');
+b = findobj(w, 'Tag', 'play');
+tc.verifyEqual(b.Text, 'Pause');
+pause(0.4);
+fig.KeyPressFcn(fig, struct('Key', 'space'));
+tc.verifyEqual(b.Text, 'Play');
+end
+
 function test_gui_add_metric_adds_an_analysis_with_its_defaults(tc)
 % The Add metric menu appends an analysis of the chosen metric, with the
 % defaults of the catalogue and the next number, and goes back to its prompt.
