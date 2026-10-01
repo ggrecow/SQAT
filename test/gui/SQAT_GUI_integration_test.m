@@ -787,6 +787,21 @@ il_press(fig2, 'run');
 tc.verifySubstring(strjoin(findobj(fig2, 'Tag', 'console').Value, newline), 'No metrics');
 end
 
+function test_gui_add_metric_adds_an_analysis_with_its_defaults(tc)
+% The Add metric menu appends an analysis of the chosen metric, with the
+% defaults of the catalogue and the next number, and goes back to its prompt.
+fig = SQAT_GUI({tc.TestData.wav_mono}, 'Visible', 'off');
+tc.addTeardown(@() delete(fig));
+dd = findobj(fig, 'Tag', 'add_metric');
+tc.verifyEqual(dd.Value, '');
+dd.Value = 'Roughness_Daniel1997';
+dd.ValueChangedFcn(dd, []);
+tc.verifyEqual(dd.Value, '');
+tc.verifyEqual(findobj(fig, 'Tag', 'analysis_metric_2').Value, 'Roughness_Daniel1997');
+tc.verifyEqual(findobj(fig, 'Tag', 'analysis_number_2').Text, '#2');
+tc.verifyEqual(findobj(fig, 'Tag', 'run').Text, ['Run 1 signal ' char(215) ' 2 analyses']);
+end
+
 function test_gui_compares_one_metric_with_two_sets_of_parameters(tc)
 % One metric added twice with different parameters runs as analyses #1 and
 % #2, both offered in the graphs window; removing #1 leaves #2 with its own

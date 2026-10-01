@@ -194,11 +194,14 @@ signal_list = uigridlayout(sig_box, [1 6], 'Scrollable', 'on', 'Tag', 'signals_l
 signal_list.ColumnWidth = {30, 22, '1x', 62, 96, 26};
 signal_list.Padding = [0 0 0 0];
 signal_list.RowSpacing = 4;
-ah = uigridlayout(ana_box, [1 2]);
+ah = uigridlayout(ana_box, [1 3]);
 ah.Padding = [0 0 0 0];
-ah.ColumnWidth = {'1x', 130};
+ah.ColumnWidth = {'1x', 190, 100};
 uilabel(ah, 'Text', '2   ANALYSES (gear: parameters)', 'FontWeight', 'bold');
-uibutton(ah, 'Text', '+ Add', 'Tag', 'add_analysis', 'ButtonPushedFcn', @on_add_analysis, ...
+uidropdown(ah, 'Items', [{'+ Add metric...'}, {metrics.label}], 'ItemsData', [{''}, {metrics.id}], ...
+    'Value', '', 'Tag', 'add_metric', 'ValueChangedFcn', @on_add_metric, ...
+    'Tooltip', 'Adds an analysis of the chosen metric, with its default parameters');
+uibutton(ah, 'Text', 'Copy last', 'Tag', 'add_analysis', 'ButtonPushedFcn', @on_add_analysis, ...
     'Tooltip', 'Adds a copy of the last analysis, to compare the same metric with other parameters');
 analysis_list = uigridlayout(ana_box, [1 5], 'Scrollable', 'on', 'Tag', 'analysis_list');
 analysis_list.ColumnWidth = {30, 175, '1x', 36, 28};
@@ -419,6 +422,25 @@ end
         else
             analyses(end+1) = analyses(end);
             analyses(end).n = next_analysis;
+        end
+        next_analysis = next_analysis + 1;
+        assign_keys();
+        refresh_analyses();
+    end
+
+    function on_add_metric(src, ~)
+        % a new analysis of the chosen metric, with its defaults; the menu goes back to its prompt
+        id = src.Value;
+        src.Value = '';
+        if isempty(id)
+            return
+        end
+        e = metrics(strcmp({metrics.id}, id));
+        a = struct('key', '', 'id', e.id, 'n', next_analysis, 'p', il_default_params(e));
+        if isempty(analyses)
+            analyses = a;
+        else
+            analyses(end+1) = a;
         end
         next_analysis = next_analysis + 1;
         assign_keys();
@@ -697,7 +719,7 @@ end
             return
         end
         if isempty(analyses)
-            write_log('No metrics in the list of analyses. Add one with + Add.');
+            write_log('No metrics in the list of analyses. Add one with Add metric.');
             return
         end
         sel = {analyses.key};
