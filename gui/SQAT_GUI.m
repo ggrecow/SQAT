@@ -94,15 +94,15 @@ next_analysis = 2;                                    % the number of the next a
 loaded = struct('path', {}, 'name', {}, 'nch', {}, 'fs', {}, 'marked', {}, 'id', {}, 'channel', {}, 'dBFS', {}, 'cal_set', {}, 'cal', {});
 % dBFS: the full-scale level of each channel (dB SPL); cal: how it was set (method, level, file, label)
 last_cal = struct('method', 'dbfs', 'level', 94, 'file', '');   % the calibration dialog opens with the last choice
+ask_remove = true;                                    % the bin of a signal asks first, until told not to
 next_id = 1;                                          % the number of the next signal loaded
-cal_help = ['A WAV file stores numbers between -1 and +1, with no unit. To read them as sound pressure ' ...
-    'in pascals, SQAT needs to know which level they stand for. There are three ways to set it ' ...
-    '(Greco 2026, Section 3.3):' newline ...
+cal_help = ['A WAV file stores numbers between -1 and +1, with no unit. To read them as sound ' ...
+    'pressure, in Pascal, calibration is necessary. Three possibilities are provided here:' newline newline ...
     '- Full-scale level (dBFS): the level in dB SPL of a sample of value 1, known from the recording ' ...
-    'chain or the documentation of the file. SQAT assumes 94 dB (1 = 1 Pa) when nothing is set.' newline ...
+    'chain or the documentation of the file. SQAT assumes 94 dB (1 = 1 Pa) when nothing is set.' newline newline ...
     '- Calibrator recording: a recording of a sound level calibrator (1 kHz at 94 dB, for example) made ' ...
     'with the same setup; its rms against the level of the calibrator gives the full scale. A stereo ' ...
-    'recording calibrates each channel on its own.' newline ...
+    'recording calibrates each channel on its own.' newline newline ...
     '- Relative level: with no information, the rms of the file is set to a chosen level. The results ' ...
     'then only compare signals among themselves; they are not absolute levels.'];
 active_idx = 0;                                       % the signal on screen in the player
@@ -145,7 +145,6 @@ spec_timer = [];                                      % waits for the zoom to se
 spec_top = [];                                        % top of the colour scale of the spectrogram (dB)
 spec_range = 45;                                      % its default span (dB)
 spec_black = 0;                                       % dB added to its bottom: more is more black
-align_timer = [];                                     % aligns the waveform with the spectrogram once the layout settles
 theme_style = il_if(il_has_theme(), 'dark', 'light');   % no themes before R2025a: the default light look
 graph_figs = gobjects(0);                              % the graphs windows
 last_metric = '';                                     % the metric the last graphs window showed
@@ -170,9 +169,9 @@ main.ColumnWidth = {600, '1x'};                  % the lists get the room, the c
 top = uigridlayout(main, [1 3]);
 top.Layout.Row = 1; top.Layout.Column = [1 2];
 top.Padding = [0 0 0 0];
-top.ColumnWidth = {70, 320, '1x'};
+top.ColumnWidth = {70, 440, '1x'};
 img_logo = uiimage(top, 'ImageSource', fullfile(dir_logos, 'logo_white.png'), 'Tag', 'logo');
-uilabel(top, 'Text', 'Sound Quality Analysis Toolbox', 'FontSize', 16, 'FontWeight', 'bold');
+uilabel(top, 'Text', 'Sound Quality Analysis Toolbox', 'FontSize', 22, 'FontWeight', 'bold');
 uilabel(top, 'Text', '');
 
 left = uigridlayout(main, [2 1]);
@@ -261,7 +260,7 @@ end
         if isequal(f, 0)
             return
         end
-        add_files(fullfile(p, cellstr(f)), true);   % chosen by hand: ask how to calibrate each
+        add_files(fullfile(p, cellstr(f)));
     end
 
     function on_signal_channel(k, c)
@@ -331,10 +330,9 @@ end
 
     function on_signal_remove(k)
         % the bin asks first: the results and the figures of the signal go with it
-        if strcmp(fig.Visible, 'on')
-            answer = uiconfirm(fig, sprintf('Remove %s and its results?', loaded(k).name), ...
-                'Remove signal', 'Options', {'Remove', 'Cancel'}, 'DefaultOption', 2, 'CancelOption', 2);
-            if ~strcmp(answer, 'Remove')
+        if ask_remove && strcmp(fig.Visible, 'on')
+            [go, ask_remove] = il_confirm_remove(fig, loaded(k).name);
+            if ~go
                 return
             end
         end
@@ -932,24 +930,24 @@ end
             pg.RowHeight = {'1x', 24, '1.2x'};
             pg.Padding = [0 0 0 0];
             pg.RowSpacing = 2;
-            ax_wave = uiaxes(pg, 'Tag', 'waveform_axes', 'ButtonDownFcn', @on_wave_click);
-            tg = uigridlayout(pg, [1 6]);
-            tg.ColumnWidth = {60, 70, 80, '1x', 30, 30};    % the colour buttons at the right, over the colorbar
+            % each plot in a box of its own: the axes keep fixed margins for the
+            % labels inside it, the same for both, so the time axes stay aligned
+            box_wave = uipanel(pg, 'BorderType', 'none', 'AutoResizeChildren', 'off');
+            ax_wave = uiaxes(box_wave, 'Tag', 'waveform_axes', 'ButtonDownFcn', @on_wave_click);
+            tg = uigridlayout(pg, [1 3]);
+            tg.ColumnWidth = {'1x', 30, 30};                % the colour buttons at the right, over the colorbar
             tg.Padding = [0 0 0 0];
-            uibutton(tg, 'Text', 'Home', 'Tag', 'spec_home', 'ButtonPushedFcn', @on_spec_home, ...
-                'Tooltip', 'The whole file again, from the map already computed');
-            uibutton(tg, 'state', 'Text', 'Zoom in', 'Tag', 'spec_zoom_in', 'UserData', 'in', ...
-                'ValueChangedFcn', @on_spec_tool, 'Tooltip', 'Click or drag a box on the spectrogram to zoom in');
-            uibutton(tg, 'state', 'Text', 'Zoom out', 'Tag', 'spec_zoom_out', 'UserData', 'out', ...
-                'ValueChangedFcn', @on_spec_tool, 'Tooltip', 'Click on the spectrogram to zoom out');
             uilabel(tg, 'Text', '');
             uibutton(tg, 'Text', char(8722), 'Tag', 'spec_black_less', 'ButtonPushedFcn', @(~, ~) shift_black(-5), ...
                 'Tooltip', 'Less black: the colour scale reaches 5 dB lower (down arrow)');
             uibutton(tg, 'Text', '+', 'Tag', 'spec_black_more', 'ButtonPushedFcn', @(~, ~) shift_black(5), ...
                 'Tooltip', 'More black: the colour scale starts 5 dB higher (up arrow)');
-            ax_spec = uiaxes(pg, 'Tag', 'spectrogram', 'ButtonDownFcn', @on_wave_click);
-            win_wave.AutoResizeChildren = 'off';
-            win_wave.SizeChangedFcn = @(~, ~) schedule_align();
+            box_spec = uipanel(pg, 'BorderType', 'none', 'AutoResizeChildren', 'off');
+            ax_spec = uiaxes(box_spec, 'Tag', 'spectrogram', 'ButtonDownFcn', @on_wave_click);
+            box_wave.SizeChangedFcn = @(src, ~) il_fit_axes(src, ax_wave);
+            box_spec.SizeChangedFcn = @(src, ~) il_fit_axes(src, ax_spec);
+            il_fit_axes(box_wave, ax_wave);
+            il_fit_axes(box_spec, ax_spec);
             ax_spec.XAxis.LimitsChangedFcn = @on_spec_limits;
             ax_wave.XAxis.LimitsChangedFcn = @on_wave_limits;
             setappdata(win_wave, 'sqat_spec_zoom', @apply_spec_zoom);   % the recomputation, for the tests
@@ -1267,39 +1265,12 @@ end
 
     function on_draw_box(src, ~)
         if src.Value
-            set_spec_tool('');                % a zoom or pan mode would take the clicks
         end
         end_drag();
         box_corner = [];
         delete(findobj(ax_spec, 'Tag', 'box_corner'));
         if src.Value
             write_log('Draw filter: drag a box on the spectrogram, or click two opposite corners.');
-        end
-    end
-
-    function on_spec_tool(src, ~)
-        if src.Value
-            db = findobj(win_wave, 'Tag', 'draw_box');
-            if db.Value
-                db.Value = false;
-                on_draw_box(db);
-            end
-            set_spec_tool(src.UserData);
-        else
-            set_spec_tool('');
-        end
-    end
-
-    function set_spec_tool(tool)
-        % '' (none), 'in' or 'out': the zoom mode, on the spectrogram only
-        set(findobj(win_wave, 'Tag', 'spec_zoom_in'), 'Value', strcmp(tool, 'in'));
-        set(findobj(win_wave, 'Tag', 'spec_zoom_out'), 'Value', strcmp(tool, 'out'));
-        z = zoom(win_wave);
-        z.Enable = 'off';
-        if ~isempty(tool)
-            z.Direction = tool;
-            setAllowAxesZoom(z, ax_wave, false);
-            z.Enable = 'on';
         end
     end
 
@@ -1313,39 +1284,6 @@ end
         if ~isempty(spec_top) && il_is_open(win_wave)
             clim(ax_spec, spec_top + [spec_black - spec_range, 0]);
         end
-    end
-
-    function schedule_align()
-        % the layout of a uifigure settles after the callback: the alignment waits for it
-        il_delete_timer(align_timer);
-        align_timer = timer('StartDelay', 0.3, 'ExecutionMode', 'singleShot', ...
-            'TimerFcn', @(~, ~) align_wave(), 'ObjectVisibility', 'off');
-        start(align_timer);
-    end
-
-    function align_wave()
-        % the waveform as wide as the spectrogram, whose colorbar takes room on the right
-        if ~il_is_open(win_wave) || isempty(findobj(ax_spec, 'Type', 'surface'))
-            return
-        end
-        ax_wave.PositionConstraint = 'outerposition';   % back to the size of its row
-        drawnow
-        p = ax_spec.InnerPosition;
-        q = ax_wave.InnerPosition;
-        ax_wave.InnerPosition = [p(1) q(2) p(3) q(4)];
-    end
-
-    function on_spec_home(~, ~)
-        % the whole file: the full enhanced map is kept, so nothing is computed again
-        if isempty(wave_x)
-            return
-        end
-        spec_busy = true;
-        xlim(ax_spec, [0 numel(wave_x) / wave_fs]);
-        ylim(ax_spec, [20 wave_fs/2]);
-        spec_busy = false;
-        stop_spec_timer();
-        apply_spec_zoom();
     end
 
     function on_box_click(pt)
@@ -1507,7 +1445,6 @@ end
     function on_close_waveform(~, ~)
         on_stop();
         stop_spec_timer();
-        il_delete_timer(align_timer);
         il_delete_timer(prefetch_timer);
         cancel_jobs();
         delete(win_wave);
@@ -1519,7 +1456,6 @@ end
         end
         clear_cache();
         stop_spec_timer();
-        il_delete_timer(align_timer);
         il_delete_timer(prefetch_timer);
         cancel_jobs();
         if il_is_open(win_wave), delete(win_wave); end
@@ -1536,12 +1472,8 @@ end
         end
     end
 
-    function add_files(paths, ask)
-        % ask: open the calibration dialog for each new file (files chosen with
-        % Load files); files given to SQAT_GUI(files) keep the default of 94 dBFS
-        if nargin < 2
-            ask = false;
-        end
+    function add_files(paths)
+        % every new file starts at 94 dBFS; its calibration button changes it
         n_before = numel(loaded);
         for k_file = 1:numel(paths)
             path = char(paths{k_file});
@@ -1569,11 +1501,6 @@ end
         end
         refresh_signals();
         write_log(sprintf('%d file(s) loaded.', numel(loaded)));
-        if ask && strcmp(fig.Visible, 'on')      % one calibration dialog per new file, one after the other
-            for k_new = n_before+1:numel(loaded)
-                on_signal_cal(k_new);
-            end
-        end
         if numel(loaded) > n_before
             refresh_windows();
         end
@@ -2418,6 +2345,7 @@ end
         else
             cb.Label.String = sprintf('%s-weighted sound pressure level (dB(%s))', weighting, weighting);
         end
+        il_fit_axes(ax_spec.Parent, ax_spec);
         xlabel(ax_spec, 'Time (s)');
         ylabel(ax_spec, 'Frequency (Hz)');
         if enhanced
@@ -2431,8 +2359,7 @@ end
             'Tag', 'playhead_spectrogram', 'PickableParts', 'none');
         draw_boxes();
         spec_busy = false;
-        align_wave();
-        schedule_align();
+        drawnow                                        % the limit events of this drawing arrive now, and not at the next zoom
     end
 
     function on_wave_limits(~, event)
@@ -3112,6 +3039,52 @@ dt = t(end) - t(end-1);
 r = sqrt(f(end) / f(end-1));
 xe = [t(1) - dt/2, t(end) + dt/2];
 ye = [f(1) / r, f(end) * r];
+end
+
+function il_fit_axes(box, ax)
+% the plot area of ax at fixed margins from the edges of its box (pixels):
+% room for the ticks and the label of y on the left, for the colorbar and its
+% label on the right (kept on both plots so their time axes line up), for the
+% title on top and the time ticks and label below
+m = [80 100 48 30];                                   % left, right, bottom, top
+p = box.InnerPosition;
+w = max(p(3) - m(1) - m(2), 20);
+h = max(p(4) - m(3) - m(4), 20);
+ax.InnerPosition = [m(1), m(3), w, h];
+cb = ax.Colorbar;
+if ~isempty(cb)                                       % placed by hand: in its own place it takes width from the plot
+    cb.Units = 'pixels';
+    cb.Position = [m(1) + w + 12, m(3), 14, h];
+end
+end
+
+function [go, ask_again] = il_confirm_remove(parent, name)
+% asks whether to remove the signal name; its tick box stops the question for
+% the rest of the session (closing the window cancels and changes nothing)
+go = false;
+ask_again = true;
+d = uifigure('Name', 'Remove signal', 'WindowStyle', 'modal', 'Tag', 'SQAT_GUI_remove', ...
+    'Position', [parent.Position(1) + 200, parent.Position(2) + 200, 420, 140]);
+if isprop(parent, 'Theme') && ~isempty(parent.Theme)
+    d.Theme = parent.Theme;
+end
+g = uigridlayout(d, [3 3]);
+g.RowHeight = {'1x', 22, 30};
+g.ColumnWidth = {'1x', 90, 90};
+q = uilabel(g, 'Text', sprintf('Remove %s and its results?', name), 'WordWrap', 'on');
+q.Layout.Column = [1 3];
+tick = uicheckbox(g, 'Text', 'Do not ask again', 'Tag', 'remove_do_not_ask');
+tick.Layout.Column = [1 3];
+uilabel(g, 'Text', '');
+uibutton(g, 'Text', 'Remove', 'Tag', 'remove_ok', 'ButtonPushedFcn', @(~, ~) answer(true));
+uibutton(g, 'Text', 'Cancel', 'Tag', 'remove_cancel', 'ButtonPushedFcn', @(~, ~) delete(d));
+uiwait(d);
+
+    function answer(tf)
+        go = tf;
+        ask_again = ~tick.Value;
+        delete(d);
+    end
 end
 
 function il_delete_timer(t)

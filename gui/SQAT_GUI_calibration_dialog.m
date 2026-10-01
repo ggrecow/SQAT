@@ -3,8 +3,7 @@ function SQAT_GUI_calibration_dialog(parent, name, c, help_text, apply)
 %
 %   Modal dialog that asks how to calibrate one sound file: full-scale level
 %   (dBFS), calibrator recording or relative level (see SQAT_GUI_calibration).
-%   It opens on the choice c and waits until it is closed, so that the
-%   dialogs of several files come one after the other.
+%   It opens on the choice c and waits until it is closed.
 %
 % INPUT ARGUMENTS
 %   parent : the main window of the interface (the dialog opens over it)
@@ -39,24 +38,26 @@ methods = {'dbfs', 'calibrator', 'relative'};
 items = {'Full-scale level (dBFS)', 'Calibrator recording', 'Relative level'};
 hints = {'Level in dB SPL of a sample of value 1 (94 dB: 1 = 1 Pa).', ...
          'Level of the calibrator, e.g. 94 dB (1 Pa), 114 dB (10 Pa) or the value with an adapter.', ...
-         'The rms of the whole file (all channels together) is set to this level.'};
+         ['The rms of the whole file (all channels together) is set to this level.' newline ...
+          'The rms will be calculated based on the entire signal length. If you desire to have ' ...
+          'the rms calculated otherwise, please trim the signal before loading in SQAT.']};
 units = {'dB SPL at full scale', 'dB SPL of the calibrator', 'dB SPL rms'};
 
 d = uifigure('Name', ['Calibration: ' name], 'WindowStyle', 'modal', 'Tag', 'SQAT_GUI_calibration', ...
-    'Position', [parent.Position(1) + 200, parent.Position(2) + 200, 560, 470], 'CreateFcn', '');
+    'Position', [parent.Position(1) + 200, parent.Position(2) + 200, 620, 600], 'CreateFcn', '');
 if isprop(parent, 'Theme') && ~isempty(parent.Theme)
     d.Theme = parent.Theme;
 end
 g = uigridlayout(d, [7 3]);
-g.RowHeight = {'1x', 26, 36, 26, 26, 22, 30};
+g.RowHeight = {'1x', 26, 64, 26, 26, 22, 30};
 g.ColumnWidth = {110, '1x', 150};
-t = uilabel(g, 'Text', help_text, 'WordWrap', 'on', 'VerticalAlignment', 'top');
+t = uilabel(g, 'Text', help_text, 'WordWrap', 'on', 'VerticalAlignment', 'top', 'FontSize', 14);
 t.Layout.Column = [1 3];
 uilabel(g, 'Text', 'Method:', 'HorizontalAlignment', 'right');
 dd = uidropdown(g, 'Items', items, 'ItemsData', methods, 'Value', c.method, 'Tag', 'cal_method', ...
     'ValueChangedFcn', @(~, ~) show());
 dd.Layout.Column = [2 3];
-hint = uilabel(g, 'Text', '', 'WordWrap', 'on', 'FontAngle', 'italic');
+hint = uilabel(g, 'Text', '', 'WordWrap', 'on', 'FontAngle', 'italic', 'VerticalAlignment', 'top');
 hint.Layout.Column = [1 3];
 uilabel(g, 'Text', 'Level:', 'HorizontalAlignment', 'right');
 lv = uieditfield(g, 'numeric', 'Value', c.level, 'Tag', 'cal_level');

@@ -638,6 +638,28 @@ for part = {'between -1 and +1', 'Full-scale level (dBFS)', 'Calibrator recordin
     tc.verifySubstring(head.Tooltip, part{1});
 end
 tc.verifySubstring(findobj(fig, 'Tag', 'signal_cal_1').Tooltip, 'Full scale: 94.00 dB SPL');
+tc.verifyFalse(contains(head.Tooltip, 'Greco'));     % no citation the reader cannot look up
+end
+
+function test_waveform_and_spectrogram_keep_aligned_plot_areas(tc)
+% each plot sits in a box of its own at fixed margins, the same for both, so
+% the time axes line up and a zoom moves nothing. A hidden window reports the
+% size of its boxes late, so the resizing is left to a look at the screen.
+fig = SQAT_GUI({tc.TestData.wav_tone}, 'Visible', 'off');
+tc.addTeardown(@() delete(fig));
+il_press(fig, 'open_waveform');
+w = il_window('SQAT_GUI_waveform');
+axw = findobj(w, 'Tag', 'waveform_axes');
+axs = findobj(w, 'Tag', 'spectrogram');
+for lim = {[0 3], [1 1.5]}
+    axs.XLim = lim{1}; drawnow
+    pw = axw.InnerPosition;
+    ps = axs.InnerPosition;
+    tc.verifyEqual(pw([1 3]), ps([1 3]));
+    tc.verifyEqual(ps(1), 80);
+    cb = axs.Colorbar.Position;                       % the colorbar right of the plot
+    tc.verifyGreaterThan(cb(1), ps(1) + ps(3));
+end
 end
 
 function test_gui_calibrates_each_channel_from_a_stereo_calibrator(tc)
@@ -1814,7 +1836,7 @@ il_set(w, 'spec_enhanced_mode', 'readable');
 tc.verifyEqual(surf().CData, L_z);                             % back where it started
 end
 
-function test_enhanced_stft_home_shows_the_whole_file(tc)
+function test_enhanced_stft_whole_file_reuses_the_full_map(tc)
 fig = SQAT_GUI({tc.TestData.wav_tone}, 'Visible', 'off');
 tc.addTeardown(@() delete(fig));
 il_press(fig, 'open_waveform');
@@ -1829,9 +1851,9 @@ ax.YLim = [500 2000];
 zoom_now = getappdata(w, 'sqat_spec_zoom');
 zoom_now();
 tc.verifyNotEqual(surf().XData, x_full);
-il_press(w, 'spec_home');
-tc.verifyEqual(ax.XLim, [0 3]);
-tc.verifyEqual(ax.YLim, [20 24000]);
+ax.XLim = [0 3];                                           % a double click restores the view
+ax.YLim = [20 24000];
+zoom_now();
 tc.verifyEqual(surf().XData, x_full);
 tc.verifyEqual(surf().CData, L_full);
 end
@@ -1850,7 +1872,7 @@ end
 
 function test_waveform_and_spectrogram_share_the_time_axis(tc)
 % a zoom or a pan on either plot moves the other, inside the file and never under 50 ms;
-% Home and a new signal or tab go back to the whole file; the frequency stays apart
+% a new signal or tab goes back to the whole file; the frequency stays apart
 fig = SQAT_GUI({tc.TestData.wav_tone, tc.TestData.wav_stereo}, 'Visible', 'off');
 tc.addTeardown(@() delete(fig));
 il_press(fig, 'open_waveform');
@@ -1868,7 +1890,7 @@ axw.XLim = [-1 2]; drawnow
 tc.verifyEqual(both(), [0 2; 0 2]);
 axs.XLim = [1 1.01]; drawnow
 tc.verifyEqual(both(), [0 2; 0 2]);
-il_press(w, 'spec_home'); drawnow
+axs.XLim = [0 3]; drawnow
 tc.verifyEqual(both(), [0 3; 0 3]);
 axw.XLim = [1 1.5]; drawnow
 il_pick_tab(findobj(w, 'Tag', 'wave_tabs'), 2); drawnow
@@ -1913,34 +1935,9 @@ axw.XLim = [1 1.5]; drawnow
 pause(1);                                                  % the debounce of 0.3 s
 t_z = il_map_centres(surf());
 tc.verifyEqual(t_z(2) - t_z(1), 0.001, 'AbsTol', 1e-9);      % the excerpt, in 1 ms columns
-il_press(w, 'spec_home'); drawnow
+axw.XLim = [0 3]; drawnow
 pause(1);
 tc.verifyEqual(surf().XData, x_full);
-end
-
-function test_enhanced_stft_zoom_buttons_take_turns_with_the_box(tc)
-il_needs_display(tc);
-fig = SQAT_GUI({tc.TestData.wav_tone}, 'Visible', 'off');
-tc.addTeardown(@() delete(fig));
-il_press(fig, 'open_waveform');
-w = il_window('SQAT_GUI_waveform');
-zin = findobj(w, 'Tag', 'spec_zoom_in');
-zout = findobj(w, 'Tag', 'spec_zoom_out');
-box = findobj(w, 'Tag', 'draw_box');
-il_set(w, 'spec_zoom_in', true);
-tc.verifyEqual(char(zoom(w).Enable), 'on');
-tc.verifyEqual(char(zoom(w).Direction), 'in');
-il_set(w, 'spec_zoom_out', true);
-tc.verifyFalse(zin.Value);
-tc.verifyEqual(char(zoom(w).Direction), 'out');
-il_set(w, 'draw_box', true);                                   % the box takes the clicks back
-tc.verifyFalse(zout.Value);
-tc.verifyEqual(char(zoom(w).Enable), 'off');
-il_set(w, 'spec_zoom_in', true);                               % and gives them to the zoom
-tc.verifyFalse(box.Value);
-tc.verifyEqual(char(zoom(w).Enable), 'on');
-il_set(w, 'spec_zoom_in', false);
-tc.verifyEqual(char(zoom(w).Enable), 'off');
 end
 
 function test_enhanced_stft_colour_floor_moves_by_5_dB(tc)
