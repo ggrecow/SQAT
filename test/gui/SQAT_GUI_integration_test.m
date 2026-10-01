@@ -65,15 +65,18 @@ end
 function test_gui_opens_with_the_expected_controls(tc)
 % The main window opens with every control of the layout: logo, file count,
 % Load files, signal list, theme, analyses, Run, the two windows, export,
-% console, results, status and progress.
+% the results matrix with its plot, the table, the log, status and progress;
+% the empty signal list says how to start.
 fig = SQAT_GUI({}, 'Visible', 'off');
 tc.addTeardown(@() delete(fig));
 tc.verifyClass(fig, 'matlab.ui.Figure');
 for tag = {'logo','file_count','load_files','signals_list','theme', ...
            'add_analysis','analysis_list','run','open_graphs','open_waveform','export', ...
-           'console','results_table','status','progress'}
+           'console','results_table','results_matrix','overview_plot','status','progress'}
     tc.verifyNotEmpty(findobj(fig, 'Tag', tag{1}), ['missing control: ' tag{1}]);
 end
+tc.verifyNotEmpty(findobj(fig, 'Tag', 'signals_hint'));        % the empty list says how to start
+tc.verifyEqual(findobj(fig, 'Tag', 'run').Text, 'Run Analysis');
 for tag = {'show_plots','save_figures','split_figures','stop_run'}   % Stop is in the progress dialog
     tc.verifyEmpty(findobj(fig, 'Tag', tag{1}), ['control still there: ' tag{1}]);
 end
@@ -223,6 +226,7 @@ fig = SQAT_GUI({tc.TestData.wav_mono, tc.TestData.wav_tone}, 'Visible', 'off');
 tc.addTeardown(@() delete(fig));
 il_select_metrics(fig, {'Loudness_ISO532_1'});
 il_mark_signal(fig, 2, false);                       % only the first is analysed
+tc.verifyEqual(findobj(fig, 'Tag', 'run').Text, ['Run 1 signal ' char(215) ' 1 analysis']);
 il_press(fig, 'run');
 T = findobj(fig, 'Tag', 'results_table').Data;
 tc.verifyEqual(unique(T.File), {'tone_mono.wav'});
@@ -346,32 +350,39 @@ tc.verifyFalse(isappdata(fig, 'sqat_progress'), 'the dialog stays after the run'
 tc.verifySubstring(findobj(fig, 'Tag', 'status').Text, 'Done');
 end
 
-function test_gui_results_have_one_tab_per_signal(tc)
-% The results have one tab per signal, "Results #1" and "Results #2", and each
-% tab holds exactly the rows of its signal from the full table.
+function test_gui_results_matrix_sets_the_signals_side_by_side(tc)
+% The Results tab opens after a run with a matrix: one row per analysis and
+% quantity, one column per signal and channel, each cell the value of the full
+% table. Below it, the plot of the analysis of the chosen row overlays the
+% signals; a click on another row plots that analysis; a removed signal takes
+% its column away.
 fig = SQAT_GUI({tc.TestData.wav_mono, tc.TestData.wav_tone}, 'Visible', 'off');
 tc.addTeardown(@() delete(fig));
-il_select_metrics(fig, {'Loudness_ISO532_1'});
+il_select_metrics(fig, {'Loudness_ISO532_1', 'Roughness_Daniel1997'});
 il_press(fig, 'run');
+tc.verifyEqual(findobj(fig, 'Type', 'uitab', 'Title', 'Results').Parent.SelectedTab.Title, 'Results');
+M = findobj(fig, 'Tag', 'results_matrix');
+tc.verifyEqual(M.ColumnName(:)', {'Analysis', 'Quantity', 'Signal #1, ch1', 'Signal #2, ch1'});
 T = findobj(fig, 'Tag', 'results_table').Data;
-tabs = @() findobj(fig, 'Tag', 'results_signal');         % in the order of the tab group
-tc.verifyEqual({tabs().Title}, {'Results #1', 'Results #2'});
-names = {'tone_mono.wav', 'tone_1k_60dB.wav'};
-for k = 1:2                                          % each tab holds the rows of its signal
-    t = tabs();
-    D = findobj(t(k), 'Type', 'uitable').Data;
-    tc.verifyEqual(D, T(strcmp(T.File, names{k}), {'Analysis', 'Metric', 'Channel', 'Quantity', 'Value', 'Unit', 'Parameters'}));
-end
-il_remove_signal(fig, 1);                            % a removed signal takes its tab away
-tc.verifyEqual({tabs().Title}, {'Results #2'});
+row = find(strcmp(M.Data(:, 2), 'N5 (sone)'));
+tc.assertNumElements(row, 1);
+tc.verifyEqual(M.Data{row, 3}, T.Value(strcmp(T.File, 'tone_mono.wav') & strcmp(T.Quantity, 'N5')));
+tc.verifyEqual(M.Data{row, 4}, T.Value(strcmp(T.File, 'tone_1k_60dB.wav') & strcmp(T.Quantity, 'N5')));
+plot_lines = @() findobj(findobj(fig, 'Tag', 'overview_plot'), 'Type', 'line');
+tc.verifyNumElements(plot_lines(), 2);                         % the loudness of both signals
+tc.verifyEqual(findobj(fig, 'Tag', 'overview_analysis').Value, 'loudness');
+r2 = find(M.UserData == 2, 1);                                 % a row of the roughness
+M.CellSelectionCallback(M, struct('Indices', [r2 1]));
+tc.verifyEqual(findobj(fig, 'Tag', 'overview_analysis').Value, 'roughness');
+tc.verifyNumElements(plot_lines(), 2);
 il_remove_signal(fig, 1);
-tc.verifyEmpty(tabs());
+tc.verifyEqual(M.ColumnName(:)', {'Analysis', 'Quantity', 'Signal #2, ch1'});
 end
 
 function test_gui_results_put_the_signals_and_channels_side_by_side(tc)
 % In the results table each quantity is listed for every signal and channel
 % before the next quantity, the analyses come in order and with their units,
-% and the tab of a stereo signal interleaves its two channels.
+% and the matrix gives each channel of a stereo signal its own column.
 fig = SQAT_GUI({tc.TestData.wav_mono, tc.TestData.wav_stereo}, 'Visible', 'off');
 tc.addTeardown(@() delete(fig));
 il_select_metrics(fig, {'Loudness_ISO532_1', 'Roughness_Daniel1997'});
@@ -388,10 +399,9 @@ tc.verifyNotEqual(T.Quantity{4}, T.Quantity{1});
 % every analysis comes whole, #1 before #2
 a = str2double(erase(T.Analysis, '#'));
 tc.verifyTrue(issorted(a));
-% the tab of a signal keeps its own rows, channels interleaved
-tabs = findobj(fig, 'Tag', 'results_signal');
-D = findobj(tabs(2), 'Type', 'uitable').Data;
-tc.verifyEqual(D.Channel(1:4), {'1'; '2'; '1'; '2'});
+% the matrix gives the mono signal one column and each channel of the stereo one its own
+M = findobj(fig, 'Tag', 'results_matrix');
+tc.verifyEqual(M.ColumnName(:)', {'Analysis', 'Quantity', 'Signal #1, ch1', 'Signal #2, ch1', 'Signal #2, ch2'});
 end
 
 function test_gui_all_channels_runs_a_binaural_pair_in_one_call(tc)
@@ -752,6 +762,8 @@ il_press(fig, 'run');
 log = strjoin(findobj(fig, 'Tag', 'console').Value, newline);
 tc.verifySubstring(log, 'ERROR');
 tc.verifySubstring(log, 'Loudness_ISO532_1');
+st = findobj(fig, 'Tag', 'status');                            % the status bar names the error in red
+tc.verifySubstring(st.Text, 'error');
 T = findobj(fig, 'Tag', 'results_table').Data;
 tc.verifyEqual(unique(T.Metric), {'Roughness_Daniel1997'});
 end

@@ -187,7 +187,7 @@ ana_box.Padding = [6 6 6 6];
 sh = uigridlayout(sig_box, [1 3]);
 sh.Padding = [0 0 0 0];
 sh.ColumnWidth = {'1x', 100, 130};
-uilabel(sh, 'Text', 'SIGNALS', 'FontWeight', 'bold');
+uilabel(sh, 'Text', '1   SIGNALS', 'FontWeight', 'bold');
 lbl_files = uilabel(sh, 'Text', 'No files loaded', 'Tag', 'file_count', 'HorizontalAlignment', 'right');
 uibutton(sh, 'Text', 'Open WAV files...', 'Tag', 'load_files', 'ButtonPushedFcn', @on_load_files);
 signal_list = uigridlayout(sig_box, [1 6], 'Scrollable', 'on', 'Tag', 'signals_list');
@@ -197,7 +197,7 @@ signal_list.RowSpacing = 4;
 ah = uigridlayout(ana_box, [1 2]);
 ah.Padding = [0 0 0 0];
 ah.ColumnWidth = {'1x', 130};
-uilabel(ah, 'Text', 'ANALYSES (gear: parameters)', 'FontWeight', 'bold');
+uilabel(ah, 'Text', '2   ANALYSES (gear: parameters)', 'FontWeight', 'bold');
 uibutton(ah, 'Text', '+ Add', 'Tag', 'add_analysis', 'ButtonPushedFcn', @on_add_analysis, ...
     'Tooltip', 'Adds a copy of the last analysis, to compare the same metric with other parameters');
 analysis_list = uigridlayout(ana_box, [1 5], 'Scrollable', 'on', 'Tag', 'analysis_list');
@@ -216,7 +216,7 @@ act_panel = uipanel(right, 'Title', 'ACTIONS');
 ag = uigridlayout(act_panel, [1 5]);
 ag.ColumnWidth = {'1.4x', '1x', '1x', '1x', 36};
 ag.Padding = [6 4 6 4];
-uibutton(ag, 'Text', 'Run Analysis', 'Tag', 'run', 'FontWeight', 'bold', ...
+btn_run = uibutton(ag, 'Text', 'Run Analysis', 'Tag', 'run', 'FontWeight', 'bold', ...
     'BackgroundColor', green, 'FontColor', [1 1 1], 'ButtonPushedFcn', @on_run);
 uibutton(ag, 'Text', 'Open Graphs Window', 'Tag', 'open_graphs', 'ButtonPushedFcn', @on_open_graphs);
 uibutton(ag, 'Text', 'Waveform / Play', 'Tag', 'open_waveform', 'ButtonPushedFcn', @on_open_waveform);
@@ -224,12 +224,30 @@ uibutton(ag, 'Text', 'Export results...', 'Tag', 'export', 'ButtonPushedFcn', @o
 btn_theme = uibutton(ag, 'Text', char(9788), 'FontSize', 18, 'Tag', 'theme', ...
     'Tooltip', 'Light theme', 'ButtonPushedFcn', @on_theme);   % a sun, or a moon in the light theme
 
+% the results: the single values of the signals side by side, and below them
+% the plot of the analysis chosen in the matrix; the full table and the log
+% are one tab away
 tabs = uitabgroup(right);
-tab_console = uitab(tabs, 'Title', 'Console output');
+tab_results = uitab(tabs, 'Title', 'Results');
+ov = uigridlayout(tab_results, [3 1]);
+ov.RowHeight = {'1x', 26, '1.5x'};
+ov.Padding = [4 4 4 4];
+matrix = uitable(ov, 'Data', cell(0, 2), 'ColumnName', {'Analysis', 'Quantity'}, 'RowName', {}, ...
+    'Tag', 'results_matrix', 'CellSelectionCallback', @on_matrix_select, ...
+    'Tooltip', 'Click a row to plot its analysis below');
+ob = uigridlayout(ov, [1 3]);
+ob.Padding = [0 0 0 0];
+ob.ColumnWidth = {40, 300, '1x'};
+uilabel(ob, 'Text', 'Plot:', 'HorizontalAlignment', 'right');
+dd_overview = uidropdown(ob, 'Items', {}, 'Tag', 'overview_analysis', 'ValueChangedFcn', @(~, ~) draw_overview());
+uilabel(ob, 'Text', '');
+ov_plot = uipanel(ov, 'BorderType', 'none', 'Tag', 'overview_plot');
+ov_number = 0;                                         % the analysis plotted below the matrix
+tab_table = uitab(tabs, 'Title', 'Table');
+tbl = uitable(uigridlayout(tab_table, [1 1]), 'Data', results, 'Tag', 'results_table');
+tab_console = uitab(tabs, 'Title', 'Log');
 console = uitextarea(uigridlayout(tab_console, [1 1]), 'Value', {''}, 'Editable', 'off', ...
     'Tag', 'console', 'FontName', 'Monospaced');
-tab_results = uitab(tabs, 'Title', 'Results');
-tbl = uitable(uigridlayout(tab_results, [1 1]), 'Data', results, 'Tag', 'results_table');
 
 status_bar = uigridlayout(main, [1 2]);
 status_bar.Layout.Row = 3; status_bar.Layout.Column = [1 2];
@@ -242,6 +260,9 @@ gauge = uigauge(status_bar, 'linear', 'Tag', 'progress', 'Limits', [0 100], 'Val
 %% Start
 apply_theme();
 add_files(files);
+if isempty(loaded)
+    refresh_signals();                                 % the empty list, with the hint to start
+end
 refresh_analyses();
 setappdata(fig, 'sqat_set_analyses', @set_analyses);   % the list from metric ids, for the tests
 setappdata(fig, 'sqat_run_description', @run_description);   % the Settings sheet, for the tests
@@ -316,6 +337,7 @@ end
 
     function on_signal_ticked(k, tf)
         loaded(k).marked = tf;
+        update_run_label();
         refresh_windows();
     end
 
@@ -363,6 +385,7 @@ end
             uibutton(analysis_list, 'Text', '', 'Icon', icon_remove, 'Tag', sprintf('analysis_remove_%d', k), ...
                 'Tooltip', 'Removes this analysis', 'ButtonPushedFcn', @(~, ~) on_remove_analysis(k));
         end
+        update_run_label();
     end
 
     function set_analyses(ids)
@@ -556,17 +579,92 @@ end
     end
 
     function show_results()
-        % the results as one list, and one tab per signal (Results #1, #2, ...) with its own rows
+        % the matrix of single values and its plot on the Results tab, the full list on Table
         tbl.Data = results;
-        delete(findobj(tabs, 'Tag', 'results_signal'));
-        for f = loaded
-            rows = strcmp(results.Path, f.path);        % two files may share a name
-            if any(rows)
-                t = uitab(tabs, 'Title', sprintf('Results #%d', f.id), 'Tag', 'results_signal');
-                uitable(uigridlayout(t, [1 1]), 'Data', ...
-                    results(rows, {'Analysis', 'Metric', 'Channel', 'Quantity', 'Value', 'Unit', 'Parameters'}), ...
-                    'RowName', {});
+        show_matrix();
+        draw_overview();
+        tabs.SelectedTab = tab_results;
+    end
+
+    function show_matrix()
+        % one row per analysis and quantity, one column per signal and channel, in
+        % the order of the run; UserData holds the analysis number of each row
+        mx_T = results;
+        mx_col = strcat(mx_T.Signal, ', ch', mx_T.Channel);
+        mx_col = strrep(mx_col, ', chBinaural', ', binaural');
+        [mx_cols, ~, mx_ic] = unique(mx_col, 'stable');
+        mx_row = strcat(mx_T.Analysis, '|', mx_T.Quantity);
+        [mx_rows, mx_ir, mx_jr] = unique(mx_row, 'stable');
+        mx_data = cell(numel(mx_rows), 2 + numel(mx_cols));
+        for mx_k = 1:numel(mx_rows)
+            mx_i = mx_ir(mx_k);
+            mx_data(mx_k, 1:2) = {il_key_label(store, run_key(mx_T.Analysis{mx_i})), sprintf('%s (%s)', mx_T.Quantity{mx_i}, mx_T.Unit{mx_i})};
+        end
+        for mx_k = 1:height(mx_T)
+            mx_data{mx_jr(mx_k), 2 + mx_ic(mx_k)} = mx_T.Value(mx_k);
+        end
+        matrix.Data = mx_data;
+        matrix.ColumnName = [{'Analysis', 'Quantity'}, strrep(mx_cols', '#', 'Signal #')];
+        matrix.UserData = cellfun(@(mx_r) str2double(erase(extractBefore(mx_r, '|'), '#')), mx_rows);
+        if ~ismember(ov_number, matrix.UserData)
+            ov_number = 0;
+            if ~isempty(matrix.UserData)
+                ov_number = matrix.UserData(1);
             end
+        end
+    end
+
+    function on_matrix_select(src, event)
+        if isempty(event.Indices)
+            return
+        end
+        mx_n = src.UserData(event.Indices(1, 1));
+        if mx_n ~= ov_number
+            ov_number = mx_n;
+            draw_overview();
+        end
+    end
+
+    function mx_key = run_key(mx_a)
+        % the key of an analysis of the run ('#2' gives Loudness_ISO532_1#2)
+        mx_key = '';
+        mx_k = find([run_settings.analyses.n] == str2double(erase(mx_a, '#')), 1);
+        if ~isempty(mx_k)
+            mx_key = run_settings.analyses(mx_k).key;
+        end
+    end
+
+    function draw_overview()
+        % the analysis chosen in the matrix, for the signals still in the list:
+        % their lines overlaid, or their maps side by side
+        delete(ov_plot.Children);
+        ov_entries = store(strcmp({store.number}, sprintf('#%d', ov_number)) & ismember({store.file}, {loaded.path}));
+        if isempty(ov_entries)
+            set(dd_overview, 'Items', {});
+            uilabel(uigridlayout(ov_plot, [1 1]), 'HorizontalAlignment', 'center', ...
+                'Text', 'Run an analysis: its values appear above and its plot here.');
+            return
+        end
+        [ov_items, mx_data] = il_analysis_items(ov_entries);
+        ov_keep = ~ismember(mx_data, {'sqat', 'all', 'stats'});
+        ov_items = ov_items(ov_keep);
+        mx_data = mx_data(ov_keep);
+        if isempty(mx_data)
+            set(dd_overview, 'Items', {});
+            uilabel(uigridlayout(ov_plot, [1 1]), 'HorizontalAlignment', 'center', ...
+                'Text', 'This analysis has single values only.');
+            return
+        end
+        ov_wanted = dd_overview.Value;
+        set(dd_overview, 'Items', ov_items, 'ItemsData', mx_data);
+        if il_is_member(ov_wanted, mx_data)
+            dd_overview.Value = ov_wanted;
+        end
+        ov_chan = unique({ov_entries.channel});
+        ov_chan = il_if(isscalar(ov_chan), ov_chan{1}, '');
+        draw_analysis(ov_plot, ov_entries, dd_overview.Value, ov_chan);
+        for ov_ax = findall(ov_plot, 'Type', 'axes')'
+            ov_ax.Toolbar.Visible = 'off';
         end
     end
 
@@ -1571,12 +1669,29 @@ end
         end
         if n == 0
             lbl_files.Text = 'No files loaded';
+            h = uilabel(signal_list, 'Text', 'Open WAV files to start: the button above, top right.', ...
+                'FontAngle', 'italic', 'Tag', 'signals_hint');
+            h.Layout.Row = 2;
+            h.Layout.Column = [3 6];
         elseif n == 1
             lbl_files.Text = '1 file loaded';
         else
             lbl_files.Text = sprintf('%d files loaded', n);
         end
         mark_active();
+        update_run_label();
+    end
+
+    function update_run_label()
+        % the button tells what a run computes: the ticked signals times the analyses
+        n_s = nnz([loaded.marked]);
+        n_a = numel(analyses);
+        if n_s == 0 || n_a == 0
+            btn_run.Text = 'Run Analysis';
+        else
+            btn_run.Text = sprintf('Run %d %s %c %d %s', n_s, il_if(n_s == 1, 'signal', 'signals'), 215, ...
+                n_a, il_if(n_a == 1, 'analysis', 'analyses'));
+        end
     end
 
     function mark_active()
@@ -2900,8 +3015,20 @@ end
         end
     end
 
+    function status_colour(is_error)
+        % red for an error, else the colour of the theme
+        if is_error
+            lbl_status.FontColor = [0.85 0.2 0.2];
+        elseif isprop(lbl_status, 'FontColorMode')
+            lbl_status.FontColorMode = 'auto';
+        else
+            lbl_status.FontColor = [0 0 0];
+        end
+    end
+
     function set_status(text)
         lbl_status.Text = text;
+        status_colour(false);
         if il_is_open(dlg)
             dlg.Message = text;
         end
@@ -2946,6 +3073,10 @@ end
             lines = {};
         end
         console.Value = [lines(:); {sprintf('[%s] %s', stamp, msg)}];
+        if startsWith(msg, {'ERROR', 'No '})       % what needs the eye shows on the status bar too
+            lbl_status.Text = msg;
+            status_colour(startsWith(msg, 'ERROR'));
+        end
         try
             scroll(console, 'bottom');
         catch
