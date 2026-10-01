@@ -269,6 +269,7 @@ end
 refresh_analyses();
 setappdata(fig, 'sqat_set_analyses', @set_analyses);   % the list from metric ids, for the tests
 setappdata(fig, 'sqat_run_description', @run_description);   % the Settings sheet, for the tests
+setappdata(fig, 'sqat_write_report', @write_report);   % the PDF report, without its file dialog, for the tests
 setappdata(fig, 'sqat_stop', @on_stop_run);           % the Stop of the progress dialog, which a hidden window has not
 setappdata(fig, 'sqat_set_calibration', @set_calibration);   % the calibration without its dialog, for the tests
 write_log('Ready. Open WAV files, choose metrics and parameters, then press Run Analysis.');
@@ -962,18 +963,46 @@ end
             write_log('No results to export. Run an analysis first.');
             return
         end
-        [f, p] = uiputfile({'*.xlsx', 'Excel workbook (*.xlsx)'; '*.csv', 'CSV file (*.csv)'}, ...
+        [f, p] = uiputfile({'*.xlsx', 'Excel workbook (*.xlsx)'; '*.csv', 'CSV file (*.csv)'; ...
+            '*.pdf', 'PDF report: settings, single values and plots (*.pdf)'}, ...
             'Export results', 'SQAT_results.xlsx');
         focus_gui();
         if isequal(f, 0)
             return
         end
         try
+            if endsWith(f, '.pdf', 'IgnoreCase', true)
+                write_report(fullfile(p, f));
+                write_log(['Report written to ' fullfile(p, f)]);
+                return
+            end
             SQAT_GUI_export(results, fullfile(p, f), run_description());
             write_log(['Results exported to ' fullfile(p, f)]);
         catch err
             write_log(['ERROR exporting the results: ' err.message]);
         end
+    end
+
+    function write_report(file)
+        % the report: the settings, the matrix of single values and, per analysis
+        % of the run, the first plot that the Results tab offers for it
+        rp_groups = struct('title', {}, 'analyses', {}, 'names', {});
+        for rp_n = unique(matrix.UserData, 'stable')'
+            rp_e = store(strcmp({store.number}, sprintf('#%d', rp_n)) & ismember({store.file}, {loaded.path}));
+            if isempty(rp_e)
+                continue
+            end
+            [~, rp_ids] = il_analysis_items(rp_e);
+            rp_ids = rp_ids(~ismember(rp_ids, {'sqat', 'all', 'stats'}));
+            if isempty(rp_ids)
+                continue
+            end
+            rp_a = arrayfun(@(e) e.analyses(strcmp({e.analyses.id}, rp_ids{1})), rp_e);
+            rp_names = arrayfun(@il_tag, rp_e, 'UniformOutput', false);
+            rp_groups(end+1) = struct('title', sprintf('%s: %s', il_key_label(store, rp_e(1).metric), rp_a(1).label), ...
+                'analyses', rp_a, 'names', {rp_names}); %#ok<AGROW>
+        end
+        SQAT_GUI_report(file, run_description(), matrix.ColumnName(:)', matrix.Data, rp_groups);
     end
 
     function S = run_description()

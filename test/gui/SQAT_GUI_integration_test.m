@@ -578,6 +578,22 @@ S = describe();
 tc.verifyEqual(S.Item(startsWith(S.Item, 'Signal')), {'Signal #1'});
 end
 
+function test_gui_exports_a_pdf_report(tc)
+% Export to .pdf writes the report of the run: the settings and the matrix of
+% single values as text, then one page per analysis with its plot.
+fig = SQAT_GUI({tc.TestData.wav_mono, tc.TestData.wav_tone}, 'Visible', 'off');
+tc.addTeardown(@() delete(fig));
+il_select_metrics(fig, {'Do_SLM', 'Loudness_ISO532_1'});
+il_press(fig, 'run');
+pdf = fullfile(tc.TestData.dir_tmp, 'report.pdf');
+write_report = getappdata(fig, 'sqat_write_report');
+write_report(pdf);
+tc.verifyTrue(isfile(pdf));
+tc.verifyGreaterThan(dir(pdf).bytes, 10000);
+write_report(pdf);                                             % a second report replaces the first
+tc.verifyTrue(isfile(pdf));
+end
+
 function test_gui_marks_the_results_when_a_setting_changes(tc)
 % The results tab is marked "settings changed" when a parameter or the
 % calibration of a signal with results changes, and the mark goes away with
