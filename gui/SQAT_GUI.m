@@ -3334,6 +3334,10 @@ switch q
     case 'time',  u = 's';     return
     case {'N_ratio', 'ScalarPA'}, u = '-'; return
 end
+if strcmp(id, 'Do_SLM')
+    u = 'dB';
+    return
+end
 if contains(q, 'Level')
     u = 'phon';
     return

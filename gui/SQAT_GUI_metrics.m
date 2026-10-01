@@ -52,6 +52,11 @@ d_pa    = psychoacoustic_metrics_get_defaults('PsychoacousticAnnoyance_Widmann19
 
 metrics = struct('id', {}, 'label', {}, 'params', {}, 'run', {}, 'stereo', {});
 
+metrics(end+1) = il_entry('Do_SLM', 'Sound level (IEC 61672-1)', ...
+    [il_choice('weight_freq', 'Frequency weighting', {'A', 'A'; 'C', 'C'; 'Z', 'Z'}, 'A'), ...
+     il_choice('weight_time', 'Time weighting', {'Fast', 'f'; 'Slow', 's'; 'Impulse', 'i'}, 'f')], ...
+    @il_sound_level);
+
 metrics(end+1) = il_entry('Loudness_ISO532_1', 'Loudness (ISO 532-1)', ...
     [il_set(field_iso, d_loud.field), ...
      il_choice('method', 'Method', {'Stationary', 1; 'Time-varying', 2}, d_loud.method), ...
@@ -109,6 +114,33 @@ metrics(end+1) = il_entry('EPNL_FAR_Part36', 'EPNL (FAR Part 36)', ...
      il_number('threshold', 'Threshold (TPNdB)', 10)], ...
     @(x, fs, p, show) EPNL_FAR_Part36(x, fs, 1, p.dt, p.threshold, show));
 
+end
+
+function OUT = il_sound_level(x, fs, p, show)
+% the sound level meter of SQAT on a signal in Pa, as ex_sound_level_meter.m
+% uses it: the time-weighted level, its equivalent, maximum, minimum and the
+% levels exceeded 5, 50 and 90 % of the time, the sound exposure level, and
+% the one-third octave levels (unweighted) of Do_OB13_ISO532_1
+L = Do_SLM(x, fs, p.weight_freq, p.weight_time, 94);
+if show
+    Do_SLM(x, fs, p.weight_freq, p.weight_time, 94);   % no output: the figure of Do_SLM
+end
+L = L(:);
+fw = upper(p.weight_freq);
+tw = upper(p.weight_time);
+step = max(1, round(fs / 1000));                     % the level vs time every millisecond
+OUT.time = (0:step:numel(L) - 1)' / fs;
+OUT.InstantaneousSPL = L(1:step:end);
+OUT.(['L' fw 'eq']) = Get_Leq(L, fs);
+OUT.(['L' fw tw 'max']) = max(L);
+OUT.(['L' fw tw 'min']) = min(L);
+OUT.(['L' fw tw '5']) = get_exceeded_value(L, 5);
+OUT.(['L' fw tw '50']) = get_exceeded_value(L, 50);
+OUT.(['L' fw tw '90']) = get_exceeded_value(L, 90);
+OUT.(['L' fw 'E']) = OUT.(['L' fw 'eq']) + 10*log10(numel(L) / fs);
+[bands, fc] = Do_OB13_ISO532_1(x, fs);
+OUT.TOB_freq = fc(:);
+OUT.TOB_level = 20*log10(rms(bands, 1)' / 2e-5);
 end
 
 function e = il_entry(id, label, params, run)

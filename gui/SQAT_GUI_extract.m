@@ -193,6 +193,10 @@ function defs = il_catalogue(id)
 % {id, label, kind, field, axis, unit, orient} for each analysis of a metric
 % ('orient' 'bt' when the metric stores a map as bands by time)
 switch id
+    case 'Do_SLM'
+        defs = {
+            'level',                  'Sound level vs time',              'series',  'InstantaneousSPL',                   '',         'Sound pressure level (dB SPL)',   'tb'
+            'tob_level',              'One-third octave levels (Z)',      'profile', 'TOB_level',                          'TOB_freq', 'Band level (dB SPL)',             'tb'};
     case 'Loudness_ISO532_1'
         defs = {
             'loudness',               'Loudness vs time',                 'series',  'InstantaneousLoudness',              '',         'Loudness (sone)',                 'tb'

@@ -55,6 +55,29 @@ for k = 1:size(direct, 1)
 end
 end
 
+function test_sound_level_follows_the_sound_level_meter_example(tc)
+% The sound level of the GUI calls Do_SLM and Get_Leq as
+% ex_sound_level_meter.m does: a 1 kHz tone of 60 dB SPL gives LAeq 60 dB
+% within 0.1 dB, LAFmax equal to the maximum of Do_SLM, LAE = LAeq + 10 log10 T,
+% and the one-third octave band at 1 kHz carries the tone. The Leq of the
+% example averages the Fast-weighted level, whose integrator starts from
+% zero: a 2 s tone reads 59.72 dB, so the tone lasts 10 s here.
+fs = 48000; t = (0:10*fs-1)'/fs;
+x = sqrt(2) * 2e-5 * 10^(60/20) * sin(2*pi*1000*t);
+m = SQAT_GUI_metrics;
+e = m(strcmp({m.id}, 'Do_SLM'));
+[~, OUT] = evalc('e.run(x, fs, il_default_params(e), false)');
+L = Do_SLM(x, fs, 'A', 'f', 94);
+tc.verifyEqual(OUT.LAeq, Get_Leq(L, fs));
+tc.verifyEqual(OUT.LAeq, 60, 'AbsTol', 0.1);
+tc.verifyEqual(OUT.LAFmax, max(L));
+tc.verifyEqual(OUT.LAE, OUT.LAeq + 10*log10(10), 'AbsTol', 1e-9);
+[~, k] = max(OUT.TOB_level);
+tc.verifyEqual(OUT.TOB_freq(k), 1000, 'RelTol', 0.01);
+T = SQAT_GUI_single_values(OUT);
+tc.verifyEqual(T.Quantity', {'LAeq', 'LAFmax', 'LAFmin', 'LAF5', 'LAF50', 'LAF90', 'LAE'});
+end
+
 function test_run_passes_the_chosen_parameters(tc)
 % The parameters chosen in the GUI reach the metric: a stationary ISO 532-1
 % loudness and an Aures sharpness in diffuse field give the same output as the
