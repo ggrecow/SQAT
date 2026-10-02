@@ -178,10 +178,9 @@ main.ColumnWidth = {600, '1x'};                  % the lists get the room, the c
 top = uigridlayout(main, [1 2]);
 top.Layout.Row = 1; top.Layout.Column = 1;
 top.Padding = [0 0 0 0];
-top.ColumnWidth = {112, '1x'};                  % the logo at the full row height (1563 x 895 px)
+top.ColumnWidth = {96, '1x'};                   % the logo a little under the row height (1563 x 895 px)
 img_logo = uiimage(top, 'ImageSource', fullfile(dir_logos, 'logo_white.png'), 'Tag', 'logo');
-uilabel(top, 'Text', 'Sound Quality Analysis Toolbox', 'FontSize', 26, 'FontWeight', 'bold', ...
-    'HorizontalAlignment', 'center');            % centred in the room beside the logo
+uilabel(top, 'Text', 'Sound Quality Analysis Toolbox', 'FontSize', 26, 'FontWeight', 'bold');
 
 left = uigridlayout(main, [2 1]);
 left.Layout.Row = 2; left.Layout.Column = 1;
@@ -1029,9 +1028,9 @@ end
         wave_view.RowHeight = {26, 26, 26, '1x'};
         wave_view.Padding = [4 4 4 4];
         uitabgroup(wave_view, 'Tag', 'wave_tabs', 'SelectionChangedFcn', @on_wave_tab);   % a tab per signal
-        hw = uigridlayout(wave_view, [1 9]);
+        hw = uigridlayout(wave_view, [1 10]);
         hw.Padding = [0 0 0 0];
-        hw.ColumnWidth = {70, 70, 55, 90, 95, 130, 70, 55, '1x'};   % narrow enough for the Waveform tab
+        hw.ColumnWidth = {70, 70, 55, 90, 95, 130, 70, 55, '1x', 100};   % narrow enough for the Waveform tab
         hw.ColumnSpacing = 6;
         btn_play = uibutton(hw, 'Text', 'Play', 'Tag', 'play', 'ButtonPushedFcn', @on_play, ...
             'Tooltip', 'Space plays and pauses; a click on the waveform or the spectrogram moves the playhead');
@@ -1051,6 +1050,8 @@ end
             'ValueChangedFcn', @on_weighting_changed, ...
             'Tooltip', 'Frequency weighting of the sound and of the spectrogram (IEC 61672-1)');
         uilabel(hw, 'Text', '');
+        uibutton(hw, 'Text', 'Save plots...', 'Tag', 'save_wave_plots', 'ButtonPushedFcn', @on_save_wave_plots, ...
+            'Tooltip', 'Saves the spectrogram, the waveform and the sound level, one file each, as PNG or PDF');
         sw = uigridlayout(wave_view, [1 11]);
         sw.Padding = [0 0 0 0];
         sw.ColumnWidth = {50, 115, 70, 72, 52, 78, 52, 62, 70, 85, '1x'};   % the switch needs room for Off and On
@@ -1077,17 +1078,18 @@ end
             'Tag', 'spec_enhanced_mode', 'Enable', 'off', 'ValueChangedFcn', @on_spec_enhanced, ...
             'Tooltip', 'Readable: smoothing of 4 ms and 1.45 % of the frequency, continuous lines. Sharp: 1 ms and 1 Hz, the thinnest lines.');
         uilabel(sw, 'Text', '');
-        pg = uigridlayout(wave_view, [5 1]);                  % the plots, each with its own tools above it
-        pg.RowHeight = {24, '1.2x', '1x', 24, '1x'};   % the spectrogram on top, then the waveform and the sound level
+        pg = uigridlayout(wave_view, [4 1]);                  % the plots, each with its own tools above it
+        pg.RowHeight = {'1.2x', '1x', 24, '1x'};       % the spectrogram on top, then the waveform and the sound level;
+                                                        % the up and down arrows move the colour floor of the spectrogram
         pg.Padding = [0 0 0 0];
         pg.RowSpacing = 2;
         % each plot in a box of its own: the axes keep fixed margins for the
         % labels inside it, the same for all, so the time axes stay aligned
         box_wave = uipanel(pg, 'BorderType', 'none', 'AutoResizeChildren', 'off');
         ax_wave = uiaxes(box_wave, 'Tag', 'waveform_axes', 'ButtonDownFcn', @on_wave_click);
-        box_wave.Layout.Row = 3;
+        box_wave.Layout.Row = 2;
         lg = uigridlayout(pg, [1 6]);                   % the sound level: its time weighting and indicators
-        lg.Layout.Row = 4;
+        lg.Layout.Row = 3;
         lg.ColumnWidth = {100, 80, 100, 55, 55, '1x'};
         lg.ColumnSpacing = 6;
         lg.Padding = [0 0 0 0];
@@ -1095,27 +1097,21 @@ end
         uidropdown(lg, 'Items', {'Fast', 'Slow', 'Impulse'}, 'ItemsData', {'f', 's', 'i'}, 'Value', 'f', ...
             'Tag', 'level_time_weighting', 'ValueChangedFcn', @(~, ~) draw_level(), ...
             'Tooltip', 'Time weighting of the sound level (IEC 61672-1); the frequency weighting is the one of the player');
-        uilabel(lg, 'Text', 'Percentiles (%):', 'HorizontalAlignment', 'right');
-        tip = 'The level exceeded during this percentage of the time (1 to 99); use the arrows';
+        uilabel(lg, 'Text', 'Exceeded (%):', 'HorizontalAlignment', 'right');
+        tip = ['The level reached or exceeded during this percentage of the time (1 to 99), ' ...
+               'as N5 in ISO 532-1; use the arrows'];
         uispinner(lg, 'Value', 5, 'Limits', [1 99], 'Step', 1, 'RoundFractionalValues', 'on', ...
             'Tag', 'level_percentile_1', 'ValueChangedFcn', @(~, ~) show_level_values(), 'Tooltip', tip);
         uispinner(lg, 'Value', 90, 'Limits', [1 99], 'Step', 1, 'RoundFractionalValues', 'on', ...
             'Tag', 'level_percentile_2', 'ValueChangedFcn', @(~, ~) show_level_values(), 'Tooltip', tip);
-        uilabel(lg, 'Text', '', 'Tag', 'level_indicators', 'FontWeight', 'bold');
+        uilabel(lg, 'Text', '', 'Tag', 'level_indicators', 'FontSize', 11, ...   % small enough for five values
+            'Tooltip', ['Leq: equivalent level. SEL: sound exposure level (LE), Leq plus 10 lg of the duration in s. ' ...
+                        'Lmax: maximum. LN: level reached or exceeded during N % of the time. All in dB.']);
         box_lvl = uipanel(pg, 'BorderType', 'none', 'AutoResizeChildren', 'off');
         ax_lvl = uiaxes(box_lvl, 'Tag', 'level_axes', 'ButtonDownFcn', @on_wave_click);
-        box_lvl.Layout.Row = 5;
-        tg = uigridlayout(pg, [1 3]);
-        tg.Layout.Row = 1;
-        tg.ColumnWidth = {'1x', 30, 30};                % the colour buttons at the right, over the colorbar
-        tg.Padding = [0 0 0 0];
-        uilabel(tg, 'Text', '');
-        uibutton(tg, 'Text', char(8722), 'Tag', 'spec_black_less', 'ButtonPushedFcn', @(~, ~) shift_black(-5), ...
-            'Tooltip', 'Less black: the colour scale reaches 5 dB lower (down arrow)');
-        uibutton(tg, 'Text', '+', 'Tag', 'spec_black_more', 'ButtonPushedFcn', @(~, ~) shift_black(5), ...
-            'Tooltip', 'More black: the colour scale starts 5 dB higher (up arrow)');
+        box_lvl.Layout.Row = 4;
         box_spec = uipanel(pg, 'BorderType', 'none', 'AutoResizeChildren', 'off');
-        box_spec.Layout.Row = 2;
+        box_spec.Layout.Row = 1;
         ax_spec = uiaxes(box_spec, 'Tag', 'spectrogram', 'ButtonDownFcn', @on_wave_click);
         box_wave.SizeChangedFcn = @(src, ~) il_fit_axes(src, ax_wave);
         box_spec.SizeChangedFcn = @(src, ~) il_fit_axes(src, ax_spec);
@@ -1127,6 +1123,43 @@ end
         ax_wave.XAxis.LimitsChangedFcn = @on_wave_limits;
         ax_lvl.XAxis.LimitsChangedFcn = @on_level_limits;
         wave_appdata();
+    end
+
+    function on_save_wave_plots(~, ~)
+        % the three plots of the Waveform tab as they are on screen (zoom included),
+        % one file each: <name>_spectrogram, <name>_waveform and <name>_level
+        if isempty(wave_x)
+            write_log('No file loaded.');
+            return
+        end
+        f = active_file();
+        [~, base] = fileparts(f.name);
+        base = sprintf('%s_ch%d', base, channel_of_active());
+        if isappdata(fig, 'sqat_next_file')            % a test stands in for the file dialog
+            path = getappdata(fig, 'sqat_next_file');
+            rmappdata(fig, 'sqat_next_file');
+        else
+            [name, folder, k] = uiputfile({'*.png', 'PNG image (*.png)'; '*.pdf', 'PDF (*.pdf)'}, ...
+                'Save the plots', fullfile(save_folder, [base '.png']));
+            focus_gui();
+            if isequal(name, 0)
+                return
+            end
+            [~, ~, ext] = fileparts(name);
+            if isempty(ext)
+                name = [name il_if(k == 2, '.pdf', '.png')];
+            end
+            path = fullfile(folder, name);
+        end
+        [folder, base, ext] = fileparts(path);
+        save_folder = folder;
+        n = 0;
+        names = {'spectrogram', 'waveform', 'level'};
+        axs = [ax_spec, ax_wave, ax_lvl];
+        for k = 1:3
+            n = n + il_export(axs(k), folder, sprintf('%s_%s%s', base, names{k}, ext));
+        end
+        write_log(sprintf('%d plot(s) saved to %s', n, folder));
     end
 
     function wave_appdata()
@@ -2588,6 +2621,7 @@ end
             'PickableParts', 'none', 'Tag', 'level_line');
         xlim(ax_lvl, ax_wave.XLim);
         ylabel(ax_lvl, il_if(strcmp(fw, 'Z'), 'Level (dB SPL)', sprintf('Level (dB(%s))', fw)));   % short: the plot is low
+        xlabel(ax_lvl, 'Time (s)');
         title(ax_lvl, sprintf('Sound level (%s-weighted, %s)', fw, dd_tw.Items{strcmp(dd_tw.ItemsData, dd_tw.Value)}));
         xline(ax_lvl, (max(play_start, 1) - 1) / wave_fs, 'Color', [0.85 0.2 0.2], 'LineWidth', 1.5, ...
             'Tag', 'playhead_level', 'PickableParts', 'none');
@@ -2596,10 +2630,9 @@ end
     end
 
     function show_level_values()
-        % Leq, LE and Lmax above the plot, and the levels exceeded during the two
-        % percentiles chosen as dashed lines on it, so that the arrows move them
+        % Leq, SEL (LE), Lmax and the levels exceeded during the two percentages
+        % of the time chosen, in one line above the plot
         lbl = findobj(win_wave, 'Tag', 'level_indicators');
-        delete(findall(ax_lvl, 'Tag', 'level_percentile_line'));
         if isempty(lvl_L)
             lbl.Text = '';
             return
@@ -2607,15 +2640,12 @@ end
         F = findobj(win_wave, 'Tag', 'wave_weighting').Value;
         T = upper(findobj(win_wave, 'Tag', 'level_time_weighting').Value);
         Leq = Get_Leq(lvl_L, wave_fs);
-        txt = sprintf('L%seq %.1f   L%sE %.1f   L%s%smax %.1f', F, Leq, F, Leq + 10*log10(numel(lvl_L) / wave_fs), ...
+        txt = sprintf('L%seq %.1f   SEL %.1f   L%s%smax %.1f', F, Leq, Leq + 10*log10(numel(lvl_L) / wave_fs), ...
             F, T, max(lvl_L));
         pct = unique([findobj(win_wave, 'Tag', 'level_percentile_1').Value, ...
             findobj(win_wave, 'Tag', 'level_percentile_2').Value]);
         for p = pct
-            v = get_exceeded_value(lvl_L, p);
-            yline(ax_lvl, v, '--', sprintf('L%s%s%g %.1f dB', F, T, p, v), 'Color', [0.93 0.6 0.1], ...
-                'LineWidth', 1.2, 'LabelHorizontalAlignment', 'left', 'Tag', 'level_percentile_line', ...
-                'PickableParts', 'none', 'HandleVisibility', 'off');
+            txt = sprintf('%s   L%s%s%g %.1f', txt, F, T, p, get_exceeded_value(lvl_L, p));
         end
         lbl.Text = [txt ' dB'];
     end

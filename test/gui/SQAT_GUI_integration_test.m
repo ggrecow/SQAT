@@ -832,15 +832,15 @@ end
 function test_gui_sound_level_follows_the_weightings(tc)
 % The sound level below the waveform is Do_SLM of the signal on screen, with
 % the frequency weighting of the player and the time weighting above the
-% plot; its indicators follow the two percentiles of the spinners.
+% plot; its indicators follow the two exceedance percentages of the spinners.
 fig = SQAT_GUI({tc.TestData.wav_mono}, 'Visible', 'off');
 tc.addTeardown(@() delete(fig));
 [x, fs] = SQAT_GUI_load(tc.TestData.wav_mono, 94, 1);
 L = Do_SLM(x, fs, 'Z', 'f', 94);
 lbl = findobj(fig, 'Tag', 'level_indicators');
 tc.verifySubstring(lbl.Text, sprintf('LZeq %.1f', Get_Leq(L, fs)));
-pl = @() sort(get(findall(findobj(fig, 'Tag', 'level_axes'), 'Tag', 'level_percentile_line'), 'Label'));
-tc.verifyEqual(pl(), sort({sprintf('LZF5 %.1f dB', get_exceeded_value(L, 5)); sprintf('LZF90 %.1f dB', get_exceeded_value(L, 90))}));
+tc.verifySubstring(lbl.Text, sprintf('LZF5 %.1f   LZF90 %.1f dB', get_exceeded_value(L, 5), get_exceeded_value(L, 90)));
+tc.verifySubstring(lbl.Text, sprintf('SEL %.1f', Get_Leq(L, fs) + 10*log10(numel(L) / fs)));
 il_set(fig, 'wave_weighting', 'A');
 il_set(fig, 'level_time_weighting', 's');
 L = Do_SLM(x, fs, 'A', 's', 94);
@@ -848,7 +848,19 @@ tc.verifySubstring(lbl.Text, sprintf('LASmax %.1f', max(L)));
 tc.verifyEqual(findobj(fig, 'Tag', 'level_axes').Title.String, 'Sound level (A-weighted, Slow)');
 il_set(fig, 'level_percentile_1', 10);
 il_set(fig, 'level_percentile_2', 50);
-tc.verifyEqual(pl(), sort({sprintf('LAS10 %.1f dB', get_exceeded_value(L, 10)); sprintf('LAS50 %.1f dB', get_exceeded_value(L, 50))}));
+tc.verifySubstring(lbl.Text, sprintf('LAS10 %.1f   LAS50 %.1f dB', get_exceeded_value(L, 10), get_exceeded_value(L, 50)));
+end
+
+function test_gui_saves_the_three_plots_of_the_waveform_tab(tc)
+% Save plots writes the spectrogram, the waveform and the sound level, one
+% file each, with the name chosen and a suffix per plot.
+fig = SQAT_GUI({tc.TestData.wav_mono}, 'Visible', 'off');
+tc.addTeardown(@() delete(fig));
+setappdata(fig, 'sqat_next_file', fullfile(tc.TestData.dir_tmp, 'plots.png'));
+il_press(fig, 'save_wave_plots');
+for name = {'spectrogram', 'waveform', 'level'}
+    tc.verifyTrue(isfile(fullfile(tc.TestData.dir_tmp, ['plots_' name{1} '.png'])), name{1});
+end
 end
 
 function test_gui_space_plays_from_the_main_window(tc)
@@ -2163,9 +2175,9 @@ tc.verifyEqual(surf().XData, x_full);
 end
 
 function test_enhanced_stft_colour_floor_moves_by_5_dB(tc)
-% The + and - buttons and the up and down arrows move the bottom of the colour
-% scale of the enhanced map by 5 dB, the floor survives a redraw, and the
-% range stays between 5 dB and 60 dB below the default. Needs a display.
+% The up and down arrows move the bottom of the colour scale of the enhanced
+% map by 5 dB, the floor survives a redraw, and the range stays between 5 dB
+% and 60 dB below the default. Needs a display.
 il_needs_display(tc);
 fig = SQAT_GUI({tc.TestData.wav_tone}, 'Visible', 'off');
 tc.addTeardown(@() delete(fig));
@@ -2174,7 +2186,7 @@ il_set(w, 'spec_enhanced', 'On');
 ax = findobj(w, 'Tag', 'spectrogram');
 top = ax.CLim(2);
 tc.verifyEqual(ax.CLim, top + [-45 0], 'AbsTol', 1e-9);
-il_press(w, 'spec_black_more');
+w.KeyPressFcn(w, struct('Key', 'uparrow'));
 tc.verifyEqual(ax.CLim, top + [-40 0], 'AbsTol', 1e-9);
 w.KeyPressFcn(w, struct('Key', 'uparrow'));
 tc.verifyEqual(ax.CLim, top + [-35 0], 'AbsTol', 1e-9);
@@ -2182,11 +2194,11 @@ il_set(w, 'spec_enhanced_mode', 'sharp');                      % the floor stays
 tc.verifyEqual(ax.CLim(2) - ax.CLim(1), 35, 'AbsTol', 1e-9);
 il_set(w, 'spec_enhanced_mode', 'readable');
 w.KeyPressFcn(w, struct('Key', 'downarrow'));
-il_press(w, 'spec_black_less');
+w.KeyPressFcn(w, struct('Key', 'downarrow'));
 tc.verifyEqual(ax.CLim, top + [-45 0], 'AbsTol', 1e-9);
-for k = 1:20, il_press(w, 'spec_black_more'); end
+for k = 1:20, w.KeyPressFcn(w, struct('Key', 'uparrow')); end
 tc.verifyEqual(ax.CLim, top + [-5 0], 'AbsTol', 1e-9);         % at least 5 dB of colour
-for k = 1:30, il_press(w, 'spec_black_less'); end
+for k = 1:30, w.KeyPressFcn(w, struct('Key', 'downarrow')); end
 tc.verifyEqual(ax.CLim, top + [-105 0], 'AbsTol', 1e-9);       % at most 60 dB below the default
 end
 
