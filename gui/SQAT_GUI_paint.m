@@ -2,10 +2,11 @@ function SQAT_GUI_paint(w, style)
 % function SQAT_GUI_paint(w, style)
 %
 %   The light theme of the interface in white: the window, its grids,
-%   panels and tabs, and the room around the plots take white over the
-%   light grey of MATLAB. The dark theme gives them back the colours of the
-%   theme. Called after a window or a part of it is built, since a new
-%   container starts with the colour of the theme.
+%   panels and tabs, the room around the plots, the buttons and the menus
+%   take white over the light grey of MATLAB; the Run button keeps its
+%   green, and the tables their stripes. The dark theme gives them back the
+%   colours of the theme. Called after a window or a part of it is built,
+%   since a new component starts with the colour of the theme.
 %
 % INPUT ARGUMENTS
 %   w : a uifigure, or a container in one
@@ -38,8 +39,9 @@ if strcmp(w.Type, 'figure')
     end
 end
 for h = findall(w, '-property', 'BackgroundColor')'
-    if ~ismember(h.Type, {'uigridlayout', 'uipanel', 'uitab', 'axes'})
-        continue                                   % buttons, fields and tables keep their own colours
+    if ~ismember(h.Type, {'uigridlayout', 'uipanel', 'uitab', 'axes', 'uibutton', 'uistatebutton', 'uidropdown'}) ...
+            || strcmp(h.Tag, 'run')
+        continue                                   % the green Run and the striped tables keep their colours
     end
     if white
         h.BackgroundColor = [1 1 1];

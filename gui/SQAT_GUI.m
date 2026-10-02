@@ -177,7 +177,7 @@ main.ColumnWidth = {600, '1x'};                  % the lists get the room, the c
 
 top = uigridlayout(main, [1 2]);
 top.Layout.Row = 1; top.Layout.Column = 1;
-top.Padding = [0 0 0 0];
+top.Padding = [40 0 0 0];                       % the logo a little in, towards the title
 top.ColumnWidth = {84, '1x'};                   % the logo under the row height (1563 x 895 px), against the title
 img_logo = uiimage(top, 'ImageSource', fullfile(dir_logos, 'logo_white.png'), 'Tag', 'logo', ...
     'HorizontalAlignment', 'right');
@@ -391,6 +391,7 @@ end
             uibutton(analysis_list, 'Text', '', 'Icon', icon_remove, 'Tag', sprintf('analysis_remove_%d', k), ...
                 'Tooltip', 'Removes this analysis', 'ButtonPushedFcn', @(~, ~) on_remove_analysis(k));
         end
+        SQAT_GUI_paint(analysis_list, theme_style);    % the new rows in the colours of the theme
         update_run_label();
     end
 
@@ -1043,7 +1044,8 @@ end
         wave_view = uigridlayout(parent, [4 1]);
         wave_view.RowHeight = {26, 26, 26, '1x'};
         wave_view.Padding = [4 4 4 4];
-        uitabgroup(wave_view, 'Tag', 'wave_tabs', 'SelectionChangedFcn', @on_wave_tab);   % a tab per signal
+        uitabgroup(wave_view, 'Tag', 'wave_tabs', 'SelectionChangedFcn', @on_wave_tab, ...
+            'Visible', 'off');                          % a tab per signal, shown once there is one
         hw = uigridlayout(wave_view, [1 10]);
         hw.Padding = [0 0 0 0];
         hw.ColumnWidth = {70, 70, 55, 90, 95, 130, 70, 55, '1x', 100};   % narrow enough for the Waveform tab
@@ -1229,6 +1231,7 @@ end
             end
             SQAT_GUI_paint(tg, theme_style);
         end
+        tg.Visible = ~isempty(titles);                   % no empty grey strip before a file is loaded
         if active_idx > 0
             tg.SelectedTab = tg.Children(ismember(data, [active_file().id channel_of_active()], 'rows'));
         end
@@ -1804,6 +1807,7 @@ end
             lbl_files.Text = sprintf('%d files loaded', n);
         end
         mark_active();
+        SQAT_GUI_paint(signal_list, theme_style);      % the new rows in the colours of the theme
         update_run_label();
     end
 

@@ -1643,8 +1643,8 @@ end
 function test_waveform_loops_by_default(tc)
 % The loop is on by default: a short file keeps playing past its end until
 % Stop. With the loop off the playback ends at the end of the file and the
-% playhead goes back to 0. Needs an audio output.
-il_needs_audio(tc);
+% playhead goes back to 0. Needs an audio output that plays in real time.
+il_needs_realtime_audio(tc);
 fig = SQAT_GUI({tc.TestData.wav_short}, 'Visible', 'off');
 tc.addTeardown(@() delete(fig));
 w = fig;
@@ -2344,6 +2344,26 @@ catch
     n = 0;
 end
 tc.assumeGreaterThan(n, 0, 'needs an audio output, and this machine has none');
+end
+
+function il_needs_realtime_audio(tc)
+% the end of a file needs an output that plays in real time: the virtual one
+% of the CI runner (a PulseAudio null sink) fills its buffer and stalls
+% (02.10.2026), so a 0.2 s sound must end within 1 s here
+il_needs_audio(tc);
+persistent ok
+if isempty(ok)
+    fs = 48000;
+    p = audioplayer(zeros(round(0.2 * fs), 1), fs);
+    play(p);
+    t0 = tic;
+    while isplaying(p) && toc(t0) < 1
+        pause(0.05);
+    end
+    ok = ~isplaying(p);
+    stop(p);
+end
+tc.assumeTrue(ok, 'the audio output does not play in real time here');
 end
 
 function il_needs_display(tc)
