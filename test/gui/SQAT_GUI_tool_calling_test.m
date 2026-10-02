@@ -87,7 +87,8 @@ x = sqrt(2) * 2e-5 * 10^(70/20) * sin(2*pi*100*t);
 m = SQAT_GUI_metrics;
 e = m(strcmp({m.id}, 'Do_SLM'));
 p = il_default_params(e);
-tc.verifyEqual(p.tob_weight, 'Z');
+tc.verifyEqual(p.tob_weight, 'A');                    % as the level, A by default
+p.tob_weight = 'Z';
 [~, Z] = evalc('e.run(x, fs, p, false)');
 p.tob_weight = 'A';
 [~, A] = evalc('e.run(x, fs, p, false)');
