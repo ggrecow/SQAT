@@ -23,7 +23,7 @@ function [outsig_dB, dBFS] = Do_SLM(insig,fs,weight_freq,weight_time,dBFS)
 %   figure;
 %   plot(outsig_dB); grid on;
 %   xlabel('Time [samples]');
-%   ylabel('Amplitude (dB(A))');
+%   ylabel('Amplitude (dBA)');
 % 
 %   %%%%%%
 %   % Example 2.2:
@@ -113,9 +113,9 @@ if nargout == 0
     plot(t, outsig_dB ); grid on;
     switch weight_freq
         case 'Z'
-            suff = '';
+            suff = ' SPL';
         otherwise
-            suff = ['(' weight_freq ')'];
+            suff = weight_freq;                        % dBA, dBC
     end
     xlabel('Time (s)');
     xlim([0 max(t)]);

@@ -177,12 +177,13 @@ main.ColumnWidth = {600, '1x'};                  % the lists get the room, the c
 
 top = uigridlayout(main, [1 2]);
 top.Layout.Row = 1; top.Layout.Column = 1;
-top.Padding = [40 0 0 0];                       % the logo a little in, towards the title
-top.ColumnWidth = {84, '1x'};                   % the logo under the row height (1563 x 895 px), against the title
+top.Padding = [20 0 0 0];                       % the logo a little in from the edge
+top.ColumnWidth = {84, '1x'};                   % the logo under the row height (1563 x 895 px)
+top.ColumnSpacing = 25;                         % from the logo to the title
 img_logo = uiimage(top, 'ImageSource', fullfile(dir_logos, 'logo_white.png'), 'Tag', 'logo', ...
     'HorizontalAlignment', 'right');
 uilabel(top, 'Text', 'Sound Quality Analysis Toolbox', 'FontSize', 26, 'FontWeight', 'bold', ...
-    'HorizontalAlignment', 'center');            % centred in the room beside the logo
+    'HorizontalAlignment', 'left');             % right after the logo
 
 left = uigridlayout(main, [2 1]);
 left.Layout.Row = 2; left.Layout.Column = 1;
@@ -2212,7 +2213,12 @@ end
         ax = uiaxes(uigridlayout(parent, [1 1]));
         hold(ax, 'on');
         for k = 1:numel(A)
-            plot(ax, A(k).x, A(k).y);
+            if strcmp(A(k).id, 'tob_level')         % one level per band: a step across its width
+                e = A(k).x(:) * 2^(-1/6);
+                stairs(ax, [e; A(k).x(end) * 2^(1/6)], [A(k).y(:); A(k).y(end)]);
+            else
+                plot(ax, A(k).x, A(k).y);
+            end
         end
         hold(ax, 'off');
         y_all = vertcat(A.y);
@@ -2596,7 +2602,7 @@ end
         if strcmp(weighting, 'Z')
             cb.Label.String = 'Sound pressure level (dB SPL)';
         else
-            cb.Label.String = sprintf('%s-weighted sound pressure level (dB(%s))', weighting, weighting);
+            cb.Label.String = sprintf('%s-weighted sound pressure level (dB%s)', weighting, weighting);
         end
         il_fit_axes(ax_spec.Parent, ax_spec, 26);      % the time label only on the sound level, the plot at the bottom
         ylabel(ax_spec, 'Frequency (Hz)');
@@ -2653,7 +2659,7 @@ end
         plot(ax_lvl, (0:step:numel(lvl_L) - 1)' / wave_fs, lvl_L(1:step:end), ...
             'PickableParts', 'none', 'Tag', 'level_line');
         xlim(ax_lvl, ax_wave.XLim);
-        ylabel(ax_lvl, il_if(strcmp(fw, 'Z'), 'SPL (dB)', sprintf('SPL (dB(%s))', fw)));   % short: the plot is low
+        ylabel(ax_lvl, sprintf('SPL (%s)', il_level_unit(fw)));   % short: the plot is low
         xlabel(ax_lvl, 'Time (s)');
         title(ax_lvl, sprintf('Sound pressure level (%s-weighted, %s)', fw, dd_tw.Items{strcmp(dd_tw.ItemsData, dd_tw.Value)}));
         xline(ax_lvl, (max(play_start, 1) - 1) / wave_fs, 'Color', [0.85 0.2 0.2], 'LineWidth', 1.5, ...
@@ -2680,7 +2686,7 @@ end
         for p = pct
             txt = sprintf('%s   L%s%s%g %.1f', txt, F, T, p, get_exceeded_value(lvl_L, p));
         end
-        lbl.Text = [txt ' dB'];
+        lbl.Text = [txt ' ' il_level_unit(F)];
     end
 
     function follow_limits(src, dst, event)
@@ -3516,6 +3522,15 @@ if ~isempty(k)
 end
 end
 
+function u = il_level_unit(w)
+% the unit of a level with frequency weighting w: dB SPL unweighted, dBA and
+% dBC weighted (the convention of Greco's thesis: the weighting says it is SPL)
+u = 'dB SPL';
+if ~strcmpi(w, 'Z')
+    u = ['dB' upper(w)];
+end
+end
+
 function u = il_unit(id, q)
 % the unit of quantity q of metric id, as the header of the metric states it
 switch q
@@ -3526,7 +3541,10 @@ switch q
     case {'N_ratio', 'ScalarPA'}, u = '-'; return
 end
 if strcmp(id, 'Do_SLM')
-    u = 'dB';
+    u = 'dB SPL';                                  % LZeq, LZFmax, TOB: unweighted
+    if numel(q) > 1 && ismember(q(2), 'AC')
+        u = il_level_unit(q(2));                   % LAeq, LCFmax: dBA, dBC
+    end
     return
 end
 if contains(q, 'Level')

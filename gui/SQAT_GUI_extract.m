@@ -65,8 +65,16 @@ end
 
 %% -------------------------------------------------------------------------
 function a = il_analysis(OUT, d, channel)
-% one analysis of the catalogue, or [] when OUT does not hold it
+% one analysis of the catalogue, or [] when OUT does not hold it; a <field> in
+% its unit is the text OUT holds in that field (the weighting of a level)
 a = [];
+for f = regexp(d.unit, '<(\w+)>', 'tokens')
+    v = 'dB';
+    if isfield(OUT, f{1}{1})
+        v = OUT.(f{1}{1});
+    end
+    d.unit = strrep(d.unit, ['<' f{1}{1} '>'], v);
+end
 t = il_time(OUT);
 switch d.kind
     case 'series'
@@ -195,8 +203,8 @@ function defs = il_catalogue(id)
 switch id
     case 'Do_SLM'
         defs = {
-            'level',                  'Sound level vs time',              'series',  'InstantaneousSPL',                   '',         'Sound pressure level (dB SPL)',   'tb'
-            'tob_level',              'One-third octave levels',          'profile', 'TOB_level',                          'TOB_freq', 'Band level (dB)',                 'tb'};
+            'level',                  'Sound level vs time',              'series',  'InstantaneousSPL',                   '',         'Sound pressure level (<level_unit>)', 'tb'
+            'tob_level',              'One-third octave levels',          'profile', 'TOB_level',                          'TOB_freq', 'Band level (<TOB_unit>)',         'tb'};
     case 'Loudness_ISO532_1'
         defs = {
             'loudness',               'Loudness vs time',                 'series',  'InstantaneousLoudness',              '',         'Loudness (sone)',                 'tb'

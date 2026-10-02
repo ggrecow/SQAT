@@ -93,6 +93,12 @@ p.tob_weight = 'A';
 [~, A] = evalc('e.run(x, fs, p, false)');
 k = find(abs(Z.TOB_freq - 100) < 1);
 tc.verifyEqual(Z.TOB_level(k) - A.TOB_level(k), 19.1, 'AbsTol', 0.2);
+% the units follow the weightings: dB SPL unweighted, dBA and dBC weighted
+a = SQAT_GUI_extract(A, 'Do_SLM');
+tc.verifyEqual(a(strcmp({a.id}, 'level')).ylabel, 'Sound pressure level (dBA)');
+tc.verifyEqual(a(strcmp({a.id}, 'tob_level')).ylabel, 'Band level (dBA)');
+a = SQAT_GUI_extract(Z, 'Do_SLM');
+tc.verifyEqual(a(strcmp({a.id}, 'tob_level')).ylabel, 'Band level (dB SPL)');
 end
 
 function test_run_passes_the_chosen_parameters(tc)

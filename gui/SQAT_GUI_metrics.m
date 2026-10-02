@@ -140,13 +140,31 @@ OUT.(['L' fw tw 'max']) = max(L);
 OUT.(['L' fw tw '5']) = get_exceeded_value(L, 5);
 OUT.(['L' fw tw '90']) = get_exceeded_value(L, 90);
 OUT.(['L' fw 'E']) = OUT.(['L' fw 'eq']) + 10*log10(numel(L) / fs);
-if isfield(p, 'tob_weight') && ~strcmpi(p.tob_weight, 'Z')
+if ~strcmpi(il_tob_weight(p), 'Z')
     [b, a] = Gen_weighting_filters(fs, p.tob_weight);
     x = filter(b, a, x);
 end
 [bands, fc] = Do_OB13_ISO532_1(x, fs);
 OUT.TOB_freq = fc(:);
+OUT.level_unit = il_level_unit(fw);                % for the axis labels of the GUI
+OUT.TOB_unit = il_level_unit(il_tob_weight(p));
 OUT.TOB_level = 20*log10(rms(bands, 1)' / 2e-5);
+end
+
+function w = il_tob_weight(p)
+% the weighting of the one-third octave levels (Z in a session saved before it)
+w = 'Z';
+if isfield(p, 'tob_weight')
+    w = upper(p.tob_weight);
+end
+end
+
+function u = il_level_unit(w)
+% dB SPL unweighted, dBA and dBC weighted
+u = 'dB SPL';
+if ~strcmpi(w, 'Z')
+    u = ['dB' upper(w)];
+end
 end
 
 function e = il_entry(id, label, params, run)
