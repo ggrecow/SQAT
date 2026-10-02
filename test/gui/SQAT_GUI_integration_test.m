@@ -29,9 +29,16 @@ tc.TestData.x_burst = x_burst;
 tc.TestData.wav_mono = fullfile(dir_tmp, 'tone_mono.wav');
 tc.TestData.wav_stereo = fullfile(dir_tmp, 'tone_stereo.wav');
 tc.TestData.wav_burst = fullfile(dir_tmp, 'burst.wav');
+% the first second of the mono and the stereo tone: enough for the tests that
+% run the ECMA-418-2 metrics twice (through the GUI and directly), which take
+% most of the time of the suite on 3 s
+tc.TestData.wav_mono_1s = fullfile(dir_tmp, 'tone_mono_1s.wav');
+tc.TestData.wav_stereo_1s = fullfile(dir_tmp, 'tone_stereo_1s.wav');
 audiowrite(tc.TestData.wav_mono, x_mono, fs, 'BitsPerSample', 32);
 audiowrite(tc.TestData.wav_stereo, x_stereo, fs, 'BitsPerSample', 32);
 audiowrite(tc.TestData.wav_burst, x_burst, fs, 'BitsPerSample', 32);
+audiowrite(tc.TestData.wav_mono_1s, x_mono(1:fs), fs, 'BitsPerSample', 32);
+audiowrite(tc.TestData.wav_stereo_1s, x_stereo(1:fs, :), fs, 'BitsPerSample', 32);
 % 1 kHz, 60 dB SPL, 100 % modulated at 70 Hz: nearly constant roughness
 x_rough = sqrt(2)*2e-5*10^(60/20) * (1 + sin(2*pi*70*t)) .* sin(2*pi*1000*t) / sqrt(1.5);
 tc.TestData.wav_rough = fullfile(dir_tmp, 'am70.wav');
@@ -406,7 +413,7 @@ function test_gui_all_channels_runs_a_binaural_pair_in_one_call(tc)
 % With All on a stereo file, ISO 532-1 loudness gives channels 1 and 2
 % interleaved, and ECMA-418-2 loudness gives 1, 2 and Binaural from one call;
 % the values equal those of direct calls of the metrics.
-fig = SQAT_GUI({tc.TestData.wav_stereo}, 'Visible', 'off');
+fig = SQAT_GUI({tc.TestData.wav_stereo_1s}, 'Visible', 'off');
 tc.addTeardown(@() delete(fig));
 il_select_metrics(fig, {'Loudness_ISO532_1', 'Loudness_ECMA418_2'});
 il_signal_channel(fig, 1, 'All');
@@ -422,7 +429,7 @@ tc.verifyEqual(iso.Quantity(3), iso.Quantity(4));
 tc.verifyEqual(ecma.Channel(1:3), {'1'; '2'; 'Binaural'});
 tc.verifyEqual(unique(ecma.Channel, 'stable'), {'1'; '2'; 'Binaural'});
 % the values are the ones of the direct calls
-ref = audioread(tc.TestData.wav_stereo); fs = tc.TestData.fs;
+ref = audioread(tc.TestData.wav_stereo_1s); fs = tc.TestData.fs;
 [~, r2] = evalc('Loudness_ISO532_1(ref(:, 2), fs, 0, 2, 0.5, false)');
 row = strcmp(iso.Channel, '2') & strcmp(iso.Quantity, 'N5');
 tc.verifyEqual(iso.Value(row), r2.N5);
@@ -435,9 +442,9 @@ row = strcmp(ecma.Channel, 'Binaural') & strcmp(ecma.Quantity, 'Nmean');
 tc.verifyEqual(ecma.Value(row), rb.Nmean(3));
 % the pair was analysed in one call
 log = strjoin(findobj(fig, 'Tag', 'console').Value, newline);
-tc.verifyEqual(numel(strfind(log, 'Running Loudness_ECMA418_2 on tone_stereo.wav')), 1);
-tc.verifySubstring(log, 'Running Loudness_ECMA418_2 on tone_stereo.wav, both channels');
-tc.verifyEqual(numel(strfind(log, 'Running Loudness_ISO532_1 on tone_stereo.wav')), 2);
+tc.verifyEqual(numel(strfind(log, 'Running Loudness_ECMA418_2 on tone_stereo_1s.wav')), 1);
+tc.verifySubstring(log, 'Running Loudness_ECMA418_2 on tone_stereo_1s.wav, both channels');
+tc.verifyEqual(numel(strfind(log, 'Running Loudness_ISO532_1 on tone_stereo_1s.wav')), 2);
 end
 
 function test_gui_edits_the_parameters_of_a_metric(tc)
@@ -654,25 +661,25 @@ end
 function test_gui_run_keeps_the_results_that_did_not_change(tc)
 % an analysis added to the list runs alone; a change of calibration, channel or
 % parameters runs the analysis again
-fig = SQAT_GUI({tc.TestData.wav_stereo}, 'Visible', 'off');
+fig = SQAT_GUI({tc.TestData.wav_stereo_1s}, 'Visible', 'off');
 tc.addTeardown(@() delete(fig));
 il_select_metrics(fig, {'Loudness_ISO532_1'});
 il_press(fig, 'run');
-v1 = il_value(fig, 'tone_stereo.wav', 'Loudness_ISO532_1', 'Nmean');
+v1 = il_value(fig, 'tone_stereo_1s.wav', 'Loudness_ISO532_1', 'Nmean');
 il_select_metrics(fig, {'Loudness_ISO532_1', 'Roughness_Daniel1997'});
 il_press(fig, 'run');
 log = strjoin(findobj(fig, 'Tag', 'console').Value, newline);
-tc.verifySubstring(log, 'Loudness_ISO532_1 on tone_stereo.wav: kept from the last run');
+tc.verifySubstring(log, 'Loudness_ISO532_1 on tone_stereo_1s.wav: kept from the last run');
 tc.verifySubstring(findobj(fig, 'Tag', 'status').Text, '1 kept from the last run');
-tc.verifyEqual(il_value(fig, 'tone_stereo.wav', 'Loudness_ISO532_1', 'Nmean'), v1);
-tc.verifyNotEmpty(il_value(fig, 'tone_stereo.wav', 'Roughness_Daniel1997', 'Rmean'));
+tc.verifyEqual(il_value(fig, 'tone_stereo_1s.wav', 'Loudness_ISO532_1', 'Nmean'), v1);
+tc.verifyNotEmpty(il_value(fig, 'tone_stereo_1s.wav', 'Roughness_Daniel1997', 'Rmean'));
 il_press(fig, 'run');                                 % nothing changed: nothing runs
 tc.verifySubstring(findobj(fig, 'Tag', 'status').Text, '2 kept from the last run');
 il_signal_dbfs(fig, 1, 104);                          % 10 dB more: every analysis again
 il_press(fig, 'run');
 tc.verifySubstring(findobj(fig, 'Tag', 'status').Text, 'Done');
 tc.verifyEmpty(strfind(findobj(fig, 'Tag', 'status').Text, 'kept'));
-tc.verifyGreaterThan(il_value(fig, 'tone_stereo.wav', 'Loudness_ISO532_1', 'Nmean'), v1);
+tc.verifyGreaterThan(il_value(fig, 'tone_stereo_1s.wav', 'Loudness_ISO532_1', 'Nmean'), v1);
 il_signal_channel(fig, 1, '1');                       % one channel instead of both
 il_press(fig, 'run');
 tc.verifyEmpty(strfind(findobj(fig, 'Tag', 'status').Text, 'kept'));
@@ -1281,7 +1288,7 @@ function test_gui_graphs_choose_the_channel_of_a_binaural_analysis(tc)
 % For ECMA-418-2 loudness on All, the graphs window offers channels 1, 2,
 % Binaural and All in one row, and the curve of channel 2 and of Binaural
 % equals the one of a direct call.
-fig = SQAT_GUI({tc.TestData.wav_stereo}, 'Visible', 'off');
+fig = SQAT_GUI({tc.TestData.wav_stereo_1s}, 'Visible', 'off');
 tc.addTeardown(@() delete(fig));
 il_select_metrics(fig, {'Loudness_ECMA418_2'});
 il_signal_channel(fig, 1, 'All');
@@ -1292,7 +1299,7 @@ dc = findobj(g, 'Tag', 'graph_channel_1');
 tc.verifyEqual(dc.Items, {'1','2','Binaural','All'});
 tc.verifyTrue(all(arrayfun(@(h) h.Layout.Row, findobj(g, 'Tag', 'graph_channels').Children) == 1));   % one row at the first opening
 il_set(g, 'graph_analysis', 'loudness');
-ref = audioread(tc.TestData.wav_stereo); fs = tc.TestData.fs;
+ref = audioread(tc.TestData.wav_stereo_1s); fs = tc.TestData.fs;
 [~, rb] = evalc('Loudness_ECMA418_2(ref, fs, ''free-frontal'', 0.304, false)');
 il_set(g, 'graph_channel_1', '2');
 tc.verifyEqual(findobj(g, 'Type', 'line').YData(:), rb.loudnessTDep(:, 2));
@@ -1362,7 +1369,7 @@ end
 function test_gui_graphs_compare_a_mono_and_a_stereo_signal(tc)
 % each signal has its own channel choice: the mono against channel 1, channel 2,
 % the binaural result or every channel of the stereo
-fig = SQAT_GUI({tc.TestData.wav_mono, tc.TestData.wav_stereo}, 'Visible', 'off');
+fig = SQAT_GUI({tc.TestData.wav_mono_1s, tc.TestData.wav_stereo_1s}, 'Visible', 'off');
 tc.addTeardown(@() delete(fig));
 il_select_metrics(fig, {'Loudness_ECMA418_2'});
 il_signal_channel(fig, 2, 'All');
@@ -1381,7 +1388,7 @@ tc.verifyEqual(legend_of(), {'Signal #1, ch1', 'Signal #2, ch1'});
 il_set(g, 'graph_channel_2', '2');
 tc.verifyEqual(legend_of(), {'Signal #1, ch1', 'Signal #2, ch2'});
 tc.verifyFalse(contains(findobj(g, 'Type', 'axes').Title.String, 'channel'));   % the legend says it
-x2 = audioread(tc.TestData.wav_stereo); fs = tc.TestData.fs;
+x2 = audioread(tc.TestData.wav_stereo_1s); fs = tc.TestData.fs;
 [~, r2] = evalc('Loudness_ECMA418_2(x2, fs, ''free-frontal'', 0.304, false)');
 lines = findobj(g, 'Type', 'line');
 tc.verifyEqual(lines(strcmp({lines.DisplayName}, 'Signal #2, ch2')).YData(:), r2.loudnessTDep(:, 2));
