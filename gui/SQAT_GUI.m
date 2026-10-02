@@ -2219,12 +2219,18 @@ end
         end
         ax = uiaxes(uigridlayout(parent, [1 1]));
         hold(ax, 'on');
+        colors = ax.ColorOrder;
+        styles = {'-', '--', ':', '-.'};
         for k = 1:numel(A)
+            % the colours of the axes, then again dashed, dotted and dash-dotted:
+            % from the eighth signal on no two curves look the same
+            look = {'Color', colors(mod(k - 1, size(colors, 1)) + 1, :), ...
+                    'LineStyle', styles{mod(floor((k - 1) / size(colors, 1)), numel(styles)) + 1}};
             if strcmp(A(k).id, 'tob_level')         % one level per band: a step across its width
                 e = A(k).x(:) * 2^(-1/6);
-                stairs(ax, [e; A(k).x(end) * 2^(1/6)], [A(k).y(:); A(k).y(end)]);
+                stairs(ax, [e; A(k).x(end) * 2^(1/6)], [A(k).y(:); A(k).y(end)], look{:});
             else
-                plot(ax, A(k).x, A(k).y);
+                plot(ax, A(k).x, A(k).y, look{:});
             end
         end
         hold(ax, 'off');

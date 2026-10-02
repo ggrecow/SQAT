@@ -896,6 +896,28 @@ bt.Value = true; bt.ValueChangedFcn(bt, []);
 tc.verifyEqual(char(pan(fig).Enable), 'off');
 end
 
+function test_gui_overlaid_curves_stay_apart_past_seven_signals(tc)
+% Past the seven colours of the axes the curves change line style, so that
+% eight or more signals overlaid stay apart: the eighth takes the colour of
+% the first, dashed.
+wavs = arrayfun(@(k) fullfile(tc.TestData.dir_tmp, sprintf('copy_%d.wav', k)), 1:8, 'UniformOutput', false);
+for k = 1:8
+    copyfile(tc.TestData.wav_mono_1s, wavs{k});
+end
+fig = SQAT_GUI(wavs, 'Visible', 'off');
+tc.addTeardown(@() delete(fig));
+il_select_metrics(fig, {'Do_SLM'});
+il_press(fig, 'run');
+g = il_window('SQAT_GUI_graphs');
+il_set(g, 'graph_analysis', 'tob_level');
+c = flipud(findobj(findobj(g, 'Type', 'axes'), 'Type', 'stair'));   % in the order drawn
+tc.assertNumElements(c, 8);
+tc.verifyEqual(c(8).Color, c(1).Color);
+tc.verifyEqual(char(c(1).LineStyle), '-');
+tc.verifyEqual(char(c(8).LineStyle), '--');
+tc.verifyEqual(numel(unique(arrayfun(@(h) [mat2str(h.Color) char(h.LineStyle)], c, 'UniformOutput', false))), 8);
+end
+
 function test_gui_space_plays_from_the_main_window(tc)
 % The space bar in the main window starts the player of the Waveform tab; a
 % second press pauses it. Needs an audio output.
