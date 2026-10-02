@@ -160,6 +160,12 @@ We would be very happy to know that you find SQAT useful and have used it in you
 
 ## Conference publications
 
+> Bensignor, I. S., Merino-Martínez, R., & Lima Pereira, L. T. (2026). Psychoacoustic assessment of small-scale propeller noise generation mechanisms. Quiet Drones 2026 conference. [(link)](https://www.researchgate.net/publication/415149816_Psychoacoustic_Assessment_of_Small-Scale_Propeller_Noise_Generation_Mechanisms_Session_Experimental_Aeroacoustic_Measurements_-Laboratory)
+
+> Yupa-Villanueva, R. M., & Merino-Martínez, R. (2026). Influence of propeller designs on the aerodynamic and psychoacoustic characteristics of a quadcopter drone. Quiet Drones 2026 conference. [(link)](https://www.researchgate.net/publication/415137998_Influence_of_Propeller_Designs_on_the_Aerodynamic_and_Psychoacoustic_Characteristics_of_a_Quadcopter_Drone)
+
+> Merino-Martínez, R., Yupa-Villanueva, R. M., Pockelé, J. S., Morin, A., & Snellen, M. (2026). Influence of acoustic ground reflections on the sound perception of a hovering quadcopter drone. Quiet Drones 2026 conference. [(link)](https://www.researchgate.net/publication/415149448_Influence_of_acoustic_ground_reflections_on_the_sound_perception_of_a_hovering_quadcopter_drone)
+
 > Hochbaum, F., & Fiebig, A. (2026). Untersuchung von Schwellen der Rauigkeitsempfindung mit einfachen Referenzsignalen und komplexen synthetisierten Drohnengeräuschen. Proceedings of DAGA 2026 - 52. Jahrestagung für Akustik. DOI: [10.71568/daga2026.346](https://doi.org/10.71568/daga2026.346)
 
 > Nurkkala, E., Czedik-Eysenberg, I., Reuter, C., Hopia, A., & Postema, M. (2026). Cheese identification based on feature extraction from rubbing sounds. Proceedings of DAGA 2026 - 52. Jahrestagung für Akustik. DOI: [10.71568/daga2026.387](https://doi.org/10.71568/daga2026.387)
