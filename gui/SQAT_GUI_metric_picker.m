@@ -3,8 +3,9 @@ function d = SQAT_GUI_metric_picker(parent, metrics, add)
 %
 %   Modal dialog that lists the metrics of the interface, each with a tick
 %   and a count: the tick adds one analysis of the metric, + and - change
-%   how many (to compare one metric with other parameters), and OK adds them
-%   all, in the order of the list.
+%   how many (to compare one metric with other parameters), Tick all ticks
+%   every metric (a count above one stays) or none, and OK adds them all,
+%   in the order of the list.
 %
 % INPUT ARGUMENTS
 %   parent : the main window of the interface (the dialog opens over it)
@@ -45,8 +46,12 @@ if isprop(parent, 'Theme') && ~isempty(parent.Theme)
 end
 g = uigridlayout(d, [3 1]);
 g.RowHeight = {22, '1x', 30};
-uilabel(g, 'Text', 'Tick the metrics to analyse; + adds the same metric again, for other parameters.', ...
+hg = uigridlayout(g, [1 2]);
+hg.ColumnWidth = {'1x', 80};
+hg.Padding = [0 0 0 0];
+uilabel(hg, 'Text', 'Tick the metrics to analyse; + adds the same metric again, for other parameters.', ...
     'FontAngle', 'italic');
+all_tick = uicheckbox(hg, 'Text', 'Tick all', 'Tag', 'picker_all', 'ValueChangedFcn', @(src, ~) tick_all(src.Value));
 list = uigridlayout(g, [n 4], 'Scrollable', 'on', 'Tag', 'picker_list');
 list.RowHeight = repmat({24}, 1, n);
 list.ColumnWidth = {'1x', 26, 36, 26};
@@ -71,6 +76,16 @@ uibutton(bg, 'Text', 'OK', 'Tag', 'picker_ok', 'ButtonPushedFcn', @(~, ~) ok());
 uibutton(bg, 'Text', 'Cancel', 'Tag', 'picker_cancel', 'ButtonPushedFcn', @(~, ~) delete(d));
 SQAT_GUI_paint(d, il_style(parent));             % white in the light theme, as the main window
 
+    function tick_all(on)
+        for k_all = 1:n
+            if ~on
+                set_count(k_all, 0);
+            elseif count(k_all) == 0
+                set_count(k_all, 1);
+            end
+        end
+    end
+
     function step(k, delta)
         % read when pressed: an anonymous function would keep the count of its creation
         set_count(k, count(k) + delta);
@@ -84,6 +99,7 @@ SQAT_GUI_paint(d, il_style(parent));             % white in the light theme, as 
         if count(k) > 0
             counts(k).Text = sprintf('%dx', count(k));
         end
+        all_tick.Value = all(count > 0);               % ticked while every metric is
     end
 
     function ok()

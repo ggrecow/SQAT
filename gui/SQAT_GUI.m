@@ -2612,11 +2612,7 @@ end
         if isempty(cb)
             cb = colorbar(ax_spec);
         end
-        if strcmp(weighting, 'Z')
-            cb.Label.String = 'Sound pressure level (dB SPL)';
-        else
-            cb.Label.String = sprintf('%s-weighted sound pressure level (dB%s)', weighting, weighting);
-        end
+        cb.Label.String = sprintf('SPL (%s)', il_level_unit(weighting));   % short: it fits the height of the plot
         il_fit_axes(ax_spec.Parent, ax_spec, 26);      % the time label only on the sound level, the plot at the bottom
         ylabel(ax_spec, 'Frequency (Hz)');
         if enhanced

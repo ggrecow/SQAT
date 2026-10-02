@@ -862,7 +862,7 @@ tc.verifySubstring(lbl.Text, sprintf('LASmax %.1f', max(L)));
 tc.verifyEqual(findobj(fig, 'Tag', 'level_axes').Title.String, 'Sound pressure level (A-weighted, Slow)');
 cbs = findall(findobj(fig, 'Tag', 'spectrogram').Parent, 'Type', 'colorbar');   % one colour bar, relabelled
 tc.assertNumElements(cbs, 1);
-tc.verifySubstring(cbs.Label.String, 'A-weighted');
+tc.verifyEqual(cbs.Label.String, 'SPL (dBA)');
 il_set(fig, 'level_percentile_1', 10);
 il_set(fig, 'level_percentile_2', 50);
 tc.verifySubstring(lbl.Text, sprintf('LAS10 %.1f   LAS50 %.1f dB', get_exceeded_value(L, 10), get_exceeded_value(L, 50)));
@@ -962,6 +962,13 @@ tc.verifyEqual(findobj(fig, 'Tag', 'run').Text, ['Run 1 signal ' char(215) ' 4 a
 il_press(fig, 'add_metric');
 d = findall(groot, 'Type', 'figure', 'Tag', 'SQAT_GUI_metric_picker');
 il_press(d, 'picker_more_Roughness_Daniel1997');
+il_press(d, 'picker_more_Roughness_Daniel1997');
+il_set(d, 'picker_all', true);                       % Tick all: every metric once, the 2x stays
+counts = findobj(d, '-regexp', 'Tag', '^picker_count_');
+tc.verifyTrue(all(~cellfun(@isempty, {counts.Text})));
+tc.verifyEqual(findobj(d, 'Tag', 'picker_count_Roughness_Daniel1997').Text, '2x');
+il_set(d, 'picker_all', false);                      % and none
+tc.verifyTrue(all(cellfun(@isempty, {counts.Text})));
 il_press(d, 'picker_cancel');
 tc.verifyEqual(findobj(fig, 'Tag', 'run').Text, ['Run 1 signal ' char(215) ' 4 analyses']);
 end
@@ -1548,7 +1555,7 @@ tc.assertNumElements(sf, 1);
 tc.verifyEqual(max(sf.CData(:)), 60, 'AbsTol', 1.5);
 [~, i_max] = max(max(sf.CData, [], 2));
 tc.verifyEqual(sf.YData(i_max), 1000, 'AbsTol', 48000/1024);
-tc.verifyEqual(ax.Colorbar.Label.String, 'Sound pressure level (dB SPL)');
+tc.verifyEqual(ax.Colorbar.Label.String, 'SPL (dB SPL)');
 tc.verifyNotEmpty(findobj(w, 'Tag', 'playhead_spectrogram'));
 cl = ax.CLim;
 il_set(w, 'wave_weighting', 'A');
@@ -1931,10 +1938,10 @@ tc.verifyEqual(audio(), SQAT_GUI_weight(ref, fs, 'A'), 'AbsTol', 1e-12);
 sf = findobj(findobj(w, 'Tag', 'spectrogram'), 'Type', 'surface');
 tc.verifyEqual(max(sf.CData(abs(sf.YData - 500) < 30, :), [], 'all') - level_z, ...
     SQAT_GUI_weight_curve(500, fs, 'A'), 'AbsTol', 0.6);      % the bin nearest 500 Hz is within 1/2 bin
-tc.verifyEqual(findobj(w, 'Tag', 'spectrogram').Colorbar.Label.String, 'A-weighted sound pressure level (dBA)');
+tc.verifyEqual(findobj(w, 'Tag', 'spectrogram').Colorbar.Label.String, 'SPL (dBA)');
 il_set(w, 'wave_weighting', 'C');
 tc.verifyEqual(audio(), SQAT_GUI_weight(ref, fs, 'C'), 'AbsTol', 1e-12);
-tc.verifyEqual(findobj(w, 'Tag', 'spectrogram').Colorbar.Label.String, 'C-weighted sound pressure level (dBC)');
+tc.verifyEqual(findobj(w, 'Tag', 'spectrogram').Colorbar.Label.String, 'SPL (dBC)');
 il_set(w, 'wave_weighting', 'Z');
 tc.verifyEqual(audio(), ref);
 end
