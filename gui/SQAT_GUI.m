@@ -1060,7 +1060,7 @@ end
             'Tooltip', 'Drag a box on the spectrogram, or click two opposite corners');
         uibutton(hw, 'Text', 'Clear filters', 'Tag', 'clear_boxes', 'ButtonPushedFcn', @on_clear_boxes);
         uidropdown(hw, 'Items', {'Filter: loop only', 'Filter: isolate', 'Filter: remove'}, ...
-            'ItemsData', {'loop', 'isolate', 'remove'}, 'Value', 'loop', 'Tag', 'box_mode', ...
+            'ItemsData', {'loop', 'isolate', 'remove'}, 'Value', 'isolate', 'Tag', 'box_mode', ...
             'ValueChangedFcn', @on_processing_changed, ...
             'Tooltip', ['Loop only: the sound is not changed, and the loop runs inside the box. ' ...
                         'Isolate: only what is inside the box plays. Remove: what is inside the box is taken out.']);
@@ -1314,7 +1314,11 @@ end
                 sample = r1;
             end
             sample = min(max(round(sample), 1), n);
-            box_loop = ~isempty(boxes) && sample >= r1 && sample <= r2;   % inside the box: the box is the loop
+            looping = findobj(win_wave, 'Tag', 'loop').Value;
+            % inside the box the box is the loop; with the loop on, a play from
+            % before the box runs into it and stays there
+            box_loop = ~isempty(boxes) && sample <= r2 && (sample >= r1 || looping);
+            after_box = ~isempty(boxes) && sample > r2 && looping;
             if box_loop
                 last = r2;
                 rep = y(r1:r2);
@@ -1325,9 +1329,9 @@ end
                 loop_from = 1;
             end
             first = y(sample:last);
-            if findobj(win_wave, 'Tag', 'loop').Value
+            if looping && ~after_box
                 buf = [first; repmat(rep, max(1, ceil(120 * wave_fs / numel(rep))), 1)];
-            else
+            else                      % past the box: to the end, then from the start (on_player_stopped) into the box
                 buf = first;
                 rep = zeros(0, 1, 'single');
             end
@@ -1499,7 +1503,10 @@ end
     end
 
     function on_draw_box(src, ~)
-        if src.Value
+        if src.Value                                  % a zoom, pan or data tip mode of the axes
+            zoom(win_wave, 'off');                    % toolbar would take the clicks
+            pan(win_wave, 'off');
+            datacursormode(win_wave, 'off');
         end
         end_drag();
         box_corner = [];

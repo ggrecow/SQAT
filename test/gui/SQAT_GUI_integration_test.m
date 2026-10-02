@@ -880,6 +880,22 @@ for name = {'spectrogram', 'waveform', 'level'}
 end
 end
 
+function test_gui_draw_filter_ends_a_zoom_of_the_toolbar(tc)
+% A zoom chosen in the toolbar of the axes (the three dots) would take the
+% clicks of the filter tool: Draw filter turns it off, and pan with it.
+fig = SQAT_GUI({tc.TestData.wav_mono}, 'Visible', 'off');
+tc.addTeardown(@() delete(fig));
+z = zoom(fig);
+z.Enable = 'on';                                   % as the zoom button of the toolbar does
+bt = findobj(fig, 'Tag', 'draw_box');
+bt.Value = true; bt.ValueChangedFcn(bt, []);
+tc.verifyEqual(char(zoom(fig).Enable), 'off');
+pan(fig, 'on');
+bt.Value = false; bt.ValueChangedFcn(bt, []);
+bt.Value = true; bt.ValueChangedFcn(bt, []);
+tc.verifyEqual(char(pan(fig).Enable), 'off');
+end
+
 function test_gui_space_plays_from_the_main_window(tc)
 % The space bar in the main window starts the player of the Waveform tab; a
 % second press pauses it. Needs an audio output.
@@ -1677,8 +1693,8 @@ end
 
 function test_waveform_box_modes(tc)
 % Draw filter with two clicks on the spectrogram draws a box from opposite
-% corners, in any order, and disarms the tool; the box modes are loop only
-% (the default, the sound unchanged), isolate and remove.
+% corners, in any order, and disarms the tool; the box modes are isolate (the
+% default), remove and loop only (the sound unchanged).
 fig = SQAT_GUI({tc.TestData.wav_two}, 'Visible', 'off');
 tc.addTeardown(@() delete(fig));
 w = fig;
@@ -1700,11 +1716,12 @@ tc.assertNumElements(box, 1);
 tc.verifyEqual([min(box.XData) max(box.XData)], [0.5 2.5], 'AbsTol', 1e-9);
 tc.verifyEqual([min(box.YData) max(box.YData)], [1500 2500], 'AbsTol', 1e-9);
 tc.verifyFalse(bt.Value, 'the box tool stays armed');
-% by default what is inside only plays: the sound is not changed
+% by default only what is inside the box plays
 md = findobj(w, 'Tag', 'box_mode');
 tc.verifyEqual(md.ItemsData, {'loop', 'isolate', 'remove'});
 tc.verifyEqual(md.Items, {'Filter: loop only', 'Filter: isolate', 'Filter: remove'});
-tc.verifyEqual(md.Value, 'loop');
+tc.verifyEqual(md.Value, 'isolate');
+il_set(w, 'box_mode', 'loop');                            % loop only: the sound is not changed
 tc.verifyEqual(audio(), ref);
 mid = round(1.2*fs):round(1.8*fs); early = 1:round(0.3*fs);
 % remove: what is inside goes
@@ -1807,9 +1824,10 @@ end
 
 function test_waveform_box_loop_is_left_and_entered_by_clicks(tc)
 % During the playback, a box drawn with the loop on takes the playback into
-% it; a click outside leaves the loop and plays on from there, a click inside
-% enters it again, the loop off plays the box once, and a box drawn after a
-% pause takes the next play to its start. Needs an audio output.
+% it; a click after it leaves the loop and plays on from there, a click inside
+% enters it again, a click before it plays on into it and stays, the loop off
+% plays the box once, and a box drawn after a pause takes the next play to its
+% start. Needs an audio output.
 il_needs_audio(tc);
 fig = SQAT_GUI({tc.TestData.wav_two}, 'Visible', 'off');
 tc.addTeardown(@() delete(fig));
@@ -1845,6 +1863,12 @@ tc.verifyTrue(info().box_loop);
 tc.verifyEqual(info().sample, round(1.2*fs) + 1);
 il_wait_until(@() ph.Value > 1.19 && ph.Value < 1.5);
 tc.verifyTrue(il_stays_between(ph, 0.99, 1.41, 1.5), 'the playhead left the box');
+% a click before the box plays on into it, and the loop holds it there
+ax_click(axw, 0.6);
+tc.verifyTrue(info().box_loop);
+tc.verifyEqual(info().sample, round(0.6*fs) + 1);
+il_wait_until(@() ph.Value > 1.05 && ph.Value < 1.5);
+tc.verifyTrue(il_stays_between(ph, 0.99, 1.41, 1.5), 'the play ran past the box');
 % the loop tick off: the play ends where the box ends
 lp = findobj(w, 'Tag', 'loop');
 lp.Value = false; lp.ValueChangedFcn(lp, []);
@@ -1885,10 +1909,10 @@ tc.verifyEqual(audio(), SQAT_GUI_weight(ref, fs, 'A'), 'AbsTol', 1e-12);
 sf = findobj(findobj(w, 'Tag', 'spectrogram'), 'Type', 'surface');
 tc.verifyEqual(max(sf.CData(abs(sf.YData - 500) < 30, :), [], 'all') - level_z, ...
     SQAT_GUI_weight_curve(500, fs, 'A'), 'AbsTol', 0.6);      % the bin nearest 500 Hz is within 1/2 bin
-tc.verifyEqual(findobj(w, 'Tag', 'spectrogram').Colorbar.Label.String, 'A-weighted sound pressure level (dB(A))');
+tc.verifyEqual(findobj(w, 'Tag', 'spectrogram').Colorbar.Label.String, 'A-weighted sound pressure level (dBA)');
 il_set(w, 'wave_weighting', 'C');
 tc.verifyEqual(audio(), SQAT_GUI_weight(ref, fs, 'C'), 'AbsTol', 1e-12);
-tc.verifyEqual(findobj(w, 'Tag', 'spectrogram').Colorbar.Label.String, 'C-weighted sound pressure level (dB(C))');
+tc.verifyEqual(findobj(w, 'Tag', 'spectrogram').Colorbar.Label.String, 'C-weighted sound pressure level (dBC)');
 il_set(w, 'wave_weighting', 'Z');
 tc.verifyEqual(audio(), ref);
 end
