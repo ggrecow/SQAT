@@ -2214,8 +2214,9 @@ end
         y_all = vertcat(A.y);
         y_range = [min(y_all) max(y_all)];
         y_ref = max(abs(y_range));
-        if all(isfinite(y_range)) && y_ref > 0 && diff(y_range) <= 1e-3 * y_ref
+        if all(isfinite(y_range)) && y_ref > 0 && diff(y_range) <= 5e-3 * y_ref
             % a constant result: show it at +/-5 %, away from its rounding noise
+            % (0.5 %: the FFT rounding of Linux leaves 0.18 % on a constant roughness)
             ylim(ax, mean(y_range) + [-0.05 0.05] * y_ref);
         end
         if strcmp(A(1).kind, 'profile') && strcmp(A(1).bandscale, 'log')
