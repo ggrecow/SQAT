@@ -196,7 +196,7 @@ switch id
     case 'Do_SLM'
         defs = {
             'level',                  'Sound level vs time',              'series',  'InstantaneousSPL',                   '',         'Sound pressure level (dB SPL)',   'tb'
-            'tob_level',              'One-third octave levels (Z)',      'profile', 'TOB_level',                          'TOB_freq', 'Band level (dB SPL)',             'tb'};
+            'tob_level',              'One-third octave levels',          'profile', 'TOB_level',                          'TOB_freq', 'Band level (dB)',                 'tb'};
     case 'Loudness_ISO532_1'
         defs = {
             'loudness',               'Loudness vs time',                 'series',  'InstantaneousLoudness',              '',         'Loudness (sone)',                 'tb'

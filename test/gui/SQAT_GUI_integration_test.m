@@ -276,7 +276,8 @@ end
 
 function test_gui_theme_switches_between_dark_and_light(tc)
 % The window starts dark, as pySQAT, with the white logo and a sun on the
-% theme button; the button switches to light, with the dark logo and a moon.
+% theme button; the button switches to light, with the dark logo, a moon and
+% white in place of the light grey of MATLAB, and back to dark.
 % Before R2025a the window stays light and the button is disabled, with a
 % tooltip naming R2025a.
 fig = SQAT_GUI({}, 'Visible', 'off');
@@ -301,6 +302,13 @@ tc.verifyTrue(endsWith(logo.ImageSource, 'logo.png'));
 tc.verifyTrue(isfile(logo.ImageSource));
 tc.verifyEqual(b.Text, char(9790));                 % a moon
 tc.verifySubstring(b.Tooltip, 'Dark');
+dock = findobj(fig, 'Tag', 'waveform_dock');         % the light theme in white, not the grey of MATLAB
+tc.verifyEqual(fig.Color, [1 1 1]);
+tc.verifyEqual(dock.BackgroundColor, [1 1 1]);
+tc.verifyEqual(findobj(fig, 'Tag', 'signals_list').BackgroundColor, [1 1 1]);
+il_press(fig, 'theme');                              % and dark again: the colours of the theme
+tc.verifyLessThan(fig.Color, 0.5);
+tc.verifyLessThan(dock.BackgroundColor, 0.5);
 end
 
 function test_gui_status_bar_follows_the_run(tc)
@@ -700,7 +708,6 @@ fig = SQAT_GUI({tc.TestData.wav_mono}, 'Visible', 'off');
 tc.addTeardown(@() delete(fig));
 il_select_metrics(fig, {'Loudness_ISO532_1'});
 il_press(fig, 'run');
-il_press(fig, 'open_graphs');                  % the plots open on request
 g = il_window('SQAT_GUI_graphs');
 tc.assertNumElements(g, 1);
 for value = {'sqat', 'all', 'loudness'}
@@ -840,12 +847,15 @@ L = Do_SLM(x, fs, 'Z', 'f', 94);
 lbl = findobj(fig, 'Tag', 'level_indicators');
 tc.verifySubstring(lbl.Text, sprintf('LZeq %.1f', Get_Leq(L, fs)));
 tc.verifySubstring(lbl.Text, sprintf('LZF5 %.1f   LZF90 %.1f dB', get_exceeded_value(L, 5), get_exceeded_value(L, 90)));
-tc.verifySubstring(lbl.Text, sprintf('SEL %.1f', Get_Leq(L, fs) + 10*log10(numel(L) / fs)));
+tc.verifySubstring(lbl.Text, sprintf('LZE %.1f', Get_Leq(L, fs) + 10*log10(numel(L) / fs)));
 il_set(fig, 'wave_weighting', 'A');
 il_set(fig, 'level_time_weighting', 's');
 L = Do_SLM(x, fs, 'A', 's', 94);
 tc.verifySubstring(lbl.Text, sprintf('LASmax %.1f', max(L)));
 tc.verifyEqual(findobj(fig, 'Tag', 'level_axes').Title.String, 'Sound pressure level (A-weighted, Slow)');
+cbs = findall(findobj(fig, 'Tag', 'spectrogram').Parent, 'Type', 'colorbar');   % one colour bar, relabelled
+tc.assertNumElements(cbs, 1);
+tc.verifySubstring(cbs.Label.String, 'A-weighted');
 il_set(fig, 'level_percentile_1', 10);
 il_set(fig, 'level_percentile_2', 50);
 tc.verifySubstring(lbl.Text, sprintf('LAS10 %.1f   LAS50 %.1f dB', get_exceeded_value(L, 10), get_exceeded_value(L, 50)));
@@ -1022,15 +1032,16 @@ end
 %% Graphs windows ----------------------------------------------------------
 
 function test_gui_plots_the_series_of_the_active_file(tc)
-% The graphs window opens on request (a run leaves it closed), offers the
+% The graphs window opens at the end of a run and on request, offers the
 % metrics that ran, and shows the figure the SQAT function draws itself, with
 % the same axes and data, in the inferno colour scale of the toolbox.
 fig = SQAT_GUI({tc.TestData.wav_mono}, 'Visible', 'off');
 tc.addTeardown(@() delete(fig));
 il_select_metrics(fig, {'Loudness_ISO532_1','Roughness_Daniel1997'});
 il_press(fig, 'run');
-tc.verifyEmpty(il_window('SQAT_GUI_graphs'));            % the run leaves the plots closed
-il_press(fig, 'open_graphs');                            % they open on request
+tc.verifyNumElements(il_window('SQAT_GUI_graphs'), 1);   % opens at the end of the run
+delete(il_window('SQAT_GUI_graphs'));
+il_press(fig, 'open_graphs');                            % and again on request
 g = il_window('SQAT_GUI_graphs');
 tc.verifyNumElements(g, 1);
 pm = findobj(g, 'Tag', 'graph_metric');
@@ -1082,7 +1093,6 @@ fig = SQAT_GUI({tc.TestData.wav_mono, tc.TestData.wav_tone}, 'Visible', 'off');
 tc.addTeardown(@() delete(fig));
 il_select_metrics(fig, {'Loudness_ISO532_1'});
 il_press(fig, 'run');
-il_press(fig, 'open_graphs');                  % the plots open on request
 tc.verifyNumElements(il_all_sqat_figures(), 1, 'the analysis drew more than the active file');
 il_mark_signal(fig, 1, false);                       % the tone is the only signal ticked
 il_set(il_window('SQAT_GUI_graphs'), 'graph_analysis', 'sqat');   % the window opened by the run

@@ -78,6 +78,23 @@ T = SQAT_GUI_single_values(OUT);
 tc.verifyEqual(T.Quantity', {'LAeq', 'LAFmax', 'LAF5', 'LAF90', 'LAE'});
 end
 
+function test_sound_level_bands_take_the_chosen_weighting(tc)
+% The one-third octave levels are the bands of the signal after the weighting
+% chosen for them: Z leaves the 1 kHz band of a tone as it is, A takes a
+% 100 Hz tone down by its A-weighting, about 19 dB (IEC 61672-1, Table 3).
+fs = 48000; t = (0:2*fs-1)'/fs;
+x = sqrt(2) * 2e-5 * 10^(70/20) * sin(2*pi*100*t);
+m = SQAT_GUI_metrics;
+e = m(strcmp({m.id}, 'Do_SLM'));
+p = il_default_params(e);
+tc.verifyEqual(p.tob_weight, 'Z');
+[~, Z] = evalc('e.run(x, fs, p, false)');
+p.tob_weight = 'A';
+[~, A] = evalc('e.run(x, fs, p, false)');
+k = find(abs(Z.TOB_freq - 100) < 1);
+tc.verifyEqual(Z.TOB_level(k) - A.TOB_level(k), 19.1, 'AbsTol', 0.2);
+end
+
 function test_run_passes_the_chosen_parameters(tc)
 % The parameters chosen in the GUI reach the metric: a stationary ISO 532-1
 % loudness and an Aures sharpness in diffuse field give the same output as the

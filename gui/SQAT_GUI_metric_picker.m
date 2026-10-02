@@ -69,6 +69,7 @@ bg.Padding = [0 0 0 0];
 uilabel(bg, 'Text', '');
 uibutton(bg, 'Text', 'OK', 'Tag', 'picker_ok', 'ButtonPushedFcn', @(~, ~) ok());
 uibutton(bg, 'Text', 'Cancel', 'Tag', 'picker_cancel', 'ButtonPushedFcn', @(~, ~) delete(d));
+SQAT_GUI_paint(d, il_style(parent));             % white in the light theme, as the main window
 
     function step(k, delta)
         % read when pressed: an anonymous function would keep the count of its creation
@@ -92,4 +93,12 @@ uibutton(bg, 'Text', 'Cancel', 'Tag', 'picker_cancel', 'ButtonPushedFcn', @(~, ~
             add(ids);
         end
     end
+end
+
+function style = il_style(parent)
+% the theme of the main window: 'dark', or 'light' (also without themes, before R2025a)
+style = 'light';
+if isprop(parent, 'Theme') && ~isempty(parent.Theme) && strcmp(char(parent.Theme.BaseColorStyle), 'dark')
+    style = 'dark';
+end
 end

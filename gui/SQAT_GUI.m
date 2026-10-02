@@ -531,6 +531,7 @@ end
         if il_has_theme()
             theme(w, theme_style);
         end
+        SQAT_GUI_paint(w, theme_style);
     end
 
     function reset_params(num, w)
@@ -889,7 +890,14 @@ end
         end
         lbl_status.Text = msg;
         write_log([msg '.']);
-        refresh_graph_windows();                 % the plots open with Open Graphs Window, not after each run
+        refresh_graph_windows();
+        if ~isempty(store)                       % the results show at once; the button opens them again
+            if isempty(live_window())
+                on_open_graphs();
+            elseif strcmp(fig.Visible, 'on')
+                figure(live_window());
+            end
+        end
         try
             focus(matrix);                       % off the Run button: a space would press it again
         catch
@@ -960,6 +968,12 @@ end
             loaded(se_k).cal = se_f.cal;
         end
         analyses = se.analyses;
+        for se_k = 1:numel(analyses)                 % a parameter added since the session was saved takes its default
+            se_d = il_default_params(metrics(strcmp({metrics.id}, analyses(se_k).id)));
+            for se_n = setdiff(fieldnames(se_d), fieldnames(analyses(se_k).p))'
+                analyses(se_k).p.(se_n{1}) = se_d.(se_n{1});
+            end
+        end
         next_analysis = se.next_analysis;
         assign_keys();
         refresh_signals();
@@ -1107,7 +1121,7 @@ end
         uispinner(lg, 'Value', 90, 'Limits', [1 99], 'Step', 1, 'RoundFractionalValues', 'on', ...
             'Tag', 'level_percentile_2', 'ValueChangedFcn', @(~, ~) show_level_values(), 'Tooltip', tip);
         uilabel(lg, 'Text', '', 'Tag', 'level_indicators', 'FontSize', 11, ...   % small enough for five values
-            'Tooltip', ['Leq: equivalent level. SEL: sound exposure level (LE), Leq plus 10 lg of the duration in s. ' ...
+            'Tooltip', ['Leq: equivalent level. LE: sound exposure level (SEL), Leq plus 10 lg of the duration in s. ' ...
                         'Lmax: maximum. LN: level reached or exceeded during N % of the time. All in dB.']);
         box_lvl = uipanel(pg, 'BorderType', 'none', 'AutoResizeChildren', 'off');
         ax_lvl = uiaxes(box_lvl, 'Tag', 'level_axes', 'ButtonDownFcn', @on_wave_click);
@@ -1213,6 +1227,7 @@ end
             for k = 1:numel(titles)
                 uitab(tg, 'Title', titles{k}, 'UserData', data(k, :));
             end
+            SQAT_GUI_paint(tg, theme_style);
         end
         if active_idx > 0
             tg.SelectedTab = tg.Children(ismember(data, [active_file().id channel_of_active()], 'rows'));
@@ -2031,6 +2046,7 @@ end
         for ax = findall(body, 'Type', 'axes')'
             ax.Toolbar.Visible = 'off';
         end
+        SQAT_GUI_paint(w, theme_style);             % the new plots in the colours of the theme
     end
 
     function chans = channel_row(w, paths, results)
@@ -2314,6 +2330,7 @@ end
         if il_has_theme()
             theme(d, theme_style);
         end
+        SQAT_GUI_paint(d, theme_style);
     end
 
     function browse_save_folder(d, ed)
@@ -2566,7 +2583,11 @@ end
         spec_range = il_if(enhanced, 45, 80);
         spec_black = min(spec_black, spec_range - 5);
         apply_black();
-        cb = colorbar(ax_spec);
+        cb = ax_spec.Colorbar;                         % the one colour bar of the plot, kept between drawings
+        delete(setdiff(findall(ax_spec.Parent, 'Type', 'colorbar'), cb));   % a stray one would overlap its label
+        if isempty(cb)
+            cb = colorbar(ax_spec);
+        end
         if strcmp(weighting, 'Z')
             cb.Label.String = 'Sound pressure level (dB SPL)';
         else
@@ -2637,7 +2658,7 @@ end
     end
 
     function show_level_values()
-        % Leq, SEL (LE), Lmax and the levels exceeded during the two percentages
+        % Leq, LE (SEL), Lmax and the levels exceeded during the two percentages
         % of the time chosen, in one line above the plot
         lbl = findobj(win_wave, 'Tag', 'level_indicators');
         if isempty(lvl_L)
@@ -2647,7 +2668,7 @@ end
         F = findobj(win_wave, 'Tag', 'wave_weighting').Value;
         T = upper(findobj(win_wave, 'Tag', 'level_time_weighting').Value);
         Leq = Get_Leq(lvl_L, wave_fs);
-        txt = sprintf('L%seq %.1f   SEL %.1f   L%s%smax %.1f', F, Leq, Leq + 10*log10(numel(lvl_L) / wave_fs), ...
+        txt = sprintf('L%seq %.1f   L%sE %.1f   L%s%smax %.1f', F, Leq, F, Leq + 10*log10(numel(lvl_L) / wave_fs), ...
             F, T, max(lvl_L));
         pct = unique([findobj(win_wave, 'Tag', 'level_percentile_1').Value, ...
             findobj(win_wave, 'Tag', 'level_percentile_2').Value]);
@@ -3181,9 +3202,19 @@ end
             btn_theme.Enable = 'off';
             btn_theme.Tooltip = 'Dark theme requires MATLAB R2025a or newer';
         else
-            for w = [fig, open_graph_windows(), win_wave]
+            for w = [fig, open_graph_windows()]
+                if il_is_open(w) && strcmp(theme_style, 'dark')
+                    SQAT_GUI_paint(w, 'dark');   % back to auto before the switch, which then sets them
+                end
                 if il_is_open(w)
                     theme(w, theme_style);
+                end
+            end
+        end
+        if strcmp(theme_style, 'light')
+            for w = [fig, open_graph_windows()]
+                if il_is_open(w)
+                    SQAT_GUI_paint(w, 'light');  % the light theme in white
                 end
             end
         end

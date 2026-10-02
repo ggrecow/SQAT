@@ -55,7 +55,8 @@ metrics = struct('id', {}, 'label', {}, 'params', {}, 'run', {}, 'stereo', {});
 
 metrics(end+1) = il_entry('Do_SLM', 'Sound level (IEC 61672-1)', ...
     [il_choice('weight_freq', 'Frequency weighting', {'A', 'A'; 'C', 'C'; 'Z', 'Z'}, 'A'), ...
-     il_choice('weight_time', 'Time weighting', {'Fast', 'f'; 'Slow', 's'; 'Impulse', 'i'}, 'f')], ...
+     il_choice('weight_time', 'Time weighting', {'Fast', 'f'; 'Slow', 's'; 'Impulse', 'i'}, 'f'), ...
+     il_choice('tob_weight', 'One-third octave weighting', {'Z (bands)', 'Z'; 'A (bands)', 'A'; 'C (bands)', 'C'}, 'Z')], ...
     @il_sound_level);
 
 metrics(end+1) = il_entry('Loudness_ISO532_1', 'Loudness (ISO 532-1)', ...
@@ -121,8 +122,9 @@ function OUT = il_sound_level(x, fs, p, show)
 % the sound level meter of SQAT on a signal in Pa, as ex_sound_level_meter.m
 % uses it: the time-weighted level, its equivalent and maximum, the levels
 % exceeded 5 and 90 % of the time, the sound exposure level, and the
-% one-third octave levels (unweighted) of Do_OB13_ISO532_1. No minimum: the
-% time weighting starts from zero, so the first samples would give it
+% one-third octave levels of Do_OB13_ISO532_1 (each band the Leq of the
+% whole signal), after the weighting chosen for them (Z: none). No minimum:
+% the time weighting starts from zero, so the first samples would give it
 L = Do_SLM(x, fs, p.weight_freq, p.weight_time, 94);
 if show
     Do_SLM(x, fs, p.weight_freq, p.weight_time, 94);   % no output: the figure of Do_SLM
@@ -138,6 +140,10 @@ OUT.(['L' fw tw 'max']) = max(L);
 OUT.(['L' fw tw '5']) = get_exceeded_value(L, 5);
 OUT.(['L' fw tw '90']) = get_exceeded_value(L, 90);
 OUT.(['L' fw 'E']) = OUT.(['L' fw 'eq']) + 10*log10(numel(L) / fs);
+if isfield(p, 'tob_weight') && ~strcmpi(p.tob_weight, 'Z')
+    [b, a] = Gen_weighting_filters(fs, p.tob_weight);
+    x = filter(b, a, x);
+end
 [bands, fc] = Do_OB13_ISO532_1(x, fs);
 OUT.TOB_freq = fc(:);
 OUT.TOB_level = 20*log10(rms(bands, 1)' / 2e-5);

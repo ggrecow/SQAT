@@ -70,6 +70,7 @@ msg.Layout.Column = [1 3];
 uilabel(g, 'Text', '');
 uibutton(g, 'Text', 'OK', 'Tag', 'cal_ok', 'ButtonPushedFcn', @(~, ~) ok());
 uibutton(g, 'Text', 'Cancel', 'Tag', 'cal_cancel', 'ButtonPushedFcn', @(~, ~) delete(d));
+SQAT_GUI_paint(d, il_style(parent));             % white in the light theme, as the main window
 show();
 uiwait(d);
 
@@ -107,4 +108,12 @@ uiwait(d);
             msg.Text = 'The calibration could not be set: see the console output.';
         end
     end
+end
+
+function style = il_style(parent)
+% the theme of the main window: 'dark', or 'light' (also without themes, before R2025a)
+style = 'light';
+if isprop(parent, 'Theme') && ~isempty(parent.Theme) && strcmp(char(parent.Theme.BaseColorStyle), 'dark')
+    style = 'dark';
+end
 end
