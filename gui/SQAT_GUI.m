@@ -178,9 +178,11 @@ main.ColumnWidth = {600, '1x'};                  % the lists get the room, the c
 top = uigridlayout(main, [1 2]);
 top.Layout.Row = 1; top.Layout.Column = 1;
 top.Padding = [0 0 0 0];
-top.ColumnWidth = {96, '1x'};                   % the logo a little under the row height (1563 x 895 px)
-img_logo = uiimage(top, 'ImageSource', fullfile(dir_logos, 'logo_white.png'), 'Tag', 'logo');
-uilabel(top, 'Text', 'Sound Quality Analysis Toolbox', 'FontSize', 26, 'FontWeight', 'bold');
+top.ColumnWidth = {84, '1x'};                   % the logo under the row height (1563 x 895 px), against the title
+img_logo = uiimage(top, 'ImageSource', fullfile(dir_logos, 'logo_white.png'), 'Tag', 'logo', ...
+    'HorizontalAlignment', 'right');
+uilabel(top, 'Text', 'Sound Quality Analysis Toolbox', 'FontSize', 26, 'FontWeight', 'bold', ...
+    'HorizontalAlignment', 'center');            % centred in the room beside the logo
 
 left = uigridlayout(main, [2 1]);
 left.Layout.Row = 2; left.Layout.Column = 1;
@@ -1113,12 +1115,12 @@ end
         box_spec = uipanel(pg, 'BorderType', 'none', 'AutoResizeChildren', 'off');
         box_spec.Layout.Row = 1;
         ax_spec = uiaxes(box_spec, 'Tag', 'spectrogram', 'ButtonDownFcn', @on_wave_click);
-        box_wave.SizeChangedFcn = @(src, ~) il_fit_axes(src, ax_wave);
-        box_spec.SizeChangedFcn = @(src, ~) il_fit_axes(src, ax_spec);
+        box_wave.SizeChangedFcn = @(src, ~) il_fit_axes(src, ax_wave, 26);
+        box_spec.SizeChangedFcn = @(src, ~) il_fit_axes(src, ax_spec, 26);
         box_lvl.SizeChangedFcn = @(src, ~) il_fit_axes(src, ax_lvl);
-        il_fit_axes(box_wave, ax_wave);
+        il_fit_axes(box_wave, ax_wave, 26);
         il_fit_axes(box_lvl, ax_lvl);
-        il_fit_axes(box_spec, ax_spec);
+        il_fit_axes(box_spec, ax_spec, 26);
         ax_spec.XAxis.LimitsChangedFcn = @on_spec_limits;
         ax_wave.XAxis.LimitsChangedFcn = @on_wave_limits;
         ax_lvl.XAxis.LimitsChangedFcn = @on_level_limits;
@@ -1156,8 +1158,14 @@ end
         n = 0;
         names = {'spectrogram', 'waveform', 'level'};
         axs = [ax_spec, ax_wave, ax_lvl];
+        bottom = [26 26 48];                           % the margin under each plot on screen
         for k = 1:3
+            had = axs(k).XLabel.String;
+            xlabel(axs(k), 'Time (s)');                % a file stands alone: each carries its time label
+            il_fit_axes(axs(k).Parent, axs(k));        % with the room for it
             n = n + il_export(axs(k), folder, sprintf('%s_%s%s', base, names{k}, ext));
+            xlabel(axs(k), had);
+            il_fit_axes(axs(k).Parent, axs(k), bottom(k));
         end
         write_log(sprintf('%d plot(s) saved to %s', n, folder));
     end
@@ -2564,8 +2572,7 @@ end
         else
             cb.Label.String = sprintf('%s-weighted sound pressure level (dB(%s))', weighting, weighting);
         end
-        il_fit_axes(ax_spec.Parent, ax_spec);
-        xlabel(ax_spec, 'Time (s)');
+        il_fit_axes(ax_spec.Parent, ax_spec, 26);      % the time label only on the sound level, the plot at the bottom
         ylabel(ax_spec, 'Frequency (Hz)');
         if enhanced
             spec_title();
@@ -2620,9 +2627,9 @@ end
         plot(ax_lvl, (0:step:numel(lvl_L) - 1)' / wave_fs, lvl_L(1:step:end), ...
             'PickableParts', 'none', 'Tag', 'level_line');
         xlim(ax_lvl, ax_wave.XLim);
-        ylabel(ax_lvl, il_if(strcmp(fw, 'Z'), 'Level (dB SPL)', sprintf('Level (dB(%s))', fw)));   % short: the plot is low
+        ylabel(ax_lvl, il_if(strcmp(fw, 'Z'), 'SPL (dB)', sprintf('SPL (dB(%s))', fw)));   % short: the plot is low
         xlabel(ax_lvl, 'Time (s)');
-        title(ax_lvl, sprintf('Sound level (%s-weighted, %s)', fw, dd_tw.Items{strcmp(dd_tw.ItemsData, dd_tw.Value)}));
+        title(ax_lvl, sprintf('Sound pressure level (%s-weighted, %s)', fw, dd_tw.Items{strcmp(dd_tw.ItemsData, dd_tw.Value)}));
         xline(ax_lvl, (max(play_start, 1) - 1) / wave_fs, 'Color', [0.85 0.2 0.2], 'LineWidth', 1.5, ...
             'Tag', 'playhead_level', 'PickableParts', 'none');
         il_fit_axes(ax_lvl.Parent, ax_lvl);
@@ -3339,12 +3346,15 @@ xe = [t(1) - dt/2, t(end) + dt/2];
 ye = [f(1) / r, f(end) * r];
 end
 
-function il_fit_axes(box, ax)
+function il_fit_axes(box, ax, bottom)
 % the plot area of ax at fixed margins from the edges of its box (pixels):
 % room for the ticks and the label of y on the left, for the colorbar and its
-% label on the right (kept on both plots so their time axes line up), for the
+% label on the right (kept on all plots so their time axes line up), for the
 % title on top and the time ticks and label below
 m = [80 100 48 30];                                   % left, right, bottom, top
+if nargin > 2
+    m(3) = bottom;                                    % a plot with no time label under it
+end
 p = box.InnerPosition;
 w = max(p(3) - m(1) - m(2), 20);
 h = max(p(4) - m(3) - m(4), 20);

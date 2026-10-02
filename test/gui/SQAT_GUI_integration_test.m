@@ -845,7 +845,7 @@ il_set(fig, 'wave_weighting', 'A');
 il_set(fig, 'level_time_weighting', 's');
 L = Do_SLM(x, fs, 'A', 's', 94);
 tc.verifySubstring(lbl.Text, sprintf('LASmax %.1f', max(L)));
-tc.verifyEqual(findobj(fig, 'Tag', 'level_axes').Title.String, 'Sound level (A-weighted, Slow)');
+tc.verifyEqual(findobj(fig, 'Tag', 'level_axes').Title.String, 'Sound pressure level (A-weighted, Slow)');
 il_set(fig, 'level_percentile_1', 10);
 il_set(fig, 'level_percentile_2', 50);
 tc.verifySubstring(lbl.Text, sprintf('LAS10 %.1f   LAS50 %.1f dB', get_exceeded_value(L, 10), get_exceeded_value(L, 50)));
