@@ -1140,8 +1140,8 @@ il_press(fig, 'open_graphs');
 il_set(il_window('SQAT_GUI_graphs'), 'graph_analysis', 'roughness');
 ax = findobj(il_window('SQAT_GUI_graphs'), 'Type', 'axes');
 y = findobj(ax, 'Type', 'line').YData;
-tc.assumeLessThan(max(y) - min(y), 1e-3 * mean(y), ...   % the premise: nearly constant (on Linux the
-    'the roughness of this signal is not constant within 0.1 % here');   % FFT rounding leaves 0.18 %)
+tc.assumeLessThan(max(y) - min(y), 5e-3 * mean(y), ...   % the premise: nearly constant (on Linux the
+    'the roughness of this signal is not constant within 0.5 % here');   % FFT rounding leaves 0.18 %)
 tc.verifyGreaterThanOrEqual(diff(ax.YLim), 0.09 * mean(y));
 tc.verifyTrue(ax.YLim(1) <= min(y) && ax.YLim(2) >= max(y));
 end
@@ -2335,17 +2335,23 @@ end
 end
 
 function il_needs_audio(tc)
-% the player needs an audio output; the CI runner has none ("No audio
-% outputs were found"), so the playback never starts there
-tc.assumeFalse(strcmp(getenv('CI'), 'true'), 'needs an audio output, which the CI runner has not');
+% the player needs an audio output; a bare CI runner has none ("No audio
+% outputs were found"), so the playback never starts there. A virtual one
+% (a PulseAudio null sink) is enough
+try
+    n = numel(audiodevinfo().output);
+catch
+    n = 0;
+end
+tc.assumeGreaterThan(n, 0, 'needs an audio output, and this machine has none');
 end
 
 function il_needs_display(tc)
-% the enhanced spectrogram of the waveform window recomputes on timers and
-% on the background pool; on the CI runner, with no display, these tests
-% waited forever (30.09.2026), so they run only where there is one
-tc.assumeFalse(strcmp(getenv('CI'), 'true'), ...
-    'needs a display: the timers of the enhanced spectrogram do not fire on the CI runner');
+% the enhanced spectrogram recomputes on timers and on the background pool;
+% on a Linux runner with no display these tests waited forever (30.09.2026),
+% so there they need one (a virtual one, Xvfb, is enough)
+tc.assumeFalse(isunix && ~ismac && isempty(getenv('DISPLAY')), ...
+    'needs a display: the timers of the enhanced spectrogram do not fire without one');
 end
 
 function il_wait_until(cond, seconds)
