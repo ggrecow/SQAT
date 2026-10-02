@@ -37,7 +37,7 @@ function [dBFS, label] = SQAT_GUI_calibration(method, wavfilename, level, calfil
 % Author: Sergio Aguirre and Gil Felix Greco, September 2026
 %
 % AI disclosure: code development in September 2026 assisted
-% by Claude Opus 5 (Anthropic). All codes were verified by
+% by Claude Opus 5.5 (Anthropic). All codes were verified by
 % the authors.
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

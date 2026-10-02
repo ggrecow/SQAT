@@ -47,8 +47,8 @@ function [t, f, L, info] = SQAT_GUI_enhanced_stft(x, fs, smoothing, n_frames, f_
 % Author: Sergio Aguirre and Gil Felix Greco, September 2026
 %
 % AI disclosure: code development in September 2026 assisted
-% by Claude Sonnet 5 (Anthropic). All codes were verified by
-% the authors.
+% by Claude Sonnet 5, Claude Fable 5.1 and Claude Opus 5.5
+% (Anthropic). All codes were verified by the authors.
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Copyright statement: This file is part of the SQAT toolbox and is subject

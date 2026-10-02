@@ -17,7 +17,7 @@ function y = SQAT_GUI_weight(x, fs, type)
 % Author: Sergio Aguirre and Gil Felix Greco, September 2026
 %
 % AI disclosure: code development in September 2026 assisted
-% by Claude Opus 5 (Anthropic). All codes were verified by
+% by Claude Sonnet 5 (Anthropic). All codes were verified by
 % the authors.
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

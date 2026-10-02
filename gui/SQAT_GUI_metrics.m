@@ -24,9 +24,10 @@ function metrics = SQAT_GUI_metrics
 %
 % Author: Sergio Aguirre and Gil Felix Greco, September 2026
 %
-% AI disclosure: code development in September 2026 assisted
-% by Claude Opus 5 (Anthropic). All codes were verified by
-% the authors.
+% AI disclosure: code development in September and October
+% 2026 assisted by Claude Opus 5, Claude Sonnet 5 and Claude
+% Opus 5.5 (Anthropic). All codes were verified by the
+% authors.
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Copyright statement: This file is part of the SQAT toolbox and is subject
