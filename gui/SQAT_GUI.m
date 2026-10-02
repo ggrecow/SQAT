@@ -27,9 +27,10 @@ function varargout = SQAT_GUI(files, varargin)
 %   leaves it as it is and Open Graphs Window opens another one to compare
 %   with. Save in a graphs window opens
 %   a dialog to tick the signals and, per metric, the SQAT figure, the analyses
-%   (the signals overlaid) and the statistics (CSV), as PNG or PDF. A player
-%   window shows the waveform and the spectrogram, and the results go to a
-%   spreadsheet.
+%   (the signals overlaid) and the statistics (CSV), as PNG or PDF. The
+%   Waveform tab shows the waveform and the spectrogram of the signal on
+%   screen, with its player, and the Results tab the matrix of single
+%   values. The results go to a spreadsheet.
 %
 %   Every value and every plot comes from the output of the SQAT function:
 %   the interface builds the call (see SQAT_GUI_metrics) and reads the output
@@ -51,9 +52,10 @@ function varargout = SQAT_GUI(files, varargin)
 %
 % Author: Sergio Aguirre and Gil Felix Greco, September 2026
 %
-% AI disclosure: code development in September 2026 assisted
-% by Claude Opus 5 (Anthropic). All codes were verified by
-% the authors.
+% AI disclosure: code development in September and October
+% 2026 assisted by Claude Opus 5, Claude Opus 5.5, Claude
+% Sonnet 5 and Claude Fable 5.1 (Anthropic). All codes were
+% verified by the authors.
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Copyright statement: This file is part of the SQAT toolbox and is subject
@@ -148,8 +150,11 @@ spec_black = 0;                                       % dB added to its bottom: 
 theme_style = il_if(il_has_theme(), 'dark', 'light');   % no themes before R2025a: the default light look
 graph_figs = gobjects(0);                              % the graphs windows
 last_metric = '';                                     % the metric the last graphs window showed
-win_wave = [];
+win_wave = [];                                        % the figure of the player: the main window
+wave_view = [];                                       % the grid of the player
 ax_wave = [];
+ax_lvl = [];                                          % the sound level vs time, below the waveform
+lvl_L = [];                                           % its level at every sample (dB), for the indicators
 ax_spec = [];
 btn_play = [];
 run_settings = struct('signals', loaded, 'analyses', analyses);      % of the last run
@@ -170,13 +175,13 @@ main = uigridlayout(fig, [3 2]);
 main.RowHeight = {64, '1x', 30};                 % the logo as tall as the Actions panel beside it
 main.ColumnWidth = {600, '1x'};                  % the lists get the room, the console the rest
 
-top = uigridlayout(main, [1 3]);
+top = uigridlayout(main, [1 2]);
 top.Layout.Row = 1; top.Layout.Column = 1;
 top.Padding = [0 0 0 0];
-top.ColumnWidth = {70, 440, '1x'};
+top.ColumnWidth = {112, '1x'};                  % the logo at the full row height (1563 x 895 px)
 img_logo = uiimage(top, 'ImageSource', fullfile(dir_logos, 'logo_white.png'), 'Tag', 'logo');
-uilabel(top, 'Text', 'Sound Quality Analysis Toolbox', 'FontSize', 22, 'FontWeight', 'bold');
-uilabel(top, 'Text', '');
+uilabel(top, 'Text', 'Sound Quality Analysis Toolbox', 'FontSize', 26, 'FontWeight', 'bold', ...
+    'HorizontalAlignment', 'center');            % centred in the room beside the logo
 
 left = uigridlayout(main, [2 1]);
 left.Layout.Row = 2; left.Layout.Column = 1;
@@ -191,7 +196,7 @@ ana_box.Padding = [6 6 6 6];
 sh = uigridlayout(sig_box, [1 3]);
 sh.Padding = [0 0 0 0];
 sh.ColumnWidth = {'1x', 100, 130};
-uilabel(sh, 'Text', '1   SIGNALS', 'FontWeight', 'bold');
+uilabel(sh, 'Text', '1   SIGNALS', 'FontWeight', 'bold', 'FontSize', 15);
 lbl_files = uilabel(sh, 'Text', 'No files loaded', 'Tag', 'file_count', 'HorizontalAlignment', 'right');
 uibutton(sh, 'Text', 'Open WAV files...', 'Tag', 'load_files', 'ButtonPushedFcn', @on_load_files);
 signal_list = uigridlayout(sig_box, [1 6], 'Scrollable', 'on', 'Tag', 'signals_list');
@@ -201,10 +206,9 @@ signal_list.RowSpacing = 4;
 ah = uigridlayout(ana_box, [1 3]);
 ah.Padding = [0 0 0 0];
 ah.ColumnWidth = {'1x', 190, 100};
-uilabel(ah, 'Text', '2   ANALYSES', 'FontWeight', 'bold');
-uidropdown(ah, 'Items', [{'+ Add metric...'}, {metrics.label}], 'ItemsData', [{''}, {metrics.id}], ...
-    'Value', '', 'Tag', 'add_metric', 'ValueChangedFcn', @on_add_metric, ...
-    'Tooltip', 'Adds an analysis of the chosen metric, with its default parameters');
+uilabel(ah, 'Text', '2   ANALYSES', 'FontWeight', 'bold', 'FontSize', 15);
+uibutton(ah, 'Text', '+ Add metrics...', 'Tag', 'add_metric', 'ButtonPushedFcn', @on_add_metric, ...
+    'Tooltip', 'Opens the list of metrics: the ticked ones are added, each with its default parameters');
 uibutton(ah, 'Text', 'Copy last', 'Tag', 'add_analysis', 'ButtonPushedFcn', @on_add_analysis, ...
     'Tooltip', 'Adds a copy of the last analysis, to compare the same metric with other parameters');
 analysis_list = uigridlayout(ana_box, [1 5], 'Scrollable', 'on', 'Tag', 'analysis_list');
@@ -219,36 +223,27 @@ right.RowHeight = {64, '1x'};
 save_folder = pwd;                                     % the folder of the last save
 split_figures = false;                                 % one tab and one file per panel: no control for now
 
-ag = uigridlayout(right, [1 5]);                       % the buttons alone, as tall as the logo row
-ag.ColumnWidth = {'1.4x', '1x', '1x', '1x', 48};
+ag = uigridlayout(right, [1 4]);                       % the buttons alone, as tall as the logo row
+ag.ColumnWidth = {'1.4x', '1x', '1x', 48};
 ag.Padding = [0 4 0 4];
 btn_run = uibutton(ag, 'Text', 'Run Analysis', 'Tag', 'run', 'FontWeight', 'bold', 'FontSize', 15, ...
     'BackgroundColor', green, 'FontColor', [1 1 1], 'ButtonPushedFcn', @on_run);
 uibutton(ag, 'Text', 'Open Graphs Window', 'Tag', 'open_graphs', 'FontSize', 14, 'ButtonPushedFcn', @on_open_graphs);
-uibutton(ag, 'Text', 'Waveform / Play', 'Tag', 'open_waveform', 'FontSize', 14, 'ButtonPushedFcn', @on_open_waveform);
 uibutton(ag, 'Text', 'Export results...', 'Tag', 'export', 'FontSize', 14, 'ButtonPushedFcn', @on_export);
 btn_theme = uibutton(ag, 'Text', char(9788), 'FontSize', 22, 'Tag', 'theme', ...
     'Tooltip', 'Light theme', 'ButtonPushedFcn', @on_theme);   % a sun, or a moon in the light theme
 
-% the results: the single values of the signals side by side, and below them
-% the plot of the analysis chosen in the matrix; the full table and the log
-% are one tab away
+% the waveform and the spectrogram of the signal on screen, with the player,
+% take the whole area, as Gil proposed; the single values of the signals side
+% by side, the full table and the log are one tab away, and the plots of the
+% results live in the graphs window
 tabs = uitabgroup(right);
+tab_wave = uitab(tabs, 'Title', 'Waveform');
+wave_dock = uipanel(uigridlayout(tab_wave, [1 1], 'Padding', [4 4 4 4]), 'BorderType', 'none', ...
+    'Tag', 'waveform_dock');                           % the player
 tab_results = uitab(tabs, 'Title', 'Results');
-ov = uigridlayout(tab_results, [3 1]);
-ov.RowHeight = {'1.5x', 26, '1x'};                     % the plot above the matrix, as Gil prefers
-ov.Padding = [4 4 4 4];
-ov_plot = uipanel(ov, 'BorderType', 'none', 'Tag', 'overview_plot');
-ob = uigridlayout(ov, [1 3]);
-ob.Padding = [0 0 0 0];
-ob.ColumnWidth = {40, 300, '1x'};
-uilabel(ob, 'Text', 'Plot:', 'HorizontalAlignment', 'right');
-dd_overview = uidropdown(ob, 'Items', {}, 'Tag', 'overview_analysis', 'ValueChangedFcn', @(~, ~) draw_overview());
-uilabel(ob, 'Text', '');
-matrix = uitable(ov, 'Data', cell(0, 2), 'ColumnName', {'Analysis', 'Quantity'}, 'RowName', {}, ...
-    'Tag', 'results_matrix', 'CellSelectionCallback', @on_matrix_select, ...
-    'Tooltip', 'Click a row to plot its analysis above');
-ov_number = 0;                                         % the analysis plotted below the matrix
+matrix = uitable(uigridlayout(tab_results, [1 1]), 'Data', cell(0, 2), ...
+    'ColumnName', {'Analysis', 'Quantity'}, 'RowName', {}, 'Tag', 'results_matrix');
 tab_table = uitab(tabs, 'Title', 'Table');
 tbl = uitable(uigridlayout(tab_table, [1 1]), 'Data', results, 'Tag', 'results_table');
 tab_console = uitab(tabs, 'Title', 'Log');
@@ -264,6 +259,8 @@ gauge = uigauge(status_bar, 'linear', 'Tag', 'progress', 'Limits', [0 100], 'Val
     'MajorTicks', [], 'MinorTicks', []);
 
 %% Start
+win_wave = fig;
+build_wave_view(wave_dock);
 apply_theme();
 add_files(files);
 if isempty(loaded)
@@ -433,21 +430,23 @@ end
         refresh_analyses();
     end
 
-    function on_add_metric(src, ~)
-        % a new analysis of the chosen metric, with its defaults; the menu goes back to its prompt
-        id = src.Value;
-        src.Value = '';
-        if isempty(id)
-            return
+    function on_add_metric(~, ~)
+        % the list of metrics, to tick several at once (see SQAT_GUI_metric_picker)
+        SQAT_GUI_metric_picker(fig, metrics, @add_metrics);
+    end
+
+    function add_metrics(ids)
+        % a new analysis per metric id, with the defaults of the metric
+        for id = ids(:)'
+            e = metrics(strcmp({metrics.id}, id{1}));
+            a = struct('key', '', 'id', e.id, 'n', next_analysis, 'p', il_default_params(e));
+            if isempty(analyses)
+                analyses = a;
+            else
+                analyses(end+1) = a; %#ok<AGROW>
+            end
+            next_analysis = next_analysis + 1;
         end
-        e = metrics(strcmp({metrics.id}, id));
-        a = struct('key', '', 'id', e.id, 'n', next_analysis, 'p', il_default_params(e));
-        if isempty(analyses)
-            analyses = a;
-        else
-            analyses(end+1) = a;
-        end
-        next_analysis = next_analysis + 1;
         assign_keys();
         refresh_analyses();
     end
@@ -606,11 +605,10 @@ end
     end
 
     function show_results()
-        % the matrix of single values and its plot on the Results tab, the full list on Table
+        % the matrix of single values on the Results tab, the full list on Table;
+        % the waveform stays on screen, and the graphs window shows the plots
         tbl.Data = results;
         show_matrix();
-        draw_overview();
-        tabs.SelectedTab = tab_results;
     end
 
     function show_matrix()
@@ -635,23 +633,6 @@ end
         matrix.Data = mx_data;
         matrix.ColumnName = [{'Analysis', 'Quantity'}, strrep(mx_cols', '#', 'Signal #')];
         matrix.UserData = cellfun(@(mx_r) str2double(erase(extractBefore(mx_r, '|'), '#')), mx_rows);
-        if ~ismember(ov_number, matrix.UserData)
-            ov_number = 0;
-            if ~isempty(matrix.UserData)
-                ov_number = matrix.UserData(1);
-            end
-        end
-    end
-
-    function on_matrix_select(src, event)
-        if isempty(event.Indices)
-            return
-        end
-        mx_n = src.UserData(event.Indices(1, 1));
-        if mx_n ~= ov_number
-            ov_number = mx_n;
-            draw_overview();
-        end
     end
 
     function mx_key = run_key(mx_a)
@@ -663,76 +644,13 @@ end
         end
     end
 
-    function draw_overview()
-        % the analysis chosen in the matrix, for the signals still in the list:
-        % their lines overlaid, or their maps side by side
-        delete(ov_plot.Children);
-        ov_entries = store(strcmp({store.number}, sprintf('#%d', ov_number)) & ismember({store.file}, {loaded.path}));
-        if isempty(ov_entries)
-            set(dd_overview, 'Items', {});
-            uilabel(uigridlayout(ov_plot, [1 1]), 'HorizontalAlignment', 'center', ...
-                'Text', 'Run an analysis: its values appear above and its plot here.');
-            return
-        end
-        [ov_items, mx_data] = il_analysis_items(ov_entries);
-        ov_keep = ~ismember(mx_data, {'sqat', 'all', 'stats'});
-        ov_items = ov_items(ov_keep);
-        mx_data = mx_data(ov_keep);
-        if isempty(mx_data)
-            set(dd_overview, 'Items', {});
-            uilabel(uigridlayout(ov_plot, [1 1]), 'HorizontalAlignment', 'center', ...
-                'Text', 'This analysis has single values only.');
-            return
-        end
-        ov_wanted = dd_overview.Value;
-        set(dd_overview, 'Items', ov_items, 'ItemsData', mx_data);
-        if il_is_member(ov_wanted, mx_data)
-            dd_overview.Value = ov_wanted;
-        end
-        ov_chan = unique({ov_entries.channel});
-        ov_chan = il_if(isscalar(ov_chan), ov_chan{1}, '');
-        draw_analysis(ov_plot, ov_entries, dd_overview.Value, ov_chan);
-        for ov_ax = findall(ov_plot, 'Type', 'axes')'
-            ov_ax.Toolbar.Visible = 'off';
-        end
-        ov_a = ov_entries(1).analyses(strcmp({ov_entries(1).analyses.id}, dd_overview.Value));
-        if strcmp(ov_a.kind, 'series')               % against time: the playhead, and a click seeks
-            ov_ax = findall(ov_plot, 'Type', 'axes');
-            set(findobj(ov_ax, 'Type', 'line'), 'PickableParts', 'none');
-            ov_t = 0;
-            if ~isempty(wave_fs) && il_is_open(win_wave)
-                ov_t = (max(play_start, 1) - 1) / wave_fs;
-            end
-            xline(ov_ax, ov_t, 'Color', [0.85 0.2 0.2], 'LineWidth', 1.2, 'Tag', 'overview_playhead', ...
-                'PickableParts', 'none', 'HandleVisibility', 'off');
-            ov_ax.ButtonDownFcn = @(~, ev) on_overview_click(ev.IntersectionPoint(1));
-        end
-    end
-
     function on_main_key(~, event)
-        % the space bar plays and pauses from the main window too; the player
-        % lives in the waveform window, which opens behind when it is closed
+        % the space bar plays and pauses, the arrows move the colour scale of the spectrogram
         if strcmp(event.Key, 'space') && ~isempty(loaded)
-            open_player();
             toggle_play();
+        else
+            on_wave_key([], event);
         end
-    end
-
-    function open_player()
-        if ~il_is_open(win_wave)
-            on_open_waveform();
-            if strcmp(fig.Visible, 'on')
-                figure(fig);                         % the main window keeps the focus
-            end
-        end
-    end
-
-    function on_overview_click(t)
-        % a click on a plot against time takes the player of the waveform window there
-        open_player();
-        seek(t);
-        set(findall(ov_plot, 'Tag', 'overview_playhead'), 'Value', ...
-            (min(max(round(t * wave_fs) + 1, 1), numel(wave_y)) - 1) / wave_fs);
     end
 
     function on_stop_run(~, ~)
@@ -970,14 +888,7 @@ end
         end
         lbl_status.Text = msg;
         write_log([msg '.']);
-        refresh_graph_windows();
-        if ~isempty(store)                       % the results show at once; the button opens them again
-            if isempty(live_window())
-                on_open_graphs();
-            elseif strcmp(fig.Visible, 'on')
-                figure(live_window());
-            end
-        end
+        refresh_graph_windows();                 % the plots open with Open Graphs Window, not after each run
         try
             focus(matrix);                       % off the Run button: a space would press it again
         catch
@@ -1057,7 +968,7 @@ end
 
     function write_report(file)
         % the report: the settings, the matrix of single values and, per analysis
-        % of the run, the first plot that the Results tab offers for it
+        % of the run, its first plot (a time series, a profile or a map)
         rp_groups = struct('title', {}, 'analyses', {}, 'names', {});
         for rp_n = unique(matrix.UserData, 'stable')'
             rp_e = store(strcmp({store.number}, sprintf('#%d', rp_n)) & ismember({store.file}, {loaded.path}));
@@ -1111,97 +1022,117 @@ end
         end
     end
 
-    function on_open_waveform(~, ~)
-        if isempty(loaded)
-            write_log('No file loaded.');
-            return
-        end
-        if ~il_is_open(win_wave)
-            win_wave = uifigure('Name', 'Waveform', 'Position', [140 140 1100 700], ...
-                'Visible', fig.Visible, 'Tag', 'SQAT_GUI_waveform', 'CloseRequestFcn', @on_close_waveform, ...
-                'CreateFcn', '', 'KeyPressFcn', @on_wave_key);
-            gw = uigridlayout(win_wave, [4 1]);
-            gw.RowHeight = {26, 30, 30, '1x'};
-            uitabgroup(gw, 'Tag', 'wave_tabs', 'SelectionChangedFcn', @on_wave_tab);   % a tab per signal
-            hw = uigridlayout(gw, [1 9]);
-            hw.Padding = [0 0 0 0];
-            hw.ColumnWidth = {80, 80, 60, 100, 110, 140, 80, 60, '1x'};
-            btn_play = uibutton(hw, 'Text', 'Play', 'Tag', 'play', 'ButtonPushedFcn', @on_play, ...
-                'Tooltip', 'Space plays and pauses; a click on the waveform or the spectrogram moves the playhead');
-            uibutton(hw, 'Text', 'Stop', 'Tag', 'stop', 'ButtonPushedFcn', @on_stop);
-            uicheckbox(hw, 'Text', 'Loop', 'Value', true, 'Tag', 'loop', 'ValueChangedFcn', @on_loop_changed, ...
-                'Tooltip', 'Starts again at the end of the file, or of the filter box when there is one');
-            uibutton(hw, 'state', 'Text', 'Draw filter', 'Tag', 'draw_box', 'ValueChangedFcn', @on_draw_box, ...
-                'Tooltip', 'Drag a box on the spectrogram, or click two opposite corners');
-            uibutton(hw, 'Text', 'Clear filters', 'Tag', 'clear_boxes', 'ButtonPushedFcn', @on_clear_boxes);
-            uidropdown(hw, 'Items', {'Filter: loop only', 'Filter: isolate', 'Filter: remove'}, ...
-                'ItemsData', {'loop', 'isolate', 'remove'}, 'Value', 'loop', 'Tag', 'box_mode', ...
-                'ValueChangedFcn', @on_processing_changed, ...
-                'Tooltip', ['Loop only: the sound is not changed, and the loop runs inside the box. ' ...
-                            'Isolate: only what is inside the box plays. Remove: what is inside the box is taken out.']);
-            uilabel(hw, 'Text', 'Weighting:', 'HorizontalAlignment', 'right');
-            uidropdown(hw, 'Items', {'Z', 'A', 'C'}, 'Value', 'Z', 'Tag', 'wave_weighting', ...
-                'ValueChangedFcn', @on_weighting_changed, ...
-                'Tooltip', 'Frequency weighting of the sound and of the spectrogram (IEC 61672-1)');
-            uilabel(hw, 'Text', '');
-            sw = uigridlayout(gw, [1 11]);
-            sw.Padding = [0 0 0 0];
-            sw.ColumnWidth = {60, 150, 140, 80, 70, 80, 70, 110, 60, 100, '1x'};
-            uilabel(sw, 'Text', 'Window:', 'HorizontalAlignment', 'right');
-            uidropdown(sw, 'Items', {'Hann', 'Hamming', 'Rectangular', 'Blackman-Harris'}, ...
-                'ItemsData', {'hann', 'hamming', 'rect', 'blackmanharris'}, 'Value', 'hann', ...
-                'Tag', 'spec_window', 'ValueChangedFcn', @on_spec_option);
-            uibutton(sw, 'Text', 'Import window...', 'Tag', 'import_window', 'ButtonPushedFcn', @on_import_window, ...
-                'Tooltip', 'A .txt, .csv, .dat or .mat file with the samples of the window');
-            uilabel(sw, 'Text', 'FFT degree:', 'HorizontalAlignment', 'right');
-            uispinner(sw, 'Value', 10, 'Limits', [6 16], 'Step', 1, 'Tag', 'spec_degree', ...
-                'RoundFractionalValues', 'on', 'ValueChangedFcn', @on_spec_option, ...
-                'Tooltip', 'The FFT has 2^degree points (6 to 16); use the arrows');
-            uilabel(sw, 'Text', 'Overlap (%):', 'HorizontalAlignment', 'right');
-            uispinner(sw, 'Value', 50, 'Limits', [0 95], 'Step', 5, 'Tag', 'spec_overlap', ...
-                'ValueChangedFcn', @on_spec_option, 'Tooltip', 'Overlap of the frames (0 to 95); use the arrows');
-            uilabel(sw, 'Text', 'Enhanced STFT:', 'HorizontalAlignment', 'right');
-            uiswitch(sw, 'slider', 'Items', {'Off', 'On'}, 'Value', 'Off', 'Tag', 'spec_enhanced', ...
-                'ValueChangedFcn', @on_spec_enhanced, ...
-                'Tooltip', ['Enhanced STFT (consensus): nine windows of 8 to 512 ms, reassigned and combined, ' ...
-                            'so that no window has to be chosen. It replaces the window, the FFT degree and the overlap.']);
-            uidropdown(sw, 'Items', {'Readable', 'Sharp'}, 'ItemsData', {'readable', 'sharp'}, 'Value', 'readable', ...
-                'Tag', 'spec_enhanced_mode', 'Enable', 'off', 'ValueChangedFcn', @on_spec_enhanced, ...
-                'Tooltip', 'Readable: smoothing of 4 ms and 1.45 % of the frequency, continuous lines. Sharp: 1 ms and 1 Hz, the thinnest lines.');
-            uilabel(sw, 'Text', '');
-            pg = uigridlayout(gw, [3 1]);                  % the plots, with the tools of the spectrogram between them
-            pg.RowHeight = {'1x', 24, '1.2x'};
-            pg.Padding = [0 0 0 0];
-            pg.RowSpacing = 2;
-            % each plot in a box of its own: the axes keep fixed margins for the
-            % labels inside it, the same for both, so the time axes stay aligned
-            box_wave = uipanel(pg, 'BorderType', 'none', 'AutoResizeChildren', 'off');
-            ax_wave = uiaxes(box_wave, 'Tag', 'waveform_axes', 'ButtonDownFcn', @on_wave_click);
-            tg = uigridlayout(pg, [1 3]);
-            tg.ColumnWidth = {'1x', 30, 30};                % the colour buttons at the right, over the colorbar
-            tg.Padding = [0 0 0 0];
-            uilabel(tg, 'Text', '');
-            uibutton(tg, 'Text', char(8722), 'Tag', 'spec_black_less', 'ButtonPushedFcn', @(~, ~) shift_black(-5), ...
-                'Tooltip', 'Less black: the colour scale reaches 5 dB lower (down arrow)');
-            uibutton(tg, 'Text', '+', 'Tag', 'spec_black_more', 'ButtonPushedFcn', @(~, ~) shift_black(5), ...
-                'Tooltip', 'More black: the colour scale starts 5 dB higher (up arrow)');
-            box_spec = uipanel(pg, 'BorderType', 'none', 'AutoResizeChildren', 'off');
-            ax_spec = uiaxes(box_spec, 'Tag', 'spectrogram', 'ButtonDownFcn', @on_wave_click);
-            box_wave.SizeChangedFcn = @(src, ~) il_fit_axes(src, ax_wave);
-            box_spec.SizeChangedFcn = @(src, ~) il_fit_axes(src, ax_spec);
-            il_fit_axes(box_wave, ax_wave);
-            il_fit_axes(box_spec, ax_spec);
-            ax_spec.XAxis.LimitsChangedFcn = @on_spec_limits;
-            ax_wave.XAxis.LimitsChangedFcn = @on_wave_limits;
-            setappdata(win_wave, 'sqat_spec_zoom', @apply_spec_zoom);   % the recomputation, for the tests
-            setappdata(win_wave, 'sqat_audio', @process_audio);   % what plays, for the tests
-            setappdata(win_wave, 'sqat_play', @play_info);
-            apply_theme();
-        end
-        draw_waveform_window();
-        if strcmp(fig.Visible, 'on')
-            figure(win_wave);
-        end
+    function build_wave_view(parent)
+        % the tabs of the signals, the player, the options of the spectrogram and
+        % the plots, in one grid in the Waveform tab
+        wave_view = uigridlayout(parent, [4 1]);
+        wave_view.RowHeight = {26, 26, 26, '1x'};
+        wave_view.Padding = [4 4 4 4];
+        uitabgroup(wave_view, 'Tag', 'wave_tabs', 'SelectionChangedFcn', @on_wave_tab);   % a tab per signal
+        hw = uigridlayout(wave_view, [1 9]);
+        hw.Padding = [0 0 0 0];
+        hw.ColumnWidth = {70, 70, 55, 90, 95, 130, 70, 55, '1x'};   % narrow enough for the Waveform tab
+        hw.ColumnSpacing = 6;
+        btn_play = uibutton(hw, 'Text', 'Play', 'Tag', 'play', 'ButtonPushedFcn', @on_play, ...
+            'Tooltip', 'Space plays and pauses; a click on the waveform or the spectrogram moves the playhead');
+        uibutton(hw, 'Text', 'Stop', 'Tag', 'stop', 'ButtonPushedFcn', @on_stop);
+        uicheckbox(hw, 'Text', 'Loop', 'Value', true, 'Tag', 'loop', 'ValueChangedFcn', @on_loop_changed, ...
+            'Tooltip', 'Starts again at the end of the file, or of the filter box when there is one');
+        uibutton(hw, 'state', 'Text', 'Draw filter', 'Tag', 'draw_box', 'ValueChangedFcn', @on_draw_box, ...
+            'Tooltip', 'Drag a box on the spectrogram, or click two opposite corners');
+        uibutton(hw, 'Text', 'Clear filters', 'Tag', 'clear_boxes', 'ButtonPushedFcn', @on_clear_boxes);
+        uidropdown(hw, 'Items', {'Filter: loop only', 'Filter: isolate', 'Filter: remove'}, ...
+            'ItemsData', {'loop', 'isolate', 'remove'}, 'Value', 'loop', 'Tag', 'box_mode', ...
+            'ValueChangedFcn', @on_processing_changed, ...
+            'Tooltip', ['Loop only: the sound is not changed, and the loop runs inside the box. ' ...
+                        'Isolate: only what is inside the box plays. Remove: what is inside the box is taken out.']);
+        uilabel(hw, 'Text', 'Weighting:', 'HorizontalAlignment', 'right');
+        uidropdown(hw, 'Items', {'Z', 'A', 'C'}, 'Value', 'Z', 'Tag', 'wave_weighting', ...
+            'ValueChangedFcn', @on_weighting_changed, ...
+            'Tooltip', 'Frequency weighting of the sound and of the spectrogram (IEC 61672-1)');
+        uilabel(hw, 'Text', '');
+        sw = uigridlayout(wave_view, [1 11]);
+        sw.Padding = [0 0 0 0];
+        sw.ColumnWidth = {50, 115, 70, 72, 52, 78, 52, 62, 70, 85, '1x'};   % the switch needs room for Off and On
+        sw.ColumnSpacing = 6;
+        uilabel(sw, 'Text', 'Window:', 'HorizontalAlignment', 'right');
+        uidropdown(sw, 'Items', {'Hann', 'Hamming', 'Rectangular', 'Blackman-Harris'}, ...
+            'ItemsData', {'hann', 'hamming', 'rect', 'blackmanharris'}, 'Value', 'hann', ...
+            'Tag', 'spec_window', 'ValueChangedFcn', @on_spec_option);
+        uibutton(sw, 'Text', 'Import...', 'Tag', 'import_window', 'ButtonPushedFcn', @on_import_window, ...
+            'Tooltip', 'A .txt, .csv, .dat or .mat file with the samples of the window');
+        uilabel(sw, 'Text', 'FFT degree:', 'HorizontalAlignment', 'right');
+        uispinner(sw, 'Value', 10, 'Limits', [6 16], 'Step', 1, 'Tag', 'spec_degree', ...
+            'RoundFractionalValues', 'on', 'ValueChangedFcn', @on_spec_option, ...
+            'Tooltip', 'The FFT has 2^degree points (6 to 16); use the arrows');
+        uilabel(sw, 'Text', 'Overlap (%):', 'HorizontalAlignment', 'right');
+        uispinner(sw, 'Value', 50, 'Limits', [0 95], 'Step', 5, 'Tag', 'spec_overlap', ...
+            'ValueChangedFcn', @on_spec_option, 'Tooltip', 'Overlap of the frames (0 to 95); use the arrows');
+        uilabel(sw, 'Text', 'Enhanced:', 'HorizontalAlignment', 'right', 'Tooltip', 'Enhanced STFT');
+        uiswitch(sw, 'slider', 'Items', {'Off', 'On'}, 'Value', 'Off', 'Tag', 'spec_enhanced', ...
+            'ValueChangedFcn', @on_spec_enhanced, ...
+            'Tooltip', ['Enhanced STFT (consensus): nine windows of 8 to 512 ms, reassigned and combined, ' ...
+                        'so that no window has to be chosen. It replaces the window, the FFT degree and the overlap.']);
+        uidropdown(sw, 'Items', {'Readable', 'Sharp'}, 'ItemsData', {'readable', 'sharp'}, 'Value', 'readable', ...
+            'Tag', 'spec_enhanced_mode', 'Enable', 'off', 'ValueChangedFcn', @on_spec_enhanced, ...
+            'Tooltip', 'Readable: smoothing of 4 ms and 1.45 % of the frequency, continuous lines. Sharp: 1 ms and 1 Hz, the thinnest lines.');
+        uilabel(sw, 'Text', '');
+        pg = uigridlayout(wave_view, [5 1]);                  % the plots, each with its own tools above it
+        pg.RowHeight = {24, '1.2x', '1x', 24, '1x'};   % the spectrogram on top, then the waveform and the sound level
+        pg.Padding = [0 0 0 0];
+        pg.RowSpacing = 2;
+        % each plot in a box of its own: the axes keep fixed margins for the
+        % labels inside it, the same for all, so the time axes stay aligned
+        box_wave = uipanel(pg, 'BorderType', 'none', 'AutoResizeChildren', 'off');
+        ax_wave = uiaxes(box_wave, 'Tag', 'waveform_axes', 'ButtonDownFcn', @on_wave_click);
+        box_wave.Layout.Row = 3;
+        lg = uigridlayout(pg, [1 6]);                   % the sound level: its time weighting and indicators
+        lg.Layout.Row = 4;
+        lg.ColumnWidth = {100, 80, 100, 55, 55, '1x'};
+        lg.ColumnSpacing = 6;
+        lg.Padding = [0 0 0 0];
+        uilabel(lg, 'Text', 'Time weighting:', 'HorizontalAlignment', 'right');
+        uidropdown(lg, 'Items', {'Fast', 'Slow', 'Impulse'}, 'ItemsData', {'f', 's', 'i'}, 'Value', 'f', ...
+            'Tag', 'level_time_weighting', 'ValueChangedFcn', @(~, ~) draw_level(), ...
+            'Tooltip', 'Time weighting of the sound level (IEC 61672-1); the frequency weighting is the one of the player');
+        uilabel(lg, 'Text', 'Percentiles (%):', 'HorizontalAlignment', 'right');
+        tip = 'The level exceeded during this percentage of the time (1 to 99); use the arrows';
+        uispinner(lg, 'Value', 5, 'Limits', [1 99], 'Step', 1, 'RoundFractionalValues', 'on', ...
+            'Tag', 'level_percentile_1', 'ValueChangedFcn', @(~, ~) show_level_values(), 'Tooltip', tip);
+        uispinner(lg, 'Value', 90, 'Limits', [1 99], 'Step', 1, 'RoundFractionalValues', 'on', ...
+            'Tag', 'level_percentile_2', 'ValueChangedFcn', @(~, ~) show_level_values(), 'Tooltip', tip);
+        uilabel(lg, 'Text', '', 'Tag', 'level_indicators', 'FontWeight', 'bold');
+        box_lvl = uipanel(pg, 'BorderType', 'none', 'AutoResizeChildren', 'off');
+        ax_lvl = uiaxes(box_lvl, 'Tag', 'level_axes', 'ButtonDownFcn', @on_wave_click);
+        box_lvl.Layout.Row = 5;
+        tg = uigridlayout(pg, [1 3]);
+        tg.Layout.Row = 1;
+        tg.ColumnWidth = {'1x', 30, 30};                % the colour buttons at the right, over the colorbar
+        tg.Padding = [0 0 0 0];
+        uilabel(tg, 'Text', '');
+        uibutton(tg, 'Text', char(8722), 'Tag', 'spec_black_less', 'ButtonPushedFcn', @(~, ~) shift_black(-5), ...
+            'Tooltip', 'Less black: the colour scale reaches 5 dB lower (down arrow)');
+        uibutton(tg, 'Text', '+', 'Tag', 'spec_black_more', 'ButtonPushedFcn', @(~, ~) shift_black(5), ...
+            'Tooltip', 'More black: the colour scale starts 5 dB higher (up arrow)');
+        box_spec = uipanel(pg, 'BorderType', 'none', 'AutoResizeChildren', 'off');
+        box_spec.Layout.Row = 2;
+        ax_spec = uiaxes(box_spec, 'Tag', 'spectrogram', 'ButtonDownFcn', @on_wave_click);
+        box_wave.SizeChangedFcn = @(src, ~) il_fit_axes(src, ax_wave);
+        box_spec.SizeChangedFcn = @(src, ~) il_fit_axes(src, ax_spec);
+        box_lvl.SizeChangedFcn = @(src, ~) il_fit_axes(src, ax_lvl);
+        il_fit_axes(box_wave, ax_wave);
+        il_fit_axes(box_lvl, ax_lvl);
+        il_fit_axes(box_spec, ax_spec);
+        ax_spec.XAxis.LimitsChangedFcn = @on_spec_limits;
+        ax_wave.XAxis.LimitsChangedFcn = @on_wave_limits;
+        ax_lvl.XAxis.LimitsChangedFcn = @on_level_limits;
+        wave_appdata();
+    end
+
+    function wave_appdata()
+        setappdata(win_wave, 'sqat_spec_zoom', @apply_spec_zoom);   % the recomputation, for the tests
+        setappdata(win_wave, 'sqat_audio', @process_audio);   % what plays, for the tests
+        setappdata(win_wave, 'sqat_play', @play_info);
     end
 
     function on_wave_tab(~, event)
@@ -1503,6 +1434,7 @@ end
 
     function on_weighting_changed(~, ~)
         rebuild_audio();
+        draw_level();
         draw_spectrogram(true);
     end
 
@@ -1685,14 +1617,6 @@ end
         draw_spectrogram(true);
     end
 
-    function on_close_waveform(~, ~)
-        on_stop();
-        stop_spec_timer();
-        il_delete_timer(prefetch_timer);
-        cancel_jobs();
-        delete(win_wave);
-    end
-
     function on_close(~, ~)
         if ~isempty(player)
             stop(player);
@@ -1701,7 +1625,6 @@ end
         stop_spec_timer();
         il_delete_timer(prefetch_timer);
         cancel_jobs();
-        if il_is_open(win_wave), delete(win_wave); end
         delete(open_graph_windows());
         delete(fig);
     end
@@ -1779,7 +1702,8 @@ end
         signal_list.RowHeight = repmat({24}, 1, n + 1);
         heads = {'', '', 'Signal', 'Channel', ['Calibration ' char(9432)], ''};
         for c = 1:6
-            h = uilabel(signal_list, 'Text', heads{c}, 'FontWeight', 'bold');
+            h = uilabel(signal_list, 'Text', heads{c}, 'FontWeight', 'bold', ...
+                'HorizontalAlignment', 'center');  % centred over the boxes below
             if c == 5
                 set(h, 'Tag', 'signal_cal_info', 'Tooltip', cal_help);
             end
@@ -1791,7 +1715,7 @@ end
                 'Tooltip', 'Use this signal in the run and the plots', ...
                 'ValueChangedFcn', @(src, ~) on_signal_ticked(k, src.Value));
             uibutton(signal_list, 'Text', f.name, 'HorizontalAlignment', 'left', ...
-                'Tag', sprintf('signal_name_%d', k), 'Tooltip', [f.path newline 'Click: show it in the waveform window'], ...
+                'Tag', sprintf('signal_name_%d', k), 'Tooltip', [f.path newline 'Click: show it in the Waveform tab'], ...
                 'ButtonPushedFcn', @(~, ~) on_signal_name(k));
             uidropdown(signal_list, 'Items', il_channel_items(f.nch), 'Value', f.channel, ...
                 'Tag', sprintf('signal_channel_%d', k), ...
@@ -1883,6 +1807,8 @@ end
                 sync_wave_tabs();
                 cla(ax_wave);
                 cla(ax_spec);
+                wave_x = [];
+                draw_level();
             else
                 draw_waveform_window();
             end
@@ -2485,7 +2411,6 @@ end
         wave_fs = fs;
         spec_signal = sprintf('%s|%s', key, mat2str(f.dBFS));
         cancel_jobs(spec_signal);
-        win_wave.Name = sprintf('Waveform: %s, channel %d', f.name, ch);
         t_end = numel(x) / fs;
         step = max(1, ceil(numel(x) / 2e6));   % display only: at most 2e6 points
         t = (0:numel(x)-1)' / fs;
@@ -2494,9 +2419,10 @@ end
         ylim(ax_wave, 1.05 * max(max(abs(x)), eps) * [-1 1]);   % fixed: a zoom redraws the line, the scale stays
         xlim(ax_wave, [0 t_end]);
         ylabel(ax_wave, 'Sound pressure (Pa)');
-        title(ax_wave, 'Waveform');
+        title(ax_wave, sprintf('Waveform: %s, channel %d', f.name, ch), 'Interpreter', 'none');   % the signal on screen
         xline(ax_wave, (max(play_start, 1) - 1) / fs, 'Color', [0.85 0.2 0.2], 'LineWidth', 1.5, ...
             'Tag', 'playhead', 'PickableParts', 'none');
+        draw_level();
         draw_spectrogram();
         il_delete_timer(prefetch_timer);            % the pool starts once the window is drawn, not while
         prefetch_timer = timer('StartDelay', 1, 'ExecutionMode', 'singleShot', ...
@@ -2627,6 +2553,71 @@ end
         % LimitsChangedFcn takes the enhanced map to the excerpt
         follow_limits(ax_wave, ax_spec, event);
         draw_wave_line();
+        if ~isequal(ax_lvl.XLim, ax_wave.XLim)          % the sound level follows the waveform
+            setappdata(ax_lvl, 'sqat_echo', ax_wave.XLim);
+            ax_lvl.XLim = ax_wave.XLim;
+        end
+    end
+
+    function on_level_limits(~, event)
+        % a zoom or a pan of the sound level: the waveform and the spectrogram follow
+        if isequal(event.NewLimits, getappdata(ax_lvl, 'sqat_echo'))
+            setappdata(ax_lvl, 'sqat_echo', []);
+            return
+        end
+        follow_limits(ax_lvl, ax_wave, event);
+        follow_limits(ax_lvl, ax_spec);
+    end
+
+    function draw_level()
+        % the sound level meter of SQAT (Do_SLM) on the signal on screen, with
+        % the frequency weighting of the player and the time weighting chosen
+        % above the plot; the indicators as the Sound level metric gives them
+        cla(ax_lvl);
+        lvl_L = [];
+        if isempty(wave_x)
+            show_level_values();
+            return
+        end
+        fw = findobj(win_wave, 'Tag', 'wave_weighting').Value;
+        dd_tw = findobj(win_wave, 'Tag', 'level_time_weighting');
+        lvl_L = Do_SLM(wave_x, wave_fs, fw, dd_tw.Value, 94);   % the signal is in Pa: 94 dBFS keeps it
+        lvl_L = lvl_L(:);
+        step = max(1, round(wave_fs / 1000));                  % the level every millisecond, as the metric
+        plot(ax_lvl, (0:step:numel(lvl_L) - 1)' / wave_fs, lvl_L(1:step:end), ...
+            'PickableParts', 'none', 'Tag', 'level_line');
+        xlim(ax_lvl, ax_wave.XLim);
+        ylabel(ax_lvl, il_if(strcmp(fw, 'Z'), 'Level (dB SPL)', sprintf('Level (dB(%s))', fw)));   % short: the plot is low
+        title(ax_lvl, sprintf('Sound level (%s-weighted, %s)', fw, dd_tw.Items{strcmp(dd_tw.ItemsData, dd_tw.Value)}));
+        xline(ax_lvl, (max(play_start, 1) - 1) / wave_fs, 'Color', [0.85 0.2 0.2], 'LineWidth', 1.5, ...
+            'Tag', 'playhead_level', 'PickableParts', 'none');
+        il_fit_axes(ax_lvl.Parent, ax_lvl);
+        show_level_values();
+    end
+
+    function show_level_values()
+        % Leq, LE and Lmax above the plot, and the levels exceeded during the two
+        % percentiles chosen as dashed lines on it, so that the arrows move them
+        lbl = findobj(win_wave, 'Tag', 'level_indicators');
+        delete(findall(ax_lvl, 'Tag', 'level_percentile_line'));
+        if isempty(lvl_L)
+            lbl.Text = '';
+            return
+        end
+        F = findobj(win_wave, 'Tag', 'wave_weighting').Value;
+        T = upper(findobj(win_wave, 'Tag', 'level_time_weighting').Value);
+        Leq = Get_Leq(lvl_L, wave_fs);
+        txt = sprintf('L%seq %.1f   L%sE %.1f   L%s%smax %.1f', F, Leq, F, Leq + 10*log10(numel(lvl_L) / wave_fs), ...
+            F, T, max(lvl_L));
+        pct = unique([findobj(win_wave, 'Tag', 'level_percentile_1').Value, ...
+            findobj(win_wave, 'Tag', 'level_percentile_2').Value]);
+        for p = pct
+            v = get_exceeded_value(lvl_L, p);
+            yline(ax_lvl, v, '--', sprintf('L%s%s%g %.1f dB', F, T, p, v), 'Color', [0.93 0.6 0.1], ...
+                'LineWidth', 1.2, 'LabelHorizontalAlignment', 'left', 'Tag', 'level_percentile_line', ...
+                'PickableParts', 'none', 'HandleVisibility', 'off');
+        end
+        lbl.Text = [txt ' dB'];
     end
 
     function follow_limits(src, dst, event)
@@ -3029,9 +3020,9 @@ end
             return
         end
         t_now = (sample - 1) / wave_fs;
-        set(findall(ov_plot, 'Tag', 'overview_playhead'), 'Value', t_now);
         set(findobj(win_wave, 'Tag', 'playhead'), 'Value', t_now);
         set(findobj(win_wave, 'Tag', 'playhead_spectrogram'), 'Value', t_now);
+        set(findobj(win_wave, 'Tag', 'playhead_level'), 'Value', t_now);
     end
 
     function [OUT, new_figs] = run_step(e, step, done, x, fs, f, show)
