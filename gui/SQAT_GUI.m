@@ -3596,12 +3596,26 @@ end
 end
 
 function v = il_sqat_version()
-% the commit of the SQAT repository, when it is a git checkout
+% the release of SQAT: its tag (v1.3), or the tag and the commits since it in
+% a git checkout (v1.3 + 299 commits (db61b5c)); without git, the version of
+% citation.cff (a download of a release)
 root = fileparts(fileparts(mfilename('fullpath')));
-[status, out] = system(sprintf('git -C "%s" rev-parse --short HEAD', root));
-v = 'unknown (not a git checkout)';
-if status == 0
-    v = ['commit ' strtrim(out)];
+[status, out] = system(sprintf('git -C "%s" describe --tags --long --match "v*"', root));
+tok = regexp(strtrim(out), '^(.*)-(\d+)-g([0-9a-f]+)$', 'tokens', 'once');
+if status == 0 && ~isempty(tok)
+    v = tok{1};
+    if ~strcmp(tok{2}, '0')
+        v = sprintf('%s + %s commits (%s)', tok{1}, tok{2}, tok{3});
+    end
+    return
+end
+v = 'unknown';
+cff = fullfile(root, 'citation.cff');
+if isfile(cff)
+    k = regexp(fileread(cff), '(?m)^version:\s*(\S+)', 'tokens', 'once');
+    if ~isempty(k)
+        v = k{1};
+    end
 end
 end
 

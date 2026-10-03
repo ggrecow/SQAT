@@ -559,6 +559,7 @@ tc.verifySubstring(v{1}, '(default)');
 v = S.Value(strcmp(S.Item, 'Analysis #1'));
 tc.verifySubstring(v{1}, 'Roughness_Daniel1997');
 tc.verifyTrue(any(strcmp(S.Item, 'SQAT version')));
+tc.verifyMatches(S.Value{strcmp(S.Item, 'SQAT version')}, '^v?\d');   % a release: v1.3, or 1.3 from citation.cff
 end
 
 function test_gui_exported_settings_list_what_ran(tc)
