@@ -101,6 +101,10 @@ Tonality_ECMA418_2_main        = [bp 'psychoacoustic_metrics' filesep 'Tonality_
 Tonality_ECMA418_2_validation  = [bp 'validation'             filesep 'Tonality_ECMA418_2'          filesep];
 Tonality_ECMA418_2_example     = [bp 'examples'               filesep 'Tonality_ECMA418_2'          filesep];
 
+FluctuationStrength_ECMA418_2_main        = [bp 'psychoacoustic_metrics' filesep 'FluctuationStrength_ECMA418_2' filesep];
+FluctuationStrength_ECMA418_2_validation  = [bp 'validation'             filesep 'FluctuationStrength_ECMA418_2' filesep];
+FluctuationStrength_ECMA418_2_example     = [bp 'examples'               filesep 'FluctuationStrength_ECMA418_2' filesep];
+
 bAdd = ~exist('Loudness_ISO532_1.m','file');
 if bAdd
     addpath(L_main);
@@ -202,6 +206,13 @@ if bAdd
     addpath(Tonality_ECMA418_2_main);
     addpath(Tonality_ECMA418_2_validation);
     addpath(Tonality_ECMA418_2_example);
+end
+
+bAdd = ~exist('FluctuationStrength_ECMA418_2.m','file');
+if bAdd
+    addpath(FluctuationStrength_ECMA418_2_main);
+    addpath(FluctuationStrength_ECMA418_2_validation);
+    addpath(FluctuationStrength_ECMA418_2_example);
 end
 
 %%% Adding the publications' directory (alphabetical order):

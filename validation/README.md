@@ -10,6 +10,7 @@ This folder contains a series of codes used to verify the implementation of a pa
 - [Loudness model according to ECMA-418-2:2025 [7]](Loudness_ECMA418_2) 
 - [Roughness model according to ECMA-418-2:2025 [7]](Roughness_ECMA418_2) 
 - [Tonality model according to ECMA-418-2:2025 [7]](Tonality_ECMA418_2) 
+- [Fluctuation strength model according to ECMA-418-2:2025 [7]](FluctuationStrength_ECMA418_2) 
 - [Sound level meter, frequency and time weightings according to IEC 61672-1 [8]](sound_level_meter)
 
 # References
