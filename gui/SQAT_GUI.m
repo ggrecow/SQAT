@@ -1098,7 +1098,7 @@ end
             'Tooltip', 'Readable: smoothing of 4 ms and 1.45 % of the frequency, continuous lines. Sharp: 1 ms and 1 Hz, the thinnest lines.');
         uilabel(sw, 'Text', '');
         pg = uigridlayout(wave_view, [4 1]);                  % the plots, each with its own tools above it
-        pg.RowHeight = {'1.2x', '1x', 24, '1x'};       % the spectrogram on top, then the waveform and the sound level;
+        pg.RowHeight = {'1.2x', '1x', 46, '1x'};       % the spectrogram on top, then the waveform and the sound level;
                                                         % the up and down arrows move the colour floor of the spectrogram
         pg.Padding = [0 0 0 0];
         pg.RowSpacing = 2;
@@ -1107,10 +1107,12 @@ end
         box_wave = uipanel(pg, 'BorderType', 'none', 'AutoResizeChildren', 'off');
         ax_wave = uiaxes(box_wave, 'Tag', 'waveform_axes', 'ButtonDownFcn', @on_wave_click);
         box_wave.Layout.Row = 2;
-        lg = uigridlayout(pg, [1 6]);                   % the sound level: its time weighting and indicators
+        lg = uigridlayout(pg, [2 6]);                   % the sound level: its time weighting, and the indicators below
         lg.Layout.Row = 3;
+        lg.RowHeight = {24, 20};
         lg.ColumnWidth = {100, 80, 100, 55, 55, '1x'};
         lg.ColumnSpacing = 6;
+        lg.RowSpacing = 2;
         lg.Padding = [0 0 0 0];
         uilabel(lg, 'Text', 'Time weighting:', 'HorizontalAlignment', 'right');
         uidropdown(lg, 'Items', {'Fast', 'Slow', 'Impulse'}, 'ItemsData', {'f', 's', 'i'}, 'Value', 'f', ...
@@ -1123,9 +1125,11 @@ end
             'Tag', 'level_percentile_1', 'ValueChangedFcn', @(~, ~) show_level_values(), 'Tooltip', tip);
         uispinner(lg, 'Value', 90, 'Limits', [1 99], 'Step', 1, 'RoundFractionalValues', 'on', ...
             'Tag', 'level_percentile_2', 'ValueChangedFcn', @(~, ~) show_level_values(), 'Tooltip', tip);
-        uilabel(lg, 'Text', '', 'Tag', 'level_indicators', 'FontSize', 11, ...   % small enough for five values
+        indicators = uilabel(lg, 'Text', '', 'Tag', 'level_indicators', 'FontSize', 14, ...   % a row of its own: too wide beside the spinners
             'Tooltip', ['Leq: equivalent level. LE: sound exposure level (SEL), Leq plus 10 lg of the duration in s. ' ...
                         'Lmax: maximum. LN: level reached or exceeded during N % of the time. All in dB.']);
+        indicators.Layout.Row = 2;
+        indicators.Layout.Column = [1 6];
         box_lvl = uipanel(pg, 'BorderType', 'none', 'AutoResizeChildren', 'off');
         ax_lvl = uiaxes(box_lvl, 'Tag', 'level_axes', 'ButtonDownFcn', @on_wave_click);
         box_lvl.Layout.Row = 4;
