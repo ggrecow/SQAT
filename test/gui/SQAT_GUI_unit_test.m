@@ -171,6 +171,43 @@ tc.verifyEqual(20*log10(sqrt(mean(x(:).^2))) + 94, 70, 'AbsTol', 1e-6);   % SQAT
 tc.verifyEqual(20*log10(rms(x(:, 1)) / rms(x(:, 2))), 10, 'AbsTol', 1e-6);
 end
 
+function test_calibration_with_one_level_per_channel(tc)
+% Each method takes one level per channel: dBFS gives them as they are, the
+% relative level sets the rms of each channel to its own level, and a number
+% of levels that is neither 1 nor the number of channels is an error.
+[d, label] = SQAT_GUI_calibration('dbfs', tc.TestData.wav_stereo, [94 100]);
+tc.verifyEqual(d, [94 100]);
+tc.verifyEqual(label, '94/100 dBFS');
+[d, label] = SQAT_GUI_calibration('relative', tc.TestData.wav_stereo, [70 65]);
+x = SQAT_GUI_load(tc.TestData.wav_stereo, d, [1 2]);
+tc.verifyEqual(20*log10(rms(x)) + 94, [70 65], 'AbsTol', 1e-6);   % SQAT reads 94 dB as 1 Pa
+tc.verifyEqual(label, 'rel. 70/65 dB');
+tc.verifyError(@() SQAT_GUI_calibration('dbfs', tc.TestData.wav_stereo, [94 100 106]), 'SQAT_GUI:calibration');
+end
+
+function test_calibration_from_one_calibrator_recording_per_channel(tc)
+% A head and torso simulator calibrated one ear at a time: recording k
+% calibrates channel k, mono or stereo with the calibrator in channel k
+% (the other channel near silence); a level per channel is the calibrator
+% level of each. Two recordings for a mono file is an error.
+fs = 48000;
+t = (0:fs-1)' / fs;
+s = sin(2*pi*1000*t);
+f = fullfile(tc.TestData.dir_tmp, {'cal_left.wav', 'cal_right.wav', 'ear_left.wav', 'ear_right.wav'});
+audiowrite(f{1}, 0.5 * s, fs, 'BitsPerSample', 32);
+audiowrite(f{2}, 0.25 * s, fs, 'BitsPerSample', 32);
+audiowrite(f{3}, [0.5 * s, 1e-4 * s], fs, 'BitsPerSample', 32);
+audiowrite(f{4}, [1e-4 * s, 0.25 * s], fs, 'BitsPerSample', 32);
+expected = 94 - 20*log10([0.5 0.25]/sqrt(2));
+[d, label] = SQAT_GUI_calibration('calibrator', tc.TestData.wav_stereo, 94, f(1:2));
+tc.verifyEqual(d, expected, 'AbsTol', 1e-4);
+tc.verifyEqual(label, 'calib. 94 dB');
+tc.verifyEqual(SQAT_GUI_calibration('calibrator', tc.TestData.wav_stereo, 94, f(3:4)), expected, 'AbsTol', 1e-4);
+tc.verifyEqual(SQAT_GUI_calibration('calibrator', tc.TestData.wav_stereo, [94 114], f(1:2)), ...
+    expected + [0 20], 'AbsTol', 1e-4);
+tc.verifyError(@() SQAT_GUI_calibration('calibrator', tc.TestData.wav_mono, 94, f(1:2)), 'SQAT_GUI:calibration');
+end
+
 function test_calibration_rejects_silence(tc)
 % Calibration stops with an error on a silent file (relative level) and on a
 % silent calibrator recording.

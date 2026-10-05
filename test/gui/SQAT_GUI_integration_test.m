@@ -793,6 +793,32 @@ S = describe();
 tc.verifySubstring(S.Value{strcmp(S.Item, 'Signal #1')}, 'calibration calib. 94 dB');
 end
 
+function test_gui_calibrates_each_channel_from_its_own_recording(tc)
+% The same ears calibrated one at a time, a mono recording per channel: the
+% full scale of each channel is the same as from the stereo recording, and
+% the export lists both files.
+fs = tc.TestData.fs;
+t = (0:2*fs-1)' / fs;
+cal = fullfile(tc.TestData.dir_tmp, {'calibrator_left.wav', 'calibrator_right.wav'});
+audiowrite(cal{1}, 0.5 * sin(2*pi*1000*t), fs, 'BitsPerSample', 32);
+audiowrite(cal{2}, 0.25 * sin(2*pi*1000*t), fs, 'BitsPerSample', 32);
+sig = fullfile(tc.TestData.dir_tmp, 'tone_through_the_ears.wav');
+audiowrite(sig, 0.1 * [sin(2*pi*1000*t), 0.5 * sin(2*pi*1000*t)], fs, 'BitsPerSample', 32);
+fig = SQAT_GUI({sig}, 'Visible', 'off');
+tc.addTeardown(@() delete(fig));
+set_calibration = getappdata(fig, 'sqat_set_calibration');
+tc.verifyTrue(set_calibration(1, 'calibrator', 94, cal));
+tc.verifyEqual(findobj(fig, 'Tag', 'signal_cal_1').Text, 'calib. 94 dB');
+il_select_metrics(fig, {'Loudness_ISO532_1'});
+il_press(fig, 'run');
+T = findobj(fig, 'Tag', 'results_table').Data;
+full = @(c) T.Cal_dB_SPL(find(strcmp(T.Channel, c), 1));
+tc.verifyEqual([full('1') full('2')], 94 - 20*log10([0.5 0.25]/sqrt(2)), 'AbsTol', 1e-4);
+describe = getappdata(fig, 'sqat_run_description');
+S = describe();
+tc.verifySubstring(S.Value{strcmp(S.Item, 'Signal #1')}, ['(' cal{1} '; ' cal{2} ')']);
+end
+
 function test_gui_reports_a_failing_metric_and_goes_on(tc)
 % A metric that raises an error (a time skip longer than the signal) is
 % reported as ERROR in the console, and the other metric of the run still

@@ -8,8 +8,9 @@ function SQAT_GUI_calibration_dialog(parent, name, c, help_text, apply)
 % INPUT ARGUMENTS
 %   parent : the main window of the interface (the dialog opens over it)
 %   name : name of the file, for the title
-%   c : struct with method ('dbfs', 'calibrator', 'relative'), level (dB)
-%       and file (calibrator recording), the choice the dialog opens on
+%   c : struct with method ('dbfs', 'calibrator', 'relative'), level (dB,
+%       one value or one per channel) and file (calibrator recording, or a
+%       cell with one per channel), the choice the dialog opens on
 %   help_text : what calibration is and the three ways, shown on top
 %   apply : function handle ok = apply(method, level, calfile); OK closes
 %       the dialog when it returns true, and keeps it open otherwise
@@ -36,9 +37,12 @@ function SQAT_GUI_calibration_dialog(parent, name, c, help_text, apply)
 
 methods = {'dbfs', 'calibrator', 'relative'};
 items = {'Full-scale level (dBFS)', 'Calibrator recording', 'Relative level'};
-hints = {'Level in dB SPL of a sample of value 1 (94 dB: 1 = 1 Pa).', ...
-         'Level of the calibrator, e.g. 94 dB (1 Pa), 114 dB (10 Pa) or the value with an adapter.', ...
-         ['The rms of the whole file (all channels together) is set to this level.' newline ...
+hints = {['Level in dB SPL of a sample of value 1 (94 dB: 1 = 1 Pa). ' ...
+          'One level for all channels, or one per channel (e.g. 94 100).'], ...
+         ['Level of the calibrator, e.g. 94 dB (1 Pa), 114 dB (10 Pa) or the value with an adapter. ' ...
+          'Choose one recording, or one per channel: they are taken in alphabetical order of the names.'], ...
+         ['One level: the rms of the whole file (all channels together) is set to it. ' ...
+          'One level per channel (e.g. 70 65): the rms of each channel is set to its level.' newline ...
           'The rms will be calculated based on the entire signal length. If you desire to have ' ...
           'the rms calculated otherwise, please trim the signal before loading in SQAT.']};
 units = {'dB SPL at full scale', 'dB SPL of the calibrator', 'dB SPL rms'};
@@ -49,7 +53,7 @@ if isprop(parent, 'Theme') && ~isempty(parent.Theme)
     d.Theme = parent.Theme;
 end
 g = uigridlayout(d, [7 3]);
-g.RowHeight = {'1x', 26, 64, 26, 26, 22, 30};
+g.RowHeight = {'1x', 26, 84, 26, 26, 22, 30};
 g.ColumnWidth = {110, '1x', 150};
 t = uilabel(g, 'Text', help_text, 'WordWrap', 'on', 'VerticalAlignment', 'top', 'FontSize', 14);
 t.Layout.Column = [1 3];
@@ -60,10 +64,11 @@ dd.Layout.Column = [2 3];
 hint = uilabel(g, 'Text', '', 'WordWrap', 'on', 'FontAngle', 'italic', 'VerticalAlignment', 'top');
 hint.Layout.Column = [1 3];
 uilabel(g, 'Text', 'Level:', 'HorizontalAlignment', 'right');
-lv = uieditfield(g, 'numeric', 'Value', c.level, 'Tag', 'cal_level');
+lv = uieditfield(g, 'text', 'Value', num2str(c.level), 'Tag', 'cal_level');
 unit = uilabel(g, 'Text', '');
 uilabel(g, 'Text', 'Calibrator file:', 'HorizontalAlignment', 'right');
-fl = uilabel(g, 'Text', c.file, 'Tag', 'cal_file', 'Tooltip', c.file);
+files = c.file;                                  % one recording, or a cell with one per channel
+fl = uilabel(g, 'Text', strjoin(cellstr(files), '; '), 'Tag', 'cal_file', 'Tooltip', strjoin(cellstr(files), '; '));
 br = uibutton(g, 'Text', 'Browse...', 'Tag', 'cal_browse', 'ButtonPushedFcn', @(~, ~) browse());
 msg = uilabel(g, 'Text', '', 'FontColor', [0.76 0.12 0.17], 'Tag', 'cal_message');
 msg.Layout.Column = [1 3];
@@ -85,24 +90,34 @@ uiwait(d);
     end
 
     function browse()
-        [f, p] = uigetfile({'*.wav', 'WAV files (*.wav)'}, 'Recording of the calibrator');
+        [f, p] = uigetfile({'*.wav', 'WAV files (*.wav)'}, 'Recording of the calibrator', 'MultiSelect', 'on');
         figure(d);
         if ~isequal(f, 0)
-            fl.Text = fullfile(p, f);
+            if iscell(f)
+                f = sort(f);                    % several: channel 1 first
+            end
+            files = fullfile(p, f);
+            fl.Text = strjoin(cellstr(files), '; ');
             fl.Tooltip = fl.Text;
         end
     end
 
     function ok()
-        if strcmp(dd.Value, 'calibrator') && isempty(fl.Text)
+        if strcmp(dd.Value, 'calibrator') && isempty(files)
             msg.Text = 'Choose the recording of the calibrator.';
+            return
+        end
+        txt = strtrim(lv.Value);
+        [level, ~, ~, next] = sscanf(txt, '%f');
+        if isempty(level) || next <= numel(txt) || ~all(isfinite(level))
+            msg.Text = 'Type a level in dB, or one per channel separated by spaces (e.g. 94 100).';
             return
         end
         file = '';
         if strcmp(dd.Value, 'calibrator')
-            file = fl.Text;
+            file = files;
         end
-        if apply(dd.Value, lv.Value, file)
+        if apply(dd.Value, level.', file)
             delete(d);
         else
             msg.Text = 'The calibration could not be set: see the console output.';
