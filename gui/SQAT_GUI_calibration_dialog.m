@@ -55,7 +55,8 @@ end
 g = uigridlayout(d, [7 3]);
 g.RowHeight = {'1x', 26, 84, 26, 26, 22, 30};
 g.ColumnWidth = {110, '1x', 150};
-t = uilabel(g, 'Text', help_text, 'WordWrap', 'on', 'VerticalAlignment', 'top', 'FontSize', 14);
+t = uilabel(g, 'Text', [newline help_text], ...
+    'WordWrap', 'on', 'VerticalAlignment', 'top', 'FontSize', 14);
 t.Layout.Column = [1 3];
 uilabel(g, 'Text', 'Method:', 'HorizontalAlignment', 'right');
 dd = uidropdown(g, 'Items', items, 'ItemsData', methods, 'Value', c.method, 'Tag', 'cal_method', ...
