@@ -173,14 +173,15 @@ m_file = uimenu(fig, 'Text', 'File');
 uimenu(m_file, 'Text', 'Open session...', 'MenuSelectedFcn', @(~, ~) on_session('open'));
 uimenu(m_file, 'Text', 'Save session...', 'MenuSelectedFcn', @(~, ~) on_session('save'));
 main = uigridlayout(fig, [3 2]);
-main.RowHeight = {64, '1x', 22};                 % the logo as tall as the Actions panel beside it; a thin status bar
+main.RowHeight = {70, '1x', 22};                 % the logo row: the 64 px of the Actions buttons and 6 px more below them; a thin status bar
 main.ColumnWidth = {600, '1x'};                  % the lists get the room, the console the rest
-main.RowSpacing = 10;                            % the room under the logo and the Run button (the default)
+main.RowSpacing = 4;                             % the lists and the plots go further down; the room under the Run button is
+                                                 % 10 px all the same (6 px of the logo row and these 4)
 main.Padding = [10 4 10 10];                     % [left bottom right top]
 
 top = uigridlayout(main, [1 2]);
 top.Layout.Row = 1; top.Layout.Column = 1;
-top.Padding = [20 0 0 0];                       % the logo a little in from the edge
+top.Padding = [20 6 0 0];                       % the logo a little in from the edge; 64 px tall, level with the buttons
 top.ColumnWidth = {84, '1x'};                   % the logo under the row height (1563 x 895 px)
 top.ColumnSpacing = 25;                         % from the logo to the title
 img_logo = uiimage(top, 'ImageSource', fullfile(dir_logos, 'logo_white.png'), 'Tag', 'logo', ...
@@ -224,7 +225,7 @@ right = uigridlayout(main, [2 1]);
 right.Layout.Row = [1 2]; right.Layout.Column = 2;  % Actions up beside the logo, the results below
 right.Padding = [0 0 0 0];
 right.RowHeight = {64, '1x'};
-right.RowSpacing = main.RowSpacing;                 % the tabs start where the lists do
+right.RowSpacing = 10;                              % the tabs start where the lists do: 64 + 10 = 70 + 4
 
 save_folder = pwd;                                     % the folder of the last save
 split_figures = false;                                 % one tab and one file per panel: no control for now
