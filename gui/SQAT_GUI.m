@@ -203,7 +203,7 @@ ana_box.Padding = [6 6 6 6];
 sh = uigridlayout(sig_box, [1 3]);
 sh.Padding = [0 0 0 0];
 sh.ColumnWidth = {'1x', 100, 130};
-uilabel(sh, 'Text', '1   SIGNALS', 'FontWeight', 'bold', 'FontSize', 15);
+uilabel(sh, 'Text', 'SIGNALS', 'FontWeight', 'bold', 'FontSize', 15);
 lbl_files = uilabel(sh, 'Text', 'No files loaded', 'Tag', 'file_count', 'HorizontalAlignment', 'right');
 uibutton(sh, 'Text', 'Open WAV files...', 'Tag', 'load_files', 'ButtonPushedFcn', @on_load_files);
 signal_list = uigridlayout(sig_box, [1 6], 'Scrollable', 'on', 'Tag', 'signals_list');
@@ -213,7 +213,7 @@ signal_list.RowSpacing = 4;
 ah = uigridlayout(ana_box, [1 3]);
 ah.Padding = [0 0 0 0];
 ah.ColumnWidth = {'1x', 190, 100};
-uilabel(ah, 'Text', '2   ANALYSES', 'FontWeight', 'bold', 'FontSize', 15);
+uilabel(ah, 'Text', 'ANALYSES', 'FontWeight', 'bold', 'FontSize', 15);
 uibutton(ah, 'Text', '+ Add metrics...', 'Tag', 'add_metric', 'ButtonPushedFcn', @on_add_metric, ...
     'Tooltip', 'Opens the list of metrics: the ticked ones are added, each with its default parameters');
 uibutton(ah, 'Text', 'Copy last', 'Tag', 'add_analysis', 'ButtonPushedFcn', @on_add_analysis, ...
