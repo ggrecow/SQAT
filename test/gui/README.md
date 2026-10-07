@@ -10,7 +10,7 @@ audio player runs with a silent buffer, so the tests make no sound.
 |---|---:|---:|---|
 | `SQAT_GUI_unit_test.m` | 31 | 13 s | the functions of `gui/` alone: catalogue, loading, share plan, windows, spectrogram, weighting, enhanced STFT. No window opens and no SQAT metric runs. |
 | `SQAT_GUI_tool_calling_test.m` | 10 | 70 s | the functions that call the SQAT metrics: the output of the GUI must equal a direct call of each metric, and the analyses and single values are read from it. No window opens. |
-| `SQAT_GUI_integration_test.m` | 95 | 349 s | the interface itself: main window, runs, results, graphs windows, saving, waveform window, player, enhanced STFT with the background pool. |
+| `SQAT_GUI_integration_test.m` | 97 | 349 s | the interface itself: main window, runs, results, graphs windows, saving, waveform window, player, enhanced STFT with the background pool. |
 
 Times measured on a Mac with 12 cores and MATLAB R2026a, one run each (432 s
 for the three). Run the unit tests after any change, and the three files
@@ -43,8 +43,10 @@ runtests('test/gui/SQAT_GUI_integration_test.m', 'Name', 'SQAT_GUI_integration_t
 ```
 
 The windows of the integration tests open hidden, so the screen stays free.
-The one exception is `test_gui_run_shows_a_progress_dialog`: the progress
-dialog needs a visible window, which flashes on the screen for a few seconds.
+The exceptions are `test_gui_run_shows_a_progress_dialog`, whose progress
+dialog needs a visible window, and the two `test_gui_calibration_dialog_*`
+tests, whose calibration dialog opens visible; they flash on the screen for a
+few seconds.
 
 The integration tests keep the background pool off (application data
 `sqat_no_background` on `groot`), so that no enhanced map is computed behind

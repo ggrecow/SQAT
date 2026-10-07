@@ -819,6 +819,64 @@ S = describe();
 tc.verifySubstring(S.Value{strcmp(S.Item, 'Signal #1')}, ['(' cal{1} '; ' cal{2} ')']);
 end
 
+function test_gui_calibration_dialog_has_a_row_per_channel(tc)
+% The calibration dialog of a stereo file opens on one level for all
+% channels; with Same for all channels unticked it shows a row per channel,
+% OK gives each channel its own full scale, and the dialog opens again on them.
+fig = SQAT_GUI({tc.TestData.wav_stereo}, 'Visible', 'off');
+tc.addTeardown(@() delete(fig));
+il_in_calibration_dialog(fig, 1, @per_channel);
+tc.verifyEqual(findobj(fig, 'Tag', 'signal_cal_1').Text, '94/100 dBFS');
+tc.verifySubstring(findobj(fig, 'Tag', 'signal_cal_1').Tooltip, 'Full scale: 94.00, 100.00 dB SPL');
+shown = {};
+il_in_calibration_dialog(fig, 1, @read_back);
+tc.verifyEqual(shown, {false, true, 94, 100});
+
+    function per_channel(d)
+        tc.verifyTrue(findobj(d, 'Tag', 'cal_same').Value);
+        tc.verifyFalse(logical(findobj(d, 'Tag', 'cal_level_1').Visible));
+        il_set(d, 'cal_same', false);
+        tc.verifyFalse(logical(findobj(d, 'Tag', 'cal_level').Visible));
+        h = findobj(d, 'Tag', 'cal_level_1'); h.Value = 94;
+        h = findobj(d, 'Tag', 'cal_level_2'); h.Value = 100;
+        il_press(d, 'cal_ok');
+    end
+
+    function read_back(d)
+        shown = {findobj(d, 'Tag', 'cal_same').Value, logical(findobj(d, 'Tag', 'cal_level_2').Visible), ...
+                 findobj(d, 'Tag', 'cal_level_1').Value, findobj(d, 'Tag', 'cal_level_2').Value};
+        il_press(d, 'cal_cancel');
+    end
+end
+
+function test_gui_calibration_dialog_takes_a_recording_per_channel(tc)
+% Calibrator recording with a row per channel: OK asks for a recording on
+% every row, then each channel takes the full scale of its own recording.
+fs = tc.TestData.fs;
+t = (0:2*fs-1)' / fs;
+cal = fullfile(tc.TestData.dir_tmp, {'calibrator_left.wav', 'calibrator_right.wav'});
+audiowrite(cal{1}, 0.5 * sin(2*pi*1000*t), fs, 'BitsPerSample', 32);
+audiowrite(cal{2}, 0.25 * sin(2*pi*1000*t), fs, 'BitsPerSample', 32);
+fig = SQAT_GUI({tc.TestData.wav_stereo}, 'Visible', 'off');
+tc.addTeardown(@() delete(fig));
+message = '';
+il_in_calibration_dialog(fig, 1, @two_recordings);
+tc.verifyEqual(message, 'Choose the recording of the calibrator for each row.');
+tc.verifyEqual(findobj(fig, 'Tag', 'signal_cal_1').Text, 'calib. 94/94 dB');
+tc.verifySubstring(findobj(fig, 'Tag', 'signal_cal_1').Tooltip, ...
+    sprintf('Full scale: %.2f, %.2f dB SPL', 94 - 20*log10([0.5 0.25]/sqrt(2))));
+
+    function two_recordings(d)
+        il_set(d, 'cal_method', 'calibrator');
+        il_set(d, 'cal_same', false);
+        h = findobj(d, 'Tag', 'cal_file_1'); h.UserData = cal{1};   % as Browse... sets it
+        il_press(d, 'cal_ok');
+        message = findobj(d, 'Tag', 'cal_message').Text;     % the second row has no recording yet
+        h = findobj(d, 'Tag', 'cal_file_2'); h.UserData = cal{2};
+        il_press(d, 'cal_ok');
+    end
+end
+
 function test_gui_reports_a_failing_metric_and_goes_on(tc)
 % A metric that raises an error (a time skip longer than the signal) is
 % reported as ERROR in the console, and the other metric of the run still
@@ -2516,6 +2574,47 @@ function il_signal_dbfs(fig, k, v)
 % the full-scale level of signal k, as the calibration dialog sets it
 set_calibration = getappdata(fig, 'sqat_set_calibration');
 set_calibration(k, 'dbfs', v);
+end
+
+function il_in_calibration_dialog(fig, k, fn)
+% opens the calibration dialog of signal k and runs fn(d) on it from a timer,
+% since the dialog holds the call until it closes; an error in fn closes the
+% dialog and is raised here. fn waits 0.3 s after the dialog appears: a click
+% while uiwait is still starting deletes the dialog before uiwait reads it
+err = [];
+seen = 0;
+tm = timer('ExecutionMode', 'fixedSpacing', 'Period', 0.05, 'TasksToExecute', 200, 'TimerFcn', @tick);
+start(tm);
+try
+    il_press(fig, sprintf('signal_cal_%d', k));
+catch e
+    err = e;
+end
+stop(tm);
+delete(tm);                                         % by hand: tick holds this workspace, so no onCleanup would run
+if ~isempty(err)
+    rethrow(err);
+end
+
+    function tick(~, ~)
+        d = findall(groot, 'Type', 'figure', 'Tag', 'SQAT_GUI_calibration');
+        if isempty(d)
+            return
+        end
+        seen = seen + 1;
+        if seen < 6
+            return
+        end
+        stop(tm);
+        try
+            fn(d);
+        catch e
+            err = e;
+        end
+        if isvalid(d)
+            delete(d);                                  % fn left it open: Cancel
+        end
+    end
 end
 
 function names = il_signal_names(fig)
