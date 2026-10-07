@@ -728,6 +728,33 @@ for value = {'sqat', 'all', 'loudness'}
 end
 end
 
+function test_gui_gaps_between_the_boxes_can_be_dragged(tc)
+% Dragging the gap between the two lists shares their height otherwise, and
+% dragging the gap beside them widens the lists; the pointer shows the gaps.
+% The points go straight to the callbacks of the window, as a test moves no mouse.
+fig = SQAT_GUI({tc.TestData.wav_mono}, 'Visible', 'off');
+tc.addTeardown(@() delete(fig));
+drawnow
+ps = getpixelposition(findobj(fig, 'Tag', 'signals_box'), true);
+pa = getpixelposition(findobj(fig, 'Tag', 'analyses_box'), true);
+gap = [ps(1) + ps(3)/2, (pa(2) + pa(4) + ps(2)) / 2];   % between the two lists
+fig.WindowButtonMotionFcn(fig, [], gap);
+tc.verifyEqual(char(fig.Pointer), 'top');
+fig.WindowButtonDownFcn(fig, [], gap);
+fig.WindowButtonMotionFcn(fig, [], gap + [0 50]);        % 50 px up: the signals shorter
+fig.WindowButtonUpFcn(fig, []);
+tc.verifyEqual(findobj(fig, 'Tag', 'lists_grid').RowHeight{1}, ps(4) - 50);
+side = [ps(1) + ps(3) + 5, ps(2) + ps(4)/2];             % between the lists and the tabs
+fig.WindowButtonMotionFcn(fig, [], side);
+tc.verifyEqual(char(fig.Pointer), 'left');
+fig.WindowButtonDownFcn(fig, [], side);
+fig.WindowButtonMotionFcn(fig, [], side + [80 0]);       % 80 px to the right: the lists wider
+fig.WindowButtonUpFcn(fig, []);
+tc.verifyEqual(findobj(fig, 'Tag', 'main_grid').ColumnWidth{1}, ps(3) + 80);
+fig.WindowButtonMotionFcn(fig, [], [ps(1) + 20, ps(2) + 20]);   % inside a box: the arrow again
+tc.verifyEqual(char(fig.Pointer), 'arrow');
+end
+
 function test_gui_calibration_explains_the_full_scale(tc)
 % The head of the column explains calibration and its three ways; each
 % signal shows its method and, in the tooltip, its full-scale level.
@@ -1894,7 +1921,7 @@ axs = findobj(w, 'Tag', 'spectrogram');
 bt = findobj(w, 'Tag', 'draw_box');
 bt.Value = true; bt.ValueChangedFcn(bt, []);
 axs.ButtonDownFcn(axs, struct('IntersectionPoint', [0.5 1500 0]));   % press
-tc.assertNotEmpty(w.WindowButtonMotionFcn, 'nothing follows the mouse');
+tc.assertSubstring(func2str(w.WindowButtonMotionFcn), 'on_box_motion', 'nothing follows the mouse');
 w.WindowButtonMotionFcn(w, struct('IntersectionPoint', [1.5 2000 0]));
 prev = findobj(w, 'Tag', 'box_preview');
 tc.assertNumElements(prev, 1);                             % the box follows the mouse
@@ -1906,7 +1933,7 @@ tc.assertNumElements(box, 1);
 tc.verifyEqual([min(box.XData) max(box.XData)], [0.5 2.5], 'AbsTol', 1e-9);
 tc.verifyEqual([min(box.YData) max(box.YData)], [1500 2500], 'AbsTol', 1e-9);
 tc.verifyEmpty(findobj(w, 'Tag', 'box_preview'));
-tc.verifyEmpty(w.WindowButtonMotionFcn, 'the mouse is still followed');
+tc.verifySubstring(func2str(w.WindowButtonMotionFcn), 'on_splitter_motion', 'the box still follows the mouse');   % the gaps between the boxes again
 tc.verifyFalse(bt.Value);
 % a press and a release on the same spot is the first click of two
 bt.Value = true; bt.ValueChangedFcn(bt, []);

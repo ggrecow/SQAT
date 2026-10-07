@@ -173,7 +173,7 @@ fig = uifigure('Name', 'SQAT: Sound Quality Analysis Toolbox', ...
 m_file = uimenu(fig, 'Text', 'File');
 uimenu(m_file, 'Text', 'Open session...', 'MenuSelectedFcn', @(~, ~) on_session('open'));
 uimenu(m_file, 'Text', 'Save session...', 'MenuSelectedFcn', @(~, ~) on_session('save'));
-main = uigridlayout(fig, [3 2]);
+main = uigridlayout(fig, [3 2], 'Tag', 'main_grid');
 main.RowHeight = {70, '1x', 22};                 % the logo row: the 64 px of the Actions buttons and 6 px more below them; a thin status bar
 main.ColumnWidth = {600, '1x'};                  % the lists get the room, the console the rest
 main.RowSpacing = 4;                             % the lists and the plots go further down; the room under the Run button is
@@ -190,14 +190,14 @@ img_logo = uiimage(top, 'ImageSource', fullfile(dir_logos, 'logo_white.png'), 'T
 uilabel(top, 'Text', 'Sound Quality Analysis Toolbox', 'FontSize', 26, 'FontWeight', 'bold', ...
     'HorizontalAlignment', 'left');             % right after the logo
 
-left = uigridlayout(main, [2 1]);
+left = uigridlayout(main, [2 1], 'Tag', 'lists_grid');
 left.Layout.Row = 2; left.Layout.Column = 1;
 left.Padding = [0 0 0 0];
 left.RowHeight = {'1x', '1x'};
-sig_box = uigridlayout(uipanel(left), [2 1]);          % a box around each list, to set them apart
+sig_box = uigridlayout(uipanel(left, 'Tag', 'signals_box'), [2 1]);   % a box around each list, to set them apart
 sig_box.RowHeight = {28, '1x'};
 sig_box.Padding = [6 6 6 6];
-ana_box = uigridlayout(uipanel(left), [2 1]);
+ana_box = uigridlayout(uipanel(left, 'Tag', 'analyses_box'), [2 1]);
 ana_box.RowHeight = {28, '1x'};
 ana_box.Padding = [6 6 6 6];
 sh = uigridlayout(sig_box, [1 3]);
@@ -227,6 +227,13 @@ right.Layout.Row = [1 2]; right.Layout.Column = 2;  % Actions up beside the logo
 right.Padding = [0 0 0 0];
 right.RowHeight = {64, '1x'};
 right.RowSpacing = 10;                              % the tabs start where the lists do: 64 + 10 = 70 + 4
+
+% the gap between the two lists, and the one between the lists and the tabs,
+% can be dragged to share the room otherwise (the pointer changes over them)
+splitter = struct('mode', '', 'from', [0 0], 'size', 0, 'total', 0);
+fig.WindowButtonDownFcn = @on_splitter_down;
+fig.WindowButtonMotionFcn = @on_splitter_motion;
+fig.WindowButtonUpFcn = @on_splitter_up;
 
 save_folder = pwd;                                     % the folder of the last save
 split_figures = false;                                 % one tab and one file per panel: no control for now
@@ -1633,10 +1640,73 @@ end
     function end_drag()
         drag_active = false;
         if il_is_open(win_wave)
-            win_wave.WindowButtonMotionFcn = '';
-            win_wave.WindowButtonUpFcn = '';
+            win_wave.WindowButtonMotionFcn = @on_splitter_motion;   % the gaps between the boxes again
+            win_wave.WindowButtonUpFcn = @on_splitter_up;
             delete(findobj(ax_spec, 'Tag', 'box_preview'));
         end
+    end
+
+    function mode = splitter_at(pt)
+        % 'rows' over the gap between the two lists, 'cols' over the gap between the
+        % lists and the tabs, '' elsewhere (pt in pixels of the window; 3 px of slack)
+        mode = '';
+        ps_sig = getpixelposition(sig_box.Parent, true);   % the box of the signals, above
+        pa_ana = getpixelposition(ana_box.Parent, true);   % the box of the analyses, below
+        if pt(1) >= ps_sig(1) && pt(1) <= ps_sig(1) + ps_sig(3) && pt(2) >= pa_ana(2) + pa_ana(4) - 3 && pt(2) <= ps_sig(2) + 3
+            mode = 'rows';
+        elseif pt(1) >= ps_sig(1) + ps_sig(3) - 3 && pt(1) <= ps_sig(1) + ps_sig(3) + main.ColumnSpacing + 3 && ...
+                pt(2) >= pa_ana(2) && pt(2) <= ps_sig(2) + ps_sig(4)
+            mode = 'cols';
+        end
+    end
+
+    function on_splitter_down(~, ~, pt)
+        % a press on a gap starts to drag it (pt: the point, for the tests)
+        if nargin < 3
+            pt = win_wave.CurrentPoint;
+        end
+        splitter.mode = splitter_at(pt);
+        splitter.from = pt;
+        ps_sig = getpixelposition(sig_box.Parent, true);
+        pa_ana = getpixelposition(ana_box.Parent, true);
+        switch splitter.mode
+            case 'rows'
+                splitter.size = ps_sig(4);              % the height of the signals
+                splitter.total = ps_sig(4) + pa_ana(4); % both lists
+            case 'cols'
+                splitter.size = ps_sig(3);              % the width of the lists
+        end
+    end
+
+    function on_splitter_motion(~, ~, pt)
+        % the pointer shows a gap that can be dragged; while dragging, the room is shared
+        % again, with at least 120 px for each list, 420 px for the lists and 520 px for the tabs
+        if nargin < 3
+            pt = win_wave.CurrentPoint;
+        end
+        switch splitter.mode
+            case 'rows'
+                h_sig = splitter.size - (pt(2) - splitter.from(2));   % up: the signals shorter
+                left.RowHeight = {min(max(h_sig, 120), splitter.total - 120), '1x'};
+            case 'cols'
+                w_lists = splitter.size + (pt(1) - splitter.from(1));
+                main.ColumnWidth = {min(max(w_lists, 420), max(win_wave.Position(3) - 520, 420)), '1x'};
+            otherwise
+                shape_ptr = 'arrow';
+                switch splitter_at(pt)
+                    case 'rows'
+                        shape_ptr = 'top';
+                    case 'cols'
+                        shape_ptr = 'left';
+                end
+                if ~strcmp(win_wave.Pointer, shape_ptr)
+                    win_wave.Pointer = shape_ptr;
+                end
+        end
+    end
+
+    function on_splitter_up(~, ~)
+        splitter.mode = '';
     end
 
     function pt = pointer_point(event)
