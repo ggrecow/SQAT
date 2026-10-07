@@ -943,7 +943,12 @@ tc.verifyEqual(cellstr(lbl.Text), {sprintf('LZeq = %.1f', Leq), sprintf('LZE = %
     sprintf('LZFmax = %.1f', max(L)), sprintf('LZF5 = %.1f', get_exceeded_value(L, 5)), ...
     sprintf('LZF90 = %.1f', get_exceeded_value(L, 90))}');   % the label keeps its lines as a column
 tc.verifyEqual(findobj(fig, 'Tag', 'level_time_weighting').Text, ['Fast ' char(9662)]);
+ax = findobj(fig, 'Tag', 'level_axes');               % the y axis from the three time weightings, in steps of 10 dB
+L3 = cellfun(@(t) Do_SLM(x, fs, 'Z', t, 94), {'f', 's', 'i'}, 'UniformOutput', false);
+lo = floor(min(cellfun(@(l) get_exceeded_value(l, 99), L3)) / 10) * 10;
+tc.verifyEqual(ax.YLim, [lo max(ceil(max(cellfun(@max, L3)) / 10) * 10, lo + 10)]);
 il_set(fig, 'wave_weighting', 'A');
+y_A = ax.YLim;
 il_menu(fig, 'level_tw_s');                           % Slow ticked, then Fast unticked
 il_menu(fig, 'level_tw_f');
 L = Do_SLM(x, fs, 'A', 's', 94);
@@ -963,6 +968,7 @@ tc.verifyNumElements(findobj(fig, 'Tag', 'level_line'), 3);
 tc.verifyEqual(findobj(fig, 'Tag', 'level_axes').Title.String, 'Sound pressure level (A-weighted, Fast, Slow, Impulse)');
 tc.verifyEqual(findobj(fig, 'Tag', 'level_time_weighting').Text, ['Fast, Slow, Impulse ' char(9662)]);
 tc.verifyNumElements(cellstr(lbl.Text), 11);
+tc.verifyEqual(ax.YLim, y_A);                         % ticking the time weightings left the y axis
 L = Do_SLM(x, fs, 'A', 'i', 94);
 tc.verifySubstring(strjoin(cellstr(lbl.Text)), sprintf('LAImax = %.1f LAI10 = %.1f', max(L), get_exceeded_value(L, 10)));
 end

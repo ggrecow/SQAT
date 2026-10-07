@@ -2721,8 +2721,10 @@ end
         end
         fw = findobj(win_wave, 'Tag', 'wave_weighting').Value;
         [tws, tw_names] = time_weightings();
-        lvl_L = cell2mat(cellfun(@(tw) reshape(Do_SLM(wave_x, wave_fs, fw, tw, 94), [], 1), tws, ...
+        all_tw = {'f', 's', 'i'};
+        L3 = cell2mat(cellfun(@(tw) reshape(Do_SLM(wave_x, wave_fs, fw, tw, 94), [], 1), all_tw, ...
             'UniformOutput', false));                          % the signal is in Pa: 94 dBFS keeps it; one column per time weighting
+        lvl_L = L3(:, ismember(all_tw, tws));                  % the ones ticked
         step = max(1, round(wave_fs / 1000));                  % the level every millisecond, as the metric
         for k_tw = 1:numel(tws)
             plot(ax_lvl, (0:step:size(lvl_L, 1) - 1)' / wave_fs, lvl_L(1:step:end, k_tw), ...
@@ -2734,6 +2736,15 @@ end
             legend(ax_lvl, 'Location', 'southwest', 'Orientation', 'horizontal', 'Box', 'off', 'AutoUpdate', 'off');
         end
         xlim(ax_lvl, ax_wave.XLim);
+        % the y axis from the three time weightings, ticked or not, so that ticking one
+        % does not move it: from the lowest level exceeded 99 % of the time (the first
+        % milliseconds, where the time weighting rises from zero, fall below it) to the
+        % highest maximum, in steps of 10 dB
+        lo_lvl = floor(min(arrayfun(@(k) get_exceeded_value(L3(:, k), 99), 1:3)) / 10) * 10;
+        hi_lvl = ceil(max(L3(:)) / 10) * 10;
+        if all(isfinite([lo_lvl hi_lvl]))
+            ylim(ax_lvl, [lo_lvl max(hi_lvl, lo_lvl + 10)]);
+        end
         ylabel(ax_lvl, sprintf('SPL (%s)', il_level_unit(fw)));   % short: the plot is low
         title(ax_lvl, sprintf('Sound pressure level (%s-weighted, %s)', fw, strjoin(tw_names, ', ')));
         xline(ax_lvl, (max(play_start, 1) - 1) / wave_fs, 'Color', [0.85 0.2 0.2], 'LineWidth', 1.5, ...
