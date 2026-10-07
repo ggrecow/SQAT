@@ -1132,7 +1132,7 @@ end
         lg = uigridlayout(pg, [1 9]);                   % the sound level: its frequency and time weightings, and percentages
         lg.Layout.Row = 2;
         lg.RowHeight = {24};
-        lg.ColumnWidth = {'fit', 'fit', 50, 'fit', 75, 'fit', 55, 55, '1x'};
+        lg.ColumnWidth = {'fit', 'fit', 50, 'fit', 150, 'fit', 55, 55, '1x'};
         lg.ColumnSpacing = 4;
         lg.Padding = [0 0 0 0];                         % at the left, as the settings of the spectrogram
         uilabel(lg, 'Text', 'Sound level meter settings:','FontWeight','bold');
@@ -1141,9 +1141,15 @@ end
             'ValueChangedFcn', @on_weighting_changed, ...
             'Tooltip', 'Frequency weighting of the sound level, and also of the sound and the spectrogram (IEC 61672-1)');
         uilabel(lg, 'Text', '  Time weighting:');
-        uidropdown(lg, 'Items', {'Fast', 'Slow', 'Impulse'}, 'ItemsData', {'f', 's', 'i'}, 'Value', 'f', ...
-            'Tag', 'level_time_weighting', 'ValueChangedFcn', @(~, ~) draw_level(), ...
-            'Tooltip', 'Time weighting of the sound level (IEC 61672-1); the frequency weighting is the one beside it');
+        uibutton(lg, 'Text', '', 'Tag', 'level_time_weighting', 'ButtonPushedFcn', @on_time_weighting_button, ...
+            'Tooltip', ['Time weightings of the sound level (IEC 61672-1), one or more: one line each. ' ...
+                        'The frequency weighting is the one beside it']);
+        tw_menu = uicontextmenu(ancestor(parent, 'figure'), 'Tag', 'level_time_weighting_menu');
+        for tw_names = {'Fast', 'Slow', 'Impulse'}
+            uimenu(tw_menu, 'Text', tw_names{1}, 'Tag', ['level_tw_' lower(tw_names{1}(1))], ...
+                'Checked', strcmp(tw_names{1}, 'Fast'), 'MenuSelectedFcn', @on_time_weighting_ticked);
+        end
+        show_time_weightings();
         uilabel(lg, 'Text', '  Exceeded (%):');
         tip = ['The level reached or exceeded during this percentage of the time (1 to 99), ' ...
                'as N5 in ISO 532-1; use the arrows'];
@@ -1177,13 +1183,22 @@ end
 
     function fit_level(box)
         % the sound level plot, with its indicators in the margin on its right
-        % and their title above them, level with the top of the plot
+        % and their title above them, level with the top of the plot. A longer
+        % list (more than one time weighting) starts at the top of the box, and
+        % its font shrinks from 12 when it still does not fit
         il_fit_axes(box, ax_lvl, 26);                 % no time label: the spectrogram below has it
         p = ax_lvl.InnerPosition;
         x = p(1) + p(3) + 8;
         w = max(box.InnerPosition(3) - x, 20);         % to the right edge of the box
-        set(findobj(box, 'Tag', 'level_indicators_title'), 'Position', [x, p(2) + p(4) - 20, w, 20]);
-        set(findobj(box, 'Tag', 'level_indicators'), 'Position', [x, p(2), w, max(p(4) - 26, 20)]);   % below the title
+        lbl = findobj(box, 'Tag', 'level_indicators');
+        n_lines = max(numel(cellstr(lbl.Text)), 1);
+        top_lbl = p(2) + p(4);                         % the top of the title: level with the top of the plot
+        if n_lines * 12 * 1.25 > top_lbl - 26          % a line takes about 1.25 times the font size
+            top_lbl = box.InnerPosition(4);            % the top of the box
+        end
+        fs_lbl = min(12, floor((top_lbl - 26) / (n_lines * 1.25)));
+        set(findobj(box, 'Tag', 'level_indicators_title'), 'Position', [x, top_lbl - 20, w, 20]);
+        set(lbl, 'Position', [x, 0, w, max(top_lbl - 26, 20)], 'FontSize', max(fs_lbl, 8));   % below the title
     end
 
     function on_save_wave_plots(~, ~)
@@ -2695,28 +2710,73 @@ end
 
     function draw_level()
         % the sound level meter of SQAT (Do_SLM) on the signal on screen, with
-        % the frequency weighting of the player and the time weighting chosen
-        % above the plot; the indicators as the Sound level metric gives them
+        % the frequency weighting of the player and each time weighting ticked
+        % above the plot, one line each; the indicators as the Sound level metric gives them
         cla(ax_lvl);
+        legend(ax_lvl, 'off');
         lvl_L = [];
         if isempty(wave_x)
             show_level_values();
             return
         end
         fw = findobj(win_wave, 'Tag', 'wave_weighting').Value;
-        dd_tw = findobj(win_wave, 'Tag', 'level_time_weighting');
-        lvl_L = Do_SLM(wave_x, wave_fs, fw, dd_tw.Value, 94);   % the signal is in Pa: 94 dBFS keeps it
-        lvl_L = lvl_L(:);
+        [tws, tw_names] = time_weightings();
+        lvl_L = cell2mat(cellfun(@(tw) reshape(Do_SLM(wave_x, wave_fs, fw, tw, 94), [], 1), tws, ...
+            'UniformOutput', false));                          % the signal is in Pa: 94 dBFS keeps it; one column per time weighting
         step = max(1, round(wave_fs / 1000));                  % the level every millisecond, as the metric
-        plot(ax_lvl, (0:step:numel(lvl_L) - 1)' / wave_fs, lvl_L(1:step:end), ...
-            'PickableParts', 'none', 'Tag', 'level_line');
+        for k_tw = 1:numel(tws)
+            plot(ax_lvl, (0:step:size(lvl_L, 1) - 1)' / wave_fs, lvl_L(1:step:end, k_tw), ...
+                'PickableParts', 'none', 'Tag', 'level_line', 'DisplayName', tw_names{k_tw});
+            hold(ax_lvl, 'on');
+        end
+        hold(ax_lvl, 'off');
+        if numel(tws) > 1
+            legend(ax_lvl, 'Location', 'southwest', 'Orientation', 'horizontal', 'Box', 'off', 'AutoUpdate', 'off');
+        end
         xlim(ax_lvl, ax_wave.XLim);
         ylabel(ax_lvl, sprintf('SPL (%s)', il_level_unit(fw)));   % short: the plot is low
-        title(ax_lvl, sprintf('Sound pressure level (%s-weighted, %s)', fw, dd_tw.Items{strcmp(dd_tw.ItemsData, dd_tw.Value)}));
+        title(ax_lvl, sprintf('Sound pressure level (%s-weighted, %s)', fw, strjoin(tw_names, ', ')));
         xline(ax_lvl, (max(play_start, 1) - 1) / wave_fs, 'Color', [0.85 0.2 0.2], 'LineWidth', 1.5, ...
             'Tag', 'playhead_level', 'PickableParts', 'none');
-        fit_level(ax_lvl.Parent);
         show_level_values();
+    end
+
+    function [tws, tw_names] = time_weightings()
+        % the time weightings ticked in the menu of the sound level: 'f', 's'
+        % and 'i' for Do_SLM, and their names, in this order
+        tws = {};
+        tw_names = {};
+        for tw_menu = findobj(win_wave, 'Type', 'uimenu', '-regexp', 'Tag', '^level_tw_')'
+            if tw_menu.Checked
+                tws{end+1} = tw_menu.Tag(end); %#ok<AGROW>
+                tw_names{end+1} = tw_menu.Text; %#ok<AGROW>
+            end
+        end
+        [~, k_tw] = sort(cellfun(@(tw) find(strcmp(tw, {'f', 's', 'i'})), tws));
+        tws = tws(k_tw);
+        tw_names = tw_names(k_tw);
+    end
+
+    function show_time_weightings()
+        % the names of the time weightings ticked, on the button of their menu
+        [~, tw_names] = time_weightings();
+        set(findobj(win_wave, 'Tag', 'level_time_weighting'), 'Text', [strjoin(tw_names, ', ') ' ' char(9662)]);
+    end
+
+    function on_time_weighting_button(src, ~)
+        % the menu of the time weightings, opened under its button
+        p = getpixelposition(src, true);
+        open(findobj(win_wave, 'Tag', 'level_time_weighting_menu'), p(1), p(2));
+    end
+
+    function on_time_weighting_ticked(src, ~)
+        % ticks or unticks one time weighting; the last one ticked stays
+        if src.Checked && isscalar(time_weightings())
+            return
+        end
+        src.Checked = ~src.Checked;
+        show_time_weightings();
+        draw_level();
     end
 
     function show_level_values()
@@ -2729,17 +2789,21 @@ end
             return
         end
         F = findobj(win_wave, 'Tag', 'wave_weighting').Value;
-        T = upper(findobj(win_wave, 'Tag', 'level_time_weighting').Value);
-        Leq = Get_Leq(lvl_L, wave_fs);
+        tws = time_weightings();
+        Leq = Get_Leq(lvl_L(:, 1), wave_fs);           % the same for every time weighting
         txt = {sprintf('L%seq = %.1f', F, Leq), ...
-               sprintf('L%sE = %.1f', F, Leq + 10*log10(numel(lvl_L) / wave_fs)), ...
-               sprintf('L%s%smax = %.1f', F, T, max(lvl_L))};
+               sprintf('L%sE = %.1f', F, Leq + 10*log10(size(lvl_L, 1) / wave_fs))};
         pct = unique([findobj(win_wave, 'Tag', 'level_percentile_1').Value, ...
             findobj(win_wave, 'Tag', 'level_percentile_2').Value]);
-        for p = pct
-            txt{end+1} = sprintf('L%s%s%g = %.1f', F, T, p, get_exceeded_value(lvl_L, p)); %#ok<AGROW>
+        for k_tw = 1:numel(tws)
+            T = upper(tws{k_tw});
+            txt{end+1} = sprintf('L%s%smax = %.1f', F, T, max(lvl_L(:, k_tw))); %#ok<AGROW>
+            for p = pct
+                txt{end+1} = sprintf('L%s%s%g = %.1f', F, T, p, get_exceeded_value(lvl_L(:, k_tw), p)); %#ok<AGROW>
+            end
         end
         lbl.Text = txt;                                % a cell array: one line each
+        fit_level(ax_lvl.Parent);                      % the font of the list follows its length
     end
 
     function follow_limits(src, dst, event)

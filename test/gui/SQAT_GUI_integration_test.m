@@ -930,27 +930,41 @@ end
 
 function test_gui_sound_level_follows_the_weightings(tc)
 % The sound level below the waveform is Do_SLM of the signal on screen, with
-% the frequency weighting of the player and the time weighting above the
-% plot; its indicators follow the two exceedance percentages of the spinners.
+% the frequency weighting beside it and each time weighting ticked in the
+% menu, one line each; the indicators give Leq and LE once, and Lmax and the
+% two exceedance percentages of the spinners for each time weighting.
 fig = SQAT_GUI({tc.TestData.wav_mono}, 'Visible', 'off');
 tc.addTeardown(@() delete(fig));
 [x, fs] = SQAT_GUI_load(tc.TestData.wav_mono, 94, 1);
 L = Do_SLM(x, fs, 'Z', 'f', 94);
 lbl = findobj(fig, 'Tag', 'level_indicators');
-tc.verifySubstring(lbl.Text, sprintf('LZeq %.1f', Get_Leq(L, fs)));
-tc.verifySubstring(lbl.Text, sprintf('LZF5 %.1f   LZF90 %.1f dB', get_exceeded_value(L, 5), get_exceeded_value(L, 90)));
-tc.verifySubstring(lbl.Text, sprintf('LZE %.1f', Get_Leq(L, fs) + 10*log10(numel(L) / fs)));
+Leq = Get_Leq(L, fs);
+tc.verifyEqual(cellstr(lbl.Text), {sprintf('LZeq = %.1f', Leq), sprintf('LZE = %.1f', Leq + 10*log10(numel(L) / fs)), ...
+    sprintf('LZFmax = %.1f', max(L)), sprintf('LZF5 = %.1f', get_exceeded_value(L, 5)), ...
+    sprintf('LZF90 = %.1f', get_exceeded_value(L, 90))}');   % the label keeps its lines as a column
+tc.verifyEqual(findobj(fig, 'Tag', 'level_time_weighting').Text, ['Fast ' char(9662)]);
 il_set(fig, 'wave_weighting', 'A');
-il_set(fig, 'level_time_weighting', 's');
+il_menu(fig, 'level_tw_s');                           % Slow ticked, then Fast unticked
+il_menu(fig, 'level_tw_f');
 L = Do_SLM(x, fs, 'A', 's', 94);
-tc.verifySubstring(lbl.Text, sprintf('LASmax %.1f', max(L)));
+tc.verifySubstring(strjoin(cellstr(lbl.Text)), sprintf('LASmax = %.1f', max(L)));
 tc.verifyEqual(findobj(fig, 'Tag', 'level_axes').Title.String, 'Sound pressure level (A-weighted, Slow)');
+il_menu(fig, 'level_tw_s');                           % the last one ticked stays
+tc.verifyEqual(findobj(fig, 'Tag', 'level_time_weighting').Text, ['Slow ' char(9662)]);
 cbs = findall(findobj(fig, 'Tag', 'spectrogram').Parent, 'Type', 'colorbar');   % one colour bar, relabelled
 tc.assertNumElements(cbs, 1);
 tc.verifyEqual(cbs.Label.String, 'SPL (dBA)');
 il_set(fig, 'level_percentile_1', 10);
 il_set(fig, 'level_percentile_2', 50);
-tc.verifySubstring(lbl.Text, sprintf('LAS10 %.1f   LAS50 %.1f dB', get_exceeded_value(L, 10), get_exceeded_value(L, 50)));
+tc.verifySubstring(strjoin(cellstr(lbl.Text)), sprintf('LAS10 = %.1f LAS50 = %.1f', get_exceeded_value(L, 10), get_exceeded_value(L, 50)));
+il_menu(fig, 'level_tw_i');                           % all three: one line and three indicators each
+il_menu(fig, 'level_tw_f');
+tc.verifyNumElements(findobj(fig, 'Tag', 'level_line'), 3);
+tc.verifyEqual(findobj(fig, 'Tag', 'level_axes').Title.String, 'Sound pressure level (A-weighted, Fast, Slow, Impulse)');
+tc.verifyEqual(findobj(fig, 'Tag', 'level_time_weighting').Text, ['Fast, Slow, Impulse ' char(9662)]);
+tc.verifyNumElements(cellstr(lbl.Text), 11);
+L = Do_SLM(x, fs, 'A', 'i', 94);
+tc.verifySubstring(strjoin(cellstr(lbl.Text)), sprintf('LAImax = %.1f LAI10 = %.1f', max(L), get_exceeded_value(L, 10)));
 end
 
 function test_gui_saves_the_three_plots_of_the_waveform_tab(tc)
@@ -2667,6 +2681,12 @@ function il_set(win, tag, value)
 c = findobj(win, 'Tag', tag);
 c.Value = value;
 c.ValueChangedFcn(c, []);
+end
+
+function il_menu(fig, tag)
+% the menu item of that tag, as a click on it
+m = findobj(fig, 'Tag', tag);
+m.MenuSelectedFcn(m, []);
 end
 
 function il_press(fig, tag)
