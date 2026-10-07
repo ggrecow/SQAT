@@ -255,6 +255,38 @@ tc.verifyEqual(T.Quantity, {'Nmax'; 'N5'});
 tc.verifyEqual(T.Value, [3; 2.5]);
 end
 
+function test_analysis_table_of_a_series_and_a_profile(tc)
+% A series or a profile is a table of two columns, its axis and its values,
+% named by their labels with the units.
+A = struct('id', 'loudness', 'label', 'Loudness vs time', 'kind', 'series', 'x', [0; 0.5; 1], ...
+    'y', [1; 2; 3], 'z', [], 'xlabel', 'Time (s)', 'ylabel', 'Loudness (sone)', 'zlabel', '', 'bandscale', 'linear');
+T = SQAT_GUI_analysis_table(A);
+tc.verifyEqual(T.Properties.VariableNames, {'Time (s)', 'Loudness (sone)'});
+tc.verifyEqual(T{:, :}, [A.x, A.y]);
+A.kind = 'profile';
+A.xlabel = 'Critical band rate (Bark)';
+A.ylabel = 'Specific loudness (sone/Bark)';
+T = SQAT_GUI_analysis_table(A);
+tc.verifyEqual(T.Properties.VariableNames, {'Critical band rate (Bark)', 'Specific loudness (sone/Bark)'});
+end
+
+function test_analysis_table_of_a_map_names_each_band(tc)
+% A map is its time axis and one column per band, each named by the quantity,
+% its unit and the band with the unit of the band axis.
+A = struct('id', 'specific_loudness_time', 'label', 'Specific loudness vs time', 'kind', 'map', ...
+    'x', [0; 0.002], 'y', [0.1; 0.2; 24], 'z', [1 2 3; 4 5 6], 'xlabel', 'Time (s)', ...
+    'ylabel', 'Critical band rate (Bark)', 'zlabel', 'Specific loudness (sone/Bark)', 'bandscale', 'linear');
+T = SQAT_GUI_analysis_table(A);
+tc.verifyEqual(T.Properties.VariableNames, {'Time (s)', 'Specific loudness (sone/Bark) at 0.1 Bark', ...
+    'Specific loudness (sone/Bark) at 0.2 Bark', 'Specific loudness (sone/Bark) at 24 Bark'});
+tc.verifyEqual(T{:, :}, [A.x, A.z]);
+A.ylabel = 'Band';                                   % an axis with no unit
+T = SQAT_GUI_analysis_table(A);
+tc.verifyEqual(T.Properties.VariableNames{2}, 'Specific loudness (sone/Bark) at 0.1');
+A.kind = 'image';
+tc.verifyError(@() SQAT_GUI_analysis_table(A), 'SQAT_GUI:analysis_table');
+end
+
 %% Sharing results between metrics -----------------------------------------
 
 function test_share_plan_follows_the_parameters(tc)

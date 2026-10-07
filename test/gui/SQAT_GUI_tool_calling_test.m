@@ -260,6 +260,31 @@ tc.verifyEqual(T.Value(strcmp(T.Quantity, 'Tmean')), OUT.Tmean(2));
 tc.verifyEmpty(SQAT_GUI_single_values(OUT, 'Binaural', 2));
 end
 
+function test_analysis_tables_hold_the_values_of_the_output(tc)
+% Every analysis of a real output turns into a table with the values of the
+% analysis: series and maps of a time-varying loudness, the band levels of the
+% sound level meter.
+x = tc.TestData.x_mono; fs = tc.TestData.fs;
+m = SQAT_GUI_metrics;
+e = m(strcmp({m.id}, 'Loudness_ISO532_1'));
+p = il_default_params(e);
+p.method = 2;
+[~, OUT] = evalc('e.run(x, fs, p, false)');
+e = m(strcmp({m.id}, 'Do_SLM'));
+[~, SLM] = evalc('e.run(x, fs, il_default_params(e), false)');
+A = [SQAT_GUI_extract(OUT, 'Loudness_ISO532_1', 1), SQAT_GUI_extract(SLM, 'Do_SLM', 1)];
+tc.verifyEqual(unique({A.kind}), {'map', 'profile', 'series'});
+for a = A
+    T = SQAT_GUI_analysis_table(a);
+    tc.verifyEqual(T{:, 1}, a.x, a.id);
+    if strcmp(a.kind, 'map')
+        tc.verifyEqual(T{:, 2:end}, a.z, a.id);
+    else
+        tc.verifyEqual(T{:, 2}, a.y, a.id);
+    end
+end
+end
+
 %% Sharing results between metrics -----------------------------------------
 
 function test_share_takes_the_result_the_metric_itself_returns(tc)
