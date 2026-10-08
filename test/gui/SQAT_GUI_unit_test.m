@@ -268,6 +268,9 @@ A.xlabel = 'Critical band rate (Bark)';
 A.ylabel = 'Specific loudness (sone/Bark)';
 T = SQAT_GUI_analysis_table(A);
 tc.verifyEqual(T.Properties.VariableNames, {'Critical band rate (Bark)', 'Specific loudness (sone/Bark)'});
+A.ylabel = 'Specific loudness (sone_{HMS}/Bark_{HMS})';    % the braces of TeX go
+T = SQAT_GUI_analysis_table(A);
+tc.verifyEqual(T.Properties.VariableNames{2}, 'Specific loudness (sone_HMS/Bark_HMS)');
 end
 
 function test_analysis_table_of_a_map_names_each_band(tc)
@@ -285,6 +288,100 @@ T = SQAT_GUI_analysis_table(A);
 tc.verifyEqual(T.Properties.VariableNames{2}, 'Specific loudness (sone/Bark) at 0.1');
 A.kind = 'image';
 tc.verifyError(@() SQAT_GUI_analysis_table(A), 'SQAT_GUI:analysis_table');
+end
+
+%% Export of the analyses to Excel -----------------------------------------
+
+function test_export_data_writes_a_sheet_per_analysis_and_per_map_channel(tc)
+% One workbook per signal and metric: Info first, then the single values, the
+% series and the profiles with a column per channel, then the maps with a sheet
+% per channel, even when a map comes first in the list asked for.
+t = (0:0.1:0.4)';
+b = [100; 1000; 10000];
+Z = reshape(1:15, 5, 3);
+ser = @(y) il_analysis('loudness', 'Loudness vs time', 'series', t, y, [], 'Time (s)', 'Loudness (sone_{HMS})', '');
+pro = @(y) il_analysis('specific_loudness', 'Time-averaged specific loudness', 'profile', b, y, [], ...
+    'Band centre frequency (Hz)', 'Specific loudness (sone_{HMS}/Bark_{HMS})', '');
+map = @(z) il_analysis('specific_tonal_loudness_time', 'Specific tonal loudness vs time', 'map', t, b, z, ...
+    'Time (s)', 'Band centre frequency (Hz)', 'Specific tonal loudness (sone_{HMS}/Bark_{HMS})');
+values = @(q, v) table(q, v, 'VariableNames', {'Quantity', 'Value'});
+entries = [il_entry('1', [ser(t), pro(b), map(Z)], values({'N5'; 'Nmax'}, [1; 2])), ...
+           il_entry('2', [ser(2*t), pro(2*b), map(2*Z)], values({'N5'; 'Nmax'}, [3; 4])), ...
+           il_entry('Binaural', [ser(3*t), map(3*Z)], values({'Nmax'}, 6))];   % no profile, one value
+info = cell2table({'Signal', '#1 train.wav'}, 'VariableNames', {'Item', 'Value'});
+f = fullfile(tc.TestData.dir_tmp, 'train_s1_Loudness_ECMA418_2.xlsx');
+files = SQAT_GUI_export_data(entries, {'specific_tonal_loudness_time', 'values', 'loudness', 'specific_loudness'}, ...
+    f, info, @(q) 'sone_HMS');
+tc.verifyEqual(files, {f});
+tc.verifyEqual(cellstr(sheetnames(f))', {'Info', 'Single values', 'Loudness', 'Time-averaged specific loudness', ...
+    'ch1 Spec. tonal loudness', 'ch2 Spec. tonal loudness', 'binaural Spec. tonal loudness'});
+c = readcell(f, 'Sheet', 'Loudness');
+tc.verifyEqual(c(1, :), {'Time (s)', 'Loudness (sone_HMS), ch1', 'Loudness (sone_HMS), ch2', 'Loudness (sone_HMS), binaural'});
+tc.verifyEqual(readmatrix(f, 'Sheet', 'Loudness'), [t, t, 2*t, 3*t], 'AbsTol', 1e-12);
+c = readcell(f, 'Sheet', 'Time-averaged specific loudness');
+tc.verifyEqual(c(1, :), {'Band centre frequency (Hz)', 'Specific loudness (sone_HMS/Bark_HMS), ch1', ...
+    'Specific loudness (sone_HMS/Bark_HMS), ch2'});
+c = readcell(f, 'Sheet', 'binaural Spec. tonal loudness');
+tc.verifyEqual(c{1, 2}, 'Specific tonal loudness (sone_HMS/Bark_HMS) at 100 Hz');
+tc.verifyEqual(readmatrix(f, 'Sheet', 'binaural Spec. tonal loudness'), [t, 3*Z], 'AbsTol', 1e-12);
+c = readcell(f, 'Sheet', 'Single values');
+tc.verifyEqual(c(1, :), {'Quantity', 'Unit', 'Value, ch1', 'Value, ch2', 'Value, binaural'});
+tc.verifyEqual(c(2:3, 1:4), {'N5', 'sone_HMS', 1, 3; 'Nmax', 'sone_HMS', 2, 4});
+tc.verifyTrue(ismissing(c{2, 5}), 'binaural has no N5');
+tc.verifyEqual(c{3, 5}, 6);
+c = readcell(f, 'Sheet', 'Info');
+tc.verifyEqual(c(1:3, :), {'Item', 'Value'; 'Signal', '#1 train.wav'; 'Channels', 'ch1, ch2, binaural'});
+tc.verifyEqual(c(strcmp(c(:, 1), 'Sheet Loudness'), 2), {'Loudness vs time, one column per channel'});
+tc.verifyEqual(c(strcmp(c(:, 1), 'Sheet ch2 Spec. tonal loudness'), 2), ...
+    {'Specific tonal loudness vs time, ch2, one column per band'});
+end
+
+function test_export_data_shortens_the_long_names_of_sheets(tc)
+% Excel takes 31 characters in the name of a sheet: the long names of the
+% analyses are shortened, the headers of the columns keep them in full.
+t = (0:0.5:1)';
+b = [1; 2];
+A = [il_analysis('weight_fr', 'Weighting of fluctuation strength and roughness vs time', 'series', t, t, [], 'Time (s)', 'w_{FR}', ''), ...
+     il_analysis('weight_s', 'Weighting of sharpness and loudness vs time', 'series', t, t, [], 'Time (s)', 'w_{S}', ''), ...
+     il_analysis('specific_fs', 'Time-averaged specific fluctuation strength', 'profile', b, b, [], ...
+        'Critical band rate (Bark)', 'Specific fluctuation strength (vacil/Bark)', ''), ...
+     il_analysis('specific_fs_time', 'Specific fluctuation strength vs time', 'map', t, b, ones(3, 2), ...
+        'Time (s)', 'Critical band rate (Bark)', 'Specific fluctuation strength (vacil/Bark)')];
+f = fullfile(tc.TestData.dir_tmp, 'long_names.xlsx');
+info = cell2table(cell(0, 2), 'VariableNames', {'Item', 'Value'});
+SQAT_GUI_export_data(il_entry('1', A, table({}, [], 'VariableNames', {'Quantity', 'Value'})), {A.id}, f, info);
+names = cellstr(sheetnames(f))';
+tc.verifyEqual(names, {'Info', 'w_FR', 'w_S', 'Avg. spec. fluctuation strength', 'ch1 Spec. fluctuation strength'});
+tc.verifyLessThanOrEqual(cellfun(@numel, names), 31);
+c = readcell(f, 'Sheet', 'w_FR');
+tc.verifyEqual(c(1, :), {'Time (s)', 'w_FR, ch1'});
+end
+
+function test_export_data_writes_a_table_too_long_for_a_sheet_to_csv(tc)
+% A sheet holds 1048575 rows under its header: a longer series goes to a CSV
+% file next to the workbook, and the Info sheet names it.
+t = (0:1048575)' / 1000;                               % 1048576 rows, 17.5 min at 1 kHz
+A = il_analysis('level', 'Sound level vs time', 'series', t, 60 + 0*t, [], 'Time (s)', 'Sound pressure level (dBZ)', '');
+f = fullfile(tc.TestData.dir_tmp, 'long_s1_Do_SLM.xlsx');
+info = cell2table(cell(0, 2), 'VariableNames', {'Item', 'Value'});
+files = SQAT_GUI_export_data(il_entry('1', A, table({}, [], 'VariableNames', {'Quantity', 'Value'})), {'level'}, f, info);
+csv = fullfile(tc.TestData.dir_tmp, 'long_s1_Do_SLM_Sound_level.csv');
+tc.verifyEqual(files, {f, csv});
+tc.verifyEqual(cellstr(sheetnames(f))', {'Info'});
+tc.verifyEqual(size(readmatrix(csv)), [1048576 2]);
+c = readcell(f, 'Sheet', 'Info');
+tc.verifyEqual(c(end, :), {'File long_s1_Do_SLM_Sound_level.csv', ...
+    'Sound level vs time, one column per channel (1048576 rows, more than a sheet holds)'});
+end
+
+function test_export_data_needs_one_axis_for_the_channels(tc)
+% The channels of a series share a column of time; different axes stop the export.
+s = @(t) il_analysis('loudness', 'Loudness vs time', 'series', t, t, [], 'Time (s)', 'Loudness (sone)', '');
+none = table({}, [], 'VariableNames', {'Quantity', 'Value'});
+entries = [il_entry('1', s((0:2)'), none), il_entry('2', s((0:3)'), none)];
+info = cell2table(cell(0, 2), 'VariableNames', {'Item', 'Value'});
+tc.verifyError(@() SQAT_GUI_export_data(entries, {'loudness'}, fullfile(tc.TestData.dir_tmp, 'axes.xlsx'), info), ...
+    'SQAT_GUI:export_data');
 end
 
 %% Sharing results between metrics -----------------------------------------
@@ -609,6 +706,17 @@ tc.verifyNotEmpty(which('SQAT_GUI'));
 end
 
 %% Helpers -----------------------------------------------------------------
+
+function a = il_analysis(id, label, kind, x, y, z, xlabel, ylabel, zlabel)
+% one analysis as SQAT_GUI_extract gives it
+a = struct('id', id, 'label', label, 'kind', kind, 'x', x, 'y', y, 'z', z, ...
+    'xlabel', xlabel, 'ylabel', ylabel, 'zlabel', zlabel, 'bandscale', 'linear');
+end
+
+function en = il_entry(channel, analyses, values)
+% one entry of the results of SQAT_GUI: a channel of a signal and a metric
+en = struct('channel', channel, 'analyses', analyses, 'values', values);
+end
 
 function p = il_default_params(e)
 p = struct();

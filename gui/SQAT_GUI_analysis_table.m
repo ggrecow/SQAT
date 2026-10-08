@@ -5,7 +5,8 @@ function T = SQAT_GUI_analysis_table(A)
 %   file: a series or a profile gives two columns, its axis and its values;
 %   a map gives its time axis and one column per band. The column names
 %   carry the units, so the table describes itself: a column of a map
-%   reads, for example, 'Specific loudness (sone/Bark) at 12.5 Bark'.
+%   reads, for example, 'Specific loudness (sone/Bark) at 12.5 Bark'. The
+%   braces of the TeX labels go: sone_{HMS} reads sone_HMS.
 %
 % INPUT ARGUMENTS
 %   A : one element of the output of SQAT_GUI_extract (fields kind, x, y,
@@ -33,6 +34,9 @@ function T = SQAT_GUI_analysis_table(A)
 % warranties of MERCHANTABILITY and FITNESS FOR A PARTICULAR PURPOSE.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+A.xlabel = erase(A.xlabel, {'{', '}'});
+A.ylabel = erase(A.ylabel, {'{', '}'});
+A.zlabel = erase(A.zlabel, {'{', '}'});
 switch A.kind
     case {'series', 'profile'}
         T = table(A.x(:), A.y(:), 'VariableNames', {A.xlabel, A.ylabel});
