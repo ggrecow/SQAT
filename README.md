@@ -1,7 +1,24 @@
 ![Logo_long](https://github.com/ggrecow/SQAT/assets/101704265/2800e3c7-183e-4177-b011-63fc5ed3c589)
 
 # SQAT: a sound quality analysis toolbox for MATLAB
-This is the repository of **SQAT**, an open-source **S**ound **Q**uality **A**nalysis **T**oolbox for MATLAB. It contains a collection of codes implementing key metrics for **quantitative** sound quality analysis. With **SQAT** you can conduct quick quantitative sound quality analysis on any calibrated input sound file, in Pascal units. To give a transparent indication of how close the implementations are to the original models, we provide a detailed set of verification routines. Moreover, a number of example codes and exemplary sound files are provided in order to facilitate the initial use of the algorithms.  
+
+**SQAT** (**S**ound **Q**uality **A**nalysis **T**oolbox) is an open-source MATLAB toolbox for quantitative sound quality analysis. It
+implements standardised and widely used psychoacoustic metrics, such as
+loudness, sharpness, roughness, fluctuation strength and tonality, together
+with a sound level meter, so you can evaluate any sound calibrated in
+pascals.
+
+Why use SQAT?
+
+- **Verified implementations**: every algorithm comes with validation
+  scripts that compare it against the reference data of the original
+  standard or model, so you can see exactly how close the results are.
+- **Easy to start**: an example script is provided for each metric, along
+  with reference sound files to try them on.
+- **Flexible use**: use the graphical user interface to quickly analyse and compare a few sound files, or call the functions from your own codebase framework to perform automated studies considering many signals.
+- **Open and transparent**: all source code is available, so you can inspect,
+  adapt and extend every implementation. 
+  
 
 # Sound quality metrics available in SQAT 
 
@@ -74,15 +91,64 @@ The following **sound pressure level** (SPL) based metrics can be calculated usi
 
 The frequency weightings, the exponential time weightings and the energy averaging are verified against the reference values tabulated in IEC 61672-1:2013, and conform with the acceptance limits of performance classes 1 and 2 (see [validation](validation/sound_level_meter)).
 
+# Graphical user interface
+
+SQAT includes a graphical user interface (GUI) for quickly analysing or
+comparing a few sound files without writing any code. Every value and figure
+is computed by the SQAT functions themselves, so the GUI gives the same
+results as the codebase for the same input parameters.
+
+- Load .wav files and set their calibration (also individually for multiple channels).
+
+- Listen while looking: waveform and spectrogram with synchronised playback,
+  loops and filters.
+  
+- Setup and run analysis: sound level (IEC 61672-1) and any psychoacoustic metric implemented in SQAT.
+  
+- Compare the results for different signals in a matrix of single values, or with the plot of the
+  chosen analysis.
+   
+- Export results or save figures in different formats.
+
+The GUI is meant for exploratory work, such as checking a few signals or
+comparing alternatives side by side. To analyse a large number of signals,
+or to build scripted and reproducible workflows, we recommend calling the
+SQAT functions directly from your own code (see the [examples](examples/sound_level_meter) scripts in the
+repository).
+
+> [!TIP]
+> To open the GUI, run `startup_SQAT.m` once, then run `SQAT_GUI.m`.
+
 # Toolbox structure
-The toolbox has the following directories:
-- `psychoacoustic_metrics`: this directory contains a number of algorithms implementing a specific psychoacoustic metric (see [folder](psychoacoustic_metrics)). 
-- `sound_level_meter`: contains scripts to obtain sound pressure levels using different frequency weightings (A, B, C, D or Z) and time weightings (Fast, Slow or Impulse) (see [folder](sound_level_meter)). 
-- `utilities`: contains some scripts that are complementary to any of the toolbox functions (see [folder](utilities)).
-- `examples`: an example script is provided for each metric (see [folder](examples)).
-- `sound_files`: this directory hosts reference sounds in .wav format that are used mainly by the `examples` codes (see [folder](sound_files)). 
-- `validation`: this directory contains scripts used to validate each algorithm. Instructions on how to run these codes are provided in each respective folder and directly on the header of the codes (see [folder](validation)). 
-- `publications`: contains scripts to reproduce figures and/or tables of publications from the toolbox authors (see [folder](publications)). 
+
+## Core directories
+
+These directories contain everything needed to run SQAT from your own code:
+
+- `psychoacoustic_metrics`: algorithms implementing the psychoacoustic
+  metrics available in SQAT (see [folder](psychoacoustic_metrics)).
+- `sound_level_meter`: scripts to obtain sound pressure levels using
+  different frequency weightings (A, B, C, D or Z) and time weightings
+  (Fast, Slow or Impulse) (see [folder](sound_level_meter)).
+- `utilities`: supporting functions used by the metrics and the sound level
+  meter (see [folder](utilities)).
+
+## Additional directories
+
+These directories are not required to run the toolbox, but help you use,
+verify and extend it:
+
+- `GUI`: the graphical user interface for quick analysis and comparison of a
+  few sound files (see [Graphical user interface](#graphical-user-interface)
+  and [folder](GUI)).
+- `examples`: an example script for each metric (see [folder](examples)).
+- `sound_files`: reference sounds in .wav format, used mainly by the
+  `examples` scripts (see [folder](sound_files)).
+- `validation`: scripts used to validate each algorithm. Instructions on how
+  to run them are given in each folder and in the header of each script
+  (see [folder](validation)).
+- `publications`: scripts to reproduce figures and/or tables from
+  publications by the toolbox authors (see [folder](publications)).
 
 # How to use the toolbox
 
@@ -159,6 +225,8 @@ We would be very happy to know that you find SQAT useful and have used it in you
 > Lee, H., Ko, J., Seshadri, P., & Rauleder, J. (2026). Bayesian machine learning framework for time-domain prediction of multirotor vehicle noise. The Journal of the Acoustical Society of America, 159(4), 3418–3435. DOI: [10.1121/10.0043469](https://doi.org/10.1121/10.0043469)
 
 ## Conference publications
+
+> Wanatowicz, J. A., & Merino-Martínez, R. (2026). Preliminary assessment of active noise cancelling techniques for drone acoustic emissions. Quiet Drones 2026 conference. [(link)](https://www.researchgate.net/publication/415138001_Preliminary_assessment_of_active_noise_cancelling_techniques_for_drone_acoustic_emissions)
 
 > Bensignor, I. S., Merino-Martínez, R., & Lima Pereira, L. T. (2026). Psychoacoustic assessment of small-scale propeller noise generation mechanisms. Quiet Drones 2026 conference. [(link)](https://www.researchgate.net/publication/415149816_Psychoacoustic_Assessment_of_Small-Scale_Propeller_Noise_Generation_Mechanisms_Session_Experimental_Aeroacoustic_Measurements_-Laboratory)
 

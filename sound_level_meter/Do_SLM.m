@@ -23,7 +23,7 @@ function [outsig_dB, dBFS] = Do_SLM(insig,fs,weight_freq,weight_time,dBFS)
 %   figure;
 %   plot(outsig_dB); grid on;
 %   xlabel('Time [samples]');
-%   ylabel('Amplitude [dB(A)]');
+%   ylabel('Amplitude (dBA)');
 % 
 %   %%%%%%
 %   % Example 2.2:
@@ -53,9 +53,9 @@ function [outsig_dB, dBFS] = Do_SLM(insig,fs,weight_freq,weight_time,dBFS)
 % square. The empirical 0.93 dB calibration offset was removed, since it
 % only compensated the mean-absolute deficit of a sinusoid (see issue 43).
 %
-% AI disclosure: code development in August 2026 assisted 
-% by Claude Fable 5.1 and Opus 5 (Anthropic). All codes were verified by 
-% the authors.
+% AI disclosure: code development in August and October 2026 assisted
+% by Claude Fable 5.1, Opus 5 and Opus 5.5 (Anthropic). All codes were
+% verified by the authors.
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Copyright statement: This file is part of the SQAT toolbox and is subject
@@ -113,14 +113,14 @@ if nargout == 0
     plot(t, outsig_dB ); grid on;
     switch weight_freq
         case 'Z'
-            suff = '';
+            suff = ' SPL';
         otherwise
-            suff = ['(' weight_freq ')'];
+            suff = weight_freq;                        % dBA, dBC
     end
-    xlabel('Time [s]');
+    xlabel('Time (s)');
     xlim([0 max(t)]);
     
-    unit = sprintf('[dB%s]',suff);
+    unit = sprintf('(dB%s)',suff);
     ylabel(sprintf('Amplitude %s',unit));
     title(sprintf('Level Leq=%.1f %s',Leq,unit));
     disp('')
