@@ -2523,16 +2523,44 @@ end
         end
     end
 
+    function ok = create_folder(d, folder)
+        % a folder that does not exist yet: the Save dialog asks whether to create
+        % it; a hidden dialog takes the answer of a test, and no answer is Cancel
+        ok = false;
+        if isempty(folder)
+            write_log('ERROR: no folder for the files.');
+            if strcmp(d.Visible, 'on')
+                uialert(d, 'Choose a folder for the files.', 'Save');
+            end
+            return
+        end
+        if strcmp(d.Visible, 'on')
+            go = strcmp(uiconfirm(d, sprintf('The folder does not exist:\n%s\n\nCreate it?', folder), 'Save', ...
+                'Options', {'Create', 'Cancel'}, 'DefaultOption', 1, 'CancelOption', 2), 'Create');
+        else
+            go = isappdata(d, 'sqat_create_folder') && getappdata(d, 'sqat_create_folder');
+        end
+        if ~go
+            write_log(['ERROR: the folder for the files does not exist: ' folder]);
+            return
+        end
+        [ok, msg] = mkdir(folder);
+        if ok
+            write_log(['Folder created: ' folder]);
+        else
+            write_log(['ERROR: the folder could not be created: ' msg]);
+            if strcmp(d.Visible, 'on')
+                uialert(d, ['The folder could not be created: ' msg], 'Save');
+            end
+        end
+    end
+
     function save_chosen(d, ws)
         % saves the ticked figures of the ticked signals: the SQAT figure of each
         % signal, each analysis with the signals overlaid, the statistics as CSV;
         % then the ticked results, one Excel file per signal and metric
         folder = strtrim(findobj(d, 'Tag', 'save_folder').Value);
-        if ~isfolder(folder)
-            write_log(['ERROR: the folder for the files does not exist: ' folder]);
-            if strcmp(d.Visible, 'on')
-                uialert(d, ['The folder does not exist: ' folder], 'Save');
-            end
+        if ~isfolder(folder) && ~create_folder(d, folder)
             return
         end
         fmt = findobj(d, 'Tag', 'save_format').Value;

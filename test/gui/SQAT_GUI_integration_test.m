@@ -1250,6 +1250,35 @@ tc.verifyEqual(readcell(f, 'Sheet', 'Loudness', 'Range', 'A1:B1'), {'Time (s)', 
 tc.verifySubstring(strjoin(findobj(fig, 'Tag', 'console').Value, newline), ['2 file(s) saved to ' out_dir]);
 end
 
+function test_gui_save_dialog_asks_to_create_a_missing_folder(tc)
+% A folder that does not exist: the Save dialog asks whether to create it; Cancel
+% keeps the dialog open and creates nothing, Create makes the folder and saves
+fig = SQAT_GUI({tc.TestData.wav_mono}, 'Visible', 'off');
+tc.addTeardown(@() delete(fig));
+il_select_metrics(fig, {'Loudness_ISO532_1'});
+il_press(fig, 'run');
+il_press(fig, 'open_graphs');
+il_press(il_window('SQAT_GUI_graphs'), 'graph_save');
+d = il_window('SQAT_GUI_save');
+tc.assertNumElements(d, 1);
+items = findobj(d, 'Tag', 'save_items');
+items.CheckedNodes = [];
+il_set(d, 'save_all_results', true);
+out_dir = fullfile(tc.TestData.dir_tmp, 'new', 'results');   % two levels to create
+h = findobj(d, 'Tag', 'save_folder'); h.Value = out_dir;
+setappdata(d, 'sqat_create_folder', false);            % stands for Cancel
+il_press(d, 'save_do');
+tc.verifyFalse(isfolder(out_dir));
+tc.verifyNumElements(il_window('SQAT_GUI_save'), 1, 'the dialog stays open');
+setappdata(d, 'sqat_create_folder', true);             % stands for Create
+il_press(d, 'save_do');
+tc.verifyEmpty(il_window('SQAT_GUI_save'));
+tc.verifyTrue(isfile(fullfile(out_dir, 'tone_mono_s1_Loudness_ISO532_1.xlsx')));
+con = strjoin(findobj(fig, 'Tag', 'console').Value, newline);
+tc.verifySubstring(con, ['Folder created: ' out_dir]);
+tc.verifySubstring(con, ['1 file(s) saved to ' out_dir]);
+end
+
 function test_gui_run_saves_no_figure(tc)
 % saving is its own step, after the run: a run draws only the figure of the signal on screen
 fig = SQAT_GUI({tc.TestData.wav_mono, tc.TestData.wav_tone}, 'Visible', 'off');
