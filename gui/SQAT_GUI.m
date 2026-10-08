@@ -2416,12 +2416,14 @@ end
             return
         end
         delete(findall(groot, 'Type', 'figure', 'Tag', 'SQAT_GUI_save'));
-        d = uifigure('Name', 'Save figures', 'Position', [220 160 520 580], 'Visible', fig.Visible, ...
+        d = uifigure('Name', 'Save', 'Position', [220 160 780 580], 'Visible', fig.Visible, ...
             'Tag', 'SQAT_GUI_save', 'CreateFcn', '');
-        g = uigridlayout(d, [6 1]);
+        g = uigridlayout(d, [6 2]);                     % the signals across, the figures and the results side by side
         g.RowHeight = {22, '1x', 22, '2x', 30, 30};
-        uilabel(g, 'Text', 'Signals', 'FontWeight', 'bold');
+        h = uilabel(g, 'Text', 'Signals', 'FontWeight', 'bold');
+        h.Layout.Row = 1; h.Layout.Column = [1 2];
         ts = uitree(g, 'checkbox', 'Tag', 'save_signals');
+        ts.Layout.Row = 2; ts.Layout.Column = [1 2];
         files = unique({ws.file}, 'stable');
         on = [];
         for k = 1:numel(files)
@@ -2434,8 +2436,10 @@ end
         if ~isempty(on)
             ts.CheckedNodes = on;
         end
-        uilabel(g, 'Text', 'Figures', 'FontWeight', 'bold');
+        h = uilabel(g, 'Text', 'Save figures', 'FontWeight', 'bold');
+        h.Layout.Row = 3; h.Layout.Column = 1;
         ti = uitree(g, 'checkbox', 'Tag', 'save_items');
+        ti.Layout.Row = 4; ti.Layout.Column = 1;
         pre_key = '';
         pre_aid = '';
         if ~isempty(w)
@@ -2466,12 +2470,39 @@ end
             ti.CheckedNodes = on;
         end
         expand(ti);
+        % the results as data, one Excel file per signal and metric; none is
+        % ticked at the start, and Include all ticks them all
+        row = uigridlayout(g, [1 2], 'Padding', 0);
+        row.Layout.Row = 3; row.Layout.Column = 2;
+        row.ColumnWidth = {'1x', 90};
+        uilabel(row, 'Text', 'Export results', 'FontWeight', 'bold');
+        cb = uicheckbox(row, 'Text', 'Include all', 'Tag', 'save_all_results');
+        tr = uitree(g, 'checkbox', 'Tag', 'save_results');
+        tr.Layout.Row = 4; tr.Layout.Column = 2;
+        for key = unique({ws.metric}, 'stable')
+            m = uitreenode(tr, 'Text', il_key_label(ws, key{1}), 'NodeData', struct('key', key{1}, 'aid', ''));
+            uitreenode(m, 'Text', 'Single values', 'NodeData', struct('key', key{1}, 'aid', 'values'));
+            A = [ws(strcmp({ws.metric}, key{1})).analyses];
+            [~, i_first] = unique({A.id}, 'stable');
+            for a = A(i_first)
+                uitreenode(m, 'Text', [a.label il_if(strcmp(a.kind, 'map'), ' (map)', '')], ...
+                    'NodeData', struct('key', key{1}, 'aid', a.id));
+            end
+        end
+        expand(tr);
+        cb.ValueChangedFcn = @(~, ~) set(tr, 'CheckedNodes', il_if(cb.Value, findall(tr, 'Type', 'uitreenode'), []));
+        tr.CheckedNodesChangedFcn = @(~, ~) set(cb, 'Value', ...
+            numel(tr.CheckedNodes) == numel(findall(tr, 'Type', 'uitreenode')));
         row = uigridlayout(g, [1 3], 'Padding', 0);
+        row.Layout.Row = 5; row.Layout.Column = 1;
         row.ColumnWidth = {60, 90, '1x'};
         uilabel(row, 'Text', 'Format:', 'HorizontalAlignment', 'right');
         uidropdown(row, 'Items', {'PNG', 'PDF'}, 'ItemsData', {'png', 'pdf'}, 'Tag', 'save_format');
         uilabel(row, 'Text', '');
+        h = uilabel(g, 'Text', 'One Excel file per signal and metric');
+        h.Layout.Row = 5; h.Layout.Column = 2;
         row = uigridlayout(g, [1 5], 'Padding', 0);
+        row.Layout.Row = 6; row.Layout.Column = [1 2];
         row.ColumnWidth = {60, '1x', 80, 80, 80};
         uilabel(row, 'Text', 'Folder:', 'HorizontalAlignment', 'right');
         ed = uieditfield(row, 'text', 'Value', save_folder, 'Tag', 'save_folder');
@@ -2485,7 +2516,7 @@ end
     end
 
     function browse_save_folder(d, ed)
-        p = uigetdir(ed.Value, 'Folder for the figures');
+        p = uigetdir(ed.Value, 'Folder for the files');
         figure(d);
         if ~isequal(p, 0)
             ed.Value = p;
@@ -2494,12 +2525,13 @@ end
 
     function save_chosen(d, ws)
         % saves the ticked figures of the ticked signals: the SQAT figure of each
-        % signal, each analysis with the signals overlaid, the statistics as CSV
+        % signal, each analysis with the signals overlaid, the statistics as CSV;
+        % then the ticked results, one Excel file per signal and metric
         folder = strtrim(findobj(d, 'Tag', 'save_folder').Value);
         if ~isfolder(folder)
-            write_log(['ERROR: the folder for the figures does not exist: ' folder]);
+            write_log(['ERROR: the folder for the files does not exist: ' folder]);
             if strcmp(d.Visible, 'on')
-                uialert(d, ['The folder does not exist: ' folder], 'Save figures');
+                uialert(d, ['The folder does not exist: ' folder], 'Save');
             end
             return
         end
@@ -2517,8 +2549,15 @@ end
                 items(end+1) = n_items(k).NodeData; %#ok<AGROW>
             end
         end
-        if isempty(paths) || isempty(items)
-            write_log('Nothing to save: tick at least one signal and one figure.');
+        n_res = findobj(d, 'Tag', 'save_results').CheckedNodes;
+        res = struct('key', {}, 'aid', {});
+        for k = 1:numel(n_res)
+            if ~isempty(n_res(k).NodeData.aid)
+                res(end+1) = n_res(k).NodeData; %#ok<AGROW>
+            end
+        end
+        if isempty(paths) || (isempty(items) && isempty(res))
+            write_log('Nothing to save: tick at least one signal, and a figure or a result.');
             return
         end
         save_folder = folder;
@@ -2587,7 +2626,47 @@ end
                     delete(h);
             end
         end
+        n_saved = n_saved + save_results(folder, ws, paths, res);
         write_log(sprintf('%d file(s) saved to %s', n_saved, folder));
+    end
+
+    function n = save_results(folder, ws, paths, res)
+        % the ticked results of each ticked signal, one Excel file per signal and
+        % metric; the date and the versions head the Info sheet of each
+        n = 0;
+        if isempty(res)
+            return
+        end
+        stamp = {'Exported', char(datetime('now', 'Format', 'yyyy-MM-dd HH:mm:ss'));
+                 'SQAT version', il_sqat_version();
+                 'MATLAB', version};
+        status = lbl_status.Text;
+        [~, o] = sort([ws.id]);
+        for key = unique({res.key}, 'stable')
+            aids = {res(strcmp({res.key}, key{1})).aid};
+            id = il_split_key(key{1});
+            for p = unique({ws(o).file}, 'stable')
+                en = ws(strcmp({ws.metric}, key{1}) & strcmp({ws.file}, p{1}));
+                if isempty(en) || ~ismember(p{1}, paths)
+                    continue
+                end
+                [~, base] = fileparts(en(1).name);
+                file = il_free_path(fullfile(folder, sprintf('%s_s%d_%s.xlsx', base, en(1).id, strrep(key{1}, '#', '_'))));
+                set_status(['Writing ' file]);
+                drawnow
+                try
+                    written = SQAT_GUI_export_data(en, aids, file, ...
+                        cell2table([stamp; en(1).info], 'VariableNames', {'Item', 'Value'}), @(q) il_unit(id, q));
+                    n = n + numel(written);
+                    for c = written(2:end)
+                        write_log(['More rows than an Excel sheet holds, written as CSV: ' c{1}]);
+                    end
+                catch err
+                    write_log(sprintf('ERROR writing %s: %s', file, err.message));
+                end
+            end
+        end
+        lbl_status.Text = status;
     end
 
     function draw_waveform_window()
@@ -3867,7 +3946,8 @@ T = table('Size', [0 11], 'VariableTypes', {'cell', 'cell', 'cell', 'cell', 'cel
 end
 
 function S = il_empty_store()
-S = struct('file', {}, 'name', {}, 'id', {}, 'metric', {}, 'number', {}, 'label', {}, 'channel', {}, 'analyses', {}, 'values', {});
+S = struct('file', {}, 'name', {}, 'id', {}, 'metric', {}, 'number', {}, 'label', {}, 'channel', {}, 'analyses', {}, 'values', {}, ...
+    'info', {});
 end
 
 function en = il_entry_of(f, e, OUT, label, channel, n_channels)
@@ -3875,7 +3955,26 @@ function en = il_entry_of(f, e, OUT, label, channel, n_channels)
 en = struct('file', f.path, 'name', f.name, 'id', f.id, 'metric', e.key, 'number', e.number, ...
     'label', e.label, 'channel', label, ...
     'analyses', SQAT_GUI_extract(OUT, e.id, channel), ...
-    'values', SQAT_GUI_single_values(OUT, channel, n_channels));
+    'values', SQAT_GUI_single_values(OUT, channel, n_channels), ...
+    'info', {il_entry_info(f, e)});
+end
+
+function c = il_entry_info(f, e)
+% the signal and the analysis of an entry, for the Info sheet of its Excel file
+cal = f.cal.label;
+if ~isempty(f.cal.file)
+    cal = sprintf('%s (%s)', cal, strjoin(cellstr(f.cal.file), '; '));
+end
+c = {'Signal', sprintf('#%d %s', f.id, f.name);
+     'Path', f.path;
+     'Sampling frequency (Hz)', sprintf('%g', f.fs);
+     'Channels in the file', sprintf('%d', f.nch);
+     'Calibration', cal;
+     'Full scale (dB SPL)', [strjoin(arrayfun(@(v) sprintf('%.2f', v), f.dBFS, 'UniformOutput', false), ', ') ...
+                             il_if(f.cal_set, '', ' (default)')];
+     'Analysis', e.label;
+     'Metric', e.id;
+     'Parameters', il_param_text(e, e.p)};
 end
 
 function t = il_tag(en)

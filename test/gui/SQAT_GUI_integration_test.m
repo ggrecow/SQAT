@@ -1202,6 +1202,54 @@ tc.verifyEqual(c(1, :), {'Quantity', 'Signal #1, ch1', 'Signal #2, ch1'});
 tc.verifySubstring(strjoin(findobj(fig, 'Tag', 'console').Value, newline), ['saved to ' out_dir]);
 end
 
+function test_gui_save_dialog_exports_the_chosen_results(tc)
+% The Save dialog also writes the results as data, one Excel file per signal and
+% metric: none is ticked at the start, Include all ticks and unticks them all
+fig = SQAT_GUI({tc.TestData.wav_mono, tc.TestData.wav_tone}, 'Visible', 'off');
+tc.addTeardown(@() delete(fig));
+il_select_metrics(fig, {'Loudness_ISO532_1'});
+il_press(fig, 'run');
+il_press(fig, 'open_graphs');
+il_press(il_window('SQAT_GUI_graphs'), 'graph_save');
+d = il_window('SQAT_GUI_save');
+tc.assertNumElements(d, 1);
+res = findobj(d, 'Tag', 'save_results');
+tc.verifyEmpty(res.CheckedNodes);
+kids = res.Children(1).Children;
+tc.verifyEqual(kids(1).Text, 'Single values');
+tc.verifyTrue(any(endsWith({kids.Text}, '(map)')));
+il_set(d, 'save_all_results', true);
+tc.verifyNumElements(res.CheckedNodes, 1 + numel(kids));
+il_set(d, 'save_all_results', false);
+tc.verifyEmpty(res.CheckedNodes);
+il_set(d, 'save_all_results', true);
+items = findobj(d, 'Tag', 'save_items');
+items.CheckedNodes = [];                               % the results alone
+out_dir = fullfile(tc.TestData.dir_tmp, 'saved_results'); mkdir(out_dir);
+h = findobj(d, 'Tag', 'save_folder'); h.Value = out_dir;
+il_press(d, 'save_do');
+names = {dir(out_dir).name};
+tc.verifyEqual(sort(names(~startsWith(names, '.'))), ...
+    {'tone_1k_60dB_s2_Loudness_ISO532_1.xlsx', 'tone_mono_s1_Loudness_ISO532_1.xlsx'});
+f = fullfile(out_dir, 'tone_mono_s1_Loudness_ISO532_1.xlsx');
+sheets = cellstr(sheetnames(f));
+tc.verifyEqual(sheets(1:3)', {'Info', 'Single values', 'Loudness'});
+tc.verifyTrue(startsWith(sheets{end}, 'ch1 '), 'the map goes last');
+c = readcell(f, 'Sheet', 'Info');
+item = @(name) c{strcmp(c(:, 1), name), 2};
+tc.verifyEqual(item('Signal'), '#1 tone_mono.wav');
+tc.verifyEqual(item('Path'), tc.TestData.wav_mono);
+tc.verifyEqual(item('Metric'), 'Loudness_ISO532_1');
+tc.verifyNotEmpty(item('Parameters'));
+c = readcell(f, 'Sheet', 'Single values');
+tc.verifyEqual(c(1, :), {'Quantity', 'Unit', 'Value, ch1'});
+for r = 2:size(c, 1)                                   % the values of the results table
+    tc.verifyEqual(c{r, 3}, il_value(fig, 'tone_mono.wav', 'Loudness_ISO532_1', c{r, 1}), 'RelTol', 1e-12, c{r, 1});
+end
+tc.verifyEqual(readcell(f, 'Sheet', 'Loudness', 'Range', 'A1:B1'), {'Time (s)', 'Loudness (sone), ch1'});
+tc.verifySubstring(strjoin(findobj(fig, 'Tag', 'console').Value, newline), ['2 file(s) saved to ' out_dir]);
+end
+
 function test_gui_run_saves_no_figure(tc)
 % saving is its own step, after the run: a run draws only the figure of the signal on screen
 fig = SQAT_GUI({tc.TestData.wav_mono, tc.TestData.wav_tone}, 'Visible', 'off');
