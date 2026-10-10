@@ -1066,6 +1066,36 @@ fig.KeyPressFcn(fig, struct('Key', 'space'));
 tc.verifyEqual(b.Text, 'Play');
 end
 
+function test_gui_run_pauses_the_playback(tc)
+% The progress dialog of a run locks the main window, and with it Pause and
+% Stop: a sound that plays is paused when the run starts, and Play takes it up
+% from where it was. Needs an audio output.
+il_needs_audio(tc);
+fig = SQAT_GUI({tc.TestData.wav_mono}, 'Visible', 'off');
+tc.addTeardown(@() delete(fig));
+info = getappdata(fig, 'sqat_play');
+il_select_metrics(fig, {'Loudness_ISO532_1'});
+il_press(fig, 'play');
+log = strjoin(findobj(fig, 'Tag', 'console').Value, newline);
+tc.assumeTrue(contains(log, 'Playing'), 'no audio output on this machine');
+ph = findobj(fig, 'Tag', 'playhead');
+il_wait_until(@() ph.Value > 0);
+tc.assertGreaterThan(ph.Value, 0);
+il_press(fig, 'run');
+b = findobj(fig, 'Tag', 'play');
+tc.verifyFalse(info().playing);
+tc.verifyEqual(b.Text, 'Play');
+tc.verifySubstring(strjoin(findobj(fig, 'Tag', 'console').Value, newline), 'Paused for the analysis.');
+tc.verifySubstring(findobj(fig, 'Tag', 'status').Text, 'Done');
+t_paused = ph.Value;
+tc.verifyGreaterThan(t_paused, 0);
+pause(0.2);                                        % a second press within 0.15 s is taken for a repeated key
+il_press(fig, 'play');
+tc.verifyEqual(b.Text, 'Pause');
+tc.verifyEqual((info().sample - 1) / tc.TestData.fs, t_paused, 'AbsTol', 0.06);   % one tick of the playhead is 0.05 s
+il_press(fig, 'stop');
+end
+
 function test_gui_add_metric_adds_an_analysis_with_its_defaults(tc)
 % Add metrics opens a list of the metrics: a tick adds one analysis, + and -
 % change the count, and OK appends them in the order of the list, each with

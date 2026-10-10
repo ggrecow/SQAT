@@ -702,6 +702,12 @@ end
             write_log('No metrics in the list of analyses. Add one with Add metric.');
             return
         end
+        if is_playing()                          % the progress dialog locks the window, and with it Pause and Stop
+            play_start = file_position(player.CurrentSample);
+            stop_player();
+            btn_play.Text = 'Play';
+            write_log('Paused for the analysis.');
+        end
         sel = {analyses.key};
         show = false;                            % the other figures are drawn on request
         k_active = find(use == active_idx, 1);   % the signal on screen is analysed first,
