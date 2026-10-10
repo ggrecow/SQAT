@@ -9,8 +9,8 @@ audio player runs with a silent buffer, so the tests make no sound.
 | File | Tests | Time | What it covers |
 |---|---:|---:|---|
 | `SQAT_GUI_unit_test.m` | 37 | 13 s | the functions of `gui/` alone: catalogue, loading, share plan, windows, spectrogram, weighting, enhanced STFT, export to Excel. No window opens and no SQAT metric runs. |
-| `SQAT_GUI_tool_calling_test.m` | 11 | 70 s | the functions that call the SQAT metrics: the output of the GUI must equal a direct call of each metric, and the analyses and single values are read from it. No window opens. |
-| `SQAT_GUI_integration_test.m` | 101 | 349 s | the interface itself: main window, runs, results, graphs windows, saving, waveform window, player, enhanced STFT with the background pool. |
+| `SQAT_GUI_tool_calling_test.m` | 13 | 70 s | the functions that call the SQAT metrics: the output of the GUI must equal a direct call of each metric, and the analyses and single values are read from it. No window opens. |
+| `SQAT_GUI_integration_test.m` | 102 | 349 s | the interface itself: main window, runs, results, graphs windows, saving, waveform window, player, enhanced STFT with the background pool. |
 
 Times measured on a Mac with 12 cores and MATLAB R2026a, one run each (432 s
 for the three). Run the unit tests after any change, and the three files

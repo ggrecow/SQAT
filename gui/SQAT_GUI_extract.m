@@ -132,12 +132,13 @@ switch name
     case 'barkAxis',        s = 'Critical band rate (Bark)';
     case 'bandCentreFreqs', s = 'Band centre frequency (Hz)';
     case 'TOB_freq',        s = 'One-third octave band (Hz)';
+    case 'spectrum_freq',   s = 'Frequency (Hz)';
     otherwise,              s = name;
 end
 end
 
 function s = il_axis_scale(name)
-if ismember(name, {'bandCentreFreqs', 'TOB_freq'})
+if ismember(name, {'bandCentreFreqs', 'TOB_freq', 'spectrum_freq'})
     s = 'log';
 else
     s = 'linear';
@@ -204,7 +205,8 @@ switch id
     case 'Do_SLM'
         defs = {
             'level',                  'Sound level vs time',              'series',  'InstantaneousSPL',                   '',         'Sound pressure level (<level_unit>)', 'tb'
-            'tob_level',              'One-third octave levels',          'profile', 'TOB_level',                          'TOB_freq', 'Band level (<TOB_unit>)',         'tb'};
+            'tob_level',              'One-third octave levels',          'profile', 'TOB_level',                          'TOB_freq', 'Band level (<TOB_unit>)',         'tb'
+            'spectrum',               'Narrowband spectrum',              'profile', 'spectrum_level',                     'spectrum_freq', 'Level (<spectrum_unit>)',    'tb'};
     case 'Loudness_ISO532_1'
         defs = {
             'loudness',               'Loudness vs time',                 'series',  'InstantaneousLoudness',              '',         'Loudness (sone)',                 'tb'

@@ -102,6 +102,78 @@ a = SQAT_GUI_extract(Z, 'Do_SLM');
 tc.verifyEqual(a(strcmp({a.id}, 'tob_level')).ylabel, 'Band level (dB SPL)');
 end
 
+function test_sound_level_spectrum_reads_a_tone_and_adds_up_to_the_level(tc)
+% The narrowband spectrum of the sound level is the mean power of the Hann
+% frames of the whole signal. As a level per bin, a 60 dB SPL tone on a bin
+% centre reads 60 dB; as a spectral density, the bins of a noise times their
+% width add up to its level, and the two scales differ by the noise bandwidth
+% of the window, 1.5 bins. The A weighting takes a 100 Hz tone down by about
+% 19 dB (IEC 61672-1, Table 3), and the unit follows weighting and scale.
+fs = 48000; n = 2^14; t = (0:5*fs-1)'/fs;
+m = SQAT_GUI_metrics;
+e = m(strcmp({m.id}, 'Do_SLM'));
+p = il_default_params(e);
+tc.verifyEqual({p.spectrum_weight, p.spectrum_degree, p.spectrum_scale}, {'A', 14, 'level'});
+p.spectrum_weight = 'Z';
+f0 = 341 * fs / n;                                    % 999.02 Hz, the centre of bin 341
+x = sqrt(2) * 2e-5 * 10^(60/20) * sin(2*pi*f0*t);
+[~, OUT] = evalc('e.run(x, fs, p, false)');
+tc.verifyEqual(OUT.spectrum_freq, (1:n/2)' * fs / n, 'RelTol', 1e-12);
+[L, k] = max(OUT.spectrum_level);
+tc.verifyEqual(OUT.spectrum_freq(k), f0, 'RelTol', 1e-12);
+tc.verifyEqual(L, 60, 'AbsTol', 1e-3);
+tc.verifyEqual(OUT.spectrum_unit, 'dB SPL');
+rng(1); x = 0.02 * randn(5*fs, 1);
+[~, level] = evalc('e.run(x, fs, p, false)');
+p.spectrum_scale = 'density';
+[~, density] = evalc('e.run(x, fs, p, false)');
+df = fs / n;
+tc.verifyEqual(10*log10(sum(10.^(density.spectrum_level/10)) * df), 20*log10(rms(x) / 2e-5), 'AbsTol', 0.05);
+tc.verifyEqual(level.spectrum_level - density.spectrum_level, repmat(10*log10(1.5 * df), n/2, 1), 'AbsTol', 1e-9);
+tc.verifyEqual(density.spectrum_unit, 'dB SPL/Hz');
+% the weighting of the spectrum, apart from the one of the bands
+f0 = 34 * fs / n;                                     % 99.61 Hz
+x = sqrt(2) * 2e-5 * 10^(70/20) * sin(2*pi*f0*t);
+p = il_default_params(e);
+p.tob_weight = 'Z';
+[~, A] = evalc('e.run(x, fs, p, false)');
+p.spectrum_weight = 'Z';
+[~, Z] = evalc('e.run(x, fs, p, false)');
+tc.verifyEqual(max(Z.spectrum_level), 70, 'AbsTol', 1e-3);
+tc.verifyEqual(max(Z.spectrum_level) - max(A.spectrum_level), 19.1, 'AbsTol', 0.2);
+tc.verifyEqual(A.TOB_level, Z.TOB_level);
+% the analysis that the GUI plots and exports
+a = SQAT_GUI_extract(A, 'Do_SLM');
+tc.verifyEqual({a.id}, {'level', 'tob_level', 'spectrum'});
+a = a(3);
+tc.verifyEqual({a.label, a.kind, a.xlabel, a.ylabel, a.bandscale}, ...
+    {'Narrowband spectrum', 'profile', 'Frequency (Hz)', 'Level (dBA)', 'log'});
+tc.verifyEqual([a.x, a.y], [A.spectrum_freq, A.spectrum_level]);
+tc.verifyEqual(SQAT_GUI_single_values(A).Quantity', {'LAeq', 'LAFmax', 'LAF5', 'LAF90', 'LAE'});
+end
+
+function test_sound_level_spectrum_of_a_short_signal_takes_a_smaller_window(tc)
+% A signal shorter than the window of the FFT degree asked for takes the
+% largest power of two that it holds, and the console says so: 0.1 s at
+% 48 kHz (4800 samples) gives 4096 points. A signal of one window or more
+% keeps the degree and prints nothing.
+fs = 48000; n = 2^12; t = (0:4799)'/fs;
+f0 = 85 * fs / n;                                     % 996.09 Hz, a bin centre of the 4096 points
+x = sqrt(2) * 2e-5 * 10^(60/20) * sin(2*pi*f0*t);
+m = SQAT_GUI_metrics;
+e = m(strcmp({m.id}, 'Do_SLM'));
+p = il_default_params(e);
+p.spectrum_weight = 'Z';
+[txt, OUT] = evalc('e.run(x, fs, p, false)');
+tc.verifySubstring(txt, 'the signal has 4800 samples, FFT of 4096 points used');
+tc.verifyEqual(OUT.spectrum_freq, (1:n/2)' * fs / n, 'RelTol', 1e-12);
+tc.verifyEqual(max(OUT.spectrum_level), 60, 'AbsTol', 1e-3);
+p.spectrum_degree = 12;
+[txt, same] = evalc('e.run(x, fs, p, false)');
+tc.verifyEqual(same.spectrum_level, OUT.spectrum_level);
+tc.verifyFalse(contains(txt, 'Narrowband spectrum'));
+end
+
 function test_run_passes_the_chosen_parameters(tc)
 % The parameters chosen in the GUI reach the metric: a stationary ISO 532-1
 % loudness and an Aures sharpness in diffuse field give the same output as the

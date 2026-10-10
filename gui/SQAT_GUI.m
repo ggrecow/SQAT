@@ -3825,9 +3825,10 @@ function s = il_short(option)
 % the short name of an option in the summary of the parameters
 names = {'Free field', 'free field'; 'Diffuse field', 'diffuse field'; 'Free-frontal', 'free-frontal'; ...
          'Diffuse', 'diffuse'; 'Stationary', 'stationary'; 'Time-varying', 'time-varying'; ...
-         'DIN 45692', 'DIN 45692'; 'Aures', 'Aures'; 'von Bismarck', 'von Bismarck'};
+         'DIN 45692', 'DIN 45692'; 'Aures', 'Aures'; 'von Bismarck', 'von Bismarck'; ...
+         'Level per bin', 'level'; 'Spectral density', 'density'};
 k = find(strcmp(names(:, 1), option), 1);
-s = option;
+s = regexprep(option, '^(\d+) \(\d+ points\)$', '2^$1');   % an FFT degree: 14 (16384 points) -> 2^14
 if ~isempty(k)
     s = names{k, 2};
 end

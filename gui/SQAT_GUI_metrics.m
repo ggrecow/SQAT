@@ -56,7 +56,10 @@ metrics = struct('id', {}, 'label', {}, 'params', {}, 'run', {}, 'stereo', {});
 metrics(end+1) = il_entry('Do_SLM', 'Sound level (IEC 61672-1)', ...
     [il_choice('weight_freq', 'Frequency weighting', {'A', 'A'; 'C', 'C'; 'Z', 'Z'}, 'A'), ...
      il_choice('weight_time', 'Time weighting', {'Fast', 'f'; 'Slow', 's'; 'Impulse', 'i'}, 'f'), ...
-     il_choice('tob_weight', 'One-third octave weighting', {'Z (bands)', 'Z'; 'A (bands)', 'A'; 'C (bands)', 'C'}, 'A')], ...
+     il_choice('tob_weight', 'One-third octave weighting', {'Z (bands)', 'Z'; 'A (bands)', 'A'; 'C (bands)', 'C'}, 'A'), ...
+     il_choice('spectrum_weight', 'Spectrum weighting', {'Z (spectrum)', 'Z'; 'A (spectrum)', 'A'; 'C (spectrum)', 'C'}, 'A'), ...
+     il_choice('spectrum_degree', 'Spectrum FFT degree', il_degrees(10:16), 14), ...
+     il_choice('spectrum_scale', 'Spectrum scale', {'Level per bin', 'level'; 'Spectral density', 'density'}, 'level')], ...
     @il_sound_level);
 
 metrics(end+1) = il_entry('Loudness_ISO532_1', 'Loudness (ISO 532-1)', ...
@@ -123,8 +126,9 @@ function OUT = il_sound_level(x, fs, p, show)
 % uses it: the time-weighted level, its equivalent and maximum, the levels
 % exceeded 5 and 90 % of the time, the sound exposure level, and the
 % one-third octave levels of Do_OB13_ISO532_1 (each band the Leq of the
-% whole signal), after the weighting chosen for them (Z: none). No minimum:
-% the time weighting starts from zero, so the first samples would give it
+% whole signal) and the narrowband spectrum, each after the weighting chosen
+% for it (Z: none). No minimum: the time weighting starts from zero, so the
+% first samples would give it
 L = Do_SLM(x, fs, p.weight_freq, p.weight_time, 94);
 if show
     Do_SLM(x, fs, p.weight_freq, p.weight_time, 94);   % no output: the figure of Do_SLM
@@ -140,15 +144,56 @@ OUT.(['L' fw tw 'max']) = max(L);
 OUT.(['L' fw tw '5']) = get_exceeded_value(L, 5);
 OUT.(['L' fw tw '90']) = get_exceeded_value(L, 90);
 OUT.(['L' fw 'E']) = OUT.(['L' fw 'eq']) + 10*log10(numel(L) / fs);
-if ~strcmpi(il_tob_weight(p), 'Z')
-    [b, a] = Gen_weighting_filters(fs, p.tob_weight);
-    x = filter(b, a, x);
-end
-[bands, fc] = Do_OB13_ISO532_1(x, fs);
+[bands, fc] = Do_OB13_ISO532_1(il_weighted(x, fs, il_tob_weight(p)), fs);
 OUT.TOB_freq = fc(:);
 OUT.level_unit = il_level_unit(fw);                % for the axis labels of the GUI
 OUT.TOB_unit = il_level_unit(il_tob_weight(p));
 OUT.TOB_level = 20*log10(rms(bands, 1)' / 2e-5);
+[OUT.spectrum_freq, OUT.spectrum_level] = il_spectrum(il_weighted(x, fs, p.spectrum_weight), fs, ...
+    p.spectrum_degree, p.spectrum_scale);
+OUT.spectrum_unit = il_level_unit(p.spectrum_weight);
+if strcmp(p.spectrum_scale, 'density')
+    OUT.spectrum_unit = [OUT.spectrum_unit '/Hz'];
+end
+end
+
+function x = il_weighted(x, fs, w)
+% the signal after the frequency weighting w (Z: as it is)
+if ~strcmpi(w, 'Z')
+    [b, a] = Gen_weighting_filters(fs, w);
+    x = filter(b, a, x);
+end
+end
+
+function [f, L] = il_spectrum(x, fs, degree, scale)
+% the narrowband spectrum of the whole signal in Pa: the mean power of its
+% frames (Hann window of 2^degree points, 50 % of overlap), in dB re 20 uPa.
+% As a level per bin ('level') a sine on a bin centre reads its RMS level; as
+% a spectral density ('density') the bins times their width add up to the
+% mean square of the signal. The bin at 0 Hz is left out. A signal shorter
+% than the window takes the largest power of two that it holds
+x = x(:);
+n = 2^min(degree, floor(log2(numel(x))));
+if n < 2^degree
+    fprintf('Narrowband spectrum: the signal has %d samples, FFT of %d points used.\n', numel(x), n);
+end
+w = SQAT_GUI_window('hann', n);
+starts = 1:n/2:numel(x) - n + 1;
+P = zeros(n/2 + 1, 1);
+chunk = max(1, floor(2e6 / n));                      % frames per FFT call, to bound the memory
+for k = 1:chunk:numel(starts)
+    X = fft(x(starts(k:min(k + chunk - 1, end)) + (0:n-1)') .* w);
+    P = P + sum(abs(X(1:n/2 + 1, :)).^2, 2);
+end
+P = P / numel(starts);
+P(2:end-1) = 2 * P(2:end-1);                         % one-sided: the bins between 0 Hz and fs/2 twice
+if strcmp(scale, 'density')
+    P = P / (fs * sum(w.^2));
+else
+    P = P / sum(w)^2;
+end
+f = (1:n/2)' * fs / n;
+L = 10*log10(P(2:end) / 4e-10);
 end
 
 function w = il_tob_weight(p)
@@ -165,6 +210,11 @@ u = 'dB SPL';
 if ~strcmpi(w, 'Z')
     u = ['dB' upper(w)];
 end
+end
+
+function options = il_degrees(degrees)
+% the options of an FFT degree: 14 (16384 points)
+options = [arrayfun(@(d) sprintf('%d (%d points)', d, 2^d), degrees(:), 'UniformOutput', false), num2cell(degrees(:))];
 end
 
 function e = il_entry(id, label, params, run)

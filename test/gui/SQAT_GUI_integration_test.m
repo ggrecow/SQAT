@@ -1050,6 +1050,45 @@ tc.verifyEqual(char(c(8).LineStyle), '--');
 tc.verifyEqual(numel(unique(arrayfun(@(h) [mat2str(h.Color) char(h.LineStyle)], c, 'UniformOutput', false))), 8);
 end
 
+function test_gui_sound_level_offers_the_narrowband_spectrum(tc)
+% The sound level offers the narrowband spectrum after the one-third octave
+% levels: one curve per signal on a logarithmic frequency axis, equal to a
+% direct call of the catalogue. Its weighting, FFT degree and scale are
+% parameters of the analysis, in short in its row; the spectral density
+% changes the unit of the axis.
+fig = SQAT_GUI({tc.TestData.wav_mono_1s, tc.TestData.wav_tone}, 'Visible', 'off');
+tc.addTeardown(@() delete(fig));
+il_select_metrics(fig, {'Do_SLM'});
+s = findobj(fig, 'Tag', 'analysis_summary_1');
+tc.verifyEqual(s.Text, 'A, Fast, A (bands), A (spectrum), 2^14, level');
+il_press(fig, 'run');
+g = il_window('SQAT_GUI_graphs');
+tc.verifyEqual(findobj(g, 'Tag', 'graph_analysis').ItemsData, {'level', 'tob_level', 'spectrum', 'stats'});
+il_set(g, 'graph_analysis', 'spectrum');
+ax = findobj(g, 'Type', 'axes');
+c = flipud(findobj(ax, 'Type', 'line'));              % in the order drawn
+tc.assertNumElements(c, 2);
+m = SQAT_GUI_metrics;
+e = m(strcmp({m.id}, 'Do_SLM'));
+p = cell2struct({e.params.value}', {e.params.name}', 1);
+[x, fs] = SQAT_GUI_load(tc.TestData.wav_tone, 94, 1);
+[~, OUT] = evalc('e.run(x, fs, p, false)');
+tc.verifyEqual([c(2).XData(:), c(2).YData(:)], [OUT.spectrum_freq, OUT.spectrum_level]);
+tc.verifyEqual(ax.XScale, 'log');
+tc.verifyEqual({ax.XLabel.String, ax.YLabel.String}, {'Frequency (Hz)', 'Level (dBA)'});
+w = il_open_params(fig, 1);
+il_set(w, 'param_spectrum_weight', 'Z');
+il_set(w, 'param_spectrum_degree', 12);
+il_set(w, 'param_spectrum_scale', 'density');
+tc.verifyEqual(s.Text, 'A, Fast, A (bands), Z (spectrum), 2^12, density');
+il_press(fig, 'run');
+g = il_window('SQAT_GUI_graphs');
+il_set(g, 'graph_analysis', 'spectrum');
+ax = findobj(g, 'Type', 'axes');
+tc.verifyEqual(ax.YLabel.String, 'Level (dB SPL/Hz)');
+tc.verifyNumElements(ax.Children(1).XData, 2^11);
+end
+
 function test_gui_space_plays_from_the_main_window(tc)
 % The space bar in the main window starts the player of the Waveform tab; a
 % second press pauses it. Needs an audio output.
