@@ -1089,6 +1089,34 @@ tc.verifyEqual(ax.YLabel.String, 'Level (dB SPL/Hz)');
 tc.verifyNumElements(ax.Children(1).XData, 2^11);
 end
 
+function test_gui_narrowband_spectrum_shows_the_audible_range(tc)
+% The graph of the narrowband spectrum runs from 20 Hz to half the sampling
+% frequency. Its level axis ends 120 dB under the highest level, in steps of
+% 10 dB, when a curve goes below that: the A weighting, with a zero at half
+% the sampling frequency, takes the last bins of a noise far under the rest.
+% The same noise unweighted stays within 120 dB and keeps the automatic axis.
+fig = SQAT_GUI({tc.TestData.wav_burst}, 'Visible', 'off');
+tc.addTeardown(@() delete(fig));
+il_select_metrics(fig, {'Do_SLM'});
+il_press(fig, 'run');
+g = il_window('SQAT_GUI_graphs');
+il_set(g, 'graph_analysis', 'spectrum');
+ax = findobj(g, 'Type', 'axes');
+c = findobj(ax, 'Type', 'line');
+tc.assertNumElements(c, 1);
+y = c.YData(c.XData >= 20);
+tc.verifyEqual(ax.XLim, [20 tc.TestData.fs/2]);
+tc.verifyEqual(ax.YLim, [floor((max(y) - 120) / 10), ceil(max(y) / 10)] * 10);
+tc.verifyLessThan(min(y), ax.YLim(1));
+il_set(il_open_params(fig, 1), 'param_spectrum_weight', 'Z');
+il_press(fig, 'run');
+g = il_window('SQAT_GUI_graphs');
+il_set(g, 'graph_analysis', 'spectrum');
+ax = findobj(g, 'Type', 'axes');
+tc.verifyEqual(ax.XLim, [20 tc.TestData.fs/2]);
+tc.verifyEqual(ax.YLimMode, 'auto');
+end
+
 function test_gui_space_plays_from_the_main_window(tc)
 % The space bar in the main window starts the player of the Waveform tab; a
 % second press pauses it. Needs an audio output.

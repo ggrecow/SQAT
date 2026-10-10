@@ -2378,6 +2378,20 @@ end
         if strcmp(A(1).kind, 'profile') && strcmp(A(1).bandscale, 'log')
             ax.XScale = 'log';
         end
+        if strcmp(A(1).id, 'spectrum')
+            % from 20 Hz to half the sampling frequency, and down to 120 dB under the
+            % highest level in steps of 10 dB: the A and C filters have a zero at half
+            % the sampling frequency, and the automatic axis would follow the last bins
+            x_hi = max(arrayfun(@(a) a.x(end), A));
+            y_seen = cell2mat(arrayfun(@(a) a.y(a.x >= 20), A(:), 'UniformOutput', false));
+            y_seen = y_seen(isfinite(y_seen));
+            if x_hi > 20
+                xlim(ax, [20 x_hi]);
+            end
+            if ~isempty(y_seen) && min(y_seen) < max(y_seen) - 120
+                ylim(ax, [floor((max(y_seen) - 120) / 10), ceil(max(y_seen) / 10)] * 10);
+            end
+        end
         xlabel(ax, A(1).xlabel);
         ylabel(ax, A(1).ylabel);
         if numel(A) == 1
