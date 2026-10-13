@@ -140,7 +140,7 @@ verify and extend it:
 
 - `GUI`: the graphical user interface for quick analysis and comparison of a
   few sound files (see [Graphical user interface](#graphical-user-interface)
-  and [folder](GUI)).
+  and [folder](gui)).
 - `examples`: an example script for each metric (see [folder](examples)).
 - `sound_files`: reference sounds in .wav format, used mainly by the
   `examples` scripts (see [folder](sound_files)).
