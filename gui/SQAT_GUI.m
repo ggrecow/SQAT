@@ -29,8 +29,8 @@ function varargout = SQAT_GUI(files, varargin)
 %   a dialog to tick the signals and, per metric, the SQAT figure, the analyses
 %   (the signals overlaid) and the statistics (CSV), as PNG or PDF. The
 %   Waveform tab shows the waveform and the spectrogram of the signal on
-%   screen, with its player, and the Results tab the matrix of single
-%   values. The results go to a spreadsheet.
+%   screen, with its player. The results go to a spreadsheet from the Save
+%   dialog of a graphs window.
 %
 %   Every value and every plot comes from the output of the SQAT function:
 %   the interface builds the call (see SQAT_GUI_metrics) and reads the output
@@ -149,7 +149,7 @@ spec_timer = [];                                      % waits for the zoom to se
 spec_top = [];                                        % top of the colour scale of the spectrogram (dB)
 spec_range = 45;                                      % its default span (dB)
 spec_black = 0;                                       % dB added to its bottom: more is more black
-theme_style = il_if(il_has_theme(), 'dark', 'light');   % no themes before R2025a: the default light look
+theme_style = 'light';                                % the look on screen; from R2025a on it starts as the one of the system (see Start)
 graph_figs = gobjects(0);                              % the graphs windows
 last_metric = '';                                     % the metric the last graphs window showed
 win_wave = [];                                        % the figure of the player: the main window
@@ -190,10 +190,10 @@ img_logo = uiimage(top, 'ImageSource', fullfile(dir_logos, 'logo_white.png'), 'T
 uilabel(top, 'Text', 'Sound Quality Analysis Toolbox', 'FontSize', 26, 'FontWeight', 'bold', ...
     'HorizontalAlignment', 'left');             % right after the logo
 
-left = uigridlayout(main, [2 1], 'Tag', 'lists_grid');
+left = uigridlayout(main, [3 1], 'Tag', 'lists_grid');
 left.Layout.Row = 2; left.Layout.Column = 1;
-left.Padding = [0 0 0 0];
-left.RowHeight = {'1x', '1x'};
+left.Padding = [16 0 0 0];                       % the lists and the buttons a little in from the edge
+left.RowHeight = {'1x', '1x', 70};                 % the lists, then the row of buttons
 sig_box = uigridlayout(uipanel(left, 'Tag', 'signals_box'), [2 1]);   % a box around each list, to set them apart
 sig_box.RowHeight = {28, '1x'};
 sig_box.Padding = [6 6 6 6];
@@ -222,13 +222,11 @@ analysis_list = uigridlayout(ana_box, [1 5], 'Scrollable', 'on', 'Tag', 'analysi
 analysis_list.ColumnWidth = {30, 175, '1x', 36, 28};
 analysis_list.Padding = [0 0 0 0];
 
-right = uigridlayout(main, [2 1]);
-right.Layout.Row = [1 2]; right.Layout.Column = 2;  % Actions up beside the logo, the results below
+right = uigridlayout(main, [1 1]);
+right.Layout.Row = [1 2]; right.Layout.Column = 2;  % the plots take the full height, the logo row included
 right.Padding = [0 0 0 0];
-right.RowHeight = {64, '1x'};
-right.RowSpacing = 10;                              % the tabs start where the lists do: 64 + 10 = 70 + 4
 
-% the gap between the two lists, and the one between the lists and the tabs,
+% the gap between the two lists, and the one between the lists and the plots,
 % can be dragged to share the room otherwise (the pointer changes over them)
 splitter = struct('mode', '', 'from', [0 0], 'size', 0, 'total', 0);
 fig.WindowButtonDownFcn = @on_splitter_down;
@@ -238,32 +236,31 @@ fig.WindowButtonUpFcn = @on_splitter_up;
 save_folder = pwd;                                     % the folder of the last save
 split_figures = false;                                 % one tab and one file per panel: no control for now
 
-ag = uigridlayout(right, [1 4]);                       % the buttons alone, as tall as the logo row
-ag.ColumnWidth = {'1.4x', '1x', '1x', 48};
-ag.Padding = [0 4 0 4];
-btn_run = uibutton(ag, 'Text', 'Run Analysis', 'Tag', 'run', 'FontWeight', 'bold', 'FontSize', 15, ...
+ag = uigridlayout(left, [1 3]);                        % the buttons, under the list of analyses
+ag.Layout.Row = 3; ag.Layout.Column = 1;
+ag.ColumnWidth = {'1.4x', '1x', 64};
+ag.Padding = [0 8 0 8];
+ag.ColumnSpacing = 10;
+btn_run = uibutton(ag, 'Text', 'Run Analysis', 'Tag', 'run', 'FontWeight', 'bold', 'FontSize', 18, ...
     'BackgroundColor', green, 'FontColor', [1 1 1], 'ButtonPushedFcn', @on_run);
-uibutton(ag, 'Text', 'Open Graphs Window', 'Tag', 'open_graphs', 'FontSize', 14, 'ButtonPushedFcn', @on_open_graphs);
-uibutton(ag, 'Text', 'Export results...', 'Tag', 'export', 'FontSize', 14, 'ButtonPushedFcn', @on_export);
-btn_theme = uibutton(ag, 'Text', char(9788), 'FontSize', 22, 'Tag', 'theme', ...
+uibutton(ag, 'Text', 'Open Graphs Window', 'Tag', 'open_graphs', 'FontSize', 16, 'ButtonPushedFcn', @on_open_graphs);
+btn_theme = uibutton(ag, 'Text', char(9788), 'FontSize', 28, 'Tag', 'theme', ...
     'Tooltip', 'Light theme', 'ButtonPushedFcn', @on_theme);   % a sun, or a moon in the light theme
 
 % the waveform and the spectrogram of the signal on screen, with the player,
-% take the whole area, as Gil proposed; the single values of the signals side
-% by side, the full table and the log are one tab away, and the plots of the
-% results live in the graphs window
+% take the whole area; the log is one tab away, and the plots of the results
+% live in the graphs window
 tabs = uitabgroup(right);
 tab_wave = uitab(tabs, 'Title', 'Waveform');
 wave_dock = uipanel(uigridlayout(tab_wave, [1 1], 'Padding', [4 4 4 4]), 'BorderType', 'none', ...
     'Tag', 'waveform_dock');                           % the player
-tab_results = uitab(tabs, 'Title', 'Results');
-matrix = uitable(uigridlayout(tab_results, [1 1]), 'Data', cell(0, 2), ...
-    'ColumnName', {'Analysis', 'Quantity'}, 'RowName', {}, 'Tag', 'results_matrix');
-tab_table = uitab(tabs, 'Title', 'Table');
-tbl = uitable(uigridlayout(tab_table, [1 1]), 'Data', results, 'Tag', 'results_table');
 tab_console = uitab(tabs, 'Title', 'Log');
 console = uitextarea(uigridlayout(tab_console, [1 1]), 'Value', {''}, 'Editable', 'off', ...
     'Tag', 'console', 'FontName', 'Monospaced');
+
+% the single values of the run, kept for the PDF report and the tests: no table on screen
+matrix = struct('Data', {cell(0, 2)}, 'ColumnName', {{'Analysis', 'Quantity'}}, 'UserData', []);
+stale = false;                                         % the settings changed after the last run
 
 status_bar = uigridlayout(main, [1 2]);
 status_bar.Layout.Row = 3; status_bar.Layout.Column = [1 2];
@@ -275,6 +272,14 @@ gauge = uigauge(status_bar, 'linear', 'Tag', 'progress', 'Limits', [0 100], 'Val
 
 %% Start
 win_wave = fig;
+if il_has_theme()                                      % R2025a or newer: start as the system (light or dark) has it
+    try
+        theme(fig, 'system');
+        theme_style = char(fig.Theme.BaseColorStyle);
+    catch
+        theme_style = 'light';
+    end
+end
 build_wave_view(wave_dock);
 apply_theme();
 add_files(files);
@@ -613,18 +618,16 @@ end
 
     function mark_stale()
         % a setting changed after the run: the results on screen no longer follow the settings
-        if height(results) == 0 || contains(tab_results.Title, 'changed')
+        if height(results) == 0 || stale
             return
         end
-        tab_results.Title = 'Results (settings changed: run again)';
+        stale = true;
         lbl_status.Text = 'Settings changed since the last run: the results are those of the run.';
         write_log('Settings changed since the last run; the results on screen are those of the run.');
     end
 
     function show_results()
-        % the matrix of single values on the Results tab, the full list on Table;
-        % the waveform stays on screen, and the graphs window shows the plots
-        tbl.Data = results;
+        % the matrix of single values, kept for the report; the graphs window shows the plots
         show_matrix();
     end
 
@@ -633,7 +636,7 @@ end
         % the order of the run; UserData holds the analysis number of each row
         mx_T = results;
         mx_p = str2double(regexp(mx_T.Quantity, '\d+$', 'match', 'once'));   % N10, R95, LAF50: percentiles
-        mx_T = mx_T(isnan(mx_p) | ismember(mx_p, [5 90]), :);  % only the 5 and 90 %, as Gil asked; Table keeps all
+        mx_T = mx_T(isnan(mx_p) | ismember(mx_p, [5 90]), :);  % only the 5 and 90 %, as Gil asked
         mx_col = strcat(mx_T.Signal, ', ch', mx_T.Channel);
         mx_col = strrep(mx_col, ', chBinaural', ', binaural');
         [mx_cols, ~, mx_ic] = unique(mx_col, 'stable');
@@ -893,7 +896,7 @@ end
             run_settings.signals = run_settings.signals(ismember({run_settings.signals.path}, {store.file}));
             run_settings.analyses = run_settings.analyses(ismember({run_settings.analyses.key}, {store.metric}));
         end
-        tab_results.Title = 'Results';           % fresh results: a removal later keeps the mark of a change
+        stale = false;                           % fresh results: a removal later keeps the mark of a change
         show_results();
         if stop_requested
             msg = sprintf('Stopped: %d value(s) from %d of the %d analysis step(s) in %.1f s', ...
@@ -920,33 +923,8 @@ end
             end
         end
         try
-            focus(matrix);                       % off the Run button: a space would press it again
+            focus(fig);                          % off the Run button: a space would press it again
         catch
-        end
-    end
-
-    function on_export(~, ~)
-        if height(results) == 0
-            write_log('No results to export. Run an analysis first.');
-            return
-        end
-        [f, p] = uiputfile({'*.xlsx', 'Excel workbook (*.xlsx)'; '*.csv', 'CSV file (*.csv)'; ...
-            '*.pdf', 'PDF report: settings, single values and plots (*.pdf)'}, ...
-            'Export results', 'SQAT_results.xlsx');
-        focus_gui();
-        if isequal(f, 0)
-            return
-        end
-        try
-            if endsWith(f, '.pdf', 'IgnoreCase', true)
-                write_report(fullfile(p, f));
-                write_log(['Report written to ' fullfile(p, f)]);
-                return
-            end
-            SQAT_GUI_export(results, fullfile(p, f), run_description());
-            write_log(['Results exported to ' fullfile(p, f)]);
-        catch err
-            write_log(['ERROR exporting the results: ' err.message]);
         end
     end
 
@@ -1693,7 +1671,7 @@ end
         switch splitter.mode
             case 'rows'
                 h_sig = splitter.size - (pt(2) - splitter.from(2));   % up: the signals shorter
-                left.RowHeight = {min(max(h_sig, 120), splitter.total - 120), '1x'};
+                left.RowHeight = {min(max(h_sig, 120), splitter.total - 120), '1x', 70};
             case 'cols'
                 w_lists = splitter.size + (pt(1) - splitter.from(1));
                 main.ColumnWidth = {min(max(w_lists, 420), max(win_wave.Position(3) - 520, 420)), '1x'};
@@ -3147,7 +3125,7 @@ end
 
     function spec_title()
         % the title of the enhanced map, which says when the map on screen is the preview
-        s = sprintf('Enhanced STFT (consensus of 8 to 512 ms windows, %s)', spec_view.mode);
+        s = sprintf('Enhanced spectrogram (consensus of 8 to 512 ms windows, %s)', spec_view.mode);
         if spec_view.preview && ~spec_view.zoomed
             s = [s ': preview, the exact map follows'];
         end
@@ -3333,7 +3311,7 @@ end
         ax_spec.YScale = 'log';
         xlim(ax_spec, [0 numel(wave_x) / wave_fs]);
         ylim(ax_spec, [20 wave_fs/2]);
-        title(ax_spec, sprintf('Enhanced STFT (%s)', mode), 'Interpreter', 'none');
+        title(ax_spec, sprintf('Enhanced spectrogram (%s)', mode), 'Interpreter', 'none');
         note_waiting('Computing the enhanced spectrogram in the background...');
         spec_busy = false;
     end
@@ -3771,7 +3749,7 @@ end
 
 function tf = il_has_theme()
 % the theme function, and with it the dark theme, came in R2025a
-tf = exist('theme', 'file') > 0;
+tf = ~verLessThan('matlab', '25.1') && exist('theme', 'file') > 0;
 end
 
 function tf = il_is_member(value, list)
