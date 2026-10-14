@@ -274,7 +274,7 @@ gauge = uigauge(status_bar, 'linear', 'Tag', 'progress', 'Limits', [0 100], 'Val
 win_wave = fig;
 if il_has_theme()                                      % R2025a or newer: start as the system (light or dark) has it
     try
-        theme(fig, 'system');
+        theme(fig, 'auto');
         theme_style = char(fig.Theme.BaseColorStyle);
     catch
         theme_style = 'light';
@@ -1093,14 +1093,14 @@ end
         uispinner(sw, 'Value', 50, 'Limits', [0 95], 'Step', 5, 'Tag', 'spec_overlap', ...
             'ValueChangedFcn', @on_spec_option, 'Tooltip', 'Overlap of the frames (0 to 95); use the arrows');
         uilabel(sw, 'Text', '');
-        sf = uigridlayout(ss, [1 8]);                   % the enhanced STFT and the filter boxes
+        sf = uigridlayout(ss, [1 8]);                   % the enhanced spectrogram and the filter boxes
         sf.Padding = [0 0 0 0];
         sf.ColumnWidth = {'fit', 70, 85, 10, 90, 95, 130, '1x'};   % the switch needs room for Off and On
         sf.ColumnSpacing = 6;
-        uilabel(sf, 'Text', 'Enhanced:', 'Tooltip', 'Enhanced STFT');
+        uilabel(sf, 'Text', 'Enhanced:', 'Tooltip', 'Enhanced spectrogram');
         uiswitch(sf, 'slider', 'Items', {'Off', 'On'}, 'Value', 'Off', 'Tag', 'spec_enhanced', ...
             'ValueChangedFcn', @on_spec_enhanced, ...
-            'Tooltip', ['Enhanced STFT (consensus): nine windows of 8 to 512 ms, reassigned and combined, ' ...
+            'Tooltip', ['Enhanced spectrogram (consensus): nine windows of 8 to 512 ms, reassigned and combined, ' ...
                         'so that no window has to be chosen. It replaces the window, the FFT degree and the overlap.']);
         uidropdown(sf, 'Items', {'Readable', 'Sharp'}, 'ItemsData', {'readable', 'sharp'}, 'Value', 'readable', ...
             'Tag', 'spec_enhanced_mode', 'Enable', 'off', 'ValueChangedFcn', @on_spec_enhanced, ...
@@ -1757,7 +1757,7 @@ end
     end
 
     function on_spec_enhanced(~, ~)
-        % the enhanced STFT sets its own windows: the controls of the plain spectrogram are faded
+        % the enhanced spectrogram sets its own windows: the controls of the plain spectrogram are faded
         on = strcmp(findobj(win_wave, 'Tag', 'spec_enhanced').Value, 'On');
         state = matlab.lang.OnOffSwitchState(~on);
         set(findobj(win_wave, 'Tag', 'spec_window'), 'Enable', state);
@@ -3067,7 +3067,7 @@ end
         if ~strcmp(win_wave.Visible, 'on')                     % the dialog needs a visible window
             return
         end
-        spec_dlg = uiprogressdlg(win_wave, 'Title', 'Enhanced STFT', 'Message', msg, 'Indeterminate', 'on');
+        spec_dlg = uiprogressdlg(win_wave, 'Title', 'Enhanced spectrogram', 'Message', msg, 'Indeterminate', 'on');
         drawnow
         d = spec_dlg;
         closer = onCleanup(@() delete(d));
