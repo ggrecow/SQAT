@@ -14,7 +14,7 @@ The table below gives the full-scale level of each file. If you use these files 
 | `RefSignal_Loudness_ECMA418_2.wav` | 1 kHz pure tone | 40 dB SPL | 94 | 48000 | 5 |
 | `RefSignal_Tonality_ECMA418_2.wav` | 1 kHz pure tone | 40 dB SPL | 94 | 48000 | 5 |
 | `RefSignal_Tonality_Aures1985.wav` | 1 kHz pure tone | 60 dB SPL | 94 | 44100 | 5 |
-| `RefSignal_Sharpness_DIN45692.wav` | 1 kHz pure tone (calibration signal, see notes) | 60 dB SPL | **90** | 48000 | 5 |
+| `RefSignal_Sharpness_DIN45692.wav` | 1 kHz pure tone | 60 dB SPL | **90** | 48000 | 5 |
 | `RefSignal_Roughness_Daniel1997.wav` | 1 kHz tone, 100% amplitude-modulated at 70 Hz | 60 dB SPL | 94 | 48000 | 5 |
 | `RefSignal_Roughness_ECMA418_2.wav` | 1 kHz tone, 100% amplitude-modulated at 70 Hz | 60 dB SPL | 94 | 48000 | 5 |
 | `RefSignal_FluctuationStrength_Osses2016.wav` | 1 kHz tone, 100% amplitude-modulated at 4 Hz | 60 dB SPL | 94 | 44100 | 5 |
@@ -23,7 +23,6 @@ The table below gives the full-scale level of each file. If you use these files 
 
 Notes:
 
-- `RefSignal_Sharpness_DIN45692.wav` is a 1 kHz pure tone generated for SQAT, used to calibrate the test signals of DIN 45692 [2] (see `validation_Sharpness_DIN45692_narrowband_and_broadband_signals.m`). According to the norm, its standard test signal is a critical-band-wide narrowband noise centred at 1 kHz (bandwidth of 160 Hz, from 920 Hz to 1080 Hz) with an overall level of 60 dB, yielding a sharpness of 1 acum. However, the file distributed with the norm as the standard test signal (`1KHZ60DB.WAV`) is not a narrowband noise, but a 1 kHz pure tone with a level of 60 dB. As the DIN test signals are stored with the same full-scale level as this file, a tone with the same level is used here as the calibration signal. It is also the only file in this folder, apart from the A320 example, not stored with the SQAT convention: with a full-scale level of 94 dB SPL, it would correspond to a level of 64 dB SPL. The scripts using it either set a full-scale level of 90 dB SPL (see `ex_sound_level_meter.m`) or calibrate the signal to 60 dB SPL (see `ex_Sharpness_DIN45692.m` and `validation_Sharpness_DIN45692_narrowband_and_broadband_signals.m`).
 - `ExSignal_A320_auralized_departure_104dBFS.wav` was auralised with a full-scale level of 104 dB SPL to avoid clipping (see `ex_EPNL_FAR_Part36.m`).
 - `ExStereo_TrainStation7-0100-0130.wav` has **no known calibration**. It was obtained from the recording `TrainStation.7.wav` of the EigenScape database [(link)](https://zenodo.org/doi/10.5281/zenodo.1012808), trimmed between 01m00s and 01m30s. The EigenScape recordings are 4th-order ambisonic recordings that were not calibrated to absolute sound pressure levels [1], and the file provided here is a binaural (2-channel) version of it. In the examples, validation and publication scripts of SQAT, the file is used as it is, i.e. with the SQAT convention of 94 dBFS. The resulting levels (about 76 and 68 dB SPL for channels 1 and 2) are therefore a consequence of this convention, and not the level of the original sound scene. The EigenScape database is licensed under Creative Commons Attribution 4.0.
 
@@ -35,6 +34,6 @@ Notes:
 
 # Log
 
-- This README was written by Gil Felix Greco with the aid of an AI assistant (Claude Opus 5.5, Anthropic), 14.10.2026. The levels, durations and sampling frequencies in the table were measured from the sound files themselves.
+- This README was written by Gil Felix Greco with the aid of an AI assistant (Claude Opus 5.5, Anthropic), 15.10.2026. The levels, durations and sampling frequencies in the table were measured from the sound files themselves.
 
 - Reminder: before the release of SQAT v2.0, renaming the files to include their full-scale level (e.g. `RefSignal_Loudness_ISO532_1_94dBFS.wav`) was considered. Documenting the full-scale levels in this README was chosen instead, to avoid renaming the files and breaking the scripts of users that load them by name.
