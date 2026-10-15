@@ -224,7 +224,7 @@ analysis_list.Padding = [0 0 0 0];
 
 right = uigridlayout(main, [1 1]);
 right.Layout.Row = [1 2]; right.Layout.Column = 2;  % the plots take the full height, the logo row included
-right.Padding = [0 0 0 0];
+right.Padding = [0 8 0 0];
 
 % the gap between the two lists, and the one between the lists and the plots,
 % can be dragged to share the room otherwise (the pointer changes over them)
