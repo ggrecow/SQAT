@@ -1,5 +1,10 @@
 ![Logo_long](https://github.com/ggrecow/SQAT/assets/101704265/2800e3c7-183e-4177-b011-63fc5ed3c589)
 
+[![Release](https://img.shields.io/github/v/release/ggrecow/SQAT)](https://github.com/ggrecow/SQAT/releases/latest)
+[![License](https://img.shields.io/github/license/ggrecow/SQAT)](LICENSE)
+[![DOI](https://img.shields.io/badge/DOI-10.5281%2Fzenodo.7934709-blue?logo=doi&logoColor=white)](https://doi.org/10.5281/zenodo.7934709)
+[![Open in MATLAB Online](https://www.mathworks.com/images/responsive/global/open-in-matlab-online.svg)](https://matlab.mathworks.com/open/github/v1?repo=ggrecow/SQAT&file=gui/SQAT_GUI.m)
+ 
 # SQAT: a sound quality analysis toolbox for MATLAB
 
 **SQAT** (**S**ound **Q**uality **A**nalysis **T**oolbox) is an open-source MATLAB toolbox for quantitative sound quality analysis. It
