@@ -113,7 +113,7 @@ results as the codebase for the same input parameters.
 The GUI is meant for exploratory work, such as checking a few signals or
 comparing alternatives side by side. To analyse a large number of signals,
 or to build scripted and reproducible workflows, we recommend calling the
-SQAT functions directly from your own code (see the [examples](examples/sound_level_meter) scripts in the
+SQAT functions directly from your own code (see the [examples](examples) scripts in the
 repository).
 
 > [!TIP]
@@ -140,7 +140,7 @@ These directories contain everything needed to run SQAT from your own code:
 These directories are not required to run the toolbox, but help you use,
 verify and extend it:
 
-- `GUI`: the graphical user interface for quick analysis and comparison of a
+- `gui`: the graphical user interface for quick analysis and comparison of a
   few sound files (see [Graphical user interface](#graphical-user-interface)
   and [folder](gui)).
 - `examples`: an example script for each metric (see [folder](examples)).
