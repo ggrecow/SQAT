@@ -117,7 +117,9 @@ SQAT functions directly from your own code (see the [examples](examples/sound_le
 repository).
 
 > [!TIP]
-> To open the GUI, run `startup_SQAT.m` once, then run `SQAT_GUI.m`.
+> To open the GUI, run `SQAT_GUI.m` (located in the `gui` folder).
+>
+> You can also try the GUI in your browser without installing anything:  [![Open in MATLAB Online](https://www.mathworks.com/images/responsive/global/open-in-matlab-online.svg)](https://matlab.mathworks.com/open/github/v1?repo=ggrecow/SQAT&file=gui/SQAT_GUI.m), this opens the current development version (`main` branch) in MATLAB Online (MathWorks account required); then click **Run**.
 
 # Toolbox structure
 
