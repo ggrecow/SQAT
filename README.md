@@ -2,7 +2,7 @@
 
 [![Release](https://img.shields.io/github/v/release/ggrecow/SQAT)](https://github.com/ggrecow/SQAT/releases/latest)
 [![License](https://img.shields.io/github/license/ggrecow/SQAT)](LICENSE)
-[![DOI](https://img.shields.io/badge/DOI-10.5281%2Fzenodo.7934709-blue?logo=doi&logoColor=white)](https://doi.org/10.5281/zenodo.7934709)
+[![DOI](https://img.shields.io/badge/DOI-10.5281%2Fzenodo.7934709-blue)](https://doi.org/10.5281/zenodo.7934709)
 [![Open in MATLAB Online](https://www.mathworks.com/images/responsive/global/open-in-matlab-online.svg)](https://matlab.mathworks.com/open/github/v1?repo=ggrecow/SQAT&file=gui/SQAT_GUI.m)
  
 # SQAT: a sound quality analysis toolbox for MATLAB
