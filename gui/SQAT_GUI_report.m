@@ -1,5 +1,5 @@
-function SQAT_GUI_report(filename, S, cols, data, groups)
-% function SQAT_GUI_report(filename, S, cols, data, groups)
+function SQAT_GUI_report(filename, S, cols, data, groups, progress)
+% function SQAT_GUI_report(filename, S, cols, data, groups, progress)
 %
 %   Writes the report of a run of SQAT_GUI to a PDF file (A4, landscape),
 %   replacing any file of the same name: the settings of the run and the
@@ -18,6 +18,9 @@ function SQAT_GUI_report(filename, S, cols, data, groups)
 %       * analyses - struct array of analyses of SQAT_GUI_extract, one per
 %                    signal, all of the same kind
 %       * names    - cell array of char, the name of each signal
+%   progress : (optional) function handle progress(fraction, message), called
+%       before each page is written with the fraction of the pages done and
+%       what the page holds, for a progress dialog
 %
 % Author: Sergio Aguirre and Gil Felix Greco, October 2026
 %
@@ -38,6 +41,9 @@ function SQAT_GUI_report(filename, S, cols, data, groups)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 filename = char(filename);
+if nargin < 6 || isempty(progress)
+    progress = @(fraction, message) [];
+end
 if isfile(filename)
     delete(filename);                                  % pages are appended to the file
 end
@@ -46,8 +52,11 @@ lines = [{'SQAT GUI report', ''}, ...
     {'', 'Single values'}, il_matrix_lines(cols, data)];
 lines = il_wrap(lines, 150);                           % what the page width holds in Courier 8
 per_page = 44;
+n_text = ceil(numel(lines) / per_page);
+n_pages = n_text + numel(groups);
 first = true;
 for k = 1:per_page:numel(lines)
+    progress((k - 1) / per_page / n_pages, sprintf('Writing the settings and single values, page %d of %d ...', (k - 1) / per_page + 1, n_pages));
     f = il_page();
     ax = axes(f, 'Position', [0.04 0.03 0.92 0.94], 'Visible', 'off');
     page = lines(k:min(k + per_page - 1, numel(lines)));
@@ -60,7 +69,9 @@ for k = 1:per_page:numel(lines)
     first = false;
 end
 cmap = load('cmap_inferno.txt');
-for g = groups(:)'
+for j = 1:numel(groups)
+    g = groups(j);
+    progress((n_text + j - 1) / n_pages, sprintf('Writing %s, page %d of %d ...', g.title, n_text + j, n_pages));
     f = il_page();
     A = g.analyses;
     if strcmp(A(1).kind, 'map')
