@@ -3805,7 +3805,8 @@ if ~isa(parent, 'matlab.ui.Figure')
     return
 end
 pad = 10;                                              % the padding and spacing of a grid layout
-w = (parent.Position(3) - pad * (n_cols + 1)) / n_cols;
+room = 40;                                             % on the right: the label of a colorbar ran off the window on R2024b
+w = (parent.Position(3) - room - pad * (n_cols + 1)) / n_cols;
 h = (parent.Position(4) - pad * (n_rows + 1)) / n_rows;
 new_axes = @(k) uiaxes(parent, 'Position', [pad + mod(k - 1, n_cols) * (w + pad), ...
     pad + (n_rows - ceil(k / n_cols)) * (h + pad), w, h]);
@@ -3853,6 +3854,15 @@ end
 opts = {};
 if endsWith(name, '.pdf')
     opts = {'ContentType', 'auto'};
+    if isa(obj, 'matlab.ui.Figure') && ~isempty(obj.Number)
+        % a figure drawn by a metric, hidden: its tiled layout settles before the
+        % export, and the page goes as one image. R2024b took the vector path and
+        % wrote the lower tile with the size it had before the legend and the
+        % colorbar moved it, so the tile ran off the page; R2026b already chose
+        % the image for these figures
+        drawnow;
+        opts = {'ContentType', 'image', 'Resolution', 300};
+    end
 end
 exportgraphics(obj, il_free_path(fullfile(folder, name)), opts{:});
 end
