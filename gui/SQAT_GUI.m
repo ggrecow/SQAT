@@ -145,6 +145,7 @@ spec_pool = [];                                       % the background pool, whe
 spec_pool_tried = false;
 prefetch_timer = [];                                  % starts the background maps of a new signal
 spec_busy = false;                                    % the spectrogram limits are being set by the code
+spec_data = [];                                       % the map on screen (t, f, L in dB SPL), for Save plots as .mat
 spec_timer = [];                                      % waits for the zoom to settle before recomputing
 spec_top = [];                                        % top of the colour scale of the spectrogram (dB)
 spec_range = 45;                                      % its default span (dB)
@@ -980,9 +981,13 @@ end
         write_log(['Session opened from ' file]);
     end
 
-    function write_report(file)
+    function write_report(file, progress)
         % the report: the settings, the matrix of single values and, per analysis
-        % of the run, its first plot (a time series, a profile or a map)
+        % of the run, its first plot (a time series, a profile or a map); progress
+        % is told of each page (SQAT_GUI_report)
+        if nargin < 2
+            progress = [];
+        end
         rp_groups = struct('title', {}, 'analyses', {}, 'names', {});
         for rp_n = unique(matrix.UserData, 'stable')'
             rp_e = store(strcmp({store.number}, sprintf('#%d', rp_n)) & ismember({store.file}, {loaded.path}));
@@ -999,7 +1004,7 @@ end
             rp_groups(end+1) = struct('title', sprintf('%s: %s', il_key_label(store, rp_e(1).metric), rp_a(1).label), ...
                 'analyses', rp_a, 'names', {rp_names}); %#ok<AGROW>
         end
-        SQAT_GUI_report(file, run_description(), matrix.ColumnName(:)', matrix.Data, rp_groups);
+        SQAT_GUI_report(file, run_description(), matrix.ColumnName(:)', matrix.Data, rp_groups, progress);
     end
 
     function S = run_description()
@@ -1093,11 +1098,15 @@ end
         uispinner(sw, 'Value', 50, 'Limits', [0 95], 'Step', 5, 'Tag', 'spec_overlap', ...
             'ValueChangedFcn', @on_spec_option, 'Tooltip', 'Overlap of the frames (0 to 95); use the arrows');
         uilabel(sw, 'Text', '');
-        sf = uigridlayout(ss, [1 8]);                   % the enhanced spectrogram and the filter boxes
+        sf = uigridlayout(ss, [1 10]);                  % the frequency axis of both maps, the enhanced spectrogram and the filter boxes
         sf.Padding = [0 0 0 0];
-        sf.ColumnWidth = {'fit', 70, 85, 10, 90, 95, 130, '1x'};   % the switch needs room for Off and On
+        sf.ColumnWidth = {'fit', 75, 'fit', 70, 85, 10, 90, 95, 130, '1x'};   % the switch needs room for Off and On
         sf.ColumnSpacing = 6;
-        uilabel(sf, 'Text', 'Enhanced:', 'Tooltip', 'Enhanced spectrogram');
+        uilabel(sf, 'Text', 'Freq. axis:');
+        uidropdown(sf, 'Items', {'Linear', 'Log'}, 'ItemsData', {'linear', 'log'}, 'Value', 'linear', ...
+            'Tag', 'spec_scale', 'ValueChangedFcn', @on_spec_option, ...
+            'Tooltip', 'Scale of the frequency axis of the spectrogram, plain or enhanced');
+        uilabel(sf, 'Text', '  Enhanced:', 'Tooltip', 'Enhanced spectrogram');
         uiswitch(sf, 'slider', 'Items', {'Off', 'On'}, 'Value', 'Off', 'Tag', 'spec_enhanced', ...
             'ValueChangedFcn', @on_spec_enhanced, ...
             'Tooltip', ['Enhanced spectrogram (consensus): nine windows of 8 to 512 ms, reassigned and combined, ' ...
@@ -1194,7 +1203,8 @@ end
 
     function on_save_wave_plots(~, ~)
         % the three plots of the Waveform tab as they are on screen (zoom included),
-        % one file each: <name>_spectrogram, <name>_waveform and <name>_level
+        % one file each: <name>_spectrogram, <name>_waveform and <name>_level; a
+        % .fig holds the three in one figure, a .mat the data behind them
         if isempty(wave_x)
             write_log('No file loaded.');
             return
@@ -1206,7 +1216,10 @@ end
             path = getappdata(fig, 'sqat_next_file');
             rmappdata(fig, 'sqat_next_file');
         else
-            [name, folder, k] = uiputfile({'*.png', 'PNG image (*.png)'; '*.pdf', 'PDF (*.pdf)'}, ...
+            exts = {'.png', '.pdf', '.fig', '.mat'};
+            [name, folder, k] = uiputfile({'*.png', 'PNG image (*.png)'; '*.pdf', 'PDF (*.pdf)'; ...
+                '*.fig', 'MATLAB figure with the three plots (*.fig)'; ...
+                '*.mat', 'MAT-file with the data of the plots (*.mat)'}, ...
                 'Save the plots', fullfile(save_folder, [base '.png']));
             focus_gui();
             if isequal(name, 0)
@@ -1214,12 +1227,20 @@ end
             end
             [~, ~, ext] = fileparts(name);
             if isempty(ext)
-                name = [name il_if(k == 2, '.pdf', '.png')];
+                name = [name exts{k}];
             end
             path = fullfile(folder, name);
         end
         [folder, base, ext] = fileparts(path);
         save_folder = folder;
+        if strcmp(ext, '.mat')
+            save_wave_data(path);
+            return
+        end
+        if strcmp(ext, '.fig')
+            save_wave_figure(folder, [base ext]);
+            return
+        end
         n = 0;
         names = {'spectrogram', 'waveform', 'level'};
         axs = [ax_spec, ax_wave, ax_lvl];
@@ -1233,6 +1254,59 @@ end
             il_fit_axes(axs(k).Parent, axs(k), bottom(k));
         end
         write_log(sprintf('%d plot(s) saved to %s', n, folder));
+    end
+
+    function save_wave_data(path)
+        % the data behind the three plots of the Waveform tab in one .mat file: the
+        % signal in pascals, the sound level per time weighting as plotted (every
+        % millisecond), and the spectrogram on screen (plain, or the enhanced map of
+        % the view) in dB SPL, with the title of each plot for its settings
+        f = active_file();
+        [tws, tw_names] = time_weightings(); %#ok<ASGLU>
+        step = max(1, round(wave_fs / 1000));
+        S = struct('file', f.path, 'channel', channel_of_active(), 'fs', wave_fs, ...
+            'time_limits', ax_wave.XLim, ...
+            'waveform', struct('time', (0:numel(wave_x) - 1)' / wave_fs, 'pressure_Pa', wave_x(:), ...
+                'title', char(ax_wave.Title.String)), ...
+            'level', struct('time', (0:step:size(lvl_L, 1) - 1)' / wave_fs, 'SPL_dB', lvl_L(1:step:end, :), ...
+                'time_weighting', {tw_names}, 'frequency_weighting', findobj(win_wave, 'Tag', 'wave_weighting').Value, ...
+                'title', char(ax_lvl.Title.String)), ...
+            'spectrogram', struct('time', spec_data.t(:), 'frequency_Hz', spec_data.f(:), 'SPL_dB', spec_data.L, ...
+                'title', char(ax_spec.Title.String))); %#ok<NASGU>
+        save(il_free_path(path), '-struct', 'S');
+        write_log(['Data of the plots saved to ' path]);
+    end
+
+    function save_wave_figure(folder, name)
+        % the three plots of the Waveform tab stacked in one MATLAB figure, to open
+        % and edit later. The plots are drawn again in plain axes: the axes of the
+        % window carry callbacks into the GUI, which a .fig would store with them
+        axs = [ax_spec, ax_wave, ax_lvl];
+        y = [0.735 0.415 0.095];                        % the bottom of each plot, top to bottom
+        f = figure('Visible', 'off', 'Color', 'w', 'Position', [100 100 900 1000], ...
+            'Name', 'SQAT: plots of the Waveform tab', 'NumberTitle', 'off');
+        closer = onCleanup(@() delete(f)); %#ok<NASGU>
+        for k = 1:3
+            ax = axs(k);
+            g = axes(f, 'Position', [0.09 y(k) 0.78 0.21]);
+            copyobj(allchild(ax), g);
+            set(g, 'XLim', ax.XLim, 'YLim', ax.YLim, 'XScale', ax.XScale, 'YScale', ax.YScale, ...
+                'YDir', ax.YDir, 'CLim', ax.CLim, 'Colormap', ax.Colormap, 'XGrid', ax.XGrid, ...
+                'YGrid', ax.YGrid, 'Box', ax.Box, 'Layer', ax.Layer, 'TickDir', ax.TickDir);
+            title(g, ax.Title.String, 'Interpreter', 'none');
+            xlabel(g, 'Time (s)');
+            ylabel(g, ax.YLabel.String, 'Interpreter', 'none');
+            if ~isempty(ax.Colorbar)                    % in the margin, so the time axes line up
+                cb = colorbar(g, 'Position', [0.885 y(k) 0.02 0.21]);
+                cb.Label.String = ax.Colorbar.Label.String;
+            end
+            if ~isempty(ax.Legend)
+                legend(g, ax.Legend.String, 'Interpreter', 'none', 'Location', 'southwest', ...
+                    'Orientation', 'horizontal', 'Box', 'off');
+            end
+        end
+        il_export(f, folder, name);
+        write_log(['Figure of the plots saved to ' fullfile(folder, name)]);
     end
 
     function wave_appdata()
@@ -2299,11 +2373,11 @@ end
         if strcmp(A(1).kind, 'map')
             n = numel(A);
             n_cols = min(n, 2);
-            gl = uigridlayout(parent, [ceil(n / n_cols), n_cols]);
+            new_axes = il_new_axes(parent, ceil(n / n_cols), n_cols);
             lo = min(arrayfun(@(a) min(a.z(:), [], 'omitnan'), A));
             hi = max(arrayfun(@(a) max(a.z(:), [], 'omitnan'), A));
             for k = 1:n
-                ax = uiaxes(gl);
+                ax = new_axes(k);
                 surface(ax, A(k).x, A(k).y, zeros(numel(A(k).y), numel(A(k).x)), A(k).z.', ...
                     'EdgeColor', 'none');
                 view(ax, 2);
@@ -2328,7 +2402,8 @@ end
             end
             return
         end
-        ax = uiaxes(uigridlayout(parent, [1 1]));
+        new_axes = il_new_axes(parent, 1, 1);
+        ax = new_axes(1);
         hold(ax, 'on');
         colors = ax.ColorOrder;
         styles = {'-', '--', ':', '-.'};
@@ -2495,7 +2570,7 @@ end
         row.Layout.Row = 5; row.Layout.Column = 1;
         row.ColumnWidth = {60, 90, '1x'};
         uilabel(row, 'Text', 'Format:', 'HorizontalAlignment', 'right');
-        uidropdown(row, 'Items', {'PNG', 'PDF'}, 'ItemsData', {'png', 'pdf'}, 'Tag', 'save_format');
+        uidropdown(row, 'Items', {'PNG', 'PDF', 'MATLAB figure'}, 'ItemsData', {'png', 'pdf', 'fig'}, 'Tag', 'save_format');
         uilabel(row, 'Text', '');
         h = uilabel(g, 'Text', 'One Excel file per signal and metric');
         h.Layout.Row = 5; h.Layout.Column = 2;
@@ -2505,7 +2580,7 @@ end
         uilabel(row, 'Text', 'Folder:', 'HorizontalAlignment', 'right');
         ed = uieditfield(row, 'text', 'Value', save_folder, 'Tag', 'save_folder');
         uibutton(row, 'Text', 'Browse...', 'Tag', 'save_browse', 'ButtonPushedFcn', @(~, ~) browse_save_folder(d, ed));
-        uibutton(row, 'Text', 'Save', 'Tag', 'save_do', 'FontWeight', 'bold', 'ButtonPushedFcn', @(~, ~) save_chosen(d, ws));
+        uibutton(row, 'Text', 'Save', 'Tag', 'save_do', 'FontWeight', 'bold', 'ButtonPushedFcn', @(~, ~) save_chosen(d, ws, w));
         uibutton(row, 'Text', 'Cancel', 'Tag', 'save_cancel', 'ButtonPushedFcn', @(~, ~) delete(d));
         if il_has_theme()
             theme(d, theme_style);
@@ -2553,16 +2628,18 @@ end
         end
     end
 
-    function save_chosen(d, ws)
+    function save_chosen(d, ws, w)
         % saves the ticked figures of the ticked signals: the SQAT figure of each
         % signal, each analysis with the signals overlaid, the statistics as CSV;
-        % then the ticked results, one Excel file per signal and metric
+        % then the ticked results, one Excel file per signal and metric. A
+        % progress dialog over the window the Save came from (w, or the main
+        % window) names the file being written: a PDF takes seconds per figure
         folder = strtrim(findobj(d, 'Tag', 'save_folder').Value);
         if ~isfolder(folder) && ~create_folder(d, folder)
             return
         end
         fmt = findobj(d, 'Tag', 'save_format').Value;
-        split = split_figures;                          % one file per panel
+        split = split_figures && ~strcmp(fmt, 'fig');   % one file per panel (a .fig holds the figure)
         n_sig = findobj(d, 'Tag', 'save_signals').CheckedNodes;
         paths = {};
         if ~isempty(n_sig)
@@ -2588,8 +2665,17 @@ end
         end
         save_folder = folder;
         delete(d);
+        jobs = il_result_jobs(ws, paths, res);
+        n_steps = numel(items) + numel(jobs);
+        k_step = 0;
+        if ~il_is_open(w)
+            w = fig;
+        end
+        [pd, pd_off] = open_progress(w, 'Save'); %#ok<ASGLU>
         n_saved = 0;
         for it = items
+            k_step = k_step + 1;
+            step_progress(pd, (k_step - 1) / n_steps, sprintf('Writing %s, %s ...', il_key_label(ws, it.key), it.aid));
             en = ws(strcmp({ws.metric}, it.key) & ismember({ws.file}, paths));
             [~, o] = sort([en.id]);                     % by signal number, the channels in order
             en = en(o);
@@ -2636,7 +2722,7 @@ end
                         continue
                     end
                     h = uifigure('Visible', 'off', 'Position', [0 0 1100 650], 'Tag', 'SQAT_GUI_export', ...
-                        'CreateFcn', '');
+                        'CreateFcn', '');                % a window: il_new_axes places the axes by hand
                     chan = unique({en.channel});
                     if ~isscalar(chan)
                         chan = {''};                    % mixed channels: the legend names them
@@ -2652,44 +2738,40 @@ end
                     delete(h);
             end
         end
-        n_saved = n_saved + save_results(folder, ws, paths, res);
+        n_saved = n_saved + save_results(folder, ws, res, jobs, pd, numel(items), n_steps);
         write_log(sprintf('%d file(s) saved to %s', n_saved, folder));
     end
 
-    function n = save_results(folder, ws, paths, res)
+    function n = save_results(folder, ws, res, jobs, pd, k_step, n_steps)
         % the ticked results of each ticked signal, one Excel file per signal and
-        % metric; the date and the versions head the Info sheet of each
+        % metric (jobs, from il_result_jobs); the date and the versions head the
+        % Info sheet of each. The progress dialog pd goes from step k_step of n_steps
         n = 0;
-        if isempty(res)
+        if isempty(jobs)
             return
         end
         stamp = {'Exported', char(datetime('now', 'Format', 'yyyy-MM-dd HH:mm:ss'));
                  'SQAT version', il_sqat_version();
                  'MATLAB', version};
         status = lbl_status.Text;
-        [~, o] = sort([ws.id]);
-        for key = unique({res.key}, 'stable')
-            aids = {res(strcmp({res.key}, key{1})).aid};
-            id = il_split_key(key{1});
-            for p = unique({ws(o).file}, 'stable')
-                en = ws(strcmp({ws.metric}, key{1}) & strcmp({ws.file}, p{1}));
-                if isempty(en) || ~ismember(p{1}, paths)
-                    continue
+        for job = jobs
+            aids = {res(strcmp({res.key}, job.key)).aid};
+            id = il_split_key(job.key);
+            en = ws(strcmp({ws.metric}, job.key) & strcmp({ws.file}, job.file));
+            [~, base] = fileparts(en(1).name);
+            file = il_free_path(fullfile(folder, sprintf('%s_s%d_%s.xlsx', base, en(1).id, strrep(job.key, '#', '_'))));
+            set_status(['Writing ' file]);
+            step_progress(pd, k_step / n_steps, ['Writing ' file ' ...']);
+            k_step = k_step + 1;
+            try
+                written = SQAT_GUI_export_data(en, aids, file, ...
+                    cell2table([stamp; en(1).info], 'VariableNames', {'Item', 'Value'}), @(q) il_unit(id, q));
+                n = n + numel(written);
+                for c = written(2:end)
+                    write_log(['More rows than an Excel sheet holds, written as CSV: ' c{1}]);
                 end
-                [~, base] = fileparts(en(1).name);
-                file = il_free_path(fullfile(folder, sprintf('%s_s%d_%s.xlsx', base, en(1).id, strrep(key{1}, '#', '_'))));
-                set_status(['Writing ' file]);
-                drawnow
-                try
-                    written = SQAT_GUI_export_data(en, aids, file, ...
-                        cell2table([stamp; en(1).info], 'VariableNames', {'Item', 'Value'}), @(q) il_unit(id, q));
-                    n = n + numel(written);
-                    for c = written(2:end)
-                        write_log(['More rows than an Excel sheet holds, written as CSV: ' c{1}]);
-                    end
-                catch err
-                    write_log(sprintf('ERROR writing %s: %s', file, err.message));
-                end
+            catch err
+                write_log(sprintf('ERROR writing %s: %s', file, err.message));
             end
         end
         lbl_status.Text = status;
@@ -2816,16 +2898,17 @@ end
             L = L(keep, :) + SQAT_GUI_weight_curve(f_spec, wave_fs, weighting);
         end
         spec_busy = true;
+        spec_data = struct('t', t_spec, 'f', f_spec, 'L', L);
         cla(ax_spec);
         if enhanced                  % a log-spaced grid: one textured face, much lighter to draw than a mesh
-            [xe, ye] = il_map_edges(t_spec, f_spec);
-            surface(ax_spec, xe, ye, zeros(2), 'CData', L, 'FaceColor', 'texturemap', ...
+            [xe, ye, C] = il_texture(t_spec, f_spec, L, spec_scale());
+            surface(ax_spec, xe, ye, zeros(2), 'CData', C, 'FaceColor', 'texturemap', ...
                 'EdgeColor', 'none', 'PickableParts', 'none');
         else
             surface(ax_spec, t_spec, f_spec, zeros(numel(f_spec), numel(t_spec)), L, ...
                 'EdgeColor', 'none', 'PickableParts', 'none');
         end
-        ax_spec.YScale = 'log';
+        ax_spec.YScale = spec_scale();
         ax_spec.Layer = 'top';
         if isempty(lims)
             xlim(ax_spec, [0 numel(wave_x) / wave_fs]);
@@ -3308,7 +3391,7 @@ end
             'preview', false);
         spec_busy = true;
         cla(ax_spec);
-        ax_spec.YScale = 'log';
+        ax_spec.YScale = spec_scale();
         xlim(ax_spec, [0 numel(wave_x) / wave_fs]);
         ylim(ax_spec, [20 wave_fs/2]);
         title(ax_spec, sprintf('Enhanced spectrogram (%s)', mode), 'Interpreter', 'none');
@@ -3383,8 +3466,14 @@ end
 
     function show_map(srf, m)
         delete(findobj(ax_spec, 'Tag', 'spec_wait'));
-        [xe, ye] = il_map_edges(m.t, m.f);
-        set(srf, 'XData', xe, 'YData', ye, 'ZData', zeros(2), 'CData', weighted(m));
+        spec_data = struct('t', m.t, 'f', m.f, 'L', weighted(m));
+        [xe, ye, C] = il_texture(m.t, m.f, spec_data.L, spec_scale());
+        set(srf, 'XData', xe, 'YData', ye, 'ZData', zeros(2), 'CData', C);
+    end
+
+    function scale = spec_scale()
+        % the scale of the frequency axis of the spectrogram, 'log' or 'linear'
+        scale = findobj(win_wave, 'Tag', 'spec_scale').Value;
     end
 
     function move_playhead(sample)
@@ -3570,6 +3659,36 @@ end
         end
     end
 
+    function [pd, closer] = open_progress(parent, name)
+        % a progress dialog over the window parent for the task name, closed
+        % when closer is cleared; empty when the window is hidden (the tests).
+        % The tests read the handle in the appdata sqat_task_progress of parent
+        pd = [];
+        closer = [];
+        if ~il_is_open(parent) || ~strcmp(parent.Visible, 'on')
+            return
+        end
+        try
+            pd = uiprogressdlg(parent, 'Title', name, 'Message', 'Starting ...');
+            drawnow
+            setappdata(parent, 'sqat_task_progress', pd);
+            closer = onCleanup(@() il_close_progress(parent, pd));
+        catch err
+            write_log(['The progress dialog could not open: ' err.message]);
+        end
+    end
+
+    function step_progress(pd, fraction, msg)
+        % the dialog of open_progress at fraction of the task, on the step msg
+        if il_is_open(pd)
+            pd.Message = msg;
+            if ~strcmp(pd.Indeterminate, 'on')
+                pd.Value = min(max(fraction, 0), 1);
+            end
+        end
+        drawnow limitrate
+    end
+
     function set_progress(value)
         if il_is_open(dlg)
             dlg.Value = min(max(value / 100, 0), 1);
@@ -3672,23 +3791,97 @@ for k = 1:numel(entries)
 end
 end
 
-function n = il_export(obj, folder, name)
-% one figure, axes or window to a file (vector content for a PDF); returns 1
-opts = {};
-if endsWith(name, '.pdf')
-    opts = {'ContentType', 'vector'};
+function new_axes = il_new_axes(parent, n_rows, n_cols)
+% new_axes(k) makes the k-th axes of n_rows x n_cols in parent, across then down.
+% On screen the axes sit in a grid layout, which follows the window. In the
+% hidden export window of the Save dialog (parent is the window itself) each
+% axes gets a fixed position in pixels, the cell the grid would give it: a hidden
+% window lays its grid out only when it is drawn, and once in about 35 exports
+% the export came before that and took the axes at a size of their own (a page
+% of 327 x 71 pt, the plot squeezed)
+if ~isa(parent, 'matlab.ui.Figure')
+    gl = uigridlayout(parent, [n_rows, n_cols]);
+    new_axes = @(k) uiaxes(gl);
+    return
 end
-exportgraphics(obj, il_free_path(fullfile(folder, name)), opts{:});
-n = 1;
+pad = 10;                                              % the padding and spacing of a grid layout
+w = (parent.Position(3) - pad * (n_cols + 1)) / n_cols;
+h = (parent.Position(4) - pad * (n_rows + 1)) / n_rows;
+new_axes = @(k) uiaxes(parent, 'Position', [pad + mod(k - 1, n_cols) * (w + pad), ...
+    pad + (n_rows - ceil(k / n_cols)) * (h + pad), w, h]);
 end
 
-function [xe, ye] = il_map_edges(t, f)
-% outer edges of a map with a uniform time step and log-spaced frequencies, for a
-% texture: on a log axis each row of the texture then covers its own band
+function il_close_progress(parent, pd)
+% the end of a dialog of open_progress
+delete(pd);
+if isvalid(parent) && isappdata(parent, 'sqat_task_progress')
+    rmappdata(parent, 'sqat_task_progress');
+end
+end
+
+function jobs = il_result_jobs(ws, paths, res)
+% the Excel files the Save dialog writes: one per ticked metric (res) and ticked
+% signal (paths) that holds results of it, in the order of the signals
+jobs = struct('key', {}, 'file', {});
+if isempty(res)
+    return
+end
+[~, o] = sort([ws.id]);
+for key = unique({res.key}, 'stable')
+    for p = unique({ws(o).file}, 'stable')
+        if ismember(p{1}, paths) && any(strcmp({ws.metric}, key{1}) & strcmp({ws.file}, p{1}))
+            jobs(end+1) = struct('key', key{1}, 'file', p{1}); %#ok<AGROW>
+        end
+    end
+end
+end
+
+function n = il_export(obj, folder, name)
+% one figure, axes or window to a file; returns 1. In a PDF the lines stay
+% vector and a map (a surface of 240 x 20000 points) goes in as an image: as
+% vector content a map takes minutes to write and the file reaches 40 MB. A
+% .fig keeps the figure of obj, to open and edit in MATLAB
+n = 1;
+if endsWith(name, '.fig')
+    f = ancestor(obj, 'figure');
+    had = f.CreateFcn;
+    f.CreateFcn = 'set(gcbo, ''Visible'', ''on'')';   % drawn hidden here, it opens shown
+    restore = onCleanup(@() set(f, 'CreateFcn', had)); %#ok<NASGU>
+    savefig(f, il_free_path(fullfile(folder, name)));
+    return
+end
+opts = {};
+if endsWith(name, '.pdf')
+    opts = {'ContentType', 'auto'};
+end
+exportgraphics(obj, il_free_path(fullfile(folder, name)), opts{:});
+end
+
+function [xe, ye, C] = il_texture(t, f, L, scale)
+% one textured face for the map L (rows f, log-spaced; columns t, uniform): its
+% outer edges and its colour data. On a log axis each row of the map covers its
+% own band. On a linear axis the map is resampled onto 1024 rows of equal width:
+% the value between the rows of the map, and the loudest row of the map inside
+% each row of the grid, so that a thin line at a low frequency, where the map has
+% many rows per row of the grid, stays visible
 dt = t(end) - t(end-1);
-r = sqrt(f(end) / f(end-1));
 xe = [t(1) - dt/2, t(end) + dt/2];
-ye = [f(1) / r, f(end) * r];
+if strcmp(scale, 'log')
+    r = sqrt(f(end) / f(end-1));
+    ye = [f(1) / r, f(end) * r];
+    C = L;
+    return
+end
+n = 1024;
+f_lin = linspace(f(1), f(end), n)';
+df = f_lin(2) - f_lin(1);
+ye = [f_lin(1) - df/2, f_lin(end) + df/2];
+L = double(L);
+C = interp1(f(:), L, f_lin, 'linear');
+idx = discretize(f(:), [f_lin - df/2; f_lin(end) + df/2]);
+for k = unique(idx(~isnan(idx)))'
+    C(k, :) = max(C(k, :), max(L(idx == k, :), [], 1));
+end
 end
 
 function il_fit_axes(box, ax, bottom)
