@@ -27,7 +27,8 @@ function varargout = SQAT_GUI(files, varargin)
 %   leaves it as it is and Open Graphs Window opens another one to compare
 %   with. Save in a graphs window opens
 %   a dialog to tick the signals and, per metric, the SQAT figure, the analyses
-%   (the signals overlaid) and the statistics (CSV), as PNG or PDF. The
+%   (the signals overlaid) and the statistics (CSV), as PNG, PDF or .fig, every
+%   ticked format at once. The
 %   Waveform tab shows the waveform and the spectrogram of the signal on
 %   screen, with its player. The results go to a spreadsheet from the Save
 %   dialog of a graphs window.
@@ -2575,11 +2576,13 @@ end
         cb.ValueChangedFcn = @(~, ~) set(tr, 'CheckedNodes', il_if(cb.Value, findall(tr, 'Type', 'uitreenode'), []));
         tr.CheckedNodesChangedFcn = @(~, ~) set(cb, 'Value', ...
             numel(tr.CheckedNodes) == numel(findall(tr, 'Type', 'uitreenode')));
-        row = uigridlayout(g, [1 3], 'Padding', 0);
+        row = uigridlayout(g, [1 5], 'Padding', 0);     % the formats: every ticked one is written
         row.Layout.Row = 5; row.Layout.Column = 1;
-        row.ColumnWidth = {60, 90, '1x'};
+        row.ColumnWidth = {60, 60, 60, 120, '1x'};
         uilabel(row, 'Text', 'Format:', 'HorizontalAlignment', 'right');
-        uidropdown(row, 'Items', {'PNG', 'PDF', 'MATLAB figure'}, 'ItemsData', {'png', 'pdf', 'fig'}, 'Tag', 'save_format');
+        uicheckbox(row, 'Text', 'PNG', 'Value', true, 'Tag', 'save_png');
+        uicheckbox(row, 'Text', 'PDF', 'Value', false, 'Tag', 'save_pdf');
+        uicheckbox(row, 'Text', 'MATLAB figure', 'Value', false, 'Tag', 'save_fig');
         uilabel(row, 'Text', '');
         h = uilabel(g, 'Text', 'One Excel file per signal and metric');
         h.Layout.Row = 5; h.Layout.Column = 2;
@@ -2638,17 +2641,18 @@ end
     end
 
     function save_chosen(d, ws, w)
-        % saves the ticked figures of the ticked signals: the SQAT figure of each
-        % signal, each analysis with the signals overlaid, the statistics as CSV;
-        % then the ticked results, one Excel file per signal and metric. A
+        % saves the ticked figures of the ticked signals in every ticked format:
+        % the SQAT figure of each signal, each analysis with the signals overlaid,
+        % and the statistics as CSV (once); then the ticked results, one Excel
+        % file per signal and metric. A
         % progress dialog over the window the Save came from (w, or the main
         % window) names the file being written: a PDF takes seconds per figure
         folder = strtrim(findobj(d, 'Tag', 'save_folder').Value);
         if ~isfolder(folder) && ~create_folder(d, folder)
             return
         end
-        fmt = findobj(d, 'Tag', 'save_format').Value;
-        split = split_figures && ~strcmp(fmt, 'fig');   % one file per panel (a .fig holds the figure)
+        fmts = {'png', 'pdf', 'fig'};
+        fmts = fmts(cellfun(@(t) findobj(d, 'Tag', ['save_' t]).Value, fmts));
         n_sig = findobj(d, 'Tag', 'save_signals').CheckedNodes;
         paths = {};
         if ~isempty(n_sig)
@@ -2672,82 +2676,93 @@ end
             write_log('Nothing to save: tick at least one signal, and a figure or a result.');
             return
         end
+        if ~isempty(items) && isempty(fmts)
+            write_log('Tick at least one format for the figures.');
+            return
+        end
         save_folder = folder;
         delete(d);
         jobs = il_result_jobs(ws, paths, res);
-        n_steps = numel(items) + numel(jobs);
+        n_steps = numel(items) * numel(fmts) + numel(jobs);
         k_step = 0;
         if ~il_is_open(w)
             w = fig;
         end
         [pd, pd_off] = open_progress(w, 'Save'); %#ok<ASGLU>
         n_saved = 0;
-        for it = items
-            k_step = k_step + 1;
-            step_progress(pd, (k_step - 1) / n_steps, sprintf('Writing %s, %s ...', il_key_label(ws, it.key), it.aid));
-            en = ws(strcmp({ws.metric}, it.key) & ismember({ws.file}, paths));
-            [~, o] = sort([en.id]);                     % by signal number, the channels in order
-            en = en(o);
-            if isempty(en)
-                continue
-            end
-            key_file = strrep(it.key, '#', '_');
-            tag = strjoin(arrayfun(@(i) sprintf('s%d', i), unique([en.id]), 'UniformOutput', false), '-');
-            switch it.aid
-                case 'sqat'
-                    for p = unique({en.file}, 'stable')
-                        if ~any(strcmp({loaded.path}, p{1}))
-                            continue                    % removed from the list since
-                        end
-                        k_c = sqat_figures(it.key, p{1}, true);
-                        if k_c == 0
-                            continue
-                        end
-                        f = loaded(strcmp({loaded.path}, p{1}));
-                        [~, base] = fileparts(f.name);
-                        base = sprintf('%s_s%d_%s', base, f.id, key_file);
-                        figs = cache(k_c).figs;
-                        for k_fig = 1:numel(figs)
-                            if split
-                                axs = flipud(findobj(figs(k_fig), 'Type', 'axes'));
-                                for k_ax = 1:numel(axs)
-                                    n_saved = n_saved + il_export(axs(k_ax), folder, ...
-                                        sprintf('%s_%d_%d.%s', base, k_fig, k_ax, fmt));
+        for k_fmt = 1:numel(fmts)
+            fmt = fmts{k_fmt};
+            split = split_figures && ~strcmp(fmt, 'fig');   % one file per panel (a .fig holds the figure)
+            for it = items
+                k_step = k_step + 1;
+                step_progress(pd, (k_step - 1) / n_steps, sprintf('Writing %s, %s (%s) ...', il_key_label(ws, it.key), it.aid, fmt));
+                en = ws(strcmp({ws.metric}, it.key) & ismember({ws.file}, paths));
+                [~, o] = sort([en.id]);                     % by signal number, the channels in order
+                en = en(o);
+                if isempty(en)
+                    continue
+                end
+                key_file = strrep(it.key, '#', '_');
+                tag = strjoin(arrayfun(@(i) sprintf('s%d', i), unique([en.id]), 'UniformOutput', false), '-');
+                switch it.aid
+                    case 'sqat'
+                        for p = unique({en.file}, 'stable')
+                            if ~any(strcmp({loaded.path}, p{1}))
+                                continue                    % removed from the list since
+                            end
+                            k_c = sqat_figures(it.key, p{1}, true);
+                            if k_c == 0
+                                continue
+                            end
+                            f = loaded(strcmp({loaded.path}, p{1}));
+                            [~, base] = fileparts(f.name);
+                            base = sprintf('%s_s%d_%s', base, f.id, key_file);
+                            figs = cache(k_c).figs;
+                            for k_fig = 1:numel(figs)
+                                if split
+                                    axs = flipud(findobj(figs(k_fig), 'Type', 'axes'));
+                                    for k_ax = 1:numel(axs)
+                                        n_saved = n_saved + il_export(axs(k_ax), folder, ...
+                                            sprintf('%s_%d_%d.%s', base, k_fig, k_ax, fmt));
+                                    end
+                                else
+                                    n_saved = n_saved + il_export(figs(k_fig), folder, ...
+                                        sprintf('%s_%d.%s', base, k_fig, fmt));
                                 end
-                            else
-                                n_saved = n_saved + il_export(figs(k_fig), folder, ...
-                                    sprintf('%s_%d.%s', base, k_fig, fmt));
                             end
                         end
-                    end
-                case 'stats'
-                    [names, data] = il_stats_cells(en);
-                    writecell([[{'Quantity'}, names]; data], ...
-                        il_free_path(fullfile(folder, sprintf('%s_statistics_%s.csv', key_file, tag))));
-                    n_saved = n_saved + 1;
-                otherwise
-                    en = en(arrayfun(@(e) any(strcmp({e.analyses.id}, it.aid)), en));
-                    if isempty(en)
-                        continue
-                    end
-                    h = uifigure('Visible', 'off', 'Position', [0 0 1100 650], 'Tag', 'SQAT_GUI_export', ...
-                        'CreateFcn', '');                % a window: il_new_axes places the axes by hand
-                    chan = unique({en.channel});
-                    if ~isscalar(chan)
-                        chan = {''};                    % mixed channels: the legend names them
-                    end
-                    draw_analysis(h, en, it.aid, chan{1});
-                    for ax = findobj(h, 'Type', 'axes')'
-                        % a hidden window computes the automatic limits only when they are read;
-                        % fixed here, they survive the drawing of the export
-                        ax.XLim = ax.XLim;
-                        ax.YLim = ax.YLim;
-                    end
-                    n_saved = n_saved + il_export(h, folder, sprintf('%s_%s_%s.%s', key_file, it.aid, tag, fmt));
-                    delete(h);
+                    case 'stats'
+                        if k_fmt > 1
+                            continue                    % the CSV once, whatever the formats
+                        end
+                        [names, data] = il_stats_cells(en);
+                        writecell([[{'Quantity'}, names]; data], ...
+                            il_free_path(fullfile(folder, sprintf('%s_statistics_%s.csv', key_file, tag))));
+                        n_saved = n_saved + 1;
+                    otherwise
+                        en = en(arrayfun(@(e) any(strcmp({e.analyses.id}, it.aid)), en));
+                        if isempty(en)
+                            continue
+                        end
+                        h = uifigure('Visible', 'off', 'Position', [0 0 1100 650], 'Tag', 'SQAT_GUI_export', ...
+                            'CreateFcn', '');                % a window: il_new_axes places the axes by hand
+                        chan = unique({en.channel});
+                        if ~isscalar(chan)
+                            chan = {''};                    % mixed channels: the legend names them
+                        end
+                        draw_analysis(h, en, it.aid, chan{1});
+                        for ax = findobj(h, 'Type', 'axes')'
+                            % a hidden window computes the automatic limits only when they are read;
+                            % fixed here, they survive the drawing of the export
+                            ax.XLim = ax.XLim;
+                            ax.YLim = ax.YLim;
+                        end
+                        n_saved = n_saved + il_export(h, folder, sprintf('%s_%s_%s.%s', key_file, it.aid, tag, fmt));
+                        delete(h);
+                end
             end
         end
-        n_saved = n_saved + save_results(folder, ws, res, jobs, pd, numel(items), n_steps);
+        n_saved = n_saved + save_results(folder, ws, res, jobs, pd, numel(items) * numel(fmts), n_steps);
         write_log(sprintf('%d file(s) saved to %s', n_saved, folder));
     end
 
@@ -3858,10 +3873,16 @@ end
 end
 
 function n = il_export(obj, folder, name)
-% one figure, axes or window to a file; returns 1. In a PDF the lines stay
-% vector and a map (a surface of 240 x 20000 points) goes in as an image: as
-% vector content a map takes minutes to write and the file reaches 40 MB. A
-% .fig keeps the figure of obj, to open and edit in MATLAB
+% one figure, axes or window to a file; returns 1. The PDF of an analysis drawn
+% by the GUI in its export window keeps the lines vector, and a map (a surface
+% of 240 x 20000 points) goes in as an image: as vector content a map takes
+% minutes to write and the file reaches 40 MB. The PDF of a figure drawn by a
+% metric, or of a plot of the Waveform tab, is the PNG of the same plot at
+% 300 dpi on a page of its size, written by SQAT_GUI_image_pdf: exportgraphics
+% on R2024b (Windows) rendered these in a canvas 14 x 70 px short of the
+% figure (the size of the borders, title bar, menu bar and toolbar of a
+% window), stretched to the page, so their bottom and right side were cut.
+% A .fig keeps the figure of obj, to open and edit in MATLAB
 n = 1;
 if endsWith(name, '.fig')
     f = ancestor(obj, 'figure');
@@ -3873,16 +3894,16 @@ if endsWith(name, '.fig')
 end
 opts = {};
 if endsWith(name, '.pdf')
-    opts = {'ContentType', 'auto'};
-    if isa(obj, 'matlab.ui.Figure') && ~isempty(obj.Number)
-        % a figure drawn by a metric, hidden: its tiled layout settles before the
-        % export, and the page goes as one image. R2024b took the vector path and
-        % wrote the lower tile with the size it had before the legend and the
-        % colorbar moved it, so the tile ran off the page; R2026b already chose
-        % the image for these figures
-        drawnow;
-        opts = {'ContentType', 'image', 'Resolution', 300};
+    if ~strcmp(ancestor(obj, 'figure').Tag, 'SQAT_GUI_export')
+        drawnow;                                      % a hidden figure of a metric: its tiled layout settles first
+        png = [tempname '.png'];
+        exportgraphics(obj, png, 'Resolution', 300);
+        rgb = imread(png);
+        delete(png);
+        SQAT_GUI_image_pdf(rgb, il_free_path(fullfile(folder, name)), 300);
+        return
     end
+    opts = {'ContentType', 'auto'};
 end
 exportgraphics(obj, il_free_path(fullfile(folder, name)), opts{:});
 end
