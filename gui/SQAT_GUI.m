@@ -1079,10 +1079,10 @@ end
         ss.RowHeight = {24, 24};
         ss.RowSpacing = 2;
         ss.Padding = [0 0 0 0];
-        sw = uigridlayout(ss, [1 9]);                   % the plain STFT
+        sw = uigridlayout(ss, [1 11]);                  % the plain STFT, and the colours of both maps
         sw.Padding = [0 0 0 0];
-        sw.ColumnWidth = {'fit', 'fit', 115, 70, 'fit', 52, 'fit', 52, '1x'};
-        sw.ColumnSpacing = 6;
+        sw.ColumnWidth = {'fit', 'fit', 112, 68, 'fit', 52, 'fit', 52, 'fit', 80, '1x'};
+        sw.ColumnSpacing = 4;                           % tighter than the other rows: this one is the fullest
         uilabel(sw, 'Text', 'Spectrogram settings:','FontWeight','bold');
         uilabel(sw, 'Text', '  Window:');
         uidropdown(sw, 'Items', {'Hann', 'Hamming', 'Rectangular', 'Blackman-Harris'}, ...
@@ -1090,13 +1090,18 @@ end
             'Tag', 'spec_window', 'ValueChangedFcn', @on_spec_option);
         uibutton(sw, 'Text', 'Import...', 'Tag', 'import_window', 'ButtonPushedFcn', @on_import_window, ...
             'Tooltip', 'A .txt, .csv, .dat or .mat file with the samples of the window');
-        uilabel(sw, 'Text', '  FFT degree:');
+        uilabel(sw, 'Text', '  FFT deg.:', 'Tooltip', 'FFT degree');
         uispinner(sw, 'Value', 10, 'Limits', [6 16], 'Step', 1, 'Tag', 'spec_degree', ...
             'RoundFractionalValues', 'on', 'ValueChangedFcn', @on_spec_option, ...
             'Tooltip', 'The FFT has 2^degree points (6 to 16); use the arrows');
         uilabel(sw, 'Text', '  Overlap (%):');
         uispinner(sw, 'Value', 50, 'Limits', [0 95], 'Step', 5, 'Tag', 'spec_overlap', ...
             'ValueChangedFcn', @on_spec_option, 'Tooltip', 'Overlap of the frames (0 to 95); use the arrows');
+        uilabel(sw, 'Text', '  Map:', 'Tooltip', 'Colour scale of the spectrogram');
+        uidropdown(sw, 'Items', {'Inferno', 'Jet', 'Parula', 'Turbo', 'Hot', 'Gray'}, ...
+            'ItemsData', {'inferno', 'jet', 'parula', 'turbo', 'hot', 'gray'}, 'Value', 'inferno', ...
+            'Tag', 'spec_cmap', 'ValueChangedFcn', @on_spec_cmap, ...
+            'Tooltip', 'Colour scale of the spectrogram, plain or enhanced; Inferno is the one of the toolbox');
         uilabel(sw, 'Text', '');
         sf = uigridlayout(ss, [1 10]);                  % the frequency axis of both maps, the enhanced spectrogram and the filter boxes
         sf.Padding = [0 0 0 0];
@@ -1828,6 +1833,10 @@ end
         o = findobj(win_wave, 'Tag', 'spec_overlap');
         o.Value = min(max(o.Value, 0), 95);
         draw_spectrogram(true);
+    end
+
+    function on_spec_cmap(~, ~)
+        colormap(ax_spec, spec_cmap());                 % the map on screen stays, only its colours change
     end
 
     function on_spec_enhanced(~, ~)
@@ -2917,7 +2926,7 @@ end
             xlim(ax_spec, lims{1});
             ylim(ax_spec, lims{2});
         end
-        colormap(ax_spec, cmap);
+        colormap(ax_spec, spec_cmap());
         spec_top = top;
         spec_range = il_if(enhanced, 45, 80);
         spec_black = min(spec_black, spec_range - 5);
@@ -3474,6 +3483,17 @@ end
     function scale = spec_scale()
         % the scale of the frequency axis of the spectrogram, 'log' or 'linear'
         scale = findobj(win_wave, 'Tag', 'spec_scale').Value;
+    end
+
+    function map = spec_cmap()
+        % the colour scale chosen for the spectrogram: the inferno of the toolbox,
+        % or one of MATLAB with as many colours
+        name = findobj(win_wave, 'Tag', 'spec_cmap').Value;
+        if strcmp(name, 'inferno')
+            map = cmap;
+        else
+            map = feval(name, size(cmap, 1));
+        end
     end
 
     function move_playhead(sample)
