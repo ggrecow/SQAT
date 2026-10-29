@@ -1,0 +1,338 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SQAT test report</title>
+<style>
+/* Colour tokens. Every text/background pair is >= 4.5:1 and every control border, focus ring and bar
+   fill >= 3:1 in both themes (the palette of the SQAT Rust report). */
+:root {
+  --bg:#fbfbfa; --panel:#ffffff; --ink:#1b1f24; --mute:#59636e; --line:#dde1e6; --accent:#0b5cd0; --onaccent:#ffffff; --focus:#0b5cd0; --ctl:#6e7781;
+  --ok:#1a7f37; --okbg:#dafbe1; --warn:#8a5d00; --warnbg:#fff8c5; --bad:#c21f2b; --badbg:#ffebe9;
+  --ign:#57606a; --ignbg:#eaeef2; --bar:#dde1e6; --code:#f3f4f6;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg:#0e1116; --panel:#151a21; --ink:#e6e9ee; --mute:#98a2ae; --line:#2a313b; --accent:#58a6ff; --onaccent:#0e1116; --focus:#79b8ff; --ctl:#8b949e;
+    --ok:#3fb950; --okbg:#12261a; --warn:#d29922; --warnbg:#2b2210; --bad:#f85149; --badbg:#2d1416;
+    --ign:#8b949e; --ignbg:#1f252d; --bar:#2a313b; --code:#1a2029;
+  }
+}
+:root[data-theme="dark"] {
+  --bg:#0e1116; --panel:#151a21; --ink:#e6e9ee; --mute:#98a2ae; --line:#2a313b; --accent:#58a6ff; --onaccent:#0e1116; --focus:#79b8ff; --ctl:#8b949e;
+  --ok:#3fb950; --okbg:#12261a; --warn:#d29922; --warnbg:#2b2210; --bad:#f85149; --badbg:#2d1416;
+  --ign:#8b949e; --ignbg:#1f252d; --bar:#2a313b; --code:#1a2029;
+}
+* { box-sizing:border-box; }
+html { font-size:100%; }
+html,body { margin:0; background:var(--bg); color:var(--ink); }
+body { font:.875rem/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif; }
+code,pre,.num { font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; }
+code { overflow-wrap:anywhere; }
+a { color:var(--accent); }
+:focus-visible { outline:3px solid var(--focus); outline-offset:2px; }
+.sr { position:absolute !important; width:1px; height:1px; margin:-1px; padding:0; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; border:0; }
+.skip { position:absolute; left:8px; top:-60px; z-index:20; background:var(--accent); color:var(--onaccent); padding:8px 14px; border-radius:6px; font-weight:650; text-decoration:none; }
+.skip:focus { top:8px; }
+header { display:flex; align-items:center; flex-wrap:wrap; gap:8px 10px; padding:8px 16px; border-bottom:1px solid var(--line); background:var(--panel); position:sticky; top:0; z-index:5; }
+header h1 { font-size:.95rem; margin:0 6px 0 0; font-weight:650; }
+header .meta { color:var(--mute); font-size:.75rem; flex:1 1 200px; min-width:0; overflow-wrap:anywhere; }
+button.theme { border:1px solid var(--ctl); background:var(--panel); color:var(--ink); border-radius:6px; padding:4px 10px; cursor:pointer; font:inherit; font-weight:600; min-height:28px; }
+.layout { display:grid; grid-template-columns:250px minmax(0,1fr); }
+nav { border-right:1px solid var(--line); padding:12px 8px; background:var(--panel); overflow-y:auto; position:sticky; top:var(--hh,48px); height:calc(100vh - var(--hh,48px)); }
+nav ul { list-style:none; margin:0; padding:0; }
+nav .navh { font-size:.6875rem; letter-spacing:.06em; text-transform:uppercase; color:var(--mute); margin:14px 8px 4px; font-weight:600; }
+nav a { display:flex; justify-content:space-between; align-items:center; gap:8px; padding:5px 8px; border-radius:6px; color:var(--ink); text-decoration:none; font-size:.8125rem; }
+nav a:hover { background:var(--code); }
+nav a[aria-current="page"] { background:var(--accent); color:var(--onaccent); font-weight:600; }
+nav a .dot { width:8px; height:8px; border-radius:50%; flex:none; background:var(--ign); }
+nav a .dot.ok { background:var(--ok); } nav a .dot.bad { background:var(--bad); } nav a .dot.warn { background:var(--warn); }
+main { padding:18px 22px 60px; max-width:1200px; min-width:0; }
+main:focus { outline:none; }
+h2 { margin:0 0 4px; font-size:1.25rem; } h3.sec { margin:22px 0 8px; font-size:.95rem; }
+.sub { color:var(--mute); margin:0 0 14px; }
+.cards { display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:10px; margin:10px 0 18px; }
+.card { background:var(--panel); border:1px solid var(--line); border-radius:8px; padding:10px 12px; min-width:0; overflow-wrap:anywhere; }
+.card .v { font-size:1.5rem; font-weight:650; } .card .v.sm { font-size:1rem; } .card .l { color:var(--mute); font-size:.75rem; }
+.panel { background:var(--panel); border:1px solid var(--line); border-radius:8px; padding:12px 14px; margin:8px 0; }
+.panel.note { border-color:var(--warn); }
+.panel ul { margin:6px 0; padding-left:20px; } .panel li { margin:5px 0; }
+.tw { overflow-x:auto; max-width:100%; margin:0 0 4px; }
+table { width:100%; border-collapse:collapse; background:var(--panel); border:1px solid var(--line); font-size:.8125rem; }
+th,td { text-align:left; padding:6px 9px; border-bottom:1px solid var(--line); vertical-align:top; }
+th { background:var(--code); font-weight:600; white-space:nowrap; }
+th .thb { all:unset; cursor:pointer; font-weight:600; display:inline-flex; gap:4px; align-items:center; }
+th .thb:focus-visible { outline:3px solid var(--focus); outline-offset:2px; }
+th[aria-sort="ascending"] .thb::after { content:"\25B2"; font-size:.6em; } th[aria-sort="descending"] .thb::after { content:"\25BC"; font-size:.6em; }
+tr:last-child td { border-bottom:0; }
+tbody tr.click { cursor:pointer; } tbody tr.click:hover { background:var(--code); }
+.num { text-align:right; white-space:nowrap; }
+.tag { display:inline-block; padding:1px 8px; border-radius:10px; font-size:.75rem; font-weight:600; }
+.tag.ok { background:var(--okbg); color:var(--ok); } .tag.bad { background:var(--badbg); color:var(--bad); }
+.tag.ign { background:var(--ignbg); color:var(--ign); } .tag.warn { background:var(--warnbg); color:var(--warn); }
+.bar { height:8px; background:var(--bar); border-radius:4px; min-width:90px; position:relative; overflow:hidden; }
+.bar i { position:absolute; left:0; top:0; bottom:0; border-radius:4px; }
+.bar.ok i { background:var(--ok); } .bar.warn i { background:var(--warn); } .bar.bad i { background:var(--bad); }
+.util { display:flex; align-items:center; gap:8px; } .util .t { min-width:74px; text-align:right; }
+.controls { display:flex; gap:8px; flex-wrap:wrap; margin:6px 0 10px; align-items:center; }
+input[type=search] { padding:6px 10px; border:1px solid var(--ctl); border-radius:6px; background:var(--panel); color:var(--ink); min-width:min(320px,100%); max-width:100%; font:inherit; }
+.chip { border:1px solid var(--ctl); background:var(--panel); color:var(--ink); padding:3px 10px; border-radius:14px; cursor:pointer; font:inherit; font-size:.75rem; }
+.chip[aria-pressed="true"] { background:var(--accent); color:var(--onaccent); border-color:var(--accent); font-weight:600; }
+details { background:var(--panel); border:1px solid var(--line); border-radius:8px; margin:8px 0; }
+details > summary { padding:8px 12px; cursor:pointer; font-weight:600; }
+details.ex { margin:4px 0 2px; background:transparent; border-color:var(--line); }
+details.ex > summary { padding:3px 9px; font-weight:500; font-size:.8125rem; color:var(--accent); }
+details.ex .exb { padding:2px 12px 8px; max-width:70ch; }
+details.ex .exb p { margin:4px 0; }
+pre { background:var(--code); border:1px solid var(--line); border-radius:8px; padding:10px 12px; overflow:auto; font-size:.75rem; white-space:pre-wrap; }
+.kv { display:grid; grid-template-columns:130px minmax(0,1fr); gap:4px 12px; }
+.kv dt { color:var(--mute); } .kv dd { margin:0; overflow-wrap:anywhere; }
+.help { color:var(--mute); font-size:.78rem; }
+.doc { max-width:820px; } .doc p { margin:8px 0; } .doc h3 { margin:24px 0 6px; font-size:.95rem; }
+.doc dt { font-weight:650; margin-top:10px; } .doc dd { margin:2px 0 0 0; color:var(--mute); }
+.doc ol,.doc ul { padding-left:20px; } .doc li { margin:4px 0; }
+.lead { font-size:.95rem; }
+.sw { display:inline-block; width:10px; height:10px; border-radius:50%; vertical-align:baseline; margin-right:4px; }
+@media (max-width:820px) {
+  header { position:static; }
+  .layout { grid-template-columns:minmax(0,1fr); }
+  nav { position:static; height:auto; border-right:0; border-bottom:1px solid var(--line); }
+  nav ul { display:flex; flex-wrap:wrap; gap:2px 6px; }
+  main { padding:14px 16px 50px; }
+  .kv { grid-template-columns:minmax(0,1fr); gap:0; } .kv dd { margin-bottom:6px; }
+}
+@media (prefers-reduced-motion: reduce) { * { scroll-behavior:auto !important; transition:none !important; animation:none !important; } }
+</style>
+</head>
+<body>
+<a class="skip" id="skip" href="#"></a>
+<header>
+  <h1 id="ttl"></h1>
+  <div class="meta" id="meta"></div>
+  <button class="theme" id="lang" type="button"></button>
+  <button class="theme" id="theme" type="button"></button>
+</header>
+<div class="layout"><nav id="nav"></nav><main id="main" tabindex="-1"></main></div>
+
+
+<script>/*__DATA__*/</script>
+<script>
+"use strict";
+/* The report of the SQAT test suite (test/report/sqat_report_build.m). Look and
+   helpers come from the report of the SQAT Rust port (tools/report/template.html
+   there); the data layer reads the results of matlab.unittest. Portuguese by
+   default, English with the EN switch or ?lang=en. */
+let LANG = "pt"; try { LANG = localStorage.getItem("sqat-lang") || "pt"; } catch (e) {}
+const qLang = new URLSearchParams(location.search).get("lang"); if (qLang === "en" || qLang === "pt") LANG = qLang;
+const t2 = (pt, en, ...a) => { let s = LANG === "en" ? en : pt; a.forEach((v, i) => { s = s.split("{" + i + "}").join(v); }); return s; };
+
+/* ---------------------------------------------------------------- helpers */
+const cut = (s, n) => (s || "").length > n ? s.slice(0, n - 1).trimEnd() + "…" : (s || "");
+const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const sci = (x, d = 2) => x === 0 ? "0" : (x == null || !isFinite(x)) ? "-" : (Math.abs(x) >= 1e-3 && Math.abs(x) < 1e4 ? +x.toPrecision(d + 1) + "" : x.toExponential(d));
+const fmtPct = u => u == null || !isFinite(u) ? "-" : u === 0 ? "0%" : u < 1e-4 ? t2("menos de 0.01%", "under 0.01%") : (u * 100).toFixed(u < 0.1 ? 2 : 1) + "%";
+const fmtMargin = u => !u ? t2("exato", "exact") : (1 / u >= 1e6 ? (1 / u).toExponential(0) : Math.round(1 / u)) + "x";
+const tolText = r => r.mode === "rel" ? "rel " + sci(r.tol_rel, 1) : "abs " + sci(r.tol_abs, 1);
+function bar(u) {
+  if (u == null || !isFinite(u)) return "";
+  const cls = u >= 1 ? "bad" : u >= 0.5 ? "warn" : "ok";
+  const w = u === 0 ? 2 : Math.max(2, Math.min(100, (Math.log10(u) + 16) / 16 * 100));   // log scale
+  return `<div class="bar ${cls}" aria-hidden="true"><i style="width:${w}%"></i></div>`;
+}
+const utilBar = u => (u == null || !isFinite(u)) ? "" : `<div class="util">${bar(u)}<span class="num t">${u === 0 ? t2("0 (exato)", "0 (exact)") : sci(u, 1)}</span></div>`;
+const statusTag = s => `<span class="tag ${s === "ok" ? "ok" : s === "failed" ? "bad" : "ign"}">${s === "ok" ? "ok" : s === "failed" ? t2("FALHOU", "FAILED") : t2("incompleto", "incomplete")}</span>`;
+// the header cells become buttons (keyboard operable) that sort the rows; aria-sort tells the state
+function sortable(tableEl) {
+  if (!tableEl.tHead) return;
+  const ths = [...tableEl.tHead.rows[0].cells];
+  ths.forEach((th, ci) => {
+    th.scope = "col";
+    const b = document.createElement("button"); b.type = "button"; b.className = "thb"; b.innerHTML = th.innerHTML; th.textContent = ""; th.appendChild(b);
+    b.addEventListener("click", () => {
+      const tb = tableEl.tBodies[0], rows = [...tb.rows]; const asc = th.dataset.dir !== "asc";
+      ths.forEach(z => { delete z.dataset.dir; z.removeAttribute("aria-sort"); }); th.dataset.dir = asc ? "asc" : "desc"; th.setAttribute("aria-sort", asc ? "ascending" : "descending");
+      const key = r => { const c = r.cells[ci]; if (!c) return ""; return c.dataset.v !== undefined ? +c.dataset.v : c.textContent.trim(); };
+      rows.sort((p, q) => { const a = key(p), c = key(q); const r = (typeof a === "number" && typeof c === "number") ? a - c : String(a).localeCompare(String(c), "pt", {numeric:true}); return asc ? r : -r; });
+      rows.forEach(r => tb.appendChild(r));
+    });
+  });
+}
+
+/* ---------------------------------------------------------------- data
+   D.tests: [{name "tFile/test_x", suite (folder of test/), file, status, time, doc, out}]
+   D.records: JSON lines of sqat_report_record, keyed by test name */
+const D = window.REPORT;
+const TESTS = D.tests;
+const RECS = D.records.split("\n").filter(Boolean).map(l => { try { return JSON.parse(l); } catch (e) { return null; } }).filter(Boolean);
+const RBT = {}; for (const r of RECS) (RBT[r.test] = RBT[r.test] || []).push(r);
+// one block per test file (Do_SLM_test tests Do_SLM), in the order of the folders
+const FILES = [...new Set(TESTS.map(x => x.file))];
+const blockName = f => f.replace(/_test$/i, "");
+const suiteOfFile = f => (TESTS.find(x => x.file === f) || {}).suite || "";
+const testsOf = f => TESTS.filter(x => x.file === f);
+const recsOf = f => RECS.filter(r => r.test.split("/")[0] === f);
+function stat(f) {
+  const ts = testsOf(f), fl = ts.filter(x => x.status === "failed").length, ig = ts.filter(x => x.status === "ignored").length;
+  const rs = recsOf(f), worst = rs.reduce((a, r) => Math.max(a, r.util), 0);
+  return {n:ts.length, fail:fl, ign:ig, ok:ts.length - fl - ig, recs:rs.length, worst, dot: fl ? "bad" : (ig || worst >= 0.5) ? "warn" : "ok"};
+}
+
+/* ---------------------------------------------------------------- views */
+const main = document.getElementById("main"), nav = document.getElementById("nav");
+const cap = s => `<caption class="sr">${s}</caption>`;
+function buildNav(cur) {
+  const dotTxt = {ok:"ok", warn:t2("atencao", "attention"), bad:t2("falha", "failed")};
+  const item = (h, label, dot) => `<li><a href="#${h}"${cur === h ? ' aria-current="page"' : ""}><span>${esc(label)}</span>${dot !== undefined ? `<span class="dot ${dot}" aria-hidden="true"></span><span class="sr">(${dotTxt[dot]})</span>` : ""}</a></li>`;
+  let h = `<ul>${item("welcome", t2("Boas-vindas", "Welcome")) + item("overview", t2("Visao geral", "Overview")) + item("tests", t2("Todos os testes", "All tests")) + item("log", t2("Log bruto", "Raw log"))}</ul>`;
+  for (const s of [...new Set(TESTS.map(x => x.suite))]) h += `<p class="navh">${esc(s)}</p><ul>${FILES.filter(f => suiteOfFile(f) === s).map(f => item("m/" + f, blockName(f), stat(f).dot)).join("")}</ul>`;
+  nav.setAttribute("aria-label", t2("Paginas do relatorio", "Report pages"));
+  nav.innerHTML = h;
+}
+
+function vWelcome() {
+  const M = D.meta, dl = (a, b) => `<dt>${a}</dt><dd>${b}</dd>`;
+  return `<div class="doc"><h2>${t2("Bem-vindo", "Welcome")}</h2><p class="lead">${t2("Este relatorio responde, numa pagina, duas perguntas sobre o SQAT: <b>os testes passam?</b> e <b>quando um teste compara numeros com uma referencia (norma, paper, base de dados), com que folga ele passa?</b>", "This report answers, on one page, two questions about SQAT: <b>do the tests pass?</b> and <b>when a test compares numbers with a reference (a standard, a paper, a database), with how much margin does it pass?</b>")}</p>
+  <h3>${t2("Como ler este relatorio", "How to read this report")}</h3><ol>
+   <li>${t2("Comece pela <a href=\"#overview\">Visao geral</a>: totais e uma linha por bloco testado.", "Start with the <a href=\"#overview\">Overview</a>: totals and one row per tested block.")}</li>
+   <li>${t2("Cada bloco e um arquivo de testes (por exemplo <code>Do_SLM_test.m</code> testa <code>Do_SLM</code>). A pagina do bloco resume em uma frase o quao perto da referencia o resultado ficou.", "Each block is a test file (for example <code>Do_SLM_test.m</code> tests <code>Do_SLM</code>). The block page sums up in one sentence how close to the reference the result came.")}</li>
+   <li>${t2("Em <a href=\"#tests\">Todos os testes</a>, abra <i>O que este teste verifica</i> para ler o que o teste confere e contra que referencia.", "In <a href=\"#tests\">All tests</a>, open <i>What this test checks</i> to read what the test checks and against what reference.")}</li></ol>
+  <h3>${t2("Vocabulario", "Vocabulary")}</h3><dl>
+   ${dl(t2("tolerancia", "tolerance"), t2("O maior erro que um teste aceita, na unidade da grandeza (abs). Vem da referencia: por exemplo, o limite de aceitacao de uma tabela da norma.", "The largest error a test accepts, in the unit of the quantity (abs). It comes from the reference: for example, the acceptance limit of a table of the standard."))}
+   ${dl(t2("utilizacao", "utilization"), t2("Erro medido dividido pelo erro permitido. <b>1</b> = no limite (e falha se passar), <b>0,01</b> = usa 1% da margem, <b>0</b> = identico a referencia. Barra em escala log: verde abaixo de 0,5, amarelo de 0,5 a 1, vermelho a partir de 1. Margem = 1 / utilizacao.", "Measured error divided by the allowed error. <b>1</b> = at the limit (and fails beyond it), <b>0.01</b> = uses 1% of the margin, <b>0</b> = identical to the reference. Log-scale bar: green below 0.5, yellow from 0.5 to 1, red from 1 up. Margin = 1 / utilization."))}
+   ${dl(t2("pastas", "folders"), t2("<code>unit</code>: uma funcao, criterio de norma, segundos. <code>reference</code>: metrica contra paper ou base de dados. <code>gui</code>: a interface.", "<code>unit</code>: one function, a criterion from a standard, seconds. <code>reference</code>: a metric against a paper or a database. <code>gui</code>: the interface."))}</dl>
+  <h3>${t2("O que este relatorio nao diz", "What this report does not say")}</h3><ul>
+   <li>${t2("Uma tolerancia folgada deixa a utilizacao baixa: leia sempre a coluna <i>Tolerancia</i> junto com a barra.", "A loose tolerance keeps utilization low: always read the <i>Tolerance</i> column together with the bar.")}</li>
+   <li>${t2("Nem todo teste compara numeros: os que nao registram comparacoes so passam ou falham.", "Not every test compares numbers: those that record no comparison only pass or fail.")}</li></ul>
+  <h3>${t2("Como gerar", "How to generate")}</h3><pre tabindex="0">matlab -batch "addpath('test/report'); sqat_report_build"          % ${t2("tudo", "everything")}\nmatlab -batch "addpath('test/report'); sqat_report_build('unit')"  % ${t2("uma pasta", "one folder")}</pre>
+  <h3>${t2("Esta execucao", "This run")}</h3><dl class="kv"><dt>${t2("Data", "Date")}</dt><dd>${esc(M.date)}</dd><dt>Commit</dt><dd>${esc(M.git)}${M.dirty ? " " + t2("(arvore com alteracoes)", "(working tree with changes)") : ""}</dd><dt>MATLAB</dt><dd>${esc(M.matlab)}</dd><dt>${t2("Maquina", "Machine")}</dt><dd>${esc(M.machine)}, ${M.cores} cores</dd>${M.notes ? `<dt>${t2("Notas", "Notes")}</dt><dd lang="en">${esc(M.notes)}</dd>` : ""}</dl></div>`;
+}
+
+function vOverview() {
+  const f = TESTS.filter(x => x.status === "failed").length, ig = TESTS.filter(x => x.status === "ignored").length;
+  const worst = RECS.reduce((a, r) => r.util > a.util ? r : a, {util:0});
+  const noNum = TESTS.filter(x => !(RBT[x.name] || []).length).length;
+  const li = [t2("{0} testes em {1} blocos: {2} passaram, {3} falharam e {4} ficaram incompletos.", "{0} tests in {1} blocks: {2} passed, {3} failed and {4} were incomplete.", TESTS.length, FILES.length, TESTS.length - f - ig, f, ig)];
+  li.push(RECS.length ? t2("{0} comparacoes numericas com uma referencia foram medidas. O pior caso ({1}) usa {2} do erro permitido.", "{0} numeric comparisons with a reference were measured. The worst case ({1}) uses {2} of the allowed error.", RECS.length, esc(cut(worst.case, 70)), fmtPct(worst.util)) : t2("Nenhuma comparacao numerica foi registrada.", "No numeric comparison was recorded."));
+  if (noNum) li.push(t2("{0} dos {1} testes nao registram comparacoes numericas: eles so passam ou falham.", "{0} of the {1} tests record no numeric comparison: they only pass or fail.", noNum, TESTS.length));
+  let h = `<h2>${t2("Visao geral", "Overview")}</h2><p class="sub">${t2("Resultado de <code>runtests</code> em <code>test/</code> e o erro medido de cada comparacao com uma referencia.", "Result of <code>runtests</code> on <code>test/</code> and the measured error of every comparison with a reference.")}</p>
+   <div class="panel" role="region" aria-labelledby="sumh"><h3 id="sumh" style="margin:0 0 4px;font-size:1rem">${t2("Resumo desta execucao", "Summary of this run")}</h3><ul>${li.map(s => `<li>${s}</li>`).join("")}</ul></div>
+   <div class="cards">
+   <div class="card"><div class="v">${TESTS.length}</div><div class="l">${t2("testes", "tests")}</div></div>
+   <div class="card"><div class="v" style="color:var(--ok)">${TESTS.length - f - ig}</div><div class="l">${t2("passaram", "passed")}</div></div>
+   <div class="card"><div class="v" style="color:${f ? "var(--bad)" : "inherit"}">${f}</div><div class="l">${t2("falharam", "failed")}</div></div>
+   <div class="card"><div class="v" style="color:${ig ? "var(--warn)" : "inherit"}">${ig}</div><div class="l">${t2("incompletos", "incomplete")}</div></div>
+   <div class="card"><div class="v">${RECS.length}</div><div class="l">${t2("comparacoes medidas", "comparisons measured")}</div></div>
+   <div class="card"><div class="v">${sci(worst.util, 1)}</div><div class="l">${t2("pior utilizacao da tolerancia", "worst tolerance utilization")}</div></div></div>`;
+  h += `<h3 class="sec">${t2("Blocos", "Blocks")}</h3><div class="tw"><table>${cap(t2("Blocos", "Blocks"))}<thead><tr><th>${t2("Bloco", "Block")}</th><th>${t2("Pasta", "Folder")}</th><th>${t2("Testes", "Tests")}</th><th>${t2("Comparacoes", "Comparisons")}</th><th>${t2("Pior utilizacao", "Worst utilization")}</th><th>${t2("Tempo (s)", "Time (s)")}</th></tr></thead><tbody>`;
+  for (const fl of FILES) {
+    const s = stat(fl), tm = testsOf(fl).reduce((a, x) => a + x.time, 0);
+    h += `<tr class="click" data-go="m/${fl}"><td><a href="#m/${fl}"><b>${esc(blockName(fl))}</b></a></td><td>${esc(suiteOfFile(fl))}</td>
+     <td class="num" data-v="${s.n}">${s.ok}/${s.n}${s.fail ? ` <span class="tag bad">${s.fail} ${t2("falha", "failed")}</span>` : ""}${s.ign ? ` <span class="tag ign">${s.ign} ${t2("inc.", "inc.")}</span>` : ""}</td>
+     <td class="num" data-v="${s.recs}">${s.recs || "-"}</td><td data-v="${s.worst}">${s.recs ? utilBar(s.worst) : "-"}</td><td class="num" data-v="${tm}">${tm.toFixed(2)}</td></tr>`;
+  }
+  return h + "</tbody></table></div>";
+}
+
+function explainBlock(x) {
+  const rs = RBT[x.name] || [];
+  let h = `<details class="ex"><summary>${t2("O que este teste verifica", "What this test checks")}</summary><div class="exb">`;
+  h += x.doc ? `<p lang="en">${esc(x.doc)}</p>` : `<p class="help">${t2("Sem comentario abaixo da linha <code>function</code> do teste.", "No comment under the <code>function</code> line of the test.")}</p>`;
+  if (!rs.length) h += `<p class="help">${t2("Este teste nao registra um erro numerico: ele so passa ou falha.", "This test does not record a numeric error: it only passes or fails.")}</p>`;
+  else { const w = rs.reduce((a, r) => r.util > a.util ? r : a, rs[0]); h += `<p class="help">${t2("Registra {0} comparacao(oes) com a referencia. Pior caso: usa {1} do erro permitido (tolerancia: {2}).", "Records {0} comparison(s) with the reference. Worst case: uses {1} of the allowed error (tolerance: {2}).", rs.length, fmtPct(w.util), esc(tolText(w)))}</p>`; }
+  return h + "</div></details>";
+}
+function cmpCell(x) {
+  const rs = RBT[x.name] || [];
+  if (!rs.length) return `<td data-v="-1">-</td>`;
+  const w = rs.reduce((a, r) => Math.max(a, r.util), 0);
+  return `<td data-v="${w}"><details><summary>${t2("{0} comp. · pior {1}", "{0} comp. · worst {1}", rs.length, w === 0 ? t2("0 (exato)", "0 (exact)") : sci(w, 1))}</summary><table>${cap(t2("Erro de cada comparacao deste teste", "Error of each comparison of this test"))}<thead><tr><th>${t2("Caso", "Case")}</th><th>${t2("Erro abs", "Abs error")}</th><th>${t2("Tolerancia", "Tolerance")}</th><th>${t2("Fonte", "Source")}</th><th>${t2("Utilizacao", "Utilization")}</th></tr></thead><tbody>${rs.map(r => `<tr><td>${esc(r.case)}</td><td class="num">${sci(r.max_abs)}</td><td>${esc(tolText(r))}</td><td lang="en">${esc(r.source || "-")}</td><td>${utilBar(r.util)}</td></tr>`).join("")}</tbody></table></details></td>`;
+}
+function testsTable(ts, showBlock) {
+  let h = `<div class="tw"><table class="tt">${cap(t2("Testes", "Tests"))}<thead><tr><th>Status</th>${showBlock ? `<th>${t2("Bloco", "Block")}</th>` : ""}<th>${t2("Teste", "Test")}</th><th>${t2("Comparacoes medidas", "Measured comparisons")}</th><th>${t2("Tempo (s)", "Time (s)")}</th></tr></thead><tbody>`;
+  for (const x of ts) h += `<tr data-s="${x.status}"><td data-v="${x.status === "failed" ? 0 : x.status === "ignored" ? 1 : 2}">${statusTag(x.status)}</td>${showBlock ? `<td>${esc(blockName(x.file))}</td>` : ""}<td><code>${esc(x.name.split("/")[1])}</code>${explainBlock(x)}${x.out ? `<details><summary>${t2("saida da falha", "failure output")}</summary><pre tabindex="0">${esc(x.out)}</pre></details>` : ""}</td>${cmpCell(x)}<td class="num" data-v="${x.time}">${x.time.toFixed(2)}</td></tr>`;
+  return h + "</tbody></table></div>";
+}
+function vTests() {
+  return `<h2>${t2("Todos os testes", "All tests")}</h2><p class="sub">${t2("{0} testes em {1} blocos. Clique no cabecalho para ordenar.", "{0} tests in {1} blocks. Click a header to sort.", TESTS.length, FILES.length)}</p>
+  <div class="controls" role="search"><label class="sr" for="q">${t2("filtrar por nome ou bloco", "filter by name or block")}</label><input type="search" id="q" placeholder="${t2("filtrar por nome ou bloco", "filter by name or block")}"><button type="button" class="chip" aria-pressed="true" data-f="all">${t2("todos", "all")}</button><button type="button" class="chip" aria-pressed="false" data-f="failed">${t2("falhas", "failures")}</button><button type="button" class="chip" aria-pressed="false" data-f="ignored">${t2("incompletos", "incomplete")}</button><button type="button" class="chip" aria-pressed="false" data-f="ok">ok</button><span id="qc" class="help" role="status" aria-live="polite"></span></div>`
+    + testsTable(TESTS.slice().sort((a, b) => (a.status === "failed" ? 0 : 1) - (b.status === "failed" ? 0 : 1)), true);
+}
+function wireTests() {
+  const q = document.getElementById("q"); if (!q) return; let f = "all";
+  const rows = [...document.querySelectorAll("table.tt > tbody > tr")], qc = document.getElementById("qc");
+  const apply = () => { const s = q.value.toLowerCase(); let n = 0; rows.forEach(r => { const on = (f === "all" || r.dataset.s === f) && r.textContent.toLowerCase().includes(s); r.style.display = on ? "" : "none"; if (on) n++; }); qc.textContent = t2("{0} de {1} testes", "{0} of {1} tests", n, rows.length); };
+  q.addEventListener("input", apply);
+  document.querySelectorAll(".chip").forEach(c => c.addEventListener("click", () => { document.querySelectorAll(".chip").forEach(z => z.setAttribute("aria-pressed", "false")); c.setAttribute("aria-pressed", "true"); f = c.dataset.f; apply(); }));
+  apply();
+}
+
+// one plain sentence: what was compared and how close it came
+function blockSummary(rs) {
+  if (!rs.length) return t2("Nenhuma comparacao numerica e registrada neste bloco: os testes daqui so passam ou falham.", "No numeric comparison is recorded in this block: the tests here only pass or fail.");
+  const w = rs.reduce((a, r) => r.util > a.util ? r : a, rs[0]);
+  if (w.util === 0) return t2("Foram feitas {0} comparacoes com a referencia, e todas deram resultado identico.", "{0} comparisons with the reference were made, and all gave an identical result.", rs.length);
+  return t2("Foram feitas {0} comparacoes com a referencia. O pior caso ({1}) tem erro maximo de {2} e usa {3} do erro permitido{4}.", "{0} comparisons with the reference were made. The worst case ({1}) has a maximum error of {2} and uses {3} of the allowed error{4}.",
+    rs.length, esc(cut(w.case, 70)), sci(w.max_abs), fmtPct(w.util), w.util < 1 ? t2(", ou seja, {0} de folga", ", that is, {0} of margin", fmtMargin(w.util)) : "");
+}
+function errTable(rs) {
+  let h = `<div class="tw"><table>${cap(t2("Erro medido", "Measured error"))}<thead><tr><th>${t2("Teste", "Test")}</th><th>${t2("Caso", "Case")}</th><th>n</th><th>${t2("Erro abs max", "Max abs error")}</th><th>${t2("Erro rel max", "Max rel error")}</th><th>${t2("Tolerancia", "Tolerance")}</th><th>${t2("Fonte da tolerancia", "Source of the tolerance")}</th><th>${t2("Utilizacao", "Utilization")}</th><th>${t2("Margem", "Margin")}</th></tr></thead><tbody>`;
+  for (const r of rs.slice().sort((a, c) => c.util - a.util)) h += `<tr><td><code>${esc(r.test.split("/")[1])}</code></td><td>${esc(r.case)}</td><td class="num">${r.n}</td><td class="num" data-v="${r.max_abs}">${sci(r.max_abs)}</td><td class="num" data-v="${r.max_rel}">${sci(r.max_rel)}</td><td>${esc(tolText(r))}</td><td lang="en">${esc(r.source || "-")}</td><td data-v="${r.util}">${utilBar(r.util)}</td><td class="num" data-v="${r.util ? 1 / r.util : 1e99}">${fmtMargin(r.util)}</td></tr>`;
+  return h + "</tbody></table></div>";
+}
+function vBlock(f) {
+  const ts = testsOf(f); if (!ts.length) return `<h2>${t2("Nao encontrado", "Not found")}</h2>`;
+  const rs = recsOf(f), s = stat(f);
+  let h = `<h2>${esc(blockName(f))}</h2><p class="sub">test/${esc(suiteOfFile(f))}/<code>${esc(f)}.m</code></p><p class="lead">${blockSummary(rs)}</p>`;
+  h += `<div class="cards"><div class="card"><div class="v">${s.ok}/${s.n}</div><div class="l">${t2("testes ok", "tests ok")}</div></div><div class="card"><div class="v">${s.recs}</div><div class="l">${t2("comparacoes medidas", "comparisons measured")}</div></div><div class="card"><div class="v">${s.recs ? sci(s.worst, 1) : "-"}</div><div class="l">${t2("pior utilizacao", "worst utilization")}</div></div></div>`;
+  if (rs.length) h += `<h3 class="sec">${t2("Erro medido ({0} comparacoes)", "Measured error ({0} comparisons)", rs.length)}</h3><p class="help">${t2("<b>n</b>: quantos valores foram comparados. <b>Erro abs max</b>: a maior diferenca |medido - referencia|, na unidade da grandeza. <b>Erro rel max</b>: essa diferenca dividida pela referencia (so onde ela nao e quase zero). <b>Utilizacao</b>: erro medido dividido pelo permitido. <b>Margem</b>: 1 / utilizacao.", "<b>n</b>: how many values were compared. <b>Max abs error</b>: the largest difference |measured - reference|, in the unit of the quantity. <b>Max rel error</b>: that difference divided by the reference (only where it is not near zero). <b>Utilization</b>: measured error divided by the allowed error. <b>Margin</b>: 1 / utilization.")}</p>` + errTable(rs);
+  return h + `<h3 class="sec">${t2("Testes ({0})", "Tests ({0})", ts.length)}</h3>` + testsTable(ts, false);
+}
+const vLog = () => `<h2>${t2("Log bruto", "Raw log")}</h2><p class="sub">${t2("Saida completa de <code>runtests</code>.", "Full output of <code>runtests</code>.")}</p><pre tabindex="0">${esc(D.log)}</pre>`;
+
+/* ---------------------------------------------------------------- router */
+function post() {
+  let head = "";
+  main.querySelectorAll("h2,h3,h4,table").forEach(el => { if (el.tagName !== "TABLE") { head = el.textContent; return; } if (!el.caption && !el.getAttribute("aria-label")) el.setAttribute("aria-label", head); });
+  main.querySelectorAll("table").forEach(tb => { sortable(tb); if (!tb.parentElement.closest("table") && !tb.parentElement.classList.contains("tw")) { const w = document.createElement("div"); w.className = "tw"; tb.replaceWith(w); w.appendChild(tb); } });
+  main.querySelectorAll(".tw").forEach(w => { const tb = w.querySelector("table"); w.tabIndex = 0; w.setAttribute("role", "group"); w.setAttribute("aria-label", tb ? (tb.caption ? tb.caption.textContent : tb.getAttribute("aria-label")) : ""); });
+  main.querySelectorAll("tr[data-go]").forEach(r => r.addEventListener("click", e => { if (!e.target.closest("a")) location.hash = r.dataset.go; }));
+}
+const TITLE = () => t2("SQAT - relatorio de testes", "SQAT - test report");
+function route(o = {}) {
+  const h = (location.hash || "#welcome").slice(1);
+  buildNav(h);
+  const views = {welcome:vWelcome, overview:vOverview, tests:vTests, log:vLog};
+  const y = o.keep ? window.scrollY : 0;
+  main.innerHTML = views[h] ? views[h]() : h.startsWith("m/") ? vBlock(h.slice(2)) : vWelcome();
+  post();
+  wireTests();
+  const h2 = main.querySelector("h2");
+  document.title = (h2 ? h2.textContent + " - " : "") + TITLE();
+  window.scrollTo(0, y);
+  if (o.focus) main.focus({preventScroll:true});
+}
+function chrome() {
+  document.documentElement.lang = LANG === "en" ? "en" : "pt-BR";
+  document.getElementById("ttl").textContent = TITLE();
+  const M = D.meta;
+  document.getElementById("meta").textContent = `${M.date} | ${M.git}${M.dirty ? " " + t2("(arvore com alteracoes)", "(working tree with changes)") : ""} | MATLAB ${M.matlab} | ${M.machine}, ${M.cores} cores`;
+  const l = document.getElementById("lang"); l.textContent = LANG === "en" ? "PT" : "EN";
+  l.setAttribute("aria-label", LANG === "en" ? "Mudar o idioma para portugues (Portuguese)" : "Mudar o idioma para ingles (English)");
+  const th = document.getElementById("theme"); th.textContent = t2("tema", "theme");
+  th.setAttribute("aria-label", t2("Alternar entre tema claro e escuro", "Switch between light and dark theme"));
+  th.setAttribute("aria-pressed", String(currentTheme() === "dark"));
+  document.getElementById("skip").textContent = t2("Ir para o conteudo", "Skip to content");
+  document.documentElement.style.setProperty("--hh", document.querySelector("header").offsetHeight + "px");
+}
+const currentTheme = () => document.documentElement.dataset.theme || (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+document.getElementById("skip").addEventListener("click", e => { e.preventDefault(); main.focus(); });
+document.getElementById("lang").addEventListener("click", () => { LANG = LANG === "en" ? "pt" : "en"; try { localStorage.setItem("sqat-lang", LANG); } catch (e) {} chrome(); route({keep:true}); });
+document.getElementById("theme").addEventListener("click", () => { const r = document.documentElement; r.dataset.theme = currentTheme() === "dark" ? "light" : "dark"; try { localStorage.setItem("sqat-theme", r.dataset.theme); } catch (e) {} chrome(); });
+try { const th = localStorage.getItem("sqat-theme"); if (th) document.documentElement.dataset.theme = th; } catch (e) {}
+window.addEventListener("hashchange", () => route({focus:true}));
+window.addEventListener("resize", () => document.documentElement.style.setProperty("--hh", document.querySelector("header").offsetHeight + "px"));
+chrome(); route();
+</script>
+</body>
+</html>
