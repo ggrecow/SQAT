@@ -30,8 +30,16 @@ function varargout = SQAT_GUI(files, varargin)
 %   (the signals overlaid) and the statistics (CSV), as PNG, PDF or .fig, every
 %   ticked format at once. The
 %   Waveform tab shows the waveform and the spectrogram of the signal on
-%   screen, with its player. The results go to a spreadsheet from the Save
-%   dialog of a graphs window.
+%   screen, with its player. The frequency range of the spectrogram is set
+%   in two fields, 20 Hz to 20 kHz by default (Full shows up to half the
+%   sampling frequency); a zoom of the frequency axis updates them. Over the
+%   waveform, the sound level and the spectrogram, the values under the
+%   mouse show in a corner of the plot (time and pressure; time and level per
+%   time weighting; time, frequency and level), with a dashed line at that
+%   time on the three plots. With Shift held, the readout of the
+%   spectrogram snaps to the loudest bin within 10 px of the mouse, to read
+%   a tonal line at its peak; a circle marks it. The
+%   results go to a spreadsheet from the Save dialog of a graphs window.
 %
 %   Every value and every plot comes from the output of the SQAT function:
 %   the interface builds the call (see SQAT_GUI_metrics) and reads the output
@@ -146,11 +154,16 @@ spec_pool = [];                                       % the background pool, whe
 spec_pool_tried = false;
 prefetch_timer = [];                                  % starts the background maps of a new signal
 spec_busy = false;                                    % the spectrogram limits are being set by the code
+spec_ylock = false;                                   % the frequency limits of a drawing arrive: they are the code's
 spec_data = [];                                       % the map on screen (t, f, L in dB SPL), for Save plots as .mat
 spec_timer = [];                                      % waits for the zoom to settle before recomputing
 spec_top = [];                                        % top of the colour scale of the spectrogram (dB)
 spec_range = 45;                                      % its default span (dB)
 spec_black = 0;                                       % dB added to its bottom: more is more black
+spec_frange = [20 20000];                             % frequency range asked for (Hz), Inf for half the sampling
+                                                      % frequency; the view is this inside 20 Hz to fs/2
+hover_on = false;                                     % the readout of the values under the mouse is on screen
+snap_peak = false;                                    % Shift is held: the spectrogram readout snaps to the peak
 theme_style = 'light';                                % the look on screen; from R2025a on it starts as the one of the system (see Start)
 graph_figs = gobjects(0);                              % the graphs windows
 last_metric = '';                                     % the metric the last graphs window showed
@@ -171,7 +184,7 @@ cmap = load('cmap_inferno.txt');                                    % the colour
 fig = uifigure('Name', 'SQAT: Sound Quality Analysis Toolbox', ...
     'Position', [40 30 1460 900], 'Visible', opts.Visible, 'Tag', 'SQAT_GUI', ...
     'CloseRequestFcn', @on_close, 'CreateFcn', '', ...   % skips a user default CreateFcn
-    'KeyPressFcn', @on_main_key);
+    'KeyPressFcn', @on_main_key, 'KeyReleaseFcn', @on_main_key_release);
 m_file = uimenu(fig, 'Text', 'File');
 uimenu(m_file, 'Text', 'Open session...', 'MenuSelectedFcn', @(~, ~) on_session('open'));
 uimenu(m_file, 'Text', 'Save session...', 'MenuSelectedFcn', @(~, ~) on_session('save'));
@@ -667,11 +680,26 @@ end
     end
 
     function on_main_key(~, event)
-        % the space bar plays and pauses, the arrows move the colour scale of the spectrogram
+        % the space bar plays and pauses, the arrows move the colour scale of the
+        % spectrogram, Shift held snaps its readout to the peak
+        if strcmp(event.Key, 'shift')
+            if ~snap_peak
+                snap_peak = true;
+                hover_update();                  % at once, without moving the mouse
+            end
+            return
+        end
         if strcmp(event.Key, 'space') && ~isempty(loaded)
             toggle_play();
         else
             on_wave_key([], event);
+        end
+    end
+
+    function on_main_key_release(~, event)
+        if strcmp(event.Key, 'shift')
+            snap_peak = false;
+            hover_update();
         end
     end
 
@@ -1065,8 +1093,8 @@ end
             'Tooltip', 'Saves the spectrogram, the waveform and the sound level, one file each, as PNG or PDF');
 
         pg = uigridlayout(wave_view, [5 1]);           % the plots, the sound level and the spectrogram with their settings above
-        pg.RowHeight = {'1x', 24, '1x', 50, '1.5x'};   % the waveform and the sound level of one size, the spectrogram larger at the bottom;
-                                                        % the up and down arrows move the colour floor of the spectrogram
+        pg.RowHeight = {'1x', 24, '1x', 50, '1.5x'};   % the waveform and the sound level of one size, the spectrogram larger at the bottom
+                                                        % under its two rows of settings; the up and down arrows move its colour floor
         pg.Padding = [0 0 0 0];
         pg.RowSpacing = 2;
         % each plot in a box of its own: the axes keep fixed margins for the
@@ -1104,14 +1132,26 @@ end
             'Tag', 'spec_cmap', 'ValueChangedFcn', @on_spec_cmap, ...
             'Tooltip', 'Colour scale of the spectrogram, plain or enhanced; Inferno is the one of the toolbox');
         uilabel(sw, 'Text', '');
-        sf = uigridlayout(ss, [1 10]);                  % the frequency axis of both maps, the enhanced spectrogram and the filter boxes
+        % the frequency axis of both maps (scale and range), the enhanced spectrogram
+        % and the filter boxes, in one row of narrow controls: their tooltips say the rest
+        sf = uigridlayout(ss, [1 15]);
         sf.Padding = [0 0 0 0];
-        sf.ColumnWidth = {'fit', 75, 'fit', 70, 85, 10, 90, 95, 130, '1x'};   % the switch needs room for Off and On
-        sf.ColumnSpacing = 6;
-        uilabel(sf, 'Text', 'Freq. axis:');
+        sf.ColumnWidth = {'fit', 68, 52, 'fit', 52, 'fit', 36, 'fit', 66, 80, 'fit', 50, 50, 88, '1x'};   % 68: Linear in full;
+        sf.ColumnSpacing = 4;                           % 88: Loop only in full. As tight as the row above: it is now the fullest
+        uilabel(sf, 'Text', 'Freq. axis:', 'Tooltip', 'Frequency axis of the spectrogram: its scale and its range in Hz');
         uidropdown(sf, 'Items', {'Linear', 'Log'}, 'ItemsData', {'linear', 'log'}, 'Value', 'linear', ...
             'Tag', 'spec_scale', 'ValueChangedFcn', @on_spec_option, ...
-            'Tooltip', 'Scale of the frequency axis of the spectrogram, plain or enhanced');
+            'Tooltip', 'Scale of the frequency axis of the spectrogram, plain or enhanced: linear or logarithmic');
+        uieditfield(sf, 'numeric', 'Value', spec_frange(1), 'Limits', [20 Inf], 'ValueDisplayFormat', '%.0f', ...
+            'Tag', 'spec_fmin', 'ValueChangedFcn', @on_spec_range, ...
+            'Tooltip', 'Lowest frequency of the spectrogram (Hz), 20 Hz or more');
+        uilabel(sf, 'Text', char(8211), 'HorizontalAlignment', 'center');
+        uieditfield(sf, 'numeric', 'Value', spec_frange(2), 'Limits', [20 Inf], 'ValueDisplayFormat', '%.0f', ...
+            'Tag', 'spec_fmax', 'ValueChangedFcn', @on_spec_range, ...
+            'Tooltip', 'Highest frequency of the spectrogram (Hz), up to half the sampling frequency');
+        uilabel(sf, 'Text', 'Hz');
+        uibutton(sf, 'Text', 'Full', 'Tag', 'spec_full', 'ButtonPushedFcn', @on_spec_full, ...
+            'Tooltip', 'From 20 Hz to half the sampling frequency, for every signal');
         uilabel(sf, 'Text', '  Enhanced:', 'Tooltip', 'Enhanced spectrogram');
         uiswitch(sf, 'slider', 'Items', {'Off', 'On'}, 'Value', 'Off', 'Tag', 'spec_enhanced', ...
             'ValueChangedFcn', @on_spec_enhanced, ...
@@ -1120,11 +1160,12 @@ end
         uidropdown(sf, 'Items', {'Readable', 'Sharp'}, 'ItemsData', {'readable', 'sharp'}, 'Value', 'readable', ...
             'Tag', 'spec_enhanced_mode', 'Enable', 'off', 'ValueChangedFcn', @on_spec_enhanced, ...
             'Tooltip', 'Readable: smoothing of 4 ms and 1.45 % of the frequency, continuous lines. Sharp: 1 ms and 1 Hz, the thinnest lines.');
-        uilabel(sf, 'Text', '');
-        uibutton(sf, 'state', 'Text', 'Draw filter', 'Tag', 'draw_box', 'ValueChangedFcn', @on_draw_box, ...
-            'Tooltip', 'Drag a box on the spectrogram, or click two opposite corners');
-        uibutton(sf, 'Text', 'Clear filters', 'Tag', 'clear_boxes', 'ButtonPushedFcn', @on_clear_boxes);
-        uidropdown(sf, 'Items', {'Filter: loop only', 'Filter: isolate', 'Filter: remove'}, ...
+        uilabel(sf, 'Text', '  Filter:', 'Tooltip', 'Filter boxes drawn on the spectrogram: what plays');
+        uibutton(sf, 'state', 'Text', 'Draw', 'Tag', 'draw_box', 'ValueChangedFcn', @on_draw_box, ...
+            'Tooltip', 'Draw a filter box: drag it on the spectrogram, or click two opposite corners');
+        uibutton(sf, 'Text', 'Clear', 'Tag', 'clear_boxes', 'ButtonPushedFcn', @on_clear_boxes, ...
+            'Tooltip', 'Removes all the filter boxes');
+        uidropdown(sf, 'Items', {'Loop only', 'Isolate', 'Remove'}, ...
             'ItemsData', {'loop', 'isolate', 'remove'}, 'Value', 'isolate', 'Tag', 'box_mode', ...
             'ValueChangedFcn', @on_processing_changed, ...
             'Tooltip', ['Loop only: the sound is not changed, and the loop runs inside the box. ' ...
@@ -1182,6 +1223,7 @@ end
         fit_level(box_lvl);
         il_fit_axes(box_spec, ax_spec);
         ax_spec.XAxis.LimitsChangedFcn = @on_spec_limits;
+        ax_spec.YAxis.LimitsChangedFcn = @on_spec_ylimits;
         ax_wave.XAxis.LimitsChangedFcn = @on_wave_limits;
         ax_lvl.XAxis.LimitsChangedFcn = @on_level_limits;
         wave_appdata();
@@ -1215,6 +1257,7 @@ end
             write_log('No file loaded.');
             return
         end
+        hover_hide();                                  % the readout is not part of the plots
         f = active_file();
         [~, base] = fileparts(f.name);
         base = sprintf('%s_ch%d', base, channel_of_active());
@@ -1295,7 +1338,8 @@ end
         for k = 1:3
             ax = axs(k);
             g = axes(f, 'Position', [0.09 y(k) 0.78 0.21]);
-            copyobj(allchild(ax), g);
+            kids = allchild(ax);
+            copyobj(kids(~ismember({kids.Tag}, {'hover_cursor', 'hover_peak'})), g);   % without the marks of the readout
             set(g, 'XLim', ax.XLim, 'YLim', ax.YLim, 'XScale', ax.XScale, 'YScale', ax.YScale, ...
                 'YDir', ax.YDir, 'CLim', ax.CLim, 'Colormap', ax.Colormap, 'XGrid', ax.XGrid, ...
                 'YGrid', ax.YGrid, 'Box', ax.Box, 'Layer', ax.Layer, 'TickDir', ax.TickDir);
@@ -1766,11 +1810,146 @@ end
                 if ~strcmp(win_wave.Pointer, shape_ptr)
                     win_wave.Pointer = shape_ptr;
                 end
+                hover_update();
         end
     end
 
     function on_splitter_up(~, ~)
         splitter.mode = '';
+    end
+
+    function hover_update()
+        % the values under the mouse in the plots of the Waveform tab: a dashed
+        % line at its time on the three plots, and the values of the plot it is
+        % over in a corner of that plot. The values are those plotted (spec_data,
+        % lvl_L, wave_x), weighting and zoomed enhanced excerpt included
+        if isempty(wave_x) || ~il_is_open(win_wave) || tabs.SelectedTab ~= tab_wave
+            hover_hide();
+            return
+        end
+        axs = [ax_wave, ax_lvl, ax_spec];
+        k = 0;
+        for k_ax = 1:3
+            cp = axs(k_ax).CurrentPoint(1, 1:2);
+            if all(isfinite(cp)) && cp(1) >= axs(k_ax).XLim(1) && cp(1) <= axs(k_ax).XLim(2) ...
+                    && cp(2) >= axs(k_ax).YLim(1) && cp(2) <= axs(k_ax).YLim(2)
+                k = k_ax;
+                break
+            end
+        end
+        if k == 0
+            hover_hide();
+            return
+        end
+        [txt, peak] = hover_text(k, cp(1), cp(2));
+        if isempty(txt)
+            hover_hide();
+            return
+        end
+        pk = findall(ax_spec, 'Tag', 'hover_peak');    % the circle on the peak the readout snapped to
+        if isempty(peak)
+            set(pk, 'Visible', 'off');
+        elseif isempty(pk)
+            line(ax_spec, peak(1), peak(2), 1, 'Marker', 'o', 'MarkerSize', 9, 'LineWidth', 1.5, ...
+                'Color', [0 0.9 1], 'Tag', 'hover_peak', 'PickableParts', 'none', 'HandleVisibility', 'off');
+        else
+            set(pk(1), 'XData', peak(1), 'YData', peak(2), 'ZData', 1, 'Visible', 'on');
+        end
+        for ax = axs
+            h = findall(ax, 'Tag', 'hover_cursor');   % hidden handle: out of the legends, and cla leaves it
+            if isempty(h)
+                xline(ax, cp(1), '--', 'Color', [0.6 0.6 0.6], 'LineWidth', 1, 'Tag', 'hover_cursor', ...
+                    'PickableParts', 'none', 'HandleVisibility', 'off');
+            else
+                set(h(1), 'Value', cp(1), 'Visible', 'on');
+            end
+        end
+        show_hover_label(axs(k), txt);
+        hover_on = true;
+    end
+
+    function [txt, peak] = hover_text(k, t, y)
+        % the readout of plot k (1 waveform, 2 sound level, 3 spectrogram) at time t and
+        % height y; peak: [time frequency] of the bin the spectrogram readout snapped to, or []
+        txt = '';
+        peak = [];
+        i = min(max(round(t * wave_fs) + 1, 1), numel(wave_x));
+        t_txt = sprintf('t = %.3f s', t);
+        F = findobj(win_wave, 'Tag', 'wave_weighting').Value;
+        switch k
+            case 1
+                txt = sprintf('%s  p = %.4g Pa', t_txt, wave_x(i));
+            case 2
+                if isempty(lvl_L)
+                    return
+                end
+                tws = time_weightings();
+                i = min(i, size(lvl_L, 1));
+                parts = arrayfun(@(k_tw) sprintf('L%s%s = %.1f', F, upper(tws{k_tw}), lvl_L(i, k_tw)), ...
+                    1:numel(tws), 'UniformOutput', false);
+                txt = sprintf('%s  %s %s', t_txt, strjoin(parts, '  '), il_level_unit(F));
+            case 3
+                if isempty(spec_data) || isempty(spec_data.t) || isempty(findobj(ax_spec, 'Type', 'surface'))
+                    return                                  % the enhanced map is still on its way
+                end
+                [~, it] = min(abs(spec_data.t - t));
+                near = [];
+                if snap_peak                                % Shift held: the bins within 10 px of the mouse
+                    h_px = max(ax_spec.InnerPosition(4), 1);
+                    if strcmp(ax_spec.YScale, 'log')
+                        r = (ax_spec.YLim(2) / ax_spec.YLim(1))^(10 / h_px);
+                        near = find(spec_data.f >= y / r & spec_data.f <= y * r);
+                    else
+                        d = 10 * diff(ax_spec.YLim) / h_px;
+                        near = find(spec_data.f >= y - d & spec_data.f <= y + d);
+                    end
+                end
+                mark = '';
+                if ~isempty(near)                           % the loudest of them, in this time column
+                    [~, k_max] = max(spec_data.L(near, it));
+                    jf = near(k_max);
+                    peak = [spec_data.t(it), spec_data.f(jf)];
+                    mark = ' (peak)';
+                else
+                    [~, jf] = min(abs(spec_data.f - y));    % the bin under the mouse: its centre frequency
+                end
+                f_bin = spec_data.f(jf);
+                if f_bin < 100
+                    f_txt = sprintf('%.1f', f_bin);
+                else
+                    f_txt = sprintf('%.0f', f_bin);
+                end
+                txt = sprintf('%s  f = %s Hz%s  L = %.1f %s', t_txt, f_txt, mark, spec_data.L(jf, it), il_level_unit(F));
+        end
+    end
+
+    function show_hover_label(ax, txt)
+        % the readout in the top left corner of the plot area of ax, in the colours of the theme
+        lbl = findobj(ax.Parent, 'Tag', 'hover_label');
+        if isempty(lbl)
+            lbl = uilabel(ax.Parent, 'Tag', 'hover_label', 'FontSize', 11, 'WordWrap', 'off');
+        end
+        others = findobj(win_wave, 'Tag', 'hover_label');
+        set(others(others ~= lbl), 'Visible', 'off');
+        if strcmp(theme_style, 'dark')
+            colours = {'BackgroundColor', [0.15 0.15 0.15], 'FontColor', [1 1 1]};
+        else
+            colours = {'BackgroundColor', [1 1 1], 'FontColor', [0 0 0]};
+        end
+        p = ax.InnerPosition;
+        n_sp = nnz(txt == ' ');                             % about the width of the text: a space is narrower
+        w = min(6.2 * (numel(txt) - n_sp) + 3 * n_sp + 10, p(3) - 8);
+        set(lbl, 'Text', txt, 'Position', [p(1) + 4, p(2) + p(4) - 22, w, 18], 'Visible', 'on', colours{:});
+    end
+
+    function hover_hide()
+        if ~hover_on || ~il_is_open(win_wave)
+            return
+        end
+        set(findall(win_wave, 'Tag', 'hover_cursor'), 'Visible', 'off');
+        set(findall(win_wave, 'Tag', 'hover_peak'), 'Visible', 'off');
+        set(findobj(win_wave, 'Tag', 'hover_label'), 'Visible', 'off');
+        hover_on = false;
     end
 
     function pt = pointer_point(event)
@@ -1834,6 +2013,103 @@ end
         o = findobj(win_wave, 'Tag', 'spec_overlap');
         o.Value = min(max(o.Value, 0), 95);
         draw_spectrogram(true);
+    end
+
+    function on_spec_range(src, event)
+        % the range typed in the two fields; it stays for the next signals
+        lo = findobj(win_wave, 'Tag', 'spec_fmin').Value;
+        hi = findobj(win_wave, 'Tag', 'spec_fmax').Value;
+        if hi <= lo
+            src.Value = event.PreviousValue;
+            write_log('The frequency range needs its lowest frequency below its highest.');
+            return
+        end
+        spec_frange = [lo hi];
+        apply_frange();
+    end
+
+    function on_spec_full(~, ~)
+        spec_frange = [20 Inf];                         % to half the sampling frequency, whatever the signal
+        apply_frange();
+    end
+
+    function apply_frange()
+        % the range asked for goes on screen, inside 20 Hz to half the sampling frequency
+        if isempty(wave_x)
+            show_frange(spec_frange);
+            return
+        end
+        if isfinite(spec_frange(2)) && spec_frange(2) > wave_fs / 2
+            write_log(sprintf('The spectrogram of this signal goes up to half its sampling frequency, %g Hz.', wave_fs / 2));
+        end
+        set_spec_ylim(freq_view());
+        redraw_texture();
+    end
+
+    function lim = freq_view()
+        % the frequency range on screen: the one asked for, inside 20 Hz to half the sampling frequency
+        hi = min(spec_frange(2), wave_fs / 2);
+        lo = max(spec_frange(1), 20);
+        if lo >= hi                                     % a range above the top of this signal: its upper octave
+            lo = max(20, hi / 2);
+        end
+        lim = [lo hi];
+    end
+
+    function set_spec_ylim(lim)
+        % frequency limits set by the code: their event only updates the fields
+        setappdata(ax_spec, 'sqat_yecho', lim);
+        ylim(ax_spec, lim);
+        show_frange(lim);
+    end
+
+    function show_frange(lim)
+        set(findobj(win_wave, 'Tag', 'spec_fmin'), 'Value', lim(1));
+        set(findobj(win_wave, 'Tag', 'spec_fmax'), 'Value', lim(2));
+    end
+
+    function on_spec_ylimits(~, event)
+        % a zoom or a pan of the frequency axis: kept inside 20 Hz to half the
+        % sampling frequency, shown in the fields and taken as the range asked for
+        if isempty(wave_x)
+            return
+        end
+        if spec_ylock || isequal(event.NewLimits, getappdata(ax_spec, 'sqat_yecho'))
+            setappdata(ax_spec, 'sqat_yecho', []);
+            show_frange(ax_spec.YLim);
+            return
+        end
+        lim = [max(ax_spec.YLim(1), 20), min(ax_spec.YLim(2), wave_fs / 2)];
+        if diff(lim) <= 0
+            lim = freq_view();
+        end
+        spec_frange = lim;
+        if ~isequal(ax_spec.YLim, lim)
+            set_spec_ylim(lim);
+        else
+            show_frange(lim);
+        end
+        redraw_texture();
+    end
+
+    function redraw_texture()
+        % the enhanced map on a linear axis is resampled over the range in view, so a
+        % new range draws it again; the log axis and the plain map need nothing
+        if isempty(spec_view) || spec_computing || spec_busy || ~strcmp(spec_scale(), 'linear')
+            return
+        end
+        srf = findobj(ax_spec, 'Type', 'surface');
+        if isempty(srf)
+            return
+        end
+        if spec_view.zoomed && ~isempty(spec_view.zoom)
+            m = spec_view.zoom;
+        else
+            m = spec_view.full;
+        end
+        if ~isempty(m)
+            show_map(srf(1), m);
+        end
     end
 
     function on_spec_cmap(~, ~)
@@ -2858,15 +3134,17 @@ end
     end
 
     function draw_spectrogram(keep_view)
-        % keep_view: an option changed, not the signal, so the zoom of the spectrogram stays
+        % keep_view: an option changed, not the signal, so the zoom of the spectrogram stays;
+        % the frequency range is the one of the fields (freq_view), for any signal
         if isempty(wave_x)
             return
         end
         lims = {};
         if nargin > 0 && keep_view && ~isempty(findobj(ax_spec, 'Type', 'surface'))
-            lims = {ax_spec.XLim, ax_spec.YLim};
+            lims = {ax_spec.XLim};
         end
         zoomed = ~isempty(lims) && diff(lims{1}) < 0.95 * numel(wave_x) / wave_fs;
+        f_view = freq_view();
         dd = findobj(win_wave, 'Tag', 'spec_window');
         degree = findobj(win_wave, 'Tag', 'spec_degree').Value;
         overlap = findobj(win_wave, 'Tag', 'spec_overlap').Value;
@@ -2925,7 +3203,7 @@ end
         spec_data = struct('t', t_spec, 'f', f_spec, 'L', L);
         cla(ax_spec);
         if enhanced                  % a log-spaced grid: one textured face, much lighter to draw than a mesh
-            [xe, ye, C] = il_texture(t_spec, f_spec, L, spec_scale());
+            [xe, ye, C] = il_texture(t_spec, f_spec, L, spec_scale(), f_view);
             surface(ax_spec, xe, ye, zeros(2), 'CData', C, 'FaceColor', 'texturemap', ...
                 'EdgeColor', 'none', 'PickableParts', 'none');
         else
@@ -2936,11 +3214,10 @@ end
         ax_spec.Layer = 'top';
         if isempty(lims)
             xlim(ax_spec, [0 numel(wave_x) / wave_fs]);
-            ylim(ax_spec, [20 wave_fs/2]);
         else
             xlim(ax_spec, lims{1});
-            ylim(ax_spec, lims{2});
         end
+        set_spec_ylim(f_view);
         colormap(ax_spec, spec_cmap());
         spec_top = top;
         spec_range = il_if(enhanced, 45, 80);
@@ -2966,7 +3243,9 @@ end
             'Tag', 'playhead_spectrogram', 'PickableParts', 'none');
         draw_boxes();
         spec_busy = false;
+        spec_ylock = true;                             % the frequency limits of this drawing are the code's
         drawnow                                        % the limit events of this drawing arrive now, and not at the next zoom
+        spec_ylock = false;
     end
 
     function on_wave_limits(~, event)
@@ -3417,10 +3696,13 @@ end
         cla(ax_spec);
         ax_spec.YScale = spec_scale();
         xlim(ax_spec, [0 numel(wave_x) / wave_fs]);
-        ylim(ax_spec, [20 wave_fs/2]);
+        set_spec_ylim(freq_view());
         title(ax_spec, sprintf('Enhanced spectrogram (%s)', mode), 'Interpreter', 'none');
         note_waiting('Computing the enhanced spectrogram in the background...');
         spec_busy = false;
+        spec_ylock = true;                             % the frequency limits of this drawing are the code's
+        drawnow
+        spec_ylock = false;
     end
 
     function note_waiting(msg)
@@ -3491,7 +3773,7 @@ end
     function show_map(srf, m)
         delete(findobj(ax_spec, 'Tag', 'spec_wait'));
         spec_data = struct('t', m.t, 'f', m.f, 'L', weighted(m));
-        [xe, ye, C] = il_texture(m.t, m.f, spec_data.L, spec_scale());
+        [xe, ye, C] = il_texture(m.t, m.f, spec_data.L, spec_scale(), ax_spec.YLim);
         set(srf, 'XData', xe, 'YData', ye, 'ZData', zeros(2), 'CData', C);
     end
 
@@ -3908,13 +4190,15 @@ end
 exportgraphics(obj, il_free_path(fullfile(folder, name)), opts{:});
 end
 
-function [xe, ye, C] = il_texture(t, f, L, scale)
+function [xe, ye, C] = il_texture(t, f, L, scale, frange)
 % one textured face for the map L (rows f, log-spaced; columns t, uniform): its
 % outer edges and its colour data. On a log axis each row of the map covers its
-% own band. On a linear axis the map is resampled onto 1024 rows of equal width:
-% the value between the rows of the map, and the loudest row of the map inside
-% each row of the grid, so that a thin line at a low frequency, where the map has
-% many rows per row of the grid, stays visible
+% own band. On a linear axis the map is resampled onto 1024 rows of equal width
+% over the frequency range in view (frange, Hz): the value between the rows of
+% the map, and the loudest row of the map inside each row of the grid, so that a
+% thin line at a low frequency, where the map has many rows per row of the grid,
+% stays visible. Resampling only the range in view keeps the 1024 rows on screen
+% when the view is narrower than the map (20 kHz of a file at 96 kHz)
 dt = t(end) - t(end-1);
 xe = [t(1) - dt/2, t(end) + dt/2];
 if strcmp(scale, 'log')
@@ -3924,7 +4208,13 @@ if strcmp(scale, 'log')
     return
 end
 n = 1024;
-f_lin = linspace(f(1), f(end), n)';
+lo = max(f(1), frange(1));
+hi = min(f(end), frange(2));
+if hi <= lo                                           % a range outside the map: the whole map
+    lo = f(1);
+    hi = f(end);
+end
+f_lin = linspace(lo, hi, n)';
 df = f_lin(2) - f_lin(1);
 ye = [f_lin(1) - df/2, f_lin(end) + df/2];
 L = double(L);
