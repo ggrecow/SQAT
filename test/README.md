@@ -73,6 +73,10 @@ published on the GitHub Pages of the repository, which needs Settings, Pages,
 Source: GitHub Actions, once. The report of every run is also kept as an
 artifact of the run.
 
+`.gitattributes` marks `test/` and `.github/` as `export-ignore`, so the
+Source code archives of a release leave them out; a clone of the repository
+keeps them.
+
 `unit` and `reference` decide the result of a run. `gui` only reports: a
 failure there shows in the page and as a warning on the run.
 
