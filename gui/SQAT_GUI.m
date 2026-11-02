@@ -36,9 +36,14 @@ function varargout = SQAT_GUI(files, varargin)
 %   waveform, the sound level and the spectrogram, the values under the
 %   mouse show in a corner of the plot (time and pressure; time and level per
 %   time weighting; time, frequency and level), with a dashed line at that
-%   time on the three plots. With Shift held, the readout of the
+%   time on the three plots and, over the spectrogram, a dashed line at the
+%   frequency read out. With Shift held, the readout of the
 %   spectrogram snaps to the loudest bin within 10 px of the mouse, to read
-%   a tonal line at its peak; a circle marks it. The
+%   a tonal line at its peak; a circle marks it. Over the sound level, Shift
+%   follows the time weighting whose curve is nearest the mouse: a circle in
+%   the colour of its curve and a dashed line at its level, and its value in
+%   bold and in that colour in the readout. The tick Show values, next to
+%   the player, turns this readout on and off (on by default). The
 %   results go to a spreadsheet from the Save dialog of a graphs window.
 %
 %   Every value and every plot comes from the output of the SQAT function:
@@ -161,9 +166,12 @@ spec_top = [];                                        % top of the colour scale 
 spec_range = 45;                                      % its default span (dB)
 spec_black = 0;                                       % dB added to its bottom: more is more black
 spec_frange = [20 20000];                             % frequency range asked for (Hz), Inf for half the sampling
-                                                      % frequency; the view is this inside 20 Hz to fs/2
+% frequency; the view is this inside 20 Hz to fs/2
+show_values = true;                                   % the tick Show values: the readout follows the mouse
 hover_on = false;                                     % the readout of the values under the mouse is on screen
 snap_peak = false;                                    % Shift is held: the spectrogram readout snaps to the peak
+hint_on = '';                                         % the Shift hint on the status bar: 'spec', 'lvl' or ''
+hint_prev = '';                                       % the status message the hint covers
 theme_style = 'light';                                % the look on screen; from R2025a on it starts as the one of the system (see Start)
 graph_figs = gobjects(0);                              % the graphs windows
 last_metric = '';                                     % the metric the last graphs window showed
@@ -192,7 +200,7 @@ main = uigridlayout(fig, [3 2], 'Tag', 'main_grid');
 main.RowHeight = {70, '1x', 22};                 % the logo row: the 64 px of the Actions buttons and 6 px more below them; a thin status bar
 main.ColumnWidth = {600, '1x'};                  % the lists get the room, the console the rest
 main.RowSpacing = 4;                             % the lists and the plots go further down; the room under the Run button is
-                                                 % 10 px all the same (6 px of the logo row and these 4)
+% 10 px all the same (6 px of the logo row and these 4)
 main.Padding = [10 4 10 10];                     % [left bottom right top]
 
 top = uigridlayout(main, [1 2]);
@@ -401,7 +409,7 @@ end
         remove_signal(k);
     end
 
-    %% The list of analyses
+%% The list of analyses
 
     function refresh_analyses()
         % one row per analysis: its number, the metric, its parameters in short (in full in the tooltip), the gear and the bin
@@ -1039,8 +1047,8 @@ end
     function S = run_description()
         % what the run used, for the Settings sheet of the export
         items = {'Exported', char(datetime('now', 'Format', 'yyyy-MM-dd HH:mm:ss'));
-                 'SQAT version', il_sqat_version();
-                 'MATLAB', version};
+            'SQAT version', il_sqat_version();
+            'MATLAB', version};
         for f = run_settings.signals
             items(end+1, :) = {sprintf('Signal #%d', f.id), sprintf('%s | fs %g Hz | %d channel(s) | channel %s | calibration %s%s | full scale %s dB SPL%s', ...
                 f.path, f.fs, f.nch, f.channel, f.cal.label, il_if(isempty(f.cal.file), '', [' (' strjoin(cellstr(f.cal.file), '; ') ')']), ...
@@ -1079,22 +1087,27 @@ end
         wave_view.Padding = [4 4 4 4];
         uitabgroup(wave_view, 'Tag', 'wave_tabs', 'SelectionChangedFcn', @on_wave_tab, ...
             'Visible', 'off');                          % a tab per signal, shown once there is one
-        hw = uigridlayout(wave_view, [1 5]);            % the player, and the saving of the plots
+        hw = uigridlayout(wave_view, [1 6]);            % the player, the readout, and the saving of the plots
         hw.Padding = [0 0 0 0];
-        hw.ColumnWidth = {70, 70, 55, '1x', 100};
+        hw.ColumnWidth = {70, 70, 55, 105, '1x', 100};
         hw.ColumnSpacing = 6;
         btn_play = uibutton(hw, 'Text', 'Play', 'Tag', 'play', 'ButtonPushedFcn', @on_play, ...
             'Tooltip', 'Space plays and pauses; a click on the waveform or the spectrogram moves the playhead');
         uibutton(hw, 'Text', 'Stop', 'Tag', 'stop', 'ButtonPushedFcn', @on_stop);
         uicheckbox(hw, 'Text', 'Loop', 'Value', true, 'Tag', 'loop', 'ValueChangedFcn', @on_loop_changed, ...
             'Tooltip', 'Starts again at the end of the file, or of the filter box when there is one');
+        uicheckbox(hw, 'Text', 'Show values', 'Value', show_values, 'Tag', 'show_values', ...
+            'ValueChangedFcn', @on_show_values, ...
+            'Tooltip', ['Shows the values under the mouse on the three plots: time, pressure, level and ' ...
+            'frequency. Hold Shift on the spectrogram to snap to the loudest bin nearby, ' ...
+            'or on the sound level to follow the curve nearest the mouse.']);
         uilabel(hw, 'Text', '');
         uibutton(hw, 'Text', 'Save plots...', 'Tag', 'save_wave_plots', 'ButtonPushedFcn', @on_save_wave_plots, ...
             'Tooltip', 'Saves the spectrogram, the waveform and the sound level, one file each, as PNG or PDF');
 
         pg = uigridlayout(wave_view, [5 1]);           % the plots, the sound level and the spectrogram with their settings above
         pg.RowHeight = {'1x', 24, '1x', 50, '1.5x'};   % the waveform and the sound level of one size, the spectrogram larger at the bottom
-                                                        % under its two rows of settings; the up and down arrows move its colour floor
+        % under its two rows of settings; the up and down arrows move its colour floor
         pg.Padding = [0 0 0 0];
         pg.RowSpacing = 2;
         % each plot in a box of its own: the axes keep fixed margins for the
@@ -1156,7 +1169,7 @@ end
         uiswitch(sf, 'slider', 'Items', {'Off', 'On'}, 'Value', 'Off', 'Tag', 'spec_enhanced', ...
             'ValueChangedFcn', @on_spec_enhanced, ...
             'Tooltip', ['Enhanced spectrogram (consensus): nine windows of 8 to 512 ms, reassigned and combined, ' ...
-                        'so that no window has to be chosen. It replaces the window, the FFT degree and the overlap.']);
+            'so that no window has to be chosen. It replaces the window, the FFT degree and the overlap.']);
         uidropdown(sf, 'Items', {'Readable', 'Sharp'}, 'ItemsData', {'readable', 'sharp'}, 'Value', 'readable', ...
             'Tag', 'spec_enhanced_mode', 'Enable', 'off', 'ValueChangedFcn', @on_spec_enhanced, ...
             'Tooltip', 'Readable: smoothing of 4 ms and 1.45 % of the frequency, continuous lines. Sharp: 1 ms and 1 Hz, the thinnest lines.');
@@ -1169,7 +1182,7 @@ end
             'ItemsData', {'loop', 'isolate', 'remove'}, 'Value', 'isolate', 'Tag', 'box_mode', ...
             'ValueChangedFcn', @on_processing_changed, ...
             'Tooltip', ['Loop only: the sound is not changed, and the loop runs inside the box. ' ...
-                        'Isolate: only what is inside the box plays. Remove: what is inside the box is taken out.']);
+            'Isolate: only what is inside the box plays. Remove: what is inside the box is taken out.']);
         uilabel(sf, 'Text', '');
 
         box_spec = uipanel(pg, 'BorderType', 'none', 'AutoResizeChildren', 'off');
@@ -1190,7 +1203,7 @@ end
         uilabel(lg, 'Text', '  Time weighting:');
         uibutton(lg, 'Text', '', 'Tag', 'level_time_weighting', 'ButtonPushedFcn', @on_time_weighting_button, ...
             'Tooltip', ['Time weightings of the sound level (IEC 61672-1), one or more: one line each. ' ...
-                        'The frequency weighting is the one beside it']);
+            'The frequency weighting is the one beside it']);
         tw_menu = uicontextmenu(ancestor(parent, 'figure'), 'Tag', 'level_time_weighting_menu');
         for tw_names = {'Fast', 'Slow', 'Impulse'}
             uimenu(tw_menu, 'Text', tw_names{1}, 'Tag', ['level_tw_' lower(tw_names{1}(1))], ...
@@ -1199,7 +1212,7 @@ end
         show_time_weightings();
         uilabel(lg, 'Text', '  Exceeded (%):');
         tip = ['The level reached or exceeded during this percentage of the time (1 to 99), ' ...
-               'as N5 in ISO 532-1; use the arrows'];
+            'as N5 in ISO 532-1; use the arrows'];
         uispinner(lg, 'Value', 5, 'Limits', [1 99], 'Step', 1, 'RoundFractionalValues', 'on', ...
             'Tag', 'level_percentile_1', 'ValueChangedFcn', @(~, ~) show_level_values(), 'Tooltip', tip);
         uispinner(lg, 'Value', 90, 'Limits', [1 99], 'Step', 1, 'RoundFractionalValues', 'on', ...
@@ -1213,7 +1226,7 @@ end
         uilabel(box_lvl, 'Text', '', 'Tag', 'level_indicators', 'FontSize', 12, ...   % in the margin on the right of the plot
             'VerticalAlignment', 'top', ...
             'Tooltip', ['Leq: equivalent level. LE: sound exposure level (SEL), Leq plus 10 lg of the duration in s. ' ...
-                        'Lmax: maximum. LN: level reached or exceeded during N % of the time. All in dB.']);
+            'Lmax: maximum. LN: level reached or exceeded during N % of the time. All in dB.']);
         set([ax_wave, ax_lvl, ax_spec], 'TitleFontWeight', 'normal');
         % set([ax_wave, ax_lvl, ax_spec], 'TitleFontSizeMultiplier', 1.1, 'TitleFontWeight', 'normal');   % padrão 1.1
         box_wave.SizeChangedFcn = @(src, ~) il_fit_axes(src, ax_wave, 26);
@@ -1316,12 +1329,12 @@ end
         S = struct('file', f.path, 'channel', channel_of_active(), 'fs', wave_fs, ...
             'time_limits', ax_wave.XLim, ...
             'waveform', struct('time', (0:numel(wave_x) - 1)' / wave_fs, 'pressure_Pa', wave_x(:), ...
-                'title', char(ax_wave.Title.String)), ...
+            'title', char(ax_wave.Title.String)), ...
             'level', struct('time', (0:step:size(lvl_L, 1) - 1)' / wave_fs, 'SPL_dB', lvl_L(1:step:end, :), ...
-                'time_weighting', {tw_names}, 'frequency_weighting', findobj(win_wave, 'Tag', 'wave_weighting').Value, ...
-                'title', char(ax_lvl.Title.String)), ...
+            'time_weighting', {tw_names}, 'frequency_weighting', findobj(win_wave, 'Tag', 'wave_weighting').Value, ...
+            'title', char(ax_lvl.Title.String)), ...
             'spectrogram', struct('time', spec_data.t(:), 'frequency_Hz', spec_data.f(:), 'SPL_dB', spec_data.L, ...
-                'title', char(ax_spec.Title.String))); %#ok<NASGU>
+            'title', char(ax_spec.Title.String))); %#ok<NASGU>
         save(il_free_path(path), '-struct', 'S');
         write_log(['Data of the plots saved to ' path]);
     end
@@ -1339,7 +1352,7 @@ end
             ax = axs(k);
             g = axes(f, 'Position', [0.09 y(k) 0.78 0.21]);
             kids = allchild(ax);
-            copyobj(kids(~ismember({kids.Tag}, {'hover_cursor', 'hover_peak'})), g);   % without the marks of the readout
+            copyobj(kids(~ismember({kids.Tag}, {'hover_cursor', 'hover_peak', 'hover_hline'})), g);   % without the marks of the readout
             set(g, 'XLim', ax.XLim, 'YLim', ax.YLim, 'XScale', ax.XScale, 'YScale', ax.YScale, ...
                 'YDir', ax.YDir, 'CLim', ax.CLim, 'Colormap', ax.Colormap, 'XGrid', ax.XGrid, ...
                 'YGrid', ax.YGrid, 'Box', ax.Box, 'Layer', ax.Layer, 'TickDir', ax.TickDir);
@@ -1823,7 +1836,7 @@ end
         % line at its time on the three plots, and the values of the plot it is
         % over in a corner of that plot. The values are those plotted (spec_data,
         % lvl_L, wave_x), weighting and zoomed enhanced excerpt included
-        if isempty(wave_x) || ~il_is_open(win_wave) || tabs.SelectedTab ~= tab_wave
+        if ~show_values || isempty(wave_x) || ~il_is_open(win_wave) || tabs.SelectedTab ~= tab_wave
             hover_hide();
             return
         end
@@ -1841,19 +1854,42 @@ end
             hover_hide();
             return
         end
-        [txt, peak] = hover_text(k, cp(1), cp(2));
+        [txt, peak, y_line, hi, colour] = hover_text(k, cp(1), cp(2));
         if isempty(txt)
             hover_hide();
             return
         end
-        pk = findall(ax_spec, 'Tag', 'hover_peak');    % the circle on the peak the readout snapped to
-        if isempty(peak)
-            set(pk, 'Visible', 'off');
-        elseif isempty(pk)
-            line(ax_spec, peak(1), peak(2), 1, 'Marker', 'o', 'MarkerSize', 9, 'LineWidth', 1.5, ...
-                'Color', [0 0.9 1], 'Tag', 'hover_peak', 'PickableParts', 'none', 'HandleVisibility', 'off');
-        else
-            set(pk(1), 'XData', peak(1), 'YData', peak(2), 'ZData', 1, 'Visible', 'on');
+        hints = {'', 'lvl', 'spec'};
+        status_hint(hints{k});                          % how Shift works, on the status bar
+        tip = '';                                       % and in short at the end of the readout
+        if ~snap_peak && k == 2
+            tip = ['  ' char(183) ' Hold Shift: follow'];
+        elseif ~snap_peak && k == 3
+            tip = ['  ' char(183) ' Hold Shift: snap'];
+        end
+        % the circle on the point followed and the horizontal line of the value read
+        % out, on the plot under the mouse only: the spectrogram always shows its line
+        % (the circle with Shift), the sound level both with Shift
+        for ax = [ax_lvl, ax_spec]
+            here = ax == axs(k);
+            pk = findall(ax, 'Tag', 'hover_peak');
+            if ~here || isempty(peak)
+                set(pk, 'Visible', 'off');
+            elseif isempty(pk)
+                line(ax, peak(1), peak(2), 1, 'Marker', 'o', 'MarkerSize', 9, 'LineWidth', 1.5, ...
+                    'Color', colour, 'Tag', 'hover_peak', 'PickableParts', 'none', 'HandleVisibility', 'off');
+            else
+                set(pk(1), 'XData', peak(1), 'YData', peak(2), 'ZData', 1, 'Color', colour, 'Visible', 'on');
+            end
+            hl = findall(ax, 'Tag', 'hover_hline');
+            if ~here || isempty(y_line)
+                set(hl, 'Visible', 'off');
+            elseif isempty(hl)
+                yline(ax, y_line, '--', 'Color', [0.6 0.6 0.6], 'LineWidth', 1, 'Tag', 'hover_hline', ...
+                    'PickableParts', 'none', 'HandleVisibility', 'off');
+            else
+                set(hl(1), 'Value', y_line, 'Visible', 'on');
+            end
         end
         for ax = axs
             h = findall(ax, 'Tag', 'hover_cursor');   % hidden handle: out of the legends, and cla leaves it
@@ -1864,15 +1900,21 @@ end
                 set(h(1), 'Value', cp(1), 'Visible', 'on');
             end
         end
-        show_hover_label(axs(k), txt);
+        show_hover_label(axs(k), txt, hi, colour, tip);
         hover_on = true;
     end
 
-    function [txt, peak] = hover_text(k, t, y)
+    function [txt, peak, y_line, hi, colour] = hover_text(k, t, y)
         % the readout of plot k (1 waveform, 2 sound level, 3 spectrogram) at time t and
-        % height y; peak: [time frequency] of the bin the spectrogram readout snapped to, or []
+        % height y. peak: [x y] of the point followed with Shift (the loudest bin nearby,
+        % or the level curve nearest the mouse), or []; y_line: the height of the
+        % horizontal line (the frequency read out, or the level followed), or []; hi: the
+        % part of the text to highlight (the level followed), or ''; colour: of the circle
         txt = '';
         peak = [];
+        y_line = [];
+        hi = '';
+        colour = [0 0.9 1];
         i = min(max(round(t * wave_fs) + 1, 1), numel(wave_x));
         t_txt = sprintf('t = %.3f s', t);
         F = findobj(win_wave, 'Tag', 'wave_weighting').Value;
@@ -1888,6 +1930,18 @@ end
                 parts = arrayfun(@(k_tw) sprintf('L%s%s = %.1f', F, upper(tws{k_tw}), lvl_L(i, k_tw)), ...
                     1:numel(tws), 'UniformOutput', false);
                 txt = sprintf('%s  %s %s', t_txt, strjoin(parts, '  '), il_level_unit(F));
+                if snap_peak                                % Shift held: the curve nearest the mouse
+                    [~, k_sel] = min(abs(lvl_L(i, :) - y));
+                    peak = [(i - 1) / wave_fs, lvl_L(i, k_sel)];
+                    y_line = peak(2);
+                    hi = parts{k_sel};
+                    [~, tw_names] = time_weightings();     % its colour: the one of its line
+                    ln = findobj(ax_lvl, 'Tag', 'level_line', 'DisplayName', tw_names{k_sel});
+                    colour = [0 0.447 0.741];
+                    if ~isempty(ln)
+                        colour = ln(1).Color;
+                    end
+                end
             case 3
                 if isempty(spec_data) || isempty(spec_data.t) || isempty(findobj(ax_spec, 'Type', 'surface'))
                     return                                  % the enhanced map is still on its way
@@ -1914,6 +1968,7 @@ end
                     [~, jf] = min(abs(spec_data.f - y));    % the bin under the mouse: its centre frequency
                 end
                 f_bin = spec_data.f(jf);
+                y_line = f_bin;                             % the line marks the bin read out, the peak with Shift
                 if f_bin < 100
                     f_txt = sprintf('%.1f', f_bin);
                 else
@@ -1923,11 +1978,25 @@ end
         end
     end
 
-    function show_hover_label(ax, txt)
-        % the readout in the top left corner of the plot area of ax, in the colours of the theme
+    function show_hover_label(ax, txt, hi, colour, tip)
+        % the readout in the top left corner of the plot area of ax, in the colours of the
+        % theme; hi, a part of txt, in bold and in colour (the level curve followed with
+        % Shift); tip, a hint in grey at the end (what Shift does here)
         lbl = findobj(ax.Parent, 'Tag', 'hover_label');
         if isempty(lbl)
-            lbl = uilabel(ax.Parent, 'Tag', 'hover_label', 'FontSize', 11, 'WordWrap', 'off');
+            lbl = uilabel(ax.Parent, 'Tag', 'hover_label', 'FontSize', 11, 'WordWrap', 'off', ...
+                'Interpreter', 'html');
+        end
+        shown = strrep(txt, ' ', '&nbsp;');                 % html: the double spaces stay
+        if ~isempty(hi)
+            rgb = round(255 * colour);
+            shown = strrep(shown, strrep(hi, ' ', '&nbsp;'), sprintf('<b><span style="color:#%02X%02X%02X">%s</span></b>', ...
+                rgb, strrep(hi, ' ', '&nbsp;')));
+        end
+        if ~isempty(tip)
+            shown = [shown '<span style="color:#8C8C8C">' ...
+                strrep(strrep(tip, ' ', '&nbsp;'), 'Hold&nbsp;Shift', '<b>Hold&nbsp;Shift</b>') '</span>'];
+            txt = [txt tip];                                % for the width below
         end
         others = findobj(win_wave, 'Tag', 'hover_label');
         set(others(others ~= lbl), 'Visible', 'off');
@@ -1938,16 +2007,52 @@ end
         end
         p = ax.InnerPosition;
         n_sp = nnz(txt == ' ');                             % about the width of the text: a space is narrower
-        w = min(6.2 * (numel(txt) - n_sp) + 3 * n_sp + 10, p(3) - 8);
-        set(lbl, 'Text', txt, 'Position', [p(1) + 4, p(2) + p(4) - 22, w, 18], 'Visible', 'on', colours{:});
+        n_bold = numel(hi) + il_if(isempty(tip), 0, 10);   % bold is a little wider: the value followed, Hold Shift
+        w = min(6.2 * (numel(txt) - n_sp) + 3 * n_sp + 10 + 0.6 * n_bold, p(3) - 8);
+        set(lbl, 'Text', shown, 'Position', [p(1) + 4, p(2) + p(4) - 22, w, 18], 'Visible', 'on', colours{:});
+    end
+
+    function on_show_values(src, ~)
+        % the tick Show values: unticked, the readout and its marks go at once,
+        % and Shift does nothing
+        show_values = src.Value;
+        if show_values
+            hover_update();                                 % at once, where the mouse is
+        else
+            hover_hide();
+        end
+    end
+
+    function status_hint(which)
+        % how Shift works, on the status bar while the mouse is over the sound level
+        % ('lvl') or the spectrogram ('spec'); '' takes it away, and the message it
+        % covered comes back unless another one replaced the hint since. An error,
+        % in red, is not covered
+        hint_texts = struct('lvl', 'Hold Shift to follow the curve nearest the mouse.', ...
+            'spec', 'Hold Shift to snap the readout to the loudest bin nearby.');
+        if strcmp(which, hint_on)
+            return
+        end
+        if ~isempty(hint_on) && strcmp(lbl_status.Text, hint_texts.(hint_on))
+            lbl_status.Text = hint_prev;
+        end
+        hint_on = '';
+        if isempty(which) || isequal(lbl_status.FontColor, [0.85 0.2 0.2])
+            return
+        end
+        hint_prev = lbl_status.Text;
+        lbl_status.Text = hint_texts.(which);
+        hint_on = which;
     end
 
     function hover_hide()
+        status_hint('');
         if ~hover_on || ~il_is_open(win_wave)
             return
         end
         set(findall(win_wave, 'Tag', 'hover_cursor'), 'Visible', 'off');
         set(findall(win_wave, 'Tag', 'hover_peak'), 'Visible', 'off');
+        set(findall(win_wave, 'Tag', 'hover_hline'), 'Visible', 'off');
         set(findobj(win_wave, 'Tag', 'hover_label'), 'Visible', 'off');
         hover_on = false;
     end
@@ -2258,7 +2363,7 @@ end
             uidropdown(signal_list, 'Items', il_channel_items(f.nch), 'Value', f.channel, ...
                 'Tag', sprintf('signal_channel_%d', k), ...
                 'Tooltip', ['Channel to analyse, or All (the ECMA-418-2 metrics take a stereo ' ...
-                            'file as a binaural pair, in one call)'], ...
+                'file as a binaural pair, in one call)'], ...
                 'ValueChangedFcn', @(src, ~) on_signal_channel(k, src.Value));
             angle = 'italic';
             if f.cal_set
@@ -2267,9 +2372,9 @@ end
             uibutton(signal_list, 'Text', f.cal.label, 'Tag', sprintf('signal_cal_%d', k), ...
                 'FontAngle', angle, ...
                 'Tooltip', sprintf(['Full scale: %s dB SPL (%s). Click to change the calibration.' newline ...
-                    'In italics while it is the default of SQAT.'], ...
-                    strjoin(arrayfun(@(v) sprintf('%.2f', v), f.dBFS, 'UniformOutput', false), ', '), ...
-                    il_if(f.nch > 1, 'one value per channel', 'one channel')), ...
+                'In italics while it is the default of SQAT.'], ...
+                strjoin(arrayfun(@(v) sprintf('%.2f', v), f.dBFS, 'UniformOutput', false), ', '), ...
+                il_if(f.nch > 1, 'one value per channel', 'one channel')), ...
                 'ButtonPushedFcn', @(~, ~) on_signal_cal(k));
             uibutton(signal_list, 'Text', '', 'Icon', icon_remove, 'Tag', sprintf('signal_remove_%d', k), ...
                 'Tooltip', 'Removes this signal and its results', 'ButtonPushedFcn', @(~, ~) on_signal_remove(k));
@@ -2354,7 +2459,7 @@ end
         end
     end
 
-    %% Graphs windows: signal, metric, analysis, plot
+%% Graphs windows: signal, metric, analysis, plot
 
     function ws = open_graph_windows()
         graph_figs = graph_figs(isvalid(graph_figs));
@@ -2396,10 +2501,10 @@ end
         uilabel(bar, 'Text', 'Analysis:', 'HorizontalAlignment', 'right');
         uidropdown(bar, 'Items', {}, 'Tag', 'graph_analysis', 'ValueChangedFcn', @on_graph_control, ...
             'Tooltip', ['SQAT figure and All analyses need one signal; with several signals ' ...
-                        'the analyses that can be compared are on offer']);
+            'the analyses that can be compared are on offer']);
         uibutton(bar, 'state', 'Text', 'Pin', 'Tag', 'graph_pin', 'ValueChangedFcn', @on_graph_pin, ...
             'Tooltip', ['Keeps this window with its signals and results, whatever runs next; ' ...
-                        'Open Graphs Window then opens another one to compare with']);
+            'Open Graphs Window then opens another one to compare with']);
         uibutton(bar, 'Text', 'Save...', 'Tag', 'graph_save', 'ButtonPushedFcn', @(src, ~) open_save_dialog(ancestor(src, 'figure')), ...
             'Tooltip', 'Save what the window shows, or choose other signals and figures');
         uilabel(bar, 'Text', '');
@@ -2697,7 +2802,7 @@ end
             % the colours of the axes, then again dashed, dotted and dash-dotted:
             % from the eighth signal on no two curves look the same
             look = {'Color', colors(mod(k - 1, size(colors, 1)) + 1, :), ...
-                    'LineStyle', styles{mod(floor((k - 1) / size(colors, 1)), numel(styles)) + 1}};
+                'LineStyle', styles{mod(floor((k - 1) / size(colors, 1)), numel(styles)) + 1}};
             if strcmp(A(k).id, 'tob_level')         % one level per band: a step across its width
                 e = A(k).x(:) * 2^(-1/6);
                 stairs(ax, [e; A(k).x(end) * 2^(1/6)], [A(k).y(:); A(k).y(end)], look{:});
@@ -3051,8 +3156,8 @@ end
             return
         end
         stamp = {'Exported', char(datetime('now', 'Format', 'yyyy-MM-dd HH:mm:ss'));
-                 'SQAT version', il_sqat_version();
-                 'MATLAB', version};
+            'SQAT version', il_sqat_version();
+            'MATLAB', version};
         status = lbl_status.Text;
         for job = jobs
             aids = {res(strcmp({res.key}, job.key)).aid};
@@ -3364,7 +3469,7 @@ end
         tws = time_weightings();
         Leq = Get_Leq(lvl_L(:, 1), wave_fs);           % the same for every time weighting
         txt = {sprintf('L%seq = %.1f', F, Leq), ...
-               sprintf('L%sE = %.1f', F, Leq + 10*log10(size(lvl_L, 1) / wave_fs))};
+            sprintf('L%sE = %.1f', F, Leq + 10*log10(size(lvl_L, 1) / wave_fs))};
         pct = unique([findobj(win_wave, 'Tag', 'level_percentile_1').Value, ...
             findobj(win_wave, 'Tag', 'level_percentile_2').Value]);
         for k_tw = 1:numel(tws)
@@ -4350,9 +4455,9 @@ end
 function s = il_short(option)
 % the short name of an option in the summary of the parameters
 names = {'Free field', 'free field'; 'Diffuse field', 'diffuse field'; 'Free-frontal', 'free-frontal'; ...
-         'Diffuse', 'diffuse'; 'Stationary', 'stationary'; 'Time-varying', 'time-varying'; ...
-         'DIN 45692', 'DIN 45692'; 'Aures', 'Aures'; 'von Bismarck', 'von Bismarck'; ...
-         'Level per bin', 'level'; 'Spectral density', 'density'};
+    'Diffuse', 'diffuse'; 'Stationary', 'stationary'; 'Time-varying', 'time-varying'; ...
+    'DIN 45692', 'DIN 45692'; 'Aures', 'Aures'; 'von Bismarck', 'von Bismarck'; ...
+    'Level per bin', 'level'; 'Spectral density', 'density'};
 k = find(strcmp(names(:, 1), option), 1);
 s = regexprep(option, '^(\d+) \(\d+ points\)$', '2^$1');   % an FFT degree: 14 (16384 points) -> 2^14
 if ~isempty(k)
@@ -4527,15 +4632,15 @@ if ~isempty(f.cal.file)
     cal = sprintf('%s (%s)', cal, strjoin(cellstr(f.cal.file), '; '));
 end
 c = {'Signal', sprintf('#%d %s', f.id, f.name);
-     'Path', f.path;
-     'Sampling frequency (Hz)', sprintf('%g', f.fs);
-     'Channels in the file', sprintf('%d', f.nch);
-     'Calibration', cal;
-     'Full scale (dB SPL)', [strjoin(arrayfun(@(v) sprintf('%.2f', v), f.dBFS, 'UniformOutput', false), ', ') ...
-                             il_if(f.cal_set, '', ' (default)')];
-     'Analysis', e.label;
-     'Metric', e.id;
-     'Parameters', il_param_text(e, e.p)};
+    'Path', f.path;
+    'Sampling frequency (Hz)', sprintf('%g', f.fs);
+    'Channels in the file', sprintf('%d', f.nch);
+    'Calibration', cal;
+    'Full scale (dB SPL)', [strjoin(arrayfun(@(v) sprintf('%.2f', v), f.dBFS, 'UniformOutput', false), ', ') ...
+    il_if(f.cal_set, '', ' (default)')];
+    'Analysis', e.label;
+    'Metric', e.id;
+    'Parameters', il_param_text(e, e.p)};
 end
 
 function t = il_tag(en)
