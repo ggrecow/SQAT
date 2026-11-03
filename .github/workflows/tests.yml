@@ -1,0 +1,174 @@
+# Runs the tests of SQAT (test/), the three folders in parallel (gui,
+# reference, unit; one machine each), joins their results into one report and,
+# for main, publishes it on the GitHub Pages of the repository. unit and
+# reference decide the result of the run; gui only reports.
+#
+# The reference block recomputes the validation scripts of the metrics, about
+# 11 min; its result is kept in a cache keyed by the code it tests and reused
+# while that code does not change. Every Sunday, and on demand (full), it runs
+# in full anyway, so a change of the environment (a MATLAB update) shows.
+name: tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  schedule:
+    - cron: "0 3 * * *"        # every night, 03:00 UTC
+  workflow_dispatch:
+    inputs:
+      full:
+        description: "Run the reference block even when its cached result is valid"
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: tests-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    continue-on-error: ${{ matrix.block == 'gui' }}   # a failure shows in the report and does not fail the run
+    strategy:
+      fail-fast: false
+      matrix:
+        block: [gui, reference, unit]
+    steps:
+      - uses: actions/checkout@v4
+
+      # the reference block: reused from the cache while the code it tests is the same
+      - name: Full run or cached result
+        if: matrix.block == 'reference'
+        run: |
+          full=false
+          if [ "$(date -u +%u)" = "7" ] || [ "${{ inputs.full }}" = "true" ]; then full=true; fi
+          echo "FULL=$full" >> "$GITHUB_ENV"
+          echo "full run: $full"
+
+      - name: Restore the reference result
+        id: ref_cache
+        if: matrix.block == 'reference' && env.FULL == 'false'
+        uses: actions/cache/restore@v4
+        with:
+          path: test/report/out/data.json
+          key: reference-R2026a-${{ hashFiles('psychoacoustic_metrics/**', 'sound_level_meter/**', 'utilities/**', 'validation/**', 'test/reference/**', 'test/report/sqat_report_record.m', 'test/report/sqat_run_script.m') }}
+
+      - name: Mark the reference result as reused
+        if: steps.ref_cache.outputs.cache-hit == 'true'
+        run: touch test/report/out/cached
+
+      - name: Download the test signals of ISO 532-1 (Annex B and C)
+        if: matrix.block == 'reference' && steps.ref_cache.outputs.cache-hit != 'true'
+        run: |
+          mkdir -p "test/reference/data/ISO 532-1 - Program etc"
+          curl -sSfL -o /tmp/iso532-1.zip "https://standards.iso.org/iso/532/-1/ed-1/en/ISO%20532-1%20-%20Program%20etc.zip"
+          unzip -q /tmp/iso532-1.zip -d "test/reference/data/ISO 532-1 - Program etc"
+
+      - name: Cache the validation sounds of SQAT v1.0 (Zenodo 7933206)
+        id: zenodo
+        if: matrix.block == 'reference' && steps.ref_cache.outputs.cache-hit != 'true'
+        uses: actions/cache@v4
+        with:
+          path: sound_files/validation_SQAT_v1_0
+          key: zenodo-7933206
+
+      - name: Download the validation sounds of SQAT v1.0
+        if: matrix.block == 'reference' && steps.ref_cache.outputs.cache-hit != 'true' && steps.zenodo.outputs.cache-hit != 'true'
+        run: |
+          curl -sSfL -o /tmp/zenodo.zip "https://zenodo.org/records/7933206/files/validation_SQAT_v1_0.zip?download=1"
+          mkdir -p /tmp/zenodo
+          unzip -q /tmp/zenodo.zip -d /tmp/zenodo
+          src=/tmp/zenodo; [ -d /tmp/zenodo/validation_SQAT_v1_0 ] && src=/tmp/zenodo/validation_SQAT_v1_0
+          mkdir -p sound_files/validation_SQAT_v1_0
+          cp -R "$src"/. sound_files/validation_SQAT_v1_0/
+
+      # the GUI block: a virtual display and audio output, so that the playback and
+      # the enhanced spectrogram tests run (only the end of a file needs an output
+      # that plays in real time, which this one does not: that test skips)
+      - name: Virtual display and audio output
+        if: matrix.block == 'gui'
+        run: |
+          sudo apt-get update -q
+          sudo apt-get install -y -q xvfb pulseaudio pulseaudio-utils libasound2-plugins
+          Xvfb :99 -screen 0 1920x1080x24 &
+          echo "DISPLAY=:99" >> "$GITHUB_ENV"
+          printf 'pcm.!default { type pulse }\nctl.!default { type pulse }\n' > ~/.asoundrc
+          pulseaudio -D --exit-idle-time=-1
+          sleep 2
+          pactl load-module module-null-sink sink_name=ci
+          pactl set-default-sink ci
+
+      - uses: matlab-actions/setup-matlab@v2
+        if: steps.ref_cache.outputs.cache-hit != 'true'
+        with:
+          release: R2026a
+          products: Signal_Processing_Toolbox
+          cache: true                  # MATLAB kept between runs
+
+      - name: Run the ${{ matrix.block }} tests
+        id: run
+        if: steps.ref_cache.outputs.cache-hit != 'true'
+        timeout-minutes: 45
+        uses: matlab-actions/run-command@v2
+        with:
+          command: |
+            addpath('test/report'); assert(sqat_report_build('${{ matrix.block }}'), 'some tests failed: see the report')
+
+      - name: Keep the reference result for the next runs
+        if: matrix.block == 'reference' && steps.run.outcome == 'success'
+        continue-on-error: true          # the key may be there already (a full run of unchanged code)
+        uses: actions/cache/save@v4
+        with:
+          path: test/report/out/data.json
+          key: reference-R2026a-${{ hashFiles('psychoacoustic_metrics/**', 'sound_level_meter/**', 'utilities/**', 'validation/**', 'test/reference/**', 'test/report/sqat_report_record.m', 'test/report/sqat_run_script.m') }}
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: report-${{ matrix.block }}
+          path: test/report/out/
+
+  report:
+    needs: tests
+    if: always() && needs.tests.result != 'skipped'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          path: blocks
+
+      - name: Join the three blocks into one report
+        run: |
+          # the page goes out also when a test failed: that is when it is read
+          python3 test/report/merge_reports.py site/index.html blocks/report-gui/data.json blocks/report-reference/data.json blocks/report-unit/data.json || echo "::warning::some tests failed: see the report"
+          for b in gui reference unit; do cp blocks/report-$b/runner.log site/runner-$b.log 2>/dev/null || true; done
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: report
+          path: site/
+
+      - uses: actions/upload-pages-artifact@v3
+        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+        with:
+          path: site/
+
+  pages:
+    needs: report
+    if: always() && needs.report.result == 'success' && github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.pages.outputs.page_url }}
+    steps:
+      - id: pages
+        uses: actions/deploy-pages@v4

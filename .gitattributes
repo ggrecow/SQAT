@@ -1,0 +1,4 @@
+# Left out of the release archives (Source code zip and tar.gz): the tests and
+# the workflow are for development; a clone of the repository keeps them.
+test/ export-ignore
+.github/ export-ignore
