@@ -4,17 +4,22 @@ The `validation_Sharpness_DIN45692_narrowband_and_broadband_signals.m` code is u
 - 21 narrowband sounds (one-critical-band wide) with center frequencies in Bark (from $2.5~\mathrm{Bark}$ to $22.5~\mathrm{Bark}$ in $1~\mathrm{Bark}$ steps), and
 - 20 broadband sounds with variable lower frequencies in Bark (from $2.5~\mathrm{Bark}$ to $21.5~\mathrm{Bark}$ in $1~\mathrm{Bark}$ steps) and fixed upper frequency of $10~\mathrm{kHz}$ ($\approx 22.4~\mathrm{Bark}$). 
 
-All test signals are stationary noises with a total loudness of $4~\mathrm{sone}$.
+All test signals are stationary noises with a total loudness of $4~\mathrm{sone}$. Since November 2026, the code generates them as ideal bandpass noise (flat spectrum, random phase) with the critical band edges of Zwicker [7], and sets each one to $4~\mathrm{sone}$ (ISO 532-1 [2], stationary).
 
 # How to use this code
-In order to run this code and reproduce the figures available in the `figs` folder, the user needs to download the dataset of sound files from zenodo <a href="https://doi.org/10.5281/zenodo.7933206" target="_blank">here</a>. The obtained folder called `validation_SQAT_v1_0` has to be included in the `sound_files` folder of the toolbox. 
+No external dataset is needed: the test signals are generated within the code.
 
 # Results
-The figures below compare the results obtained using the `Sharpness_DIN45692` implementation in SQAT with reference values from the DIN norm [1]. The DIN norm stipulates a maximum tolerance of 0.05 acum from the provided reference values. The loudness of the test signals is obtained using the loudness method for stationary signals according to ISO 532-1 [2], as implemented in SQAT (see `Loudness_ISO532_1` [here](../../psychoacoustic_metrics/Loudness_ISO532_1/Loudness_ISO532_1.m)).
+The figures below compare the results obtained using the `Sharpness_DIN45692` implementation in SQAT with reference values from the DIN norm [1]. The DIN norm stipulates a tolerance of 5 % or 0.05 acum from the provided reference values; the figures and the code use the stricter 0.05 acum. The loudness of the test signals is obtained using the loudness method for stationary signals according to ISO 532-1 [2], as implemented in SQAT (see `Loudness_ISO532_1` [here](../../psychoacoustic_metrics/Loudness_ISO532_1/Loudness_ISO532_1.m)).
   
 Absolute values |  Relative error 
  | -------------- | -------------- |
 |![](figs/sharpness_validation_narrowband_and_broadband.png)        | ![](figs/sharpness_validation_narrowband_broadband_error.png)     |
+
+All 41 signals are within the tolerance: the largest deviation is 0.036 acum for the narrowband signals (RMS 0.013 acum) and 0.033 acum for the broadband signals (RMS 0.018 acum).
+
+## The data set of SQAT v1.x
+Up to SQAT v2.0, the code used the test signals provided in the Zenodo dataset of SQAT v1.0 [(doi:10.5281/zenodo.7933206)](https://doi.org/10.5281/zenodo.7933206). All of them were calibrated against the reference signal, which is a 1 kHz tone at 60 dB SPL instead of the narrowband noise the standard defines (issue [#89](https://github.com/ggrecow/SQAT/issues/89)). As a result, their loudness was 4.1 to 4.5 sone instead of the 4 sone required by the standard (issue [#90](https://github.com/ggrecow/SQAT/issues/90)). The loudness enters the Aures weighting function explicitly. The other two are normalised by it, but the shape of the specific loudness pattern still depends on the level: between 4 and 4.5 sone, the sharpness changes by up to 0.02 acum, against up to 0.08 acum for the Aures weighting function. The Zenodo dataset is kept unchanged, so that the SQAT v1.x results remain reproducible with the code of those versions.
 
 # Comparison of weighting functions
 The DIN standard [1] defines three weighting functions for the calculation of sharpness. The standard weighting function $g(z)$ (also called the DIN 45692 weighting function) is based on the work of Widmann [3]. The two additional weighting functions $g_{\mathrm{B}}(z)$ and $g_{\mathrm{A}}(z)$ were developed by von Bismarck [4] and Aures [5], respectively. 
@@ -44,7 +49,10 @@ Narrowband signals |  Broadband signals
 
 [6] HEAD acoustics. (2018). Psychoacoustic analyses I. Application note. [(link)](https://cdn.head-acoustics.com/fileadmin/data/global/Application-Notes/SVP/Psychoacoustic-Analyses-I_e.pdf) (last viewed December 5, 2024)
 
+[7] Zwicker, E. (1961). Subdivision of the audible frequency range into critical bands (Frequenzgruppen). The Journal of the Acoustical Society of America, 33(2), 248.
+
 
 # Log
 This code was released in SQAT v1.0, 14.05.2023
 
+November 2026: the test signals are generated within the code and set to 4 sone (issue [#90](https://github.com/ggrecow/SQAT/issues/90)).
