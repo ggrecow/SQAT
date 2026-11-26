@@ -3,6 +3,12 @@ function [outsig_dB, dBFS] = Do_SLM(insig,fs,weight_freq,weight_time,dBFS)
 %
 % 1. Description:
 %       outsig is the weighted pressure in [Pa]
+%       dBFS is the full-scale level (dB SPL), i.e. the SPL of a signal
+%       with an rms value of 1. Default: 94 dB SPL (insig given in Pa).
+%       See examples/signal_calibration for more info.
+%       weight_time is the time weighting: 'f' fast (125 ms, default),
+%       's' slow (1 s), 'i' impulse (35 ms), or a custom time constant,
+%       in s, given as a number (e.g. 0.5).
 % 
 % 2. Stand-alone example:
 %   %%%%%%
@@ -53,9 +59,16 @@ function [outsig_dB, dBFS] = Do_SLM(insig,fs,weight_freq,weight_time,dBFS)
 % square. The empirical 0.93 dB calibration offset was removed, since it
 % only compensated the mean-absolute deficit of a sinusoid (see issue 43).
 %
-% AI disclosure: code development in August and October 2026 assisted
-% by Claude Fable 5.1, Opus 5 and Opus 5.5 (Anthropic). All codes were
-% verified by the authors.
+% Author: Gil Felix Greco, 26.11.2026 - default dBFS changed from 100 to
+% 94 dB SPL, so that an input in Pa is evaluated correctly by default
+% (calls without dBFS now yield levels 6 dB lower than before).
+%
+% Author: Gil Felix Greco, 26.11.2026 - weight_time also accepts a custom
+% time constant, in s, given as a number; 'f', 's' and 'i' work as before.
+%
+% AI disclosure: code development in August, October and November 2026
+% assisted by Claude Fable 5.1, Opus 5 and Opus 5.5 (Anthropic). All codes
+% were verified by the authors.
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Copyright statement: This file is part of the SQAT toolbox and is subject
@@ -78,7 +91,7 @@ if nargin < 4
 end
 
 if nargin < 5
-    dBFS = 100;
+    dBFS = 94; % default: insig in Pa
 end
 if size(insig,2)~=1
     if size(insig,1) == 1
@@ -144,7 +157,8 @@ function outsig = il_integrator(insig,fs, weightingType)
 %         insig         - Incoming input signal, as a data vector
 %         fs            - Sampling rate of the data
 %         weightingType - RC time constant is 'f' fast (125 ms), 's' slow
-%                       (1 s), or 'i' impulsive. The time constant for the 
+%                       (1 s), 'i' impulsive (35 ms), or a custom time
+%                       constant, in s, given as a number. The time constant for the 
 %                       leaky integrator is tau. This is basically a low-pass 
 %                       filter whose transfer function is:
 %                      1
@@ -156,21 +170,22 @@ function outsig = il_integrator(insig,fs, weightingType)
 
 % Filter coeffecients
 
-switch weightingType
-    case 'f' % fast leak - time constant = 125 ms
-        tau = 125e-3;
-    case 's' % slow leak - time constant = 1 s
-        tau = 1;
-    case 'i'
-        tau = 35e-3; % impulse
-    % case 'p'
-    %     tau = 50e-6;	
-    % case 'l'
-    %     tau = str2double(fastOrSlow(2:end));	
-    % case 'r'
-    %     tau = str2double(fastOrSlow(2:end));	
-    otherwise
-        error(['integrator: unknown leak case ' char(fastOrSlow)]);
+if isnumeric(weightingType)
+    if ~isscalar(weightingType) || ~isreal(weightingType) || ~(weightingType > 0) || isinf(weightingType)
+        error('Do_SLM: a custom time constant must be a positive, finite number, in s.');
+    end
+    tau = weightingType; % custom time constant (s)
+else
+    switch weightingType
+        case 'f' % fast leak - time constant = 125 ms
+            tau = 125e-3;
+        case 's' % slow leak - time constant = 1 s
+            tau = 1;
+        case 'i'
+            tau = 35e-3; % impulse
+        otherwise
+            error('Do_SLM: unknown time weighting ''%s''. Use ''f'', ''s'', ''i'' or a time constant in s.', char(weightingType));
+    end
 end
 
 % State vector
