@@ -72,6 +72,10 @@ function OUT = Sharpness_DIN45692(insig, fs, weight_type, LoudnessField, Loudnes
 % Modified: Mike Lotinga 29.05/2026 - vectorised for 95% reduction in
 % compute time
 %
+% Modified: Gil Felix Greco, November 2026 (the sharpness calculation is
+%   now done by Sharpness_DIN45692_from_loudness, so that both functions
+%   share one implementation and always give the same results)
+%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Copyright statement: This file is part of the SQAT toolbox and is subject
 % to the GPL-3.0 license, as detailed in <licenses/gpl-3.0.txt> in the SQAT
@@ -102,138 +106,23 @@ if nargin < 7
     end
 end
 
-if LoudnessMethod == 1 % stationary loudness calculation
-    
-    L = Loudness_ISO532_1(insig, fs,... % input signal and sampling freq.
-                      LoudnessField,... % free field = 0; diffuse field = 1;
-                     LoudnessMethod,... % method used for loudness calculation: stationary (from input 1/3 octave unweighted SPL)=0; stationary = 1; time varying = 2;
-                          time_skip,... % time_skip
-                      show_loudness);   % show loudness results
-    
-    n = size(L.SpecificLoudness,2);
-    SpecificLoudness=L.SpecificLoudness;
-    
-    loudness_sones = sum(L.SpecificLoudness, 2).*0.10;
-    
-elseif LoudnessMethod == 2 % time-varying loudness calculation
-    
-    L = Loudness_ISO532_1(insig, fs,... % input signal and sampling freq.
-                      LoudnessField,... % free field = 0; diffuse field = 1;
-                     LoudnessMethod,... % method used for loudness calculation: stationary (from input 1/3 octave unweighted SPL)=0; stationary = 1; time varying = 2;
-                          time_skip,... % time_skip
-                      show_loudness);   % show loudness results
-    
-    n = size(L.InstantaneousSpecificLoudness,2);
-    SpecificLoudness=L.InstantaneousSpecificLoudness;
-    
-    loudness_sones = sum(L.InstantaneousSpecificLoudness, 2).*0.10;
-    
-end
+% loudness calculation
+L = Loudness_ISO532_1(insig, fs,... % input signal and sampling freq.
+                  LoudnessField,... % free field = 0; diffuse field = 1;
+                 LoudnessMethod,... % method used for loudness calculation: stationary (from input 1/3 octave unweighted SPL)=0; stationary = 1; time varying = 2;
+                      time_skip,... % time_skip
+                  show_loudness);   % show loudness results
 
-z = linspace(0.1, 24, n); % create bark axis
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Sharpness calculation
-
-switch weight_type
-    case 'DIN45692' % Widmann model
-        
-        g = il_sharpWeights(z, 'standard', []); % calculate sharpness weighting factors
-        k = 0.11; % adjusted to yield 1 acum using SQAT - DIN45692 allows 0.105<=k<=0.0115 for this weighting function
-        s = k * sum(SpecificLoudness.*g.*z.*0.10, 2) ./ loudness_sones;
-        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-        
-    case 'aures' % Aures model
-        
-        g = il_sharpWeights(z, 'aures', loudness_sones); % calculate sharpness weighting factor
-        s = 0.11 * sum(SpecificLoudness.*g.*z.*0.10, 2) ./ loudness_sones;
-        
-        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    case 'bismarck' % von Bismarck
-        g = il_sharpWeights(z,'bismarck',[]); % calculate sharpness weighting factor
-        s = 0.11 * sum(SpecificLoudness.*g.*z.*0.10, 2) ./ loudness_sones;
-        
-        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-end
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Output struct for time-varying signals
-
-if LoudnessMethod == 2 % (time-varying sharpness)
+% sharpness calculation (see Sharpness_DIN45692_from_loudness)
+if LoudnessMethod == 1 % (stationary sharpness)
     
-    OUT.InstantaneousSharpness = s; % instantaneous sharpness
-    OUT.time = L.time;              % time vector
-    OUT.loudness=L;                 % output struct from the loudness calculation
-       
-   
-    % get statistics from Time-varying sharpness (acum)
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-    [~,idx] = min( abs(OUT.time-time_skip) ); % find idx of time_skip on time vector
-
-    metric_statistics = 'Sharpness_DIN45692';
-    OUT_statistics = get_statistics( s(idx:end), metric_statistics ); % get statistics
-
-    % copy fields of <OUT_statistics> struct into the <OUT> struct
-    fields_OUT_statistics = fieldnames(OUT_statistics);  % Get all field names in OUT_statistics
-
-    for i = 1:numel(fields_OUT_statistics)
-        fieldName = fields_OUT_statistics{i};
-        if ~isfield(OUT, fieldName) % Only copy if OUT does NOT already have this field
-            OUT.(fieldName) = OUT_statistics.(fieldName);
-        end
-    end
+    OUT = Sharpness_DIN45692_from_loudness(L.SpecificLoudness, weight_type, [], time_skip, show_sharpness);
     
-    clear OUT_statistics metric_statistics fields_OUT_statistics fieldName;  
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-      
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    % Show plots (time-varying)
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+elseif LoudnessMethod == 2 % (time-varying sharpness)
     
-    if show_sharpness == true
-        
-        figure('NAME','Sharpness analysis (time-varying)');
-        
-        plot(L.time,OUT.S5*(ones(size(L.time))),'r--'); hold on;
-        plot(L.time,s);
-        
-        xlabel('Time, $t$ (s)','Interpreter','Latex');
-        ylabel('Sharpness, $S$ (acum)','Interpreter','Latex');
-        
-        legend( sprintf('$S_5$=%g',OUT.S5),'Location','best','Interpreter','Latex');
-        legend boxoff
-        
-        set(gcf,'color','w')
-        
-    end
-    
-elseif LoudnessMethod==1 % (stationary sharpness)
-    
-    OUT.Sharpness = s;                       % sharpness
+    OUT = Sharpness_DIN45692_from_loudness(L.InstantaneousSpecificLoudness, weight_type, L.time, time_skip, show_sharpness);
+    OUT.loudness = L; % output struct from the loudness calculation
     
 end
 
 end % End of Sharpness_DIN45692
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Embedded function (compute weighting functions according to required model type)
-
-function g = il_sharpWeights(z, type, N)
-    switch type
-        case 'standard' % Widmann model according to DIN 45692 (2009)
-            g = zeros(1,length(z));
-            g(z < 15.8) = 1;
-            g(z >= 15.8) = 0.15.*exp(0.42.*((z(z >= 15.8)) - 15.8)) + 0.85;
-
-        case 'bismarck' % von bismark's model according to DIN 45692 (2009)
-            g = zeros(1,length(z));
-            g(z < 15) = 1;
-            g(z >= 15) = 0.2.*exp(0.308.*(z(z >= 15) - 15)) + 0.8;
-
-        case 'aures'    % Aures' model according to DIN 45692 (2009)
-            g = zeros(length(N), length(z));
-            g = 0.078.*(exp(0.171.*z)./z ).*(N./log(0.05.*N + 1));
-    end
-end % end of il_sharpWeights

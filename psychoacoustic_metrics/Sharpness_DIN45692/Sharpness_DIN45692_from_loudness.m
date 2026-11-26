@@ -93,7 +93,7 @@ switch weight_type
     case 'DIN45692' % Widmann model
         
         g = il_sharpWeights(z, 'standard', []); % calculate sharpness weighting factors
-        k = 0.11; % adjusted to yield 1 acum using SQAT - DIN45692 allows 0.105<=k<=0.0115 for this weighting function
+        k = 0.11; % DIN 45692 allows 0.105<=k<0.115; with k = 0.11, SQAT yields 1.02 acum for the reference signal and best matches Tables A.2/A.3
         s = k * sum(SpecificLoudness.*g.*z.*0.10, 2) ./ loudness_sones;
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         
