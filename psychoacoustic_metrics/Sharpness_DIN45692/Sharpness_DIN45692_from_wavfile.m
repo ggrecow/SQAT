@@ -75,10 +75,17 @@ function OUT = Sharpness_DIN45692_from_wavfile(wavfilename, dBFS, weight_type, L
 %
 % % Stand-alone example:
 %     fname = [basepath_SQAT 'sound_files' filesep 'reference_signals' filesep 'RefSignal_Sharpness_DIN45692.wav'];
-%     dBFS = 90; % We know this information in advance
+%     dBFS = 94; % We know this information in advance
 %     Sharpness_DIN45692_from_wavfile(fname,dBFS);
 %
 % Author: Alejandro Osses, based on the code by Gil Felix Greco
+%
+% Modified: Gil Felix Greco, November 2026 (dBFS = 94 in the stand-alone
+%   example, the full-scale level of the new RefSignal_Sharpness_DIN45692.wav;
+%   see issue #89)
+%
+% AI disclosure: modifications performed in November 2026 were assisted
+% by Claude Opus 5.5 (Anthropic). All codes were verified by the authors.
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Copyright statement: This file is part of the SQAT toolbox and is subject

@@ -12,6 +12,13 @@
 %
 % Author: Gil Felix Greco, Braunschweig 28.02.2023
 %
+% Modified: Gil Felix Greco, November 2026 (RefSignal_Sharpness_DIN45692.wav
+%   is now the narrowband noise defined by DIN 45692, stored at 94 dBFS, so
+%   the calibration step was removed; see issue #89)
+%
+% AI disclosure: modifications performed in November 2026 were assisted
+% by Claude Opus 5.5 (Anthropic). All codes were verified by the authors.
+%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Copyright statement: This file is part of the SQAT toolbox and is subject
 % to the GPL-3.0 license, as detailed in <licenses/gpl-3.0.txt> in the SQAT
@@ -29,13 +36,8 @@ clc; clear all; close all;
 
 dir_ref_sounds = [basepath_SQAT 'sound_files' filesep 'reference_signals' filesep];
 
-[TestSignal,fs]=audioread([dir_ref_sounds 'RefSignal_Sharpness_DIN45692.wav']); % 'sound_files\reference_signals\' -  path of the sound file for reference  
-lvl_cal_signal = 60; % information from the file name...
-
-dBFS_in = lvl_cal_signal-20*log10(rms(TestSignal)); % difference between target and actual full-scale value 
-dBFS_out = 94; % dB full scale convention in SQAT: amplitude of 1 = 1 Pa, or 94 dB SPL
-dB_correction = dBFS_in - dBFS_out;
-insig_cal = TestSignal * 10^(dB_correction/20);
+% the file is stored with the SQAT convention of 94 dBFS (amplitude of 1 = 1 Pa), so no calibration is needed
+[insig_cal,fs]=audioread([dir_ref_sounds 'RefSignal_Sharpness_DIN45692.wav']); % 'sound_files\reference_signals\' -  path of the sound file for reference
 
 %% sharpness (stationary) calculation using SQAT
 
@@ -47,7 +49,7 @@ S_stationary = Sharpness_DIN45692(insig_cal, fs,...      % input signal and samp
                                                0,...     % show sharpness results
                                                0);       % show loudness results
 % display result
-fprintf('\nCalculation of reference signal (60 dBSPL at 1kHz) based on a stationary loudness\n');
+fprintf('\nCalculation of reference signal (narrowband noise at 1 kHz, 60 dB SPL) based on a stationary loudness\n');
 fprintf('\tcalculation yields a sharpness value of %g (acum) using the DIN45692 weighting function\n',S_stationary.Sharpness);
 
 %% sharpness (time-varying) calculation using SQAT
@@ -61,7 +63,7 @@ S_time_varying = Sharpness_DIN45692(insig_cal, fs,...     % input signal and sam
                                                  0);       % show loudness results
                                                                                                         
 % display result
-fprintf('\n Calculation of reference signal (60 dBSPL at 1kHz) based on a time-varying loudness\n');
+fprintf('\n Calculation of reference signal (narrowband noise at 1 kHz, 60 dB SPL) based on a time-varying loudness\n');
 fprintf('\t calculation yields a mean sharpness value over time of %g (acum) using the DIN45692\n',S_time_varying.Smean);
 fprintf('\t weighting function.\n');
 
