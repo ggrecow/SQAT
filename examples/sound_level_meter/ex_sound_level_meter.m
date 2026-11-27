@@ -10,6 +10,12 @@
 %
 % Author: Alejandro Osses
 %
+% Modified: Gil Felix Greco, November 2026 (dBFS = 94, the full-scale level
+%   of the new RefSignal_Sharpness_DIN45692.wav; see issue #89)
+%
+% AI disclosure: modifications performed in November 2026 were assisted
+% by Claude Opus 5.5 (Anthropic). All codes were verified by the authors.
+%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Copyright statement: This file is part of the SQAT toolbox and is subject
 % to the GPL-3.0 license, as detailed in <licenses/gpl-3.0.txt> in the SQAT
@@ -27,7 +33,7 @@ dir_sounds = [basepath_SQAT 'sound_files' filesep 'reference_signals' filesep];
 wavfilename='RefSignal_Sharpness_DIN45692.wav';
 [insig,fs]=audioread([dir_sounds 'RefSignal_Sharpness_DIN45692.wav']); % 'sound_files\reference_signals\' -  path of the sound file for reference  
 
-dBFS = 90; 
+dBFS = 94; 
 
 %%% Checking the average level based on the calibration:
 rms_val = 20*log10(rms(insig))+dBFS;

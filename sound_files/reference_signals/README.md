@@ -14,7 +14,7 @@ The table below gives the full-scale level of each file. If you use these files 
 | `RefSignal_Loudness_ECMA418_2.wav` | 1 kHz pure tone | 40 dB SPL | 94 | 48000 | 5 |
 | `RefSignal_Tonality_ECMA418_2.wav` | 1 kHz pure tone | 40 dB SPL | 94 | 48000 | 5 |
 | `RefSignal_Tonality_Aures1985.wav` | 1 kHz pure tone | 60 dB SPL | 94 | 44100 | 5 |
-| `RefSignal_Sharpness_DIN45692.wav` | 1 kHz pure tone | 60 dB SPL | **90** | 48000 | 5 |
+| `RefSignal_Sharpness_DIN45692.wav` | Narrowband noise, 920 Hz to 1080 Hz (one critical band at 1 kHz) | 60 dB SPL | 94 | 48000 | 5 |
 | `RefSignal_Roughness_Daniel1997.wav` | 1 kHz tone, 100% amplitude-modulated at 70 Hz | 60 dB SPL | 94 | 48000 | 5 |
 | `RefSignal_Roughness_ECMA418_2.wav` | 1 kHz tone, 100% amplitude-modulated at 70 Hz | 60 dB SPL | 94 | 48000 | 5 |
 | `RefSignal_FluctuationStrength_Osses2016.wav` | 1 kHz tone, 100% amplitude-modulated at 4 Hz | 60 dB SPL | 94 | 44100 | 5 |
@@ -35,5 +35,7 @@ Notes:
 # Log
 
 - This README was written by Gil Felix Greco with the aid of an AI assistant (Claude Opus 5.5, Anthropic), 15.10.2026. The levels, durations and sampling frequencies in the table were measured from the sound files themselves.
+
+- November 2026: `RefSignal_Sharpness_DIN45692.wav` was a 1 kHz tone at 60 dB SPL (90 dBFS). It was replaced by the reference signal that the standard defines, an ideal bandpass noise (flat spectrum, random phase) from 920 Hz to 1080 Hz at 60 dB SPL, stored at 94 dBFS (issue [#89](https://github.com/ggrecow/SQAT/issues/89)). The tone remains available in the SQAT releases up to v2.0.
 
 - Reminder: before the release of SQAT v2.0, renaming the files to include their full-scale level (e.g. `RefSignal_Loudness_ISO532_1_94dBFS.wav`) was considered. Documenting the full-scale levels in this README was chosen instead, to avoid renaming the files and breaking the scripts of users that load them by name.

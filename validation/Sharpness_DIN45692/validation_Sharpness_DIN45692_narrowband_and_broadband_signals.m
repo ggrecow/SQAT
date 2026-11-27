@@ -14,12 +14,36 @@
 %   OUT = Loudness_ISO532_1(insig, fs, field, method, time_skip, show)
 %   type <help Loudness_ISO532_1> for more info
 %
-% In order to run this code, the user needs to download the dataset of 
-%  sound files from zenodo (https://doi.org/10.5281/zenodo.7933206).
-%  The obtained folder called `validation_SQAT_v1_0` has to be included in 
-%  the `sound_files` folder of the toolbox. 
+% - Test signals generated within this code, following DIN 45692 [1]: ideal
+%   bandpass noise (flat spectrum, random phase), one critical band wide
+%   (Table A.2) or from a variable lower cutoff frequency to 10 kHz
+%   (Table A.3). The band edges are those of the critical bands of Zwicker
+%   [2], whose centre frequencies are the ones of Table A.2. Each signal is
+%   set to a loudness of 4 sone (ISO 532-1, stationary), as Tables A.2 and
+%   A.3 and Section 6 of [1] require. The tolerance of [1] is 5 % or
+%   0.05 acum; the stricter 0.05 acum is used here.
 %
-% Author: Gil Felix Greco, Braunschweig 01.03.2023 
+% - Before November 2026, this code used the test signals provided in the
+%   Zenodo dataset of SQAT v1.0, doi:10.5281/zenodo.7933206,
+%   all calibrated against the 1 kHz tone of the standard at 60 dB SPL,
+%   which gives them 4.1 to 4.5 sone instead of 4 sone (issue #90). That
+%   dataset is kept unchanged so that the SQAT v1.x results remain
+%   reproducible (see README.md).
+%
+% - References:
+%   [1] DIN 45692:2009. Messtechnische Simulation der Hoerempfindung
+%       Schaerfe.
+%   [2] Zwicker, E. (1961). Subdivision of the audible frequency range into
+%       critical bands (Frequenzgruppen). J. Acoust. Soc. Am. 33(2), 248.
+%
+% Author: Gil Felix Greco, Braunschweig 01.03.2023
+%
+% Modified: Gil Felix Greco, November 2026 (test signals generated within
+%   the code and set to 4 sone, instead of the DIN 45692 files calibrated
+%   against a 1 kHz tone; see issues #89 and #90)
+%
+% AI disclosure: modifications performed in November 2026 were assisted
+% by Claude Opus 5.5 (Anthropic). All codes were verified by the authors.
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Copyright statement: This file is part of the SQAT toolbox and is subject
@@ -36,45 +60,43 @@ clear all; close all; clc;
 
 save_figs = 0; % save figure flag
 
+%% test signal settings
+
+fs       = 48000;      % sampling frequency (Hz)
+N        = 5*fs;       % 5 s per signal
+N_target = 4;          % loudness of the test signals (sone), Tables A.2 and A.3 of [1]
+f_upper  = 10000;      % upper cutoff frequency of the broadband signals (Hz), Table A.3 of [1]
+
+% critical band edges (Hz) from Zwicker [2], at z = 0, 1, ..., 24 Bark
+z_edges = [0 100 200 300 400 510 630 770 920 1080 1270 1480 1720 2000 2320 ...
+           2700 3150 3700 4400 5300 6400 7700 9500 12000 15500];
+
+f  = (0:N-1).'*fs/N; f(f > fs/2) = f(f > fs/2) - fs;
+fa = abs(f);           % absolute frequency of each FFT bin
+rng(1);                % the noise is random, so that the run is repeatable
+
 %% Sharpness of narrowband test sounds
 
-% Tabelle A.2 — Sollwerte der Schärfe für frequenzgruppenbreites Schmalbandrauschen mit 
-% der Lautheit 4 sone (entsprechend dem Standard-Prüfsignal bei 1 kHz und 60 dB)
+% Tabelle A.2 - Sollwerte der Schaerfe fuer frequenzgruppenbreites Schmalbandrauschen mit 
+% der Lautheit 4 sone (entsprechend dem Standard-Pruefsignal bei 1 kHz und 60 dB)
 
 % Reference values from the standard DIN45692 for the narrowband test sounds
 freq_narrowband = [250 350 450 570 700 840 1000 1170 1370 1600 1850 2150 2500 2900 3400 4000 4800 5800 7000 8500 10500];
 bark_narrowband = 2.5:22.5;
 acum_narrowband = [.38 .49 .60 .71 .82 .93 1 1.13 1.26 1.35 1.49 1.64 1.78 2.06 2.4 2.82 3.48 4.43 5.52 6.81 8.55];
 
-SQAT_version=1; % v1.0
-dir_sounds     = get_dir_validation_sounds('Sharpness_DIN45692',SQAT_version);
-dir_ref_sounds = [basepath_SQAT 'sound_files' filesep 'reference_signals' filesep ];
-
-% load calibration signal 
-
-[RefSignal,~]=audioread([dir_ref_sounds 'RefSignal_Sharpness_DIN45692.wav']);
-
-%%% Calibration using the concept of dB full scale:
-lvl_cal_signal = 60;                               % from file name: 'calibration signal sine 1kHz 60dB.wav'
-    
-[~,~,dBFS]=calibrate(RefSignal,RefSignal,lvl_cal_signal); % just to obtain the dBFS value
-
-% load narrowband signals, calibrate, compute loudness and sharpness 
+% generate narrowband signals, set to 4 sone, compute sharpness 
+N_narrow = zeros(1,length(freq_narrowband));
 for i=1:length(freq_narrowband)
 
-    % load test signal 
-    fname_insig = ['narrowband_' sprintf( '%02d',freq_narrowband(i) ) '.wav'];
-    [insig,fs]=audioread([dir_sounds fname_insig]); 
+    % one critical band around the centre frequency, e.g. 920 to 1080 Hz at 1 kHz
+    f_lo = z_edges(floor(bark_narrowband(i))+1);
+    f_hi = z_edges(floor(bark_narrowband(i))+2);
+    insig = il_bandpass_noise(f_lo, f_hi, fa, N);
 
-    % calibrate .wav signal
-    [insig_cal]=calibrate(insig,RefSignal,lvl_cal_signal); 
-    
-    % stationary loudness calculation
-    L_narrow = Loudness_ISO532_1( insig_cal, fs,...   % input signal and sampling freq.
-                                  0,...   % field; free field = 0; diffuse field = 1;
-                                  1,...   % method; stationary (from input 1/3 octave unweighted SPL)=0; stationary = 1; time varying = 2; 
-                                  0.5,... % time_skip, in seconds for level (stationary signals) and statistics (stationary and time-varying signals) calculations
-                                  0);     % show results, 'false' (disable, default value) or 'true' (enable)
+    % stationary loudness, at 4 sone
+    [~, L_narrow] = il_set_loudness(insig, fs, N_target);
+    N_narrow(i) = L_narrow.Loudness;
                                                                        
     % sharpness calculation (standard weighting function)                                         
     s_narrow(i) = Sharpness_DIN45692_from_loudness(L_narrow.SpecificLoudness,... % input (stationary) specific loudness
@@ -92,44 +114,49 @@ end
 
 %% Sharpness of broadband test sounds
 
-% Tabelle A.3: Sollwerte der Schärfe für Breitbandrauschen mit fester oberer Eckfrequenz 
-% von 10 kHz und variabler unterer Eckfrequenz fu mit der Lautheit 4 sone (entsprechend dem Standard-Prüfsignal bei 1 kHz und 60 dB)
+% Tabelle A.3: Sollwerte der Schaerfe fuer Breitbandrauschen mit fester oberer Eckfrequenz 
+% von 10 kHz und variabler unterer Eckfrequenz fu mit der Lautheit 4 sone (entsprechend dem Standard-Pruefsignal bei 1 kHz und 60 dB)
 
 % Reference values from the standard DIN45692 for the broadband test sounds
 freq_broadband= [250 350 450 570 700 840 1000 1170 1370 1600 1850 2150 2500 2900 3400 4000 4800 5800 7000 8500];
 bark_broadband=2.5:21.5;
 acum_broadband=[2.7 2.74 2.78 2.85 2.91 2.96 3.05 3.12 3.20 3.3 3.42 3.53 3.69 3.89 4.12 4.49 5.04 5.69 6.47 7.46];
 
-% load broadband signals, calibrate, compute loudness and sharpness 
+% generate broadband signals, set to 4 sone, compute sharpness 
+N_broad = zeros(1,length(freq_broadband));
 for i=1:length(freq_broadband)
 
-    % load test signal 
-    [insig,fs]=audioread([dir_sounds 'broadband_' sprintf( '%02d',freq_broadband(i) ) '.wav']);  'sound_files\validation\Sharpness_DIN45692\'; 
+    % from the lower cutoff frequency fu to 10 kHz
+    insig = il_bandpass_noise(freq_broadband(i), f_upper, fa, N);
 
-    % calibrated .wav signal
-    insig_cal=calibrate(insig,RefSignal,lvl_cal_signal); 
-    
-    % stationary loudness calculation
-    L_broad = Loudness_ISO532_1( insig_cal, fs,...   % input signal and sampling freq.
-                                  0,...   % field; free field = 0; diffuse field = 1;
-                                  1,...   % method; stationary (from input 1/3 octave unweighted SPL)=0; stationary = 1; time varying = 2; 
-                                  0.5,... % time_skip, in seconds for level (stationary signals) and statistics (stationary and time-varying signals) calculations
-                                  0);     % show results, 'false' (disable, default value) or 'true' (enable)
+    % stationary loudness, at 4 sone
+    [~, L_broad] = il_set_loudness(insig, fs, N_target);
+    N_broad(i) = L_broad.Loudness;
                                                     
     % sharpness calculation (standard weighting function)                                         
     s_broad(i) = Sharpness_DIN45692_from_loudness(L_broad.SpecificLoudness,... % input (stationary) specific loudness
-                                                               'DIN45692');... % type of weighting function used for sharpness calculation
-       
+                                                               'DIN45692');    % type of weighting function used for sharpness calculation
 
     % sharpness calculation (aures weighting function)                                         
     s_broad_aures(i) = Sharpness_DIN45692_from_loudness(L_broad.SpecificLoudness,... % input (stationary) specific loudness
-                                                                        'aures');... % type of weighting function used for sharpness calculation
+                                                                        'aures');    % type of weighting function used for sharpness calculation
                                                   
     % sharpness calculation (von bismarck weighting function)                                         
     s_broad_bismarck(i) = Sharpness_DIN45692_from_loudness(L_broad.SpecificLoudness,... % input (stationary) specific loudness
-                                                                        'bismarck');... % type of weighting function used for sharpness calculation
+                                                                        'bismarck');    % type of weighting function used for sharpness calculation
                                                   
 end
+
+%% report
+
+err_narrow = vertcat(s_narrow.Sharpness)' - acum_narrowband;
+err_broad  = vertcat(s_broad.Sharpness)'  - acum_broadband;
+fprintf('Loudness of the test signals: %.3f to %.3f sone (target %g sone)\n', ...
+        min([N_narrow N_broad]), max([N_narrow N_broad]), N_target);
+fprintf('Narrowband signals (Table A.2): max |error| = %.3f acum, %d of %d within 0.05 acum\n', ...
+        max(abs(err_narrow)), sum(abs(err_narrow) <= 0.05), numel(err_narrow));
+fprintf('Broadband signals (Table A.3):  max |error| = %.3f acum, %d of %d within 0.05 acum\n', ...
+        max(abs(err_broad)), sum(abs(err_broad) <= 0.05), numel(err_broad));
 
 %% plot validation for narrowband and broadband
 
@@ -313,3 +340,92 @@ if save_figs==1
     fprintf('\n%s.m: figure %s was saved on disk\n\t(full name: %s)\n',mfilename,figname_short,figname_out);
 end
 
+%% local functions
+
+function x = il_bandpass_noise(f_lo, f_hi, fa, N)
+% function x = il_bandpass_noise(f_lo, f_hi, fa, N)
+%
+% Generates ideal bandpass noise: a flat magnitude spectrum between f_lo and
+% f_hi (Hz), zero elsewhere, with a random phase in each frequency bin. The
+% spectrum is built directly in the frequency domain, so the band edges are
+% exact (no filter slopes) and the signal is periodic in N samples (no
+% onset or offset transients).
+%
+% INPUT ARGUMENTS
+%   f_lo, f_hi : scalars
+%   lower and upper edges of the band (Hz), both included
+%
+%   fa : [Nx1] array
+%   absolute frequency of each bin of an N-point FFT (Hz), i.e. abs(f) with
+%   f = (0:N-1)*fs/N mapped to [-fs/2, fs/2). The frequency resolution is
+%   fs/N (0.2 Hz for 5 s at 48 kHz)
+%
+%   N : integer
+%   number of samples (must be even)
+%
+% OUTPUT
+%   x : [Nx1] array
+%   real-valued noise with unit rms (to be scaled to the desired level)
+%
+% The phase is drawn with rand, so the noise depends on the state of the
+% random number generator (set with rng before the first call).
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+mag = zeros(N,1);
+mag(fa >= f_lo & fa <= f_hi) = 1;                % unit magnitude inside the band
+ph  = exp(1j*2*pi*rand(N,1)); ph(1) = 1;         % random phase, uniform in [0, 2*pi); DC bin real
+
+X   = mag.*ph; X(N/2+2:end) = conj(flipud(X(2:N/2))); % Hermitian symmetry: negative frequencies are the complex conjugate of the positive ones
+x   = real(ifft(X));                             % real signal (real() removes round-off imaginary parts)
+x   = x/rms(x);                                  % unit rms
+
+end % end of function <il_bandpass_noise>
+
+function [x, L] = il_set_loudness(x, fs, N_target)
+% function [x, L] = il_set_loudness(x, fs, N_target)
+%
+% Scales the signal x so that its stationary loudness according to
+% ISO 532-1 (free field, time_skip of 0.5 s, the same settings used for the
+% validation) equals N_target, as required by DIN 45692 for its test
+% signals.
+%
+% The gain is found by bisection, which relies on the loudness increasing
+% monotonically with the level. The search interval is 30 to 110 dB SPL; the
+% geometric mean of the interval limits is used as the midpoint, so that
+% the interval is halved in dB. After 14 iterations the interval is
+% 80/2^14 = 0.005 dB wide, which gives the target loudness to about 0.001
+% sone at 4 sone.
+%
+% INPUT ARGUMENTS
+%   x : [Nx1] array
+%   signal of arbitrary amplitude (it is normalised to unit rms here)
+%
+%   fs : integer
+%   sampling frequency (Hz)
+%
+%   N_target : scalar
+%   target loudness (sone)
+%
+% OUTPUTS
+%   x : [Nx1] array
+%   scaled signal (Pa)
+%
+%   L : struct
+%   output of Loudness_ISO532_1 for the scaled signal (type <help
+%   Loudness_ISO532_1> for more info)
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+x  = x/rms(x);                                   % unit rms, so that the gain g is the rms value in Pa
+lo = 20e-6*10^(30/20); hi = 20e-6*10^(110/20);   % gain range: 30 to 110 dB SPL
+
+for it = 1:14
+    g = sqrt(lo*hi);                             % midpoint of the interval, in dB
+    if Loudness_ISO532_1(x*g, fs, 0, 1, 0.5, 0).Loudness < N_target, lo = g; else, hi = g; end
+end
+
+x = x*sqrt(lo*hi);                               % midpoint of the final interval
+L = Loudness_ISO532_1(x, fs, 0, 1, 0.5, 0);      % loudness of the scaled signal
+
+end % end of function <il_set_loudness>
